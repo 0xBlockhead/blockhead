@@ -76,9 +76,8 @@
 		>
 			{#snippet children(dogecoinAuxPowParentBlockHeader)}
 				{#if dogecoinAuxPowParentBlockHeader != null}
-					{@const dogecoinAuxPowParentBlockHeaderInitial = untrack(() => dogecoinAuxPowParentBlockHeader)}
 					<DogecoinAuxPowParentBlockHeaderView
-						selection={select(EntityType.DogecoinAuxPowParentBlockHeader, (dogecoinAuxPowParentBlockHeader ?? dogecoinAuxPowParentBlockHeaderInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -104,12 +103,11 @@
 			>
 				{#snippet children(dogecoinAuxPowParentBlockHeader)}
 					{#if dogecoinAuxPowParentBlockHeader != null}
-						{@const dogecoinAuxPowParentBlockHeaderInitial = untrack(() => dogecoinAuxPowParentBlockHeader)}
 						<div>
 							<dt>Parent block header</dt>
 							<dd>
 								<DogecoinAuxPowParentBlockHeaderView
-									selection={select(EntityType.DogecoinAuxPowParentBlockHeader, (dogecoinAuxPowParentBlockHeader ?? dogecoinAuxPowParentBlockHeaderInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -123,12 +121,11 @@
 			>
 				{#snippet children(dogecoinAuxPowMerkleBranch)}
 					{#if dogecoinAuxPowMerkleBranch != null}
-						{@const dogecoinAuxPowMerkleBranchInitial = untrack(() => dogecoinAuxPowMerkleBranch)}
 						<div>
 							<dt>Coinbase branch</dt>
 							<dd>
 								<DogecoinAuxPowMerkleBranchView
-									selection={select(EntityType.DogecoinAuxPowMerkleBranch, (dogecoinAuxPowMerkleBranch ?? dogecoinAuxPowMerkleBranchInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -142,12 +139,11 @@
 			>
 				{#snippet children(dogecoinAuxPowMerkleBranch)}
 					{#if dogecoinAuxPowMerkleBranch != null}
-						{@const dogecoinAuxPowMerkleBranchInitial = untrack(() => dogecoinAuxPowMerkleBranch)}
 						<div>
 							<dt>Chain branch</dt>
 							<dd>
 								<DogecoinAuxPowMerkleBranchView
-									selection={select(EntityType.DogecoinAuxPowMerkleBranch, (dogecoinAuxPowMerkleBranch ?? dogecoinAuxPowMerkleBranchInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -140,9 +140,8 @@
 						resource={selection.$rootMessage}
 					>
 						{#snippet children(tonMessage)}
-							{@const tonMessageInitial = untrack(() => tonMessage)}
 							<TonMessageView
-								selection={select(EntityType.TonMessage, (tonMessage ?? tonMessageInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

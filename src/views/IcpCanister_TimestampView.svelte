@@ -96,12 +96,11 @@
 			>
 				{#snippet children(icpSubnet)}
 					{#if icpSubnet != null}
-						{@const icpSubnetInitial = untrack(() => icpSubnet)}
 						<div>
 							<dt>subnet</dt>
 							<dd>
 								<IcpSubnetView
-									selection={select(EntityType.IcpSubnet, (icpSubnet ?? icpSubnetInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.IcpSubnet, icpSubnet[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

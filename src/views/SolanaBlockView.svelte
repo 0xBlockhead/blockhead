@@ -240,12 +240,11 @@
 			>
 				{#snippet children(solanaBlock)}
 					{#if solanaBlock != null}
-						{@const solanaBlockInitial = untrack(() => solanaBlock)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<SolanaBlockView
-									selection={select(EntityType.SolanaBlock, (solanaBlock ?? solanaBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -137,12 +137,11 @@
 			>
 				{#snippet children(sorobanWasm)}
 					{#if sorobanWasm != null}
-						{@const sorobanWasmInitial = untrack(() => sorobanWasm)}
 						<div>
 							<dt>Wasm</dt>
 							<dd>
 								<SorobanWasmView
-									selection={select(EntityType.SorobanWasm, (sorobanWasm ?? sorobanWasmInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SorobanWasm, sorobanWasm[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

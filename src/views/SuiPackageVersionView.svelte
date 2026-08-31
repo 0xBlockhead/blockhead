@@ -79,10 +79,9 @@
 		>
 			{#snippet children(suiPackage)}
 				{#if suiPackage != null}
-					{@const suiPackageInitial = untrack(() => suiPackage)}
 					<span data-text="muted">
 						<SuiPackageView
-							selection={select(EntityType.SuiPackage, (suiPackage ?? suiPackageInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.SuiPackage, suiPackage[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -108,12 +107,11 @@
 			>
 				{#snippet children(suiPackage)}
 					{#if suiPackage != null}
-						{@const suiPackageInitial = untrack(() => suiPackage)}
 						<div>
 							<dt>package</dt>
 							<dd>
 								<SuiPackageView
-									selection={select(EntityType.SuiPackage, (suiPackage ?? suiPackageInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SuiPackage, suiPackage[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

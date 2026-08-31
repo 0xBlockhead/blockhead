@@ -137,12 +137,11 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>owner</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -156,12 +155,11 @@
 			>
 				{#snippet children(zeroGStorageLogEntry)}
 					{#if zeroGStorageLogEntry != null}
-						{@const zeroGStorageLogEntryInitial = untrack(() => zeroGStorageLogEntry)}
 						<div>
 							<dt>log entry</dt>
 							<dd>
 								<ZeroGStorageLogEntryView
-									selection={select(EntityType.ZeroGStorageLogEntry, (zeroGStorageLogEntry ?? zeroGStorageLogEntryInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

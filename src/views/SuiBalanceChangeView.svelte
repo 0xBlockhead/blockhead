@@ -108,12 +108,11 @@
 			>
 				{#snippet children(suiCoinType)}
 					{#if suiCoinType != null}
-						{@const suiCoinTypeInitial = untrack(() => suiCoinType)}
 						<div>
 							<dt>coin type</dt>
 							<dd>
 								<SuiCoinTypeView
-									selection={select(EntityType.SuiCoinType, (suiCoinType ?? suiCoinTypeInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SuiCoinType, suiCoinType[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -250,12 +250,11 @@
 			>
 				{#snippet children(evmTransaction)}
 					{#if evmTransaction != null}
-						{@const evmTransactionInitial = untrack(() => evmTransaction)}
 						<div>
 							<dt>Bundled transaction</dt>
 							<dd>
 								<EvmTransactionView
-									selection={select(EntityType.EvmTransaction, (evmTransaction ?? evmTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -316,12 +315,11 @@
 						>
 							{#snippet children(erc4337SmartAccount)}
 								{#if erc4337SmartAccount != null}
-									{@const erc4337SmartAccountInitial = untrack(() => erc4337SmartAccount)}
 									<div>
 										<dt>Sender</dt>
 										<dd>
 											<Erc4337SmartAccountView
-												selection={select(EntityType.Erc4337SmartAccount, (erc4337SmartAccount ?? erc4337SmartAccountInitial)[EntityMetaKey.Selector])}
+												selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector])}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -335,12 +333,11 @@
 						>
 							{#snippet children(erc4337Paymaster)}
 								{#if erc4337Paymaster != null}
-									{@const erc4337PaymasterInitial = untrack(() => erc4337Paymaster)}
 									<div>
 										<dt>Paymaster</dt>
 										<dd>
 											<Erc4337PaymasterView
-												selection={select(EntityType.Erc4337Paymaster, (erc4337Paymaster ?? erc4337PaymasterInitial)[EntityMetaKey.Selector])}
+												selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector])}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -354,12 +351,11 @@
 						>
 							{#snippet children(erc4337Bundler)}
 								{#if erc4337Bundler != null}
-									{@const erc4337BundlerInitial = untrack(() => erc4337Bundler)}
 									<div>
 										<dt>Bundler</dt>
 										<dd>
 											<Erc4337BundlerView
-												selection={select(EntityType.Erc4337Bundler, (erc4337Bundler ?? erc4337BundlerInitial)[EntityMetaKey.Selector])}
+												selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector])}
 												layout={EntityLayout.Value}
 											/>
 										</dd>

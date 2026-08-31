@@ -127,12 +127,11 @@
 			>
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null}
-						{@const blockheadAgentConnectionInitial = untrack(() => blockheadAgentConnection)}
 						<div>
 							<dt>connection</dt>
 							<dd>
 								<BlockheadAgentConnectionView
-									selection={select(EntityType.BlockheadAgentConnection, (blockheadAgentConnection ?? blockheadAgentConnectionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -208,12 +207,11 @@
 			>
 				{#snippet children(mcpToolCall)}
 					{#if mcpToolCall != null}
-						{@const mcpToolCallInitial = untrack(() => mcpToolCall)}
 						<div>
 							<dt>MCP tool call</dt>
 							<dd>
 								<McpToolCallView
-									selection={select(EntityType.McpToolCall, (mcpToolCall ?? mcpToolCallInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.McpToolCall, mcpToolCall[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -247,12 +245,11 @@
 			>
 				{#snippet children(acpSession)}
 					{#if acpSession != null}
-						{@const acpSessionInitial = untrack(() => acpSession)}
 						<div>
 							<dt>ACP session</dt>
 							<dd>
 								<AcpSessionView
-									selection={select(EntityType.AcpSession, (acpSession ?? acpSessionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AcpSession, acpSession[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -266,12 +263,11 @@
 			>
 				{#snippet children(acpPromptTurn)}
 					{#if acpPromptTurn != null}
-						{@const acpPromptTurnInitial = untrack(() => acpPromptTurn)}
 						<div>
 							<dt>ACP prompt turn</dt>
 							<dd>
 								<AcpPromptTurnView
-									selection={select(EntityType.AcpPromptTurn, (acpPromptTurn ?? acpPromptTurnInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AcpPromptTurn, acpPromptTurn[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

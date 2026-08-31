@@ -161,12 +161,11 @@
 			>
 				{#snippet children(moneroBlock)}
 					{#if moneroBlock != null}
-						{@const moneroBlockInitial = untrack(() => moneroBlock)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<MoneroBlockView
-									selection={select(EntityType.MoneroBlock, (moneroBlock ?? moneroBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -125,9 +125,8 @@
 						resource={selection.$account}
 					>
 						{#snippet children(quilibriumAccount)}
-							{@const quilibriumAccountInitial = untrack(() => quilibriumAccount)}
 							<QuilibriumAccountView
-								selection={select(EntityType.QuilibriumAccount, (quilibriumAccount ?? quilibriumAccountInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

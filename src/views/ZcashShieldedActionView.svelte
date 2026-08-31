@@ -128,12 +128,11 @@
 			>
 				{#snippet children(zcashShieldedPool)}
 					{#if zcashShieldedPool != null}
-						{@const zcashShieldedPoolInitial = untrack(() => zcashShieldedPool)}
 						<div>
 							<dt>Pool</dt>
 							<dd>
 								<ZcashShieldedPoolView
-									selection={select(EntityType.ZcashShieldedPool, (zcashShieldedPool ?? zcashShieldedPoolInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -132,12 +132,11 @@
 			>
 				{#snippet children(quilibriumAccount)}
 					{#if quilibriumAccount != null}
-						{@const quilibriumAccountInitial = untrack(() => quilibriumAccount)}
 						<div>
 							<dt>application account</dt>
 							<dd>
 								<QuilibriumAccountView
-									selection={select(EntityType.QuilibriumAccount, (quilibriumAccount ?? quilibriumAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

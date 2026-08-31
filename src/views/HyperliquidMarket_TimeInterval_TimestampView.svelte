@@ -102,12 +102,11 @@
 			>
 				{#snippet children(hyperliquidPerpMarket)}
 					{#if hyperliquidPerpMarket != null}
-						{@const hyperliquidPerpMarketInitial = untrack(() => hyperliquidPerpMarket)}
 						<div>
 							<dt>perp market</dt>
 							<dd>
 								<HyperliquidPerpMarketView
-									selection={select(EntityType.HyperliquidPerpMarket, (hyperliquidPerpMarket ?? hyperliquidPerpMarketInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidPerpMarket, hyperliquidPerpMarket[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -121,12 +120,11 @@
 			>
 				{#snippet children(hyperliquidSpotPair)}
 					{#if hyperliquidSpotPair != null}
-						{@const hyperliquidSpotPairInitial = untrack(() => hyperliquidSpotPair)}
 						<div>
 							<dt>spot pair</dt>
 							<dd>
 								<HyperliquidSpotPairView
-									selection={select(EntityType.HyperliquidSpotPair, (hyperliquidSpotPair ?? hyperliquidSpotPairInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidSpotPair, hyperliquidSpotPair[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

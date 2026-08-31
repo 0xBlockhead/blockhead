@@ -185,12 +185,11 @@
 			>
 				{#snippet children(gitCommit)}
 					{#if gitCommit != null}
-						{@const gitCommitInitial = untrack(() => gitCommit)}
 						<div>
 							<dt>Git commit</dt>
 							<dd>
 								<GitCommitView
-									selection={select(EntityType.GitCommit, (gitCommit ?? gitCommitInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -204,12 +203,11 @@
 			>
 				{#snippet children(gitObject)}
 					{#if gitObject != null}
-						{@const gitObjectInitial = untrack(() => gitObject)}
 						<div>
 							<dt>payload object</dt>
 							<dd>
 								<GitObjectView
-									selection={select(EntityType.GitObject, (gitObject ?? gitObjectInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

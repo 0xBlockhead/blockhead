@@ -142,12 +142,11 @@
 			>
 				{#snippet children(hyperliquidBorrowLendReserve)}
 					{#if hyperliquidBorrowLendReserve != null}
-						{@const hyperliquidBorrowLendReserveInitial = untrack(() => hyperliquidBorrowLendReserve)}
 						<div>
 							<dt>reserve</dt>
 							<dd>
 								<HyperliquidBorrowLendReserveView
-									selection={select(EntityType.HyperliquidBorrowLendReserve, (hyperliquidBorrowLendReserve ?? hyperliquidBorrowLendReserveInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidBorrowLendReserve, hyperliquidBorrowLendReserve[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

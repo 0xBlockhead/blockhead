@@ -120,12 +120,11 @@
 			>
 				{#snippet children(erc4337AccountFactory)}
 					{#if erc4337AccountFactory != null}
-						{@const erc4337AccountFactoryInitial = untrack(() => erc4337AccountFactory)}
 						<div>
 							<dt>Factory</dt>
 							<dd>
 								<Erc4337AccountFactoryView
-									selection={select(EntityType.Erc4337AccountFactory, (erc4337AccountFactory ?? erc4337AccountFactoryInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.Erc4337AccountFactory, erc4337AccountFactory[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

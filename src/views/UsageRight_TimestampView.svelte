@@ -131,12 +131,11 @@
 			>
 				{#snippet children(assetObject)}
 					{#if assetObject != null}
-						{@const assetObjectInitial = untrack(() => assetObject)}
 						<div>
 							<dt>object</dt>
 							<dd>
 								<AssetObjectView
-									selection={select(EntityType.AssetObject, (assetObject ?? assetObjectInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AssetObject, assetObject[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -150,12 +149,11 @@
 			>
 				{#snippet children(nftToken)}
 					{#if nftToken != null}
-						{@const nftTokenInitial = untrack(() => nftToken)}
 						<div>
 							<dt>token</dt>
 							<dd>
 								<NftTokenView
-									selection={select(EntityType.NftToken, (nftToken ?? nftTokenInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.NftToken, nftToken[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -169,12 +167,11 @@
 			>
 				{#snippet children(account)}
 					{#if account != null}
-						{@const accountInitial = untrack(() => account)}
 						<div>
 							<dt>user</dt>
 							<dd>
 								<AccountView
-									selection={select(EntityType.Account, (account ?? accountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

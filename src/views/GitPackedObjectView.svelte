@@ -80,10 +80,9 @@
 			resource={selection.$packfile}
 		>
 			{#snippet children(gitPackfile)}
-				{@const gitPackfileInitial = untrack(() => gitPackfile)}
 				<span data-text="muted">
 					<GitPackfileView
-						selection={select(EntityType.GitPackfile, (gitPackfile ?? gitPackfileInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -183,9 +182,8 @@
 						resource={selection.$packfile}
 					>
 						{#snippet children(gitPackfile)}
-							{@const gitPackfileInitial = untrack(() => gitPackfile)}
 							<GitPackfileView
-								selection={select(EntityType.GitPackfile, (gitPackfile ?? gitPackfileInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -198,12 +196,11 @@
 			>
 				{#snippet children(gitObject)}
 					{#if gitObject != null}
-						{@const gitObjectInitial = untrack(() => gitObject)}
 						<div>
 							<dt>object</dt>
 							<dd>
 								<GitObjectView
-									selection={select(EntityType.GitObject, (gitObject ?? gitObjectInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

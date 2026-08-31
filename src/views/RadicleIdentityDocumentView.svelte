@@ -157,12 +157,11 @@
 			>
 				{#snippet children(radicleRepository)}
 					{#if radicleRepository != null}
-						{@const radicleRepositoryInitial = untrack(() => radicleRepository)}
 						<div>
 							<dt>repository</dt>
 							<dd>
 								<RadicleRepositoryView
-									selection={select(EntityType.RadicleRepository, (radicleRepository ?? radicleRepositoryInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

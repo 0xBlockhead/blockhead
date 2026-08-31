@@ -109,12 +109,11 @@
 			>
 				{#snippet children(assetObject)}
 					{#if assetObject != null}
-						{@const assetObjectInitial = untrack(() => assetObject)}
 						<div>
 							<dt>asset object</dt>
 							<dd>
 								<AssetObjectView
-									selection={select(EntityType.AssetObject, (assetObject ?? assetObjectInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AssetObject, assetObject[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

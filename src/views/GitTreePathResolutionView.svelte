@@ -153,12 +153,11 @@
 			>
 				{#snippet children(gitBlob)}
 					{#if gitBlob != null}
-						{@const gitBlobInitial = untrack(() => gitBlob)}
 						<div>
 							<dt>Blob</dt>
 							<dd>
 								<GitBlobView
-									selection={select(EntityType.GitBlob, (gitBlob ?? gitBlobInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitBlob, gitBlob[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

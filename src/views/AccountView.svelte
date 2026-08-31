@@ -165,7 +165,6 @@
 							resource={projection.$account}
 						>
 							{#snippet children(evmNetworkAccount)}
-								{@const evmNetworkAccountInitial = untrack(() => evmNetworkAccount)}
 								<section
 									id={id}
 									aria-labelledby={`${id}:marker`}
@@ -176,7 +175,7 @@
 								>
 									<EvmNetworkAccountView
 										selection={
-											select(EntityType.EvmNetworkAccount, (evmNetworkAccount ?? evmNetworkAccountInitial)[EntityMetaKey.Selector], {
+											select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector], {
 												sources: selection.sources,
 											})
 										}
@@ -237,7 +236,6 @@
 							resource={projection.$account}
 						>
 							{#snippet children(suiAccount)}
-								{@const suiAccountInitial = untrack(() => suiAccount)}
 								<section
 									id={id}
 									aria-labelledby={`${id}:marker`}
@@ -248,7 +246,7 @@
 								>
 									<SuiAccountView
 										selection={
-											select(EntityType.SuiAccount, (suiAccount ?? suiAccountInitial)[EntityMetaKey.Selector], {
+											select(EntityType.SuiAccount, suiAccount[EntityMetaKey.Selector], {
 												sources: selection.sources,
 											})
 										}
@@ -309,7 +307,6 @@
 							resource={projection.$account}
 						>
 							{#snippet children(tezosAccount)}
-								{@const tezosAccountInitial = untrack(() => tezosAccount)}
 								<section
 									id={id}
 									aria-labelledby={`${id}:marker`}
@@ -320,7 +317,7 @@
 								>
 									<TezosAccountView
 										selection={
-											select(EntityType.TezosAccount, (tezosAccount ?? tezosAccountInitial)[EntityMetaKey.Selector], {
+											select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector], {
 												sources: selection.sources,
 											})
 										}

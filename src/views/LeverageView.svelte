@@ -259,9 +259,8 @@
 						resource={selection.$pool}
 					>
 						{#snippet children(liquidityPool)}
-							{@const liquidityPoolInitial = untrack(() => liquidityPool)}
 							<LiquidityPoolView
-								selection={select(EntityType.LiquidityPool, (liquidityPool ?? liquidityPoolInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -276,9 +275,8 @@
 						resource={selection.$owner}
 					>
 						{#snippet children(evmAccount)}
-							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

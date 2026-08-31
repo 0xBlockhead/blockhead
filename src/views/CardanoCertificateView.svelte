@@ -119,12 +119,11 @@
 			>
 				{#snippet children(cardanoStakeCredential)}
 					{#if cardanoStakeCredential != null}
-						{@const cardanoStakeCredentialInitial = untrack(() => cardanoStakeCredential)}
 						<div>
 							<dt>stake credential</dt>
 							<dd>
 								<CardanoStakeCredentialView
-									selection={select(EntityType.CardanoStakeCredential, (cardanoStakeCredential ?? cardanoStakeCredentialInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.CardanoStakeCredential, cardanoStakeCredential[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

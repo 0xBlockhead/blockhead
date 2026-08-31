@@ -98,12 +98,11 @@
 			>
 				{#snippet children(blockheadWalletConnection)}
 					{#if blockheadWalletConnection != null}
-						{@const blockheadWalletConnectionInitial = untrack(() => blockheadWalletConnection)}
 						<div>
 							<dt>connection</dt>
 							<dd>
 								<BlockheadWalletConnectionView
-									selection={select(EntityType.BlockheadWalletConnection, (blockheadWalletConnection ?? blockheadWalletConnectionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

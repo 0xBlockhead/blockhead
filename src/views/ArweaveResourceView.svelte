@@ -221,12 +221,11 @@
 			>
 				{#snippet children(arweaveTransaction)}
 					{#if arweaveTransaction != null}
-						{@const arweaveTransactionInitial = untrack(() => arweaveTransaction)}
 						<div>
 							<dt>transaction</dt>
 							<dd>
 								<ArweaveTransactionView
-									selection={select(EntityType.ArweaveTransaction, (arweaveTransaction ?? arweaveTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ArweaveTransaction, arweaveTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

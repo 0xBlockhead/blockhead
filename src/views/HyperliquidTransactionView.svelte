@@ -85,12 +85,11 @@
 			>
 				{#snippet children(hyperliquidBlock)}
 					{#if hyperliquidBlock != null}
-						{@const hyperliquidBlockInitial = untrack(() => hyperliquidBlock)}
 						<div>
 							<dt>block</dt>
 							<dd>
 								<HyperliquidBlockView
-									selection={select(EntityType.HyperliquidBlock, (hyperliquidBlock ?? hyperliquidBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidBlock, hyperliquidBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -104,12 +103,11 @@
 			>
 				{#snippet children(hyperliquidAccount)}
 					{#if hyperliquidAccount != null}
-						{@const hyperliquidAccountInitial = untrack(() => hyperliquidAccount)}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<HyperliquidAccountView
-									selection={select(EntityType.HyperliquidAccount, (hyperliquidAccount ?? hyperliquidAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

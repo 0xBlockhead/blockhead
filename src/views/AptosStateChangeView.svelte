@@ -208,12 +208,11 @@
 			>
 				{#snippet children(aptosAccountResource)}
 					{#if aptosAccountResource != null}
-						{@const aptosAccountResourceInitial = untrack(() => aptosAccountResource)}
 						<div>
 							<dt>resource</dt>
 							<dd>
 								<AptosAccountResourceView
-									selection={select(EntityType.AptosAccountResource, (aptosAccountResource ?? aptosAccountResourceInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AptosAccountResource, aptosAccountResource[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -273,12 +272,11 @@
 			>
 				{#snippet children(moveModule)}
 					{#if moveModule != null}
-						{@const moveModuleInitial = untrack(() => moveModule)}
 						<div>
 							<dt>module</dt>
 							<dd>
 								<MoveModuleView
-									selection={select(EntityType.MoveModule, (moveModule ?? moveModuleInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.MoveModule, moveModule[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -294,12 +292,11 @@
 			>
 				{#snippet children(aptosTableItem)}
 					{#if aptosTableItem != null}
-						{@const aptosTableItemInitial = untrack(() => aptosTableItem)}
 						<div>
 							<dt>table item</dt>
 							<dd>
 								<AptosTableItemView
-									selection={select(EntityType.AptosTableItem, (aptosTableItem ?? aptosTableItemInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AptosTableItem, aptosTableItem[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -118,9 +118,8 @@
 						resource={selection.$to}
 					>
 						{#snippet children(evmAccount)}
-							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -239,12 +238,11 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>Proposer</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -258,12 +256,11 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>Executor</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -277,12 +274,11 @@
 			>
 				{#snippet children(evmTransaction)}
 					{#if evmTransaction != null}
-						{@const evmTransactionInitial = untrack(() => evmTransaction)}
 						<div>
 							<dt>Execution transaction</dt>
 							<dd>
 								<EvmTransactionView
-									selection={select(EntityType.EvmTransaction, (evmTransaction ?? evmTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -146,9 +146,8 @@
 						resource={selection.$article}
 					>
 						{#snippet children(nostrArticle)}
-							{@const nostrArticleInitial = untrack(() => nostrArticle)}
 							<NostrArticleView
-								selection={select(EntityType.NostrArticle, (nostrArticle ?? nostrArticleInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -163,9 +162,8 @@
 						resource={selection.$author}
 					>
 						{#snippet children(nostrProfile)}
-							{@const nostrProfileInitial = untrack(() => nostrProfile)}
 							<NostrProfileView
-								selection={select(EntityType.NostrProfile, (nostrProfile ?? nostrProfileInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

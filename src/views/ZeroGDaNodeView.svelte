@@ -77,10 +77,9 @@
 		>
 			{#snippet children(zeroGDaQuorum)}
 				{#if zeroGDaQuorum != null}
-					{@const zeroGDaQuorumInitial = untrack(() => zeroGDaQuorum)}
 					<span data-text="muted">
 						<ZeroGDaQuorumView
-							selection={select(EntityType.ZeroGDaQuorum, (zeroGDaQuorum ?? zeroGDaQuorumInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -113,12 +112,11 @@
 			>
 				{#snippet children(zeroGDaQuorum)}
 					{#if zeroGDaQuorum != null}
-						{@const zeroGDaQuorumInitial = untrack(() => zeroGDaQuorum)}
 						<div>
 							<dt>quorum</dt>
 							<dd>
 								<ZeroGDaQuorumView
-									selection={select(EntityType.ZeroGDaQuorum, (zeroGDaQuorum ?? zeroGDaQuorumInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -132,12 +130,11 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>operator</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

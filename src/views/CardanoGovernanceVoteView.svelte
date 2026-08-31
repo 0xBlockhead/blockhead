@@ -182,12 +182,11 @@
 			>
 				{#snippet children(cardanoTransaction)}
 					{#if cardanoTransaction != null}
-						{@const cardanoTransactionInitial = untrack(() => cardanoTransaction)}
 						<div>
 							<dt>transaction</dt>
 							<dd>
 								<CardanoTransactionView
-									selection={select(EntityType.CardanoTransaction, (cardanoTransaction ?? cardanoTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.CardanoTransaction, cardanoTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

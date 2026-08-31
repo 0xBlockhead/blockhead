@@ -107,10 +107,9 @@
 		>
 			{#snippet children(lightningNode)}
 				{#if lightningNode != null}
-					{@const lightningNodeInitial = untrack(() => lightningNode)}
 					<span data-text="muted">
 						<LightningNodeView
-							selection={select(EntityType.LightningNode, (lightningNode ?? lightningNodeInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -181,12 +180,11 @@
 			>
 				{#snippet children(lightningNode)}
 					{#if lightningNode != null}
-						{@const lightningNodeInitial = untrack(() => lightningNode)}
 						<div>
 							<dt>node</dt>
 							<dd>
 								<LightningNodeView
-									selection={select(EntityType.LightningNode, (lightningNode ?? lightningNodeInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

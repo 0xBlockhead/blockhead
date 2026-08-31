@@ -103,9 +103,8 @@
 						resource={selection.$tokenIn}
 					>
 						{#snippet children(evmCoinInstance)}
-							{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 							<EvmCoinInstanceView
-								selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -120,9 +119,8 @@
 						resource={selection.$tokenOut}
 					>
 						{#snippet children(evmCoinInstance)}
-							{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 							<EvmCoinInstanceView
-								selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -220,12 +218,11 @@
 			>
 				{#snippet children(blockheadSwapIntent)}
 					{#if blockheadSwapIntent != null}
-						{@const blockheadSwapIntentInitial = untrack(() => blockheadSwapIntent)}
 						<div>
 							<dt>intent</dt>
 							<dd>
 								<BlockheadSwapIntentView
-									selection={select(EntityType.BlockheadSwapIntent, (blockheadSwapIntent ?? blockheadSwapIntentInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadSwapIntent, blockheadSwapIntent[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

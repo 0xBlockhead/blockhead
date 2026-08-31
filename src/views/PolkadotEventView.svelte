@@ -99,10 +99,9 @@
 		>
 			{#snippet children(polkadotPallet)}
 				{#if polkadotPallet != null}
-					{@const polkadotPalletInitial = untrack(() => polkadotPallet)}
 					<span data-text="muted">
 						<PolkadotPalletView
-							selection={select(EntityType.PolkadotPallet, (polkadotPallet ?? polkadotPalletInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -138,12 +137,11 @@
 			>
 				{#snippet children(polkadotPallet)}
 					{#if polkadotPallet != null}
-						{@const polkadotPalletInitial = untrack(() => polkadotPallet)}
 						<div>
 							<dt>Pallet</dt>
 							<dd>
 								<PolkadotPalletView
-									selection={select(EntityType.PolkadotPallet, (polkadotPallet ?? polkadotPalletInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -157,12 +155,11 @@
 			>
 				{#snippet children(polkadotExtrinsic)}
 					{#if polkadotExtrinsic != null}
-						{@const polkadotExtrinsicInitial = untrack(() => polkadotExtrinsic)}
 						<div>
 							<dt>Extrinsic</dt>
 							<dd>
 								<PolkadotExtrinsicView
-									selection={select(EntityType.PolkadotExtrinsic, (polkadotExtrinsic ?? polkadotExtrinsicInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.PolkadotExtrinsic, polkadotExtrinsic[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

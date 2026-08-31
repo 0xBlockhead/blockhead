@@ -188,12 +188,11 @@
 			>
 				{#snippet children(solanaBlock)}
 					{#if solanaBlock != null}
-						{@const solanaBlockInitial = untrack(() => solanaBlock)}
 						<div>
 							<dt>Block</dt>
 							<dd>
 								<SolanaBlockView
-									selection={select(EntityType.SolanaBlock, (solanaBlock ?? solanaBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -207,12 +206,11 @@
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null}
-						{@const solanaAccountInitial = untrack(() => solanaAccount)}
 						<div>
 							<dt>Fee payer</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, (solanaAccount ?? solanaAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

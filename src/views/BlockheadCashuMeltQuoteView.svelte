@@ -128,12 +128,11 @@
 			>
 				{#snippet children(blockheadCashuWalletState)}
 					{#if blockheadCashuWalletState != null}
-						{@const blockheadCashuWalletStateInitial = untrack(() => blockheadCashuWalletState)}
 						<div>
 							<dt>wallet state</dt>
 							<dd>
 								<BlockheadCashuWalletStateView
-									selection={select(EntityType.BlockheadCashuWalletState, (blockheadCashuWalletState ?? blockheadCashuWalletStateInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadCashuWalletState, blockheadCashuWalletState[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

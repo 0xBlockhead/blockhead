@@ -91,10 +91,9 @@
 		>
 			{#snippet children(blockheadAgentConnection)}
 				{#if blockheadAgentConnection != null}
-					{@const blockheadAgentConnectionInitial = untrack(() => blockheadAgentConnection)}
 					<span data-text="muted">
 						<BlockheadAgentConnectionView
-							selection={select(EntityType.BlockheadAgentConnection, (blockheadAgentConnection ?? blockheadAgentConnectionInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -117,12 +116,11 @@
 			>
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null}
-						{@const blockheadAgentConnectionInitial = untrack(() => blockheadAgentConnection)}
 						<div>
 							<dt>connection</dt>
 							<dd>
 								<BlockheadAgentConnectionView
-									selection={select(EntityType.BlockheadAgentConnection, (blockheadAgentConnection ?? blockheadAgentConnectionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

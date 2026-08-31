@@ -83,12 +83,11 @@
 			>
 				{#snippet children(icpCanister)}
 					{#if icpCanister != null}
-						{@const icpCanisterInitial = untrack(() => icpCanister)}
 						<div>
 							<dt>canister</dt>
 							<dd>
 								<IcpCanisterView
-									selection={select(EntityType.IcpCanister, (icpCanister ?? icpCanisterInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.IcpCanister, icpCanister[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

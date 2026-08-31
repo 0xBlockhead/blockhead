@@ -126,12 +126,11 @@
 			>
 				{#snippet children(zcashShieldedAction)}
 					{#if zcashShieldedAction != null}
-						{@const zcashShieldedActionInitial = untrack(() => zcashShieldedAction)}
 						<div>
 							<dt>shielded action</dt>
 							<dd>
 								<ZcashShieldedActionView
-									selection={select(EntityType.ZcashShieldedAction, (zcashShieldedAction ?? zcashShieldedActionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZcashShieldedAction, zcashShieldedAction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

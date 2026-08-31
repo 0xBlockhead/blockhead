@@ -171,9 +171,8 @@
 						resource={selection.$coinInstance}
 					>
 						{#snippet children(evmCoinInstance)}
-							{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 							<EvmCoinInstanceView
-								selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

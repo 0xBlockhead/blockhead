@@ -158,12 +158,11 @@
 			>
 				{#snippet children(gitSignature)}
 					{#if gitSignature != null}
-						{@const gitSignatureInitial = untrack(() => gitSignature)}
 						<div>
 							<dt>signature</dt>
 							<dd>
 								<GitSignatureView
-									selection={select(EntityType.GitSignature, (gitSignature ?? gitSignatureInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitSignature, gitSignature[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -135,12 +135,11 @@
 			>
 				{#snippet children(bittensorBlock)}
 					{#if bittensorBlock != null}
-						{@const bittensorBlockInitial = untrack(() => bittensorBlock)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<BittensorBlockView
-									selection={select(EntityType.BittensorBlock, (bittensorBlock ?? bittensorBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BittensorBlock, bittensorBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

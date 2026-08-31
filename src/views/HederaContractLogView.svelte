@@ -93,9 +93,8 @@
 						resource={selection.$result}
 					>
 						{#snippet children(hederaContractResult)}
-							{@const hederaContractResultInitial = untrack(() => hederaContractResult)}
 							<HederaContractResultView
-								selection={select(EntityType.HederaContractResult, (hederaContractResult ?? hederaContractResultInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.HederaContractResult, hederaContractResult[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -110,9 +109,8 @@
 						resource={selection.$contract}
 					>
 						{#snippet children(hederaContract)}
-							{@const hederaContractInitial = untrack(() => hederaContract)}
 							<HederaContractView
-								selection={select(EntityType.HederaContract, (hederaContract ?? hederaContractInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.HederaContract, hederaContract[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

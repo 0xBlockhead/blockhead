@@ -166,12 +166,11 @@
 			>
 				{#snippet children(evmTransaction)}
 					{#if evmTransaction != null}
-						{@const evmTransactionInitial = untrack(() => evmTransaction)}
 						<div>
 							<dt>source tx</dt>
 							<dd>
 								<EvmTransactionView
-									selection={select(EntityType.EvmTransaction, (evmTransaction ?? evmTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -207,12 +206,11 @@
 			>
 				{#snippet children(evmTransaction)}
 					{#if evmTransaction != null}
-						{@const evmTransactionInitial = untrack(() => evmTransaction)}
 						<div>
 							<dt>destination tx</dt>
 							<dd>
 								<EvmTransactionView
-									selection={select(EntityType.EvmTransaction, (evmTransaction ?? evmTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -278,12 +276,11 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>sender</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -297,12 +294,11 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>recipient</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -356,12 +352,11 @@
 			>
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null}
-						{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 						<div>
 							<dt>from token</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -375,12 +370,11 @@
 			>
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null}
-						{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 						<div>
 							<dt>to token</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

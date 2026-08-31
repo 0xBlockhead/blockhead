@@ -96,10 +96,9 @@
 			resource={selection.$epoch}
 		>
 			{#snippet children(beaconEpoch)}
-				{@const beaconEpochInitial = untrack(() => beaconEpoch)}
 				<span data-text="muted">
 					<BeaconEpochView
-						selection={select(EntityType.BeaconEpoch, (beaconEpoch ?? beaconEpochInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -116,9 +115,8 @@
 						resource={selection.$epoch}
 					>
 						{#snippet children(beaconEpoch)}
-							{@const beaconEpochInitial = untrack(() => beaconEpoch)}
 							<BeaconEpochView
-								selection={select(EntityType.BeaconEpoch, (beaconEpoch ?? beaconEpochInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

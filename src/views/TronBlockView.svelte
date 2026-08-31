@@ -169,12 +169,11 @@
 			>
 				{#snippet children(tronBlock)}
 					{#if tronBlock != null}
-						{@const tronBlockInitial = untrack(() => tronBlock)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<TronBlockView
-									selection={select(EntityType.TronBlock, (tronBlock ?? tronBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronBlock, tronBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -228,12 +227,11 @@
 			>
 				{#snippet children(tronWitness)}
 					{#if tronWitness != null}
-						{@const tronWitnessInitial = untrack(() => tronWitness)}
 						<div>
 							<dt>Witness</dt>
 							<dd>
 								<TronWitnessView
-									selection={select(EntityType.TronWitness, (tronWitness ?? tronWitnessInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronWitness, tronWitness[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

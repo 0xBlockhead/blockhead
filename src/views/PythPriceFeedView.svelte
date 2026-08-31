@@ -86,10 +86,9 @@
 		>
 			{#snippet children(market)}
 				{#if market != null}
-					{@const marketInitial = untrack(() => market)}
 					<span data-text="muted">
 						<MarketView
-							selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -203,12 +202,11 @@
 			>
 				{#snippet children(market)}
 					{#if market != null}
-						{@const marketInitial = untrack(() => market)}
 						<div>
 							<dt>Market</dt>
 							<dd>
 								<MarketView
-									selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

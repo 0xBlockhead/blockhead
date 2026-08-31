@@ -194,12 +194,11 @@
 			>
 				{#snippet children(utxoOutput)}
 					{#if utxoOutput != null}
-						{@const utxoOutputInitial = untrack(() => utxoOutput)}
 						<div>
 							<dt>output</dt>
 							<dd>
 								<UtxoOutputView
-									selection={select(EntityType.UtxoOutput, (utxoOutput ?? utxoOutputInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -213,12 +212,11 @@
 			>
 				{#snippet children(kaspaTransaction)}
 					{#if kaspaTransaction != null}
-						{@const kaspaTransactionInitial = untrack(() => kaspaTransaction)}
 						<div>
 							<dt>spending transaction</dt>
 							<dd>
 								<KaspaTransactionView
-									selection={select(EntityType.KaspaTransaction, (kaspaTransaction ?? kaspaTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.KaspaTransaction, kaspaTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

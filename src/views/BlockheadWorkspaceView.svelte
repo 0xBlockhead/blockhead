@@ -113,12 +113,11 @@
 			>
 				{#snippet children(blockheadPanelTree)}
 					{#if blockheadPanelTree != null}
-						{@const blockheadPanelTreeInitial = untrack(() => blockheadPanelTree)}
 						<div>
 							<dt>active panel tree</dt>
 							<dd>
 								<BlockheadPanelTreeView
-									selection={select(EntityType.BlockheadPanelTree, (blockheadPanelTree ?? blockheadPanelTreeInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

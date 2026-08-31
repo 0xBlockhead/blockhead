@@ -143,12 +143,11 @@
 			>
 				{#snippet children(a2aAgentService)}
 					{#if a2aAgentService != null}
-						{@const a2aAgentServiceInitial = untrack(() => a2aAgentService)}
 						<div>
 							<dt>service</dt>
 							<dd>
 								<A2aAgentServiceView
-									selection={select(EntityType.A2aAgentService, (a2aAgentService ?? a2aAgentServiceInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

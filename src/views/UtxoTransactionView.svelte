@@ -268,12 +268,11 @@
 			>
 				{#snippet children(bitcoinRunestone)}
 					{#if bitcoinRunestone != null}
-						{@const bitcoinRunestoneInitial = untrack(() => bitcoinRunestone)}
 						<div>
 							<dt>Bitcoin runestone</dt>
 							<dd>
 								<BitcoinRunestoneView
-									selection={select(EntityType.BitcoinRunestone, (bitcoinRunestone ?? bitcoinRunestoneInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BitcoinRunestone, bitcoinRunestone[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -287,12 +286,11 @@
 			>
 				{#snippet children(utxoBlock)}
 					{#if utxoBlock != null}
-						{@const utxoBlockInitial = untrack(() => utxoBlock)}
 						<div>
 							<dt>Block</dt>
 							<dd>
 								<UtxoBlockView
-									selection={select(EntityType.UtxoBlock, (utxoBlock ?? utxoBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

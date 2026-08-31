@@ -126,12 +126,11 @@
 			>
 				{#snippet children(gitRef)}
 					{#if gitRef != null}
-						{@const gitRefInitial = untrack(() => gitRef)}
 						<div>
 							<dt>Git ref</dt>
 							<dd>
 								<GitRefView
-									selection={select(EntityType.GitRef, (gitRef ?? gitRefInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitRef, gitRef[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -145,12 +144,11 @@
 			>
 				{#snippet children(gitRefObservationTimestamp)}
 					{#if gitRefObservationTimestamp != null}
-						{@const gitRefObservationTimestampInitial = untrack(() => gitRefObservationTimestamp)}
 						<div>
 							<dt>ref observation</dt>
 							<dd>
 								<GitRefObservation_TimestampView
-									selection={select(EntityType.GitRefObservation_Timestamp, (gitRefObservationTimestamp ?? gitRefObservationTimestampInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitRefObservation_Timestamp, gitRefObservationTimestamp[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

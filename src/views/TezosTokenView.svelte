@@ -121,12 +121,11 @@
 			>
 				{#snippet children(tezosContract)}
 					{#if tezosContract != null}
-						{@const tezosContractInitial = untrack(() => tezosContract)}
 						<div>
 							<dt>contract</dt>
 							<dd>
 								<TezosContractView
-									selection={select(EntityType.TezosContract, (tezosContract ?? tezosContractInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosContract, tezosContract[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

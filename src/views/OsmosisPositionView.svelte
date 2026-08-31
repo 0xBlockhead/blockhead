@@ -143,12 +143,11 @@
 			>
 				{#snippet children(cosmosAccount)}
 					{#if cosmosAccount != null}
-						{@const cosmosAccountInitial = untrack(() => cosmosAccount)}
 						<div>
 							<dt>Account</dt>
 							<dd>
 								<CosmosAccountView
-									selection={select(EntityType.CosmosAccount, (cosmosAccount ?? cosmosAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -75,10 +75,9 @@
 		>
 			{#snippet children(payjoinDirectory)}
 				{#if payjoinDirectory != null}
-					{@const payjoinDirectoryInitial = untrack(() => payjoinDirectory)}
 					<span data-text="muted">
 						<PayjoinDirectoryView
-							selection={select(EntityType.PayjoinDirectory, (payjoinDirectory ?? payjoinDirectoryInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -123,12 +122,11 @@
 			>
 				{#snippet children(payjoinDirectory)}
 					{#if payjoinDirectory != null}
-						{@const payjoinDirectoryInitial = untrack(() => payjoinDirectory)}
 						<div>
 							<dt>directory</dt>
 							<dd>
 								<PayjoinDirectoryView
-									selection={select(EntityType.PayjoinDirectory, (payjoinDirectory ?? payjoinDirectoryInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

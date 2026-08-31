@@ -82,12 +82,11 @@
 			>
 				{#snippet children(hederaContract)}
 					{#if hederaContract != null}
-						{@const hederaContractInitial = untrack(() => hederaContract)}
 						<div>
 							<dt>contract</dt>
 							<dd>
 								<HederaContractView
-									selection={select(EntityType.HederaContract, (hederaContract ?? hederaContractInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaContract, hederaContract[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -113,12 +113,11 @@
 			>
 				{#snippet children(polkadotAccount)}
 					{#if polkadotAccount != null}
-						{@const polkadotAccountInitial = untrack(() => polkadotAccount)}
 						<div>
 							<dt>controller</dt>
 							<dd>
 								<PolkadotAccountView
-									selection={select(EntityType.PolkadotAccount, (polkadotAccount ?? polkadotAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

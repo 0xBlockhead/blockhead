@@ -161,12 +161,11 @@
 			>
 				{#snippet children(nearBlock)}
 					{#if nearBlock != null}
-						{@const nearBlockInitial = untrack(() => nearBlock)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<NearBlockView
-									selection={select(EntityType.NearBlock, (nearBlock ?? nearBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

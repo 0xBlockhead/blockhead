@@ -218,12 +218,11 @@
 			>
 				{#snippet children(filecoinTipset)}
 					{#if filecoinTipset != null}
-						{@const filecoinTipsetInitial = untrack(() => filecoinTipset)}
 						<div>
 							<dt>Head tipset</dt>
 							<dd>
 								<FilecoinTipsetView
-									selection={select(EntityType.FilecoinTipset, (filecoinTipset ?? filecoinTipsetInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -165,9 +165,8 @@
 						resource={selection.$tipset}
 					>
 						{#snippet children(filecoinTipset)}
-							{@const filecoinTipsetInitial = untrack(() => filecoinTipset)}
 							<FilecoinTipsetView
-								selection={select(EntityType.FilecoinTipset, (filecoinTipset ?? filecoinTipsetInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -180,12 +179,11 @@
 			>
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null}
-						{@const filecoinActorInitial = untrack(() => filecoinActor)}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<FilecoinActorView
-									selection={select(EntityType.FilecoinActor, (filecoinActor ?? filecoinActorInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -199,12 +197,11 @@
 			>
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null}
-						{@const filecoinActorInitial = untrack(() => filecoinActor)}
 						<div>
 							<dt>Worker</dt>
 							<dd>
 								<FilecoinActorView
-									selection={select(EntityType.FilecoinActor, (filecoinActor ?? filecoinActorInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

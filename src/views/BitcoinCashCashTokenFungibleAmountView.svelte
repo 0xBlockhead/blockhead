@@ -98,10 +98,9 @@
 			resource={selection.$category}
 		>
 			{#snippet children(bitcoinCashCashTokenCategory)}
-				{@const bitcoinCashCashTokenCategoryInitial = untrack(() => bitcoinCashCashTokenCategory)}
 				<span data-text="muted">
 					<BitcoinCashCashTokenCategoryView
-						selection={select(EntityType.BitcoinCashCashTokenCategory, (bitcoinCashCashTokenCategory ?? bitcoinCashCashTokenCategoryInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -133,9 +132,8 @@
 						resource={selection.$category}
 					>
 						{#snippet children(bitcoinCashCashTokenCategory)}
-							{@const bitcoinCashCashTokenCategoryInitial = untrack(() => bitcoinCashCashTokenCategory)}
 							<BitcoinCashCashTokenCategoryView
-								selection={select(EntityType.BitcoinCashCashTokenCategory, (bitcoinCashCashTokenCategory ?? bitcoinCashCashTokenCategoryInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

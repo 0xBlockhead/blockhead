@@ -165,9 +165,8 @@
 						resource={selection.$tipset}
 					>
 						{#snippet children(filecoinTipset)}
-							{@const filecoinTipsetInitial = untrack(() => filecoinTipset)}
 							<FilecoinTipsetView
-								selection={select(EntityType.FilecoinTipset, (filecoinTipset ?? filecoinTipsetInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

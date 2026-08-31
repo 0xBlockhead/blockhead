@@ -107,12 +107,11 @@
 			>
 				{#snippet children(tronAccount)}
 					{#if tronAccount != null}
-						{@const tronAccountInitial = untrack(() => tronAccount)}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<TronAccountView
-									selection={select(EntityType.TronAccount, (tronAccount ?? tronAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

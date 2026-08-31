@@ -146,9 +146,8 @@
 						resource={selection.$transaction}
 					>
 						{#snippet children(evmTransaction)}
-							{@const evmTransactionInitial = untrack(() => evmTransaction)}
 							<EvmTransactionView
-								selection={select(EntityType.EvmTransaction, (evmTransaction ?? evmTransactionInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -163,9 +162,8 @@
 						resource={selection.$user}
 					>
 						{#snippet children(evmNetworkAccount)}
-							{@const evmNetworkAccountInitial = untrack(() => evmNetworkAccount)}
 							<EvmNetworkAccountView
-								selection={select(EntityType.EvmNetworkAccount, (evmNetworkAccount ?? evmNetworkAccountInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

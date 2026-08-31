@@ -108,9 +108,8 @@
 						resource={selection.$fromCommit}
 					>
 						{#snippet children(gitCommit)}
-							{@const gitCommitInitial = untrack(() => gitCommit)}
 							<GitCommitView
-								selection={select(EntityType.GitCommit, (gitCommit ?? gitCommitInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -125,9 +124,8 @@
 						resource={selection.$toCommit}
 					>
 						{#snippet children(gitCommit)}
-							{@const gitCommitInitial = untrack(() => gitCommit)}
 							<GitCommitView
-								selection={select(EntityType.GitCommit, (gitCommit ?? gitCommitInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

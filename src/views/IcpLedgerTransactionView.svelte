@@ -286,12 +286,11 @@
 			>
 				{#snippet children(icpLedgerCanister)}
 					{#if icpLedgerCanister != null}
-						{@const icpLedgerCanisterInitial = untrack(() => icpLedgerCanister)}
 						<div>
 							<dt>ledger</dt>
 							<dd>
 								<IcpLedgerCanisterView
-									selection={select(EntityType.IcpLedgerCanister, (icpLedgerCanister ?? icpLedgerCanisterInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.IcpLedgerCanister, icpLedgerCanister[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

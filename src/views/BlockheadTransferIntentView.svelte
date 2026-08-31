@@ -325,12 +325,11 @@
 			>
 				{#snippet children(account)}
 					{#if account != null}
-						{@const accountInitial = untrack(() => account)}
 						<div>
 							<dt>from account</dt>
 							<dd>
 								<AccountView
-									selection={select(EntityType.Account, (account ?? accountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -344,12 +343,11 @@
 			>
 				{#snippet children(account)}
 					{#if account != null}
-						{@const accountInitial = untrack(() => account)}
 						<div>
 							<dt>to account</dt>
 							<dd>
 								<AccountView
-									selection={select(EntityType.Account, (account ?? accountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -363,12 +361,11 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>from</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -382,12 +379,11 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>to</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -441,12 +437,11 @@
 			>
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null}
-						{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 						<div>
 							<dt>token</dt>
 							<dd>
 								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -204,12 +204,11 @@
 			>
 				{#snippet children(algorandTransactionGroup)}
 					{#if algorandTransactionGroup != null}
-						{@const algorandTransactionGroupInitial = untrack(() => algorandTransactionGroup)}
 						<div>
 							<dt>group</dt>
 							<dd>
 								<AlgorandTransactionGroupView
-									selection={select(EntityType.AlgorandTransactionGroup, (algorandTransactionGroup ?? algorandTransactionGroupInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AlgorandTransactionGroup, algorandTransactionGroup[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

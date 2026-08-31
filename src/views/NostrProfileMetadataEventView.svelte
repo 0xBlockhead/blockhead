@@ -115,9 +115,8 @@
 						resource={selection.$profile}
 					>
 						{#snippet children(nostrProfile)}
-							{@const nostrProfileInitial = untrack(() => nostrProfile)}
 							<NostrProfileView
-								selection={select(EntityType.NostrProfile, (nostrProfile ?? nostrProfileInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

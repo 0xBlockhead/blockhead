@@ -189,12 +189,11 @@
 			>
 				{#snippet children(cardanoTxOutput)}
 					{#if cardanoTxOutput != null}
-						{@const cardanoTxOutputInitial = untrack(() => cardanoTxOutput)}
 						<div>
 							<dt>spent output</dt>
 							<dd>
 								<CardanoTxOutputView
-									selection={select(EntityType.CardanoTxOutput, (cardanoTxOutput ?? cardanoTxOutputInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.CardanoTxOutput, cardanoTxOutput[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

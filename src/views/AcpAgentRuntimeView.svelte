@@ -154,12 +154,11 @@
 			>
 				{#snippet children(blockheadAgentProgramInstall)}
 					{#if blockheadAgentProgramInstall != null}
-						{@const blockheadAgentProgramInstallInitial = untrack(() => blockheadAgentProgramInstall)}
 						<div>
 							<dt>program install</dt>
 							<dd>
 								<BlockheadAgentProgramInstallView
-									selection={select(EntityType.BlockheadAgentProgramInstall, (blockheadAgentProgramInstall ?? blockheadAgentProgramInstallInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadAgentProgramInstall, blockheadAgentProgramInstall[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

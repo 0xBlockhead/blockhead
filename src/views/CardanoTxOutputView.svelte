@@ -143,12 +143,11 @@
 			>
 				{#snippet children(cardanoAddress)}
 					{#if cardanoAddress != null}
-						{@const cardanoAddressInitial = untrack(() => cardanoAddress)}
 						<div>
 							<dt>Address</dt>
 							<dd>
 								<CardanoAddressView
-									selection={select(EntityType.CardanoAddress, (cardanoAddress ?? cardanoAddressInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.CardanoAddress, cardanoAddress[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

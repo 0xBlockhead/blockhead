@@ -121,12 +121,11 @@
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null}
-						{@const solanaAccountInitial = untrack(() => solanaAccount)}
 						<div>
 							<dt>Program account</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, (solanaAccount ?? solanaAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -140,12 +139,11 @@
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null}
-						{@const solanaAccountInitial = untrack(() => solanaAccount)}
 						<div>
 							<dt>Upgrade authority</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, (solanaAccount ?? solanaAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

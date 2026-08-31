@@ -113,12 +113,11 @@
 			>
 				{#snippet children(tezosBigMap)}
 					{#if tezosBigMap != null}
-						{@const tezosBigMapInitial = untrack(() => tezosBigMap)}
 						<div>
 							<dt>big map</dt>
 							<dd>
 								<TezosBigMapView
-									selection={select(EntityType.TezosBigMap, (tezosBigMap ?? tezosBigMapInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosBigMap, tezosBigMap[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

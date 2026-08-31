@@ -149,12 +149,11 @@
 			>
 				{#snippet children(payjoinDirectory)}
 					{#if payjoinDirectory != null}
-						{@const payjoinDirectoryInitial = untrack(() => payjoinDirectory)}
 						<div>
 							<dt>directory</dt>
 							<dd>
 								<PayjoinDirectoryView
-									selection={select(EntityType.PayjoinDirectory, (payjoinDirectory ?? payjoinDirectoryInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -168,12 +167,11 @@
 			>
 				{#snippet children(payjoinEndpoint)}
 					{#if payjoinEndpoint != null}
-						{@const payjoinEndpointInitial = untrack(() => payjoinEndpoint)}
 						<div>
 							<dt>endpoint</dt>
 							<dd>
 								<PayjoinEndpointView
-									selection={select(EntityType.PayjoinEndpoint, (payjoinEndpoint ?? payjoinEndpointInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.PayjoinEndpoint, payjoinEndpoint[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -449,12 +447,11 @@
 			>
 				{#snippet children(utxoTransaction)}
 					{#if utxoTransaction != null}
-						{@const utxoTransactionInitial = untrack(() => utxoTransaction)}
 						<div>
 							<dt>final transaction</dt>
 							<dd>
 								<UtxoTransactionView
-									selection={select(EntityType.UtxoTransaction, (utxoTransaction ?? utxoTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

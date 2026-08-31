@@ -68,9 +68,8 @@
 		>
 			{#snippet children(stellarAccount)}
 				{#if stellarAccount != null}
-					{@const stellarAccountInitial = untrack(() => stellarAccount)}
 					<StellarAccountView
-						selection={select(EntityType.StellarAccount, (stellarAccount ?? stellarAccountInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -103,12 +102,11 @@
 			>
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null}
-						{@const stellarAccountInitial = untrack(() => stellarAccount)}
 						<div>
 							<dt>seller</dt>
 							<dd>
 								<StellarAccountView
-									selection={select(EntityType.StellarAccount, (stellarAccount ?? stellarAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -122,12 +120,11 @@
 			>
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null}
-						{@const stellarAssetInitial = untrack(() => stellarAsset)}
 						<div>
 							<dt>selling asset</dt>
 							<dd>
 								<StellarAssetView
-									selection={select(EntityType.StellarAsset, (stellarAsset ?? stellarAssetInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -141,12 +138,11 @@
 			>
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null}
-						{@const stellarAssetInitial = untrack(() => stellarAsset)}
 						<div>
 							<dt>buying asset</dt>
 							<dd>
 								<StellarAssetView
-									selection={select(EntityType.StellarAsset, (stellarAsset ?? stellarAssetInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

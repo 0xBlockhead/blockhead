@@ -110,12 +110,11 @@
 			>
 				{#snippet children(algorandNetwork)}
 					{#if algorandNetwork != null}
-						{@const algorandNetworkInitial = untrack(() => algorandNetwork)}
 						<div>
 							<dt>network</dt>
 							<dd>
 								<AlgorandNetworkView
-									selection={select(EntityType.AlgorandNetwork, (algorandNetwork ?? algorandNetworkInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AlgorandNetwork, algorandNetwork[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

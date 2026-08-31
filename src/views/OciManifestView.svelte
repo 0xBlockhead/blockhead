@@ -176,12 +176,11 @@
 			>
 				{#snippet children(ociDescriptor)}
 					{#if ociDescriptor != null}
-						{@const ociDescriptorInitial = untrack(() => ociDescriptor)}
 						<div>
 							<dt>config</dt>
 							<dd>
 								<OciDescriptorView
-									selection={select(EntityType.OciDescriptor, (ociDescriptor ?? ociDescriptorInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.OciDescriptor, ociDescriptor[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -195,12 +194,11 @@
 			>
 				{#snippet children(ociDescriptor)}
 					{#if ociDescriptor != null}
-						{@const ociDescriptorInitial = untrack(() => ociDescriptor)}
 						<div>
 							<dt>subject</dt>
 							<dd>
 								<OciDescriptorView
-									selection={select(EntityType.OciDescriptor, (ociDescriptor ?? ociDescriptorInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.OciDescriptor, ociDescriptor[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

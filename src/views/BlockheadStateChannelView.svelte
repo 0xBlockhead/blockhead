@@ -116,9 +116,8 @@
 						resource={selection.$participant0}
 					>
 						{#snippet children(evmAccount)}
-							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -135,9 +134,8 @@
 						resource={selection.$participant1}
 					>
 						{#snippet children(evmAccount)}
-							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -154,9 +152,8 @@
 						resource={selection.$asset}
 					>
 						{#snippet children(evmCoinInstance)}
-							{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 							<EvmCoinInstanceView
-								selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

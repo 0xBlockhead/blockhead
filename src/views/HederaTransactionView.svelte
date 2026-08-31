@@ -318,12 +318,11 @@
 			>
 				{#snippet children(hederaBlock)}
 					{#if hederaBlock != null}
-						{@const hederaBlockInitial = untrack(() => hederaBlock)}
 						<div>
 							<dt>block</dt>
 							<dd>
 								<HederaBlockView
-									selection={select(EntityType.HederaBlock, (hederaBlock ?? hederaBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaBlock, hederaBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -337,12 +336,11 @@
 			>
 				{#snippet children(hederaSchedule)}
 					{#if hederaSchedule != null}
-						{@const hederaScheduleInitial = untrack(() => hederaSchedule)}
 						<div>
 							<dt>schedule</dt>
 							<dd>
 								<HederaScheduleView
-									selection={select(EntityType.HederaSchedule, (hederaSchedule ?? hederaScheduleInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaSchedule, hederaSchedule[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

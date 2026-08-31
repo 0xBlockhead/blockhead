@@ -94,9 +94,8 @@
 		>
 			{#snippet children(eigenLayerOperator)}
 				{#if eigenLayerOperator != null}
-					{@const eigenLayerOperatorInitial = untrack(() => eigenLayerOperator)}
 					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, (eigenLayerOperator ?? eigenLayerOperatorInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Title}
 					/>
@@ -111,9 +110,8 @@
 		>
 			{#snippet children(eigenLayerAvs)}
 				{#if eigenLayerAvs != null}
-					{@const eigenLayerAvsInitial = untrack(() => eigenLayerAvs)}
 					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, (eigenLayerAvs ?? eigenLayerAvsInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -144,12 +142,11 @@
 			>
 				{#snippet children(eigenLayerOperator)}
 					{#if eigenLayerOperator != null}
-						{@const eigenLayerOperatorInitial = untrack(() => eigenLayerOperator)}
 						<div>
 							<dt>operator</dt>
 							<dd>
 								<EigenLayerOperatorView
-									selection={select(EntityType.EigenLayerOperator, (eigenLayerOperator ?? eigenLayerOperatorInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -163,12 +160,11 @@
 			>
 				{#snippet children(eigenLayerAvs)}
 					{#if eigenLayerAvs != null}
-						{@const eigenLayerAvsInitial = untrack(() => eigenLayerAvs)}
 						<div>
 							<dt>AVS</dt>
 							<dd>
 								<EigenLayerAvsView
-									selection={select(EntityType.EigenLayerAvs, (eigenLayerAvs ?? eigenLayerAvsInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -182,12 +178,11 @@
 			>
 				{#snippet children(eigenLayerStrategy)}
 					{#if eigenLayerStrategy != null}
-						{@const eigenLayerStrategyInitial = untrack(() => eigenLayerStrategy)}
 						<div>
 							<dt>strategy</dt>
 							<dd>
 								<EigenLayerStrategyView
-									selection={select(EntityType.EigenLayerStrategy, (eigenLayerStrategy ?? eigenLayerStrategyInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

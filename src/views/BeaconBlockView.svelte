@@ -101,10 +101,9 @@
 			resource={selection.$slot}
 		>
 			{#snippet children(beaconSlot)}
-				{@const beaconSlotInitial = untrack(() => beaconSlot)}
 				<span data-text="muted">
 					<BeaconSlotView
-						selection={select(EntityType.BeaconSlot, (beaconSlot ?? beaconSlotInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -121,9 +120,8 @@
 						resource={selection.$slot}
 					>
 						{#snippet children(beaconSlot)}
-							{@const beaconSlotInitial = untrack(() => beaconSlot)}
 							<BeaconSlotView
-								selection={select(EntityType.BeaconSlot, (beaconSlot ?? beaconSlotInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -154,12 +152,11 @@
 			>
 				{#snippet children(beaconBlock)}
 					{#if beaconBlock != null}
-						{@const beaconBlockInitial = untrack(() => beaconBlock)}
 						<div>
 							<dt>Parent block</dt>
 							<dd>
 								<BeaconBlockView
-									selection={select(EntityType.BeaconBlock, (beaconBlock ?? beaconBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BeaconBlock, beaconBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

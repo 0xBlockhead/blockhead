@@ -133,9 +133,8 @@
 						resource={selection.$network}
 					>
 						{#snippet children(moneroNetwork)}
-							{@const moneroNetworkInitial = untrack(() => moneroNetwork)}
 							<MoneroNetworkView
-								selection={select(EntityType.MoneroNetwork, (moneroNetwork ?? moneroNetworkInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -148,12 +147,11 @@
 			>
 				{#snippet children(moneroTransaction)}
 					{#if moneroTransaction != null}
-						{@const moneroTransactionInitial = untrack(() => moneroTransaction)}
 						<div>
 							<dt>transaction</dt>
 							<dd>
 								<MoneroTransactionView
-									selection={select(EntityType.MoneroTransaction, (moneroTransaction ?? moneroTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.MoneroTransaction, moneroTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

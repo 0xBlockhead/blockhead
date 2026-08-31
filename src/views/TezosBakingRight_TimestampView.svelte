@@ -141,12 +141,11 @@
 			>
 				{#snippet children(tezosBlock)}
 					{#if tezosBlock != null}
-						{@const tezosBlockInitial = untrack(() => tezosBlock)}
 						<div>
 							<dt>block</dt>
 							<dd>
 								<TezosBlockView
-									selection={select(EntityType.TezosBlock, (tezosBlock ?? tezosBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosBlock, tezosBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

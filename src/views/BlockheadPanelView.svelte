@@ -120,9 +120,8 @@
 						resource={selection.$panelTree}
 					>
 						{#snippet children(blockheadPanelTree)}
-							{@const blockheadPanelTreeInitial = untrack(() => blockheadPanelTree)}
 							<BlockheadPanelTreeView
-								selection={select(EntityType.BlockheadPanelTree, (blockheadPanelTree ?? blockheadPanelTreeInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

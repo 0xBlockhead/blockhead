@@ -114,12 +114,11 @@
 			>
 				{#snippet children(tezosBaker)}
 					{#if tezosBaker != null}
-						{@const tezosBakerInitial = untrack(() => tezosBaker)}
 						<div>
 							<dt>baker</dt>
 							<dd>
 								<TezosBakerView
-									selection={select(EntityType.TezosBaker, (tezosBaker ?? tezosBakerInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosBaker, tezosBaker[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

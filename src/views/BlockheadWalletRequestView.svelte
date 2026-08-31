@@ -149,9 +149,8 @@
 						resource={selection.$walletConnection}
 					>
 						{#snippet children(blockheadWalletConnection)}
-							{@const blockheadWalletConnectionInitial = untrack(() => blockheadWalletConnection)}
 							<BlockheadWalletConnectionView
-								selection={select(EntityType.BlockheadWalletConnection, (blockheadWalletConnection ?? blockheadWalletConnectionInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -164,12 +163,11 @@
 			>
 				{#snippet children(account)}
 					{#if account != null}
-						{@const accountInitial = untrack(() => account)}
 						<div>
 							<dt>Account</dt>
 							<dd>
 								<AccountView
-									selection={select(EntityType.Account, (account ?? accountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -183,12 +181,11 @@
 			>
 				{#snippet children(blockheadEvmWalletRequest)}
 					{#if blockheadEvmWalletRequest != null}
-						{@const blockheadEvmWalletRequestInitial = untrack(() => blockheadEvmWalletRequest)}
 						<div>
 							<dt>EVM request</dt>
 							<dd>
 								<BlockheadEvmWalletRequestView
-									selection={select(EntityType.BlockheadEvmWalletRequest, (blockheadEvmWalletRequest ?? blockheadEvmWalletRequestInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadEvmWalletRequest, blockheadEvmWalletRequest[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

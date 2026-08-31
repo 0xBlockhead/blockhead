@@ -361,6 +361,7 @@ type GenerationIndexes = Readonly<
 >
 export type CompiledApp = Readonly<{
 	generatedFiles: readonly GeneratedFile[]
+	defaultPluralViewEntityTypes: readonly string[]
 	presentationManifest: readonly CompiledPresentationManifestFact[]
 	sourceClaims: readonly CompiledSourceClaim[]
 	sourceAccountability: CompiledSourceAccountability
@@ -6212,8 +6213,10 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	if (undeclaredAccessSources.length > 0)
 		throw new Error(`Source claims reference sources without a declared delivery: ${undeclaredAccessSources.join(', ')}`)
 
+	const generated = generateFiles(compiledApp)
 	return freezeCompiled({
-		generatedFiles: generateFiles(compiledApp),
+		generatedFiles: generated.files,
+		defaultPluralViewEntityTypes: [...generated.defaultPluralViewEntityTypes],
 		presentationManifest,
 		sourceClaims,
 		sourceAccountability,
@@ -6255,10 +6258,21 @@ const generateFiles = (compiledApp: CompiledAppFacts): GeneratedFile[] => {
 		entity.entityType,
 		generatePluralViewPlan(entity, summaryPlanningIndexes),
 	]))
+	const explicitlyReferencedComponents = new Set([
+		...compiledApp.presentationManifest.map(({ placement }) => placement.component),
+		...compiledApp.activeEntities.flatMap((entity) => [
+			...declaredRelationshipViewSections(entity, summaryPlanningIndexes)
+				.flatMap(({ component }) => component == null ? [] : [component]),
+			...(entity.views.singular?.carousels ?? [])
+				.flatMap(({ sections }) => sections)
+				.flatMap(({ List }) => List == null ? [] : [List]),
+		]),
+	])
 	const defaultPluralViewEntityTypes = new Set(compiledApp.activeEntities.flatMap((entity) => (
-		pluralViewPlanByEntityType.get(entity.entityType)?.isExactDefault === true ?
+		pluralViewPlanByEntityType.get(entity.entityType)?.isExactDefault === true
+			&& !explicitlyReferencedComponents.has(pluralComponentName(entity)) ?
 			[entity.entityType]
-		:
+			:
 			[]
 	)))
 	const renderingIndexes = {
@@ -6346,7 +6360,10 @@ const generateFiles = (compiledApp: CompiledAppFacts): GeneratedFile[] => {
 	if (duplicatePaths.length > 0)
 		throw new Error(`Duplicate generated output paths:\n${unique(duplicatePaths).join('\n')}`)
 
-	return files
+	return {
+		files,
+		defaultPluralViewEntityTypes,
+	}
 }
 
 // Schema output
@@ -9350,7 +9367,15 @@ const renderSummaryItemMarkup = (
 		const component = singularComponentName(targetEntity.entityType)
 		const targetEntityName = camel(targetEntity.entityType)
 		const targetEntityInitialName = `${targetEntityName}Initial`
-		const targetEntityExpression = `${targetEntityName} ?? ${targetEntityInitialName}`
+		const acceptsPrefetched = viewComponentAcceptsPrefetched(indexes, targetEntity.entityType, component)
+		const targetEntityExpression = acceptsPrefetched ?
+			`${targetEntityName} ?? ${targetEntityInitialName}`
+			:
+			targetEntityName
+		const targetEntitySelectorExpression = acceptsPrefetched ?
+			`(${targetEntityExpression})[EntityMetaKey.Selector]`
+			:
+			`${targetEntityExpression}[EntityMetaKey.Selector]`
 		const referenceLevel = level + (item.optional ? 3 : 2)
 		const componentLevel = referenceLevel + (headingAfter ? 1 : 0)
 		const targetHasHref = !headingAfter && (indexes.entityRouteLinksByType[targetEntity.entityType]?.length ?? 0) > 0
@@ -9361,7 +9386,7 @@ const renderSummaryItemMarkup = (
 		) => [
 			`${'\t'.repeat(componentStartLevel)}<${componentIdentifier(component)}`,
 			renderSvelteAttribute(componentStartLevel + 1, 'selection', selectionExpression),
-			...(prefetchedExpression != null && viewComponentAcceptsPrefetched(indexes, targetEntity.entityType, component) ? [
+			...(prefetchedExpression != null && acceptsPrefetched ? [
 				`${'\t'.repeat(componentStartLevel + 1)}prefetched={${prefetchedExpression}}`,
 			] : []),
 			...(targetHasHref ? [`${'\t'.repeat(componentStartLevel + 1)}href={null}`] : []),
@@ -9380,9 +9405,11 @@ const renderSummaryItemMarkup = (
 			fieldProxyResourceExpression('selection', headingAfter ? fieldReference : fieldName),
 			renderSvelteSnippet(level + 1, `children(${targetEntityName})`, [
 			...(item.optional ? [`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null}`] : []),
-			renderSvelteConst(referenceLevel, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
+			...(acceptsPrefetched ? [
+				renderSvelteConst(referenceLevel, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
+			] : []),
 			...presented(componentLines(
-				`select(EntityType.${targetEntity.entityType}, (${targetEntityExpression})[EntityMetaKey.Selector])`,
+				`select(EntityType.${targetEntity.entityType}, ${targetEntitySelectorExpression})`,
 				targetEntityExpression,
 				componentLevel
 			), referenceLevel),
@@ -9971,21 +9998,27 @@ const generateSingularViewFile = (
 			universalSelectorFieldNames
 		)})`
 	const entityResourceExpression = inlineEntityResource ? resolvedEntitySelectionExpression : entityName
-	const artifactMarkup = artifacts.flatMap((artifact) => renderResourceBoundary(
-		2,
-		entityResourceExpression,
-		renderSvelteSnippet(3, 'children(entity)', [
-			`\t\t\t\t{@const artifactContent = ${fieldExpression('entity', artifact.field)}}`,
-			'\t\t\t\t{#if artifactContent != null && artifactContent !== \'\'}',
+	const artifactMarkup = artifacts.flatMap((artifact) => {
+		const artifactField = fieldDefinitionByReference(entity, artifact.field, indexes)
+		if (artifactField == null)
+			throw new Error(`${entity.entityType} artifact references missing field ${artifact.field}`)
+		const optional = artifactField.cardinality === EntityFieldCardinality.ZeroOrOne
+		return renderResourceBoundary(
+			2,
+			entityResourceExpression,
+			renderSvelteSnippet(3, 'children(entity)', [
+				`\t\t\t\t{@const artifactContent = ${fieldExpression('entity', artifact.field)}}`,
+				`\t\t\t\t{#if ${optional ? 'artifactContent != null && ' : ''}artifactContent !== ''}`,
 			'\t\t\t\t\t<a',
 			`\t\t\t\t\t\thref={\`data:${artifact.mediaType};charset=utf-8,\${encodeURIComponent(artifactContent)}\`}`,
 			`\t\t\t\t\t\tdownload=${emitTypeScript(artifact.fileName)}`,
 			'\t\t\t\t\t>',
 			`\t\t\t\t\t\t${artifact.label}`,
 			'\t\t\t\t\t</a>',
-			'\t\t\t\t{/if}',
-		])
-	))
+				'\t\t\t\t{/if}',
+			])
+		)
+	})
 	const iconMarkup = (
 		singularView?.summary?.Icon != null
 		|| singularView?.summary?.icon != null
@@ -10759,15 +10792,23 @@ const renderEntityReferenceDlItem = (
 
 	const targetEntityName = camel(targetEntity.entityType)
 	const targetEntityInitialName = `${targetEntityName}Initial`
-	const targetEntityExpression = `${targetEntityName} ?? ${targetEntityInitialName}`
+	const acceptsPrefetched = viewComponentAcceptsPrefetched(indexes, fieldDefinition.entityType, component)
+	const targetEntityExpression = acceptsPrefetched ?
+		`${targetEntityName} ?? ${targetEntityInitialName}`
+		:
+		targetEntityName
+	const targetEntitySelectorExpression = acceptsPrefetched ?
+		`(${targetEntityExpression})[EntityMetaKey.Selector]`
+		:
+		`${targetEntityExpression}[EntityMetaKey.Selector]`
 	const entityViewLines = [
 		`${'\t'.repeat(level + 2)}<${component}`,
 		renderSvelteAttribute(
 			level + 3,
 			'selection',
-			`select(EntityType.${fieldDefinition.entityType}, (${targetEntityExpression})[EntityMetaKey.Selector])`
+			`select(EntityType.${fieldDefinition.entityType}, ${targetEntitySelectorExpression})`
 		),
-		...(viewComponentAcceptsPrefetched(indexes, fieldDefinition.entityType, component) ? [
+		...(acceptsPrefetched ? [
 			`${'\t'.repeat(level + 3)}prefetched={${targetEntityExpression}}`,
 		] : []),
 		`${'\t'.repeat(level + 3)}layout={EntityLayout.Value}`,
@@ -10780,7 +10821,9 @@ const renderEntityReferenceDlItem = (
 			fieldProxyResourceExpression(fieldResourceBase, fieldReference, query),
 			renderSvelteSnippet(level + 1, `children(${targetEntityName})`, [
 				`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null}`,
-				renderSvelteConst(level + 3, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
+				...(acceptsPrefetched ? [
+					renderSvelteConst(level + 3, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
+				] : []),
 				...renderDefinitionListItem(level + 3, label, entityViewLines.map((line) => indent(line, 3))),
 				`${'\t'.repeat(level + 2)}{/if}`,
 			])
@@ -10794,7 +10837,9 @@ const renderEntityReferenceDlItem = (
 				level + 3,
 				`children(${targetEntityName})`,
 				[
-					renderSvelteConst(level + 4, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
+					...(acceptsPrefetched ? [
+						renderSvelteConst(level + 4, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
+					] : []),
 					...entityViewLines.map((line) => indent(line, 2)),
 				]
 			)
@@ -12425,14 +12470,22 @@ const renderCarouselSection = (
 	const targetEntity = fieldDefinition.entityType
 	const targetEntityName = camel(targetEntity)
 	const targetEntityInitialName = `${targetEntityName}Initial`
-	const targetEntityExpression = `${targetEntityName} ?? ${targetEntityInitialName}`
+	const acceptsPrefetched = viewComponentAcceptsPrefetched(indexes, targetEntity, component)
+	const targetEntityExpression = acceptsPrefetched ?
+		`${targetEntityName} ?? ${targetEntityInitialName}`
+		:
+		targetEntityName
+	const targetEntitySelectorExpression = acceptsPrefetched ?
+		`(${targetEntityExpression})[EntityMetaKey.Selector]`
+		:
+		`${targetEntityExpression}[EntityMetaKey.Selector]`
 	const sectionSelectSourcesExpression = (
 		applicableSources.applicable ?
 			applicableSources.name
 		:
 			renderSourceSelectionExpression(section.selection?.sources) ?? 'selection.sources'
 	)
-	const targetSelectionExpression = `select(EntityType.${targetEntity}, (${targetEntityExpression})[EntityMetaKey.Selector], ${emitObject([
+	const targetSelectionExpression = `select(EntityType.${targetEntity}, ${targetEntitySelectorExpression}, ${emitObject([
 		['sources', sectionSelectSourcesExpression],
 	])})`
 	const hrefExpression = section.link == null ?
@@ -12475,7 +12528,7 @@ const renderCarouselSection = (
 			'selection',
 			targetSelectionExpression
 		),
-		...(viewComponentAcceptsPrefetched(indexes, targetEntity, component) ? [
+		...(acceptsPrefetched ? [
 			`${'\t'.repeat(entityReferenceComponentLevel + 1)}prefetched={${targetEntityExpression}}`,
 		] : []),
 		`${'\t'.repeat(entityReferenceComponentLevel + 1)}layout={EntityLayout.${entityReferenceLayout}}`,
@@ -12556,7 +12609,7 @@ const renderCarouselSection = (
 				section.items?.some(viewItemUsesOpen) ?? false,
 				omitWhenResolvedEmpty,
 				contentOwnsResourceState,
-				fieldDefinition.type === EntityFieldType.EntityReference ? [
+				fieldDefinition.type === EntityFieldType.EntityReference && acceptsPrefetched ? [
 					renderSvelteConst(0, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
 				] : []
 			),
@@ -14503,7 +14556,7 @@ const generatePageFile = (
 			field.name,
 			renderExpression(resolveRouteSelectorFieldExpression(
 				field.value,
-				fieldValueByName,
+				fieldValueByName
 			), {
 				params: 'params',
 				pageSelector: 'data.selector',

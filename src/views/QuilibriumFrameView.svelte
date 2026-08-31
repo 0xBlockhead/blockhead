@@ -197,12 +197,11 @@
 			>
 				{#snippet children(quilibriumShard)}
 					{#if quilibriumShard != null}
-						{@const quilibriumShardInitial = untrack(() => quilibriumShard)}
 						<div>
 							<dt>shard</dt>
 							<dd>
 								<QuilibriumShardView
-									selection={select(EntityType.QuilibriumShard, (quilibriumShard ?? quilibriumShardInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.QuilibriumShard, quilibriumShard[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -216,12 +215,11 @@
 			>
 				{#snippet children(quilibriumProver)}
 					{#if quilibriumProver != null}
-						{@const quilibriumProverInitial = untrack(() => quilibriumProver)}
 						<div>
 							<dt>prover</dt>
 							<dd>
 								<QuilibriumProverView
-									selection={select(EntityType.QuilibriumProver, (quilibriumProver ?? quilibriumProverInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.QuilibriumProver, quilibriumProver[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -43,9 +43,9 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import EasAttestation_TimestampsView from '$/views/EasAttestation_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EasSchemaView from '$/views/EasSchemaView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
@@ -84,9 +84,8 @@
 		>
 			{#snippet children(easSchema)}
 				{#if easSchema != null}
-					{@const easSchemaInitial = untrack(() => easSchema)}
 					<EasSchemaView
-						selection={select(EntityType.EasSchema, (easSchema ?? easSchemaInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -286,12 +285,11 @@
 			>
 				{#snippet children(easSchema)}
 					{#if easSchema != null}
-						{@const easSchemaInitial = untrack(() => easSchema)}
 						<div>
 							<dt>Schema</dt>
 							<dd>
 								<EasSchemaView
-									selection={select(EntityType.EasSchema, (easSchema ?? easSchemaInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -305,12 +303,11 @@
 			>
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null}
-						{@const evmNetworkAccountInitial = untrack(() => evmNetworkAccount)}
 						<div>
 							<dt>Recipient account</dt>
 							<dd>
 								<EvmNetworkAccountView
-									selection={select(EntityType.EvmNetworkAccount, (evmNetworkAccount ?? evmNetworkAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -324,12 +321,11 @@
 			>
 				{#snippet children(evmNetworkAccount)}
 					{#if evmNetworkAccount != null}
-						{@const evmNetworkAccountInitial = untrack(() => evmNetworkAccount)}
 						<div>
 							<dt>Attester account</dt>
 							<dd>
 								<EvmNetworkAccountView
-									selection={select(EntityType.EvmNetworkAccount, (evmNetworkAccount ?? evmNetworkAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -343,12 +339,11 @@
 			>
 				{#snippet children(easAttestation)}
 					{#if easAttestation != null}
-						{@const easAttestationInitial = untrack(() => easAttestation)}
 						<div>
 							<dt>Ref attestation</dt>
 							<dd>
 								<EasAttestationView
-									selection={select(EntityType.EasAttestation, (easAttestation ?? easAttestationInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EasAttestation, easAttestation[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -366,21 +361,12 @@
 		>
 			{#snippet children(entities)}
 				{#if entities.values.length > 0}
-					<EntitiesList
-						entityType={EntityType.EasAttestation_Timestamp}
+					<EasAttestation_TimestampsView
+						selection={timestampsResource}
 						countResource={timestampsResource.count}
 						title='Timestamps'
-						open={true}
 						id='timestamps'
-						resource={timestampsResource()}
-					>
-						{#snippet Item({ item: easAttestationTimestamp })}
-							<EntityView
-								entityType={EntityType.EasAttestation_Timestamp}
-								entitySelector={easAttestationTimestamp[EntityMetaKey.Selector]}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

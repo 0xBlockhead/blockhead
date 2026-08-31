@@ -156,12 +156,11 @@
 			>
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null}
-						{@const stellarAccountInitial = untrack(() => stellarAccount)}
 						<div>
 							<dt>issuer account</dt>
 							<dd>
 								<StellarAccountView
-									selection={select(EntityType.StellarAccount, (stellarAccount ?? stellarAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

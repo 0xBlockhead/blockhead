@@ -340,7 +340,6 @@
 	// Components
 	import Market_TimestampView from '$/views/Market_TimestampView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -440,6 +439,7 @@
 	import FilecoinNetwork_TimestampsView from '$/views/FilecoinNetwork_TimestampsView.svelte'
 	import FilecoinTipsetsView from '$/views/FilecoinTipsetsView.svelte'
 	import FilecoinDealsView from '$/views/FilecoinDealsView.svelte'
+	import ArweaveNetwork_TimestampsView from '$/views/ArweaveNetwork_TimestampsView.svelte'
 	import ArweaveBlocksView from '$/views/ArweaveBlocksView.svelte'
 	import ArweaveTransactionsView from '$/views/ArweaveTransactionsView.svelte'
 	import ArweaveResourcesView from '$/views/ArweaveResourcesView.svelte'
@@ -464,6 +464,7 @@
 	import CardanoCommittee_EpochsView from '$/views/CardanoCommittee_EpochsView.svelte'
 	import CardanoNativeAssetsView from '$/views/CardanoNativeAssetsView.svelte'
 	import CardanoProtocolParameters_EpochsView from '$/views/CardanoProtocolParameters_EpochsView.svelte'
+	import TronNetwork_TimestampsView from '$/views/TronNetwork_TimestampsView.svelte'
 	import TronBlocksView from '$/views/TronBlocksView.svelte'
 	import TronWitnessesView from '$/views/TronWitnessesView.svelte'
 	import TonNetwork_TimestampsView from '$/views/TonNetwork_TimestampsView.svelte'
@@ -1014,12 +1015,11 @@
 						>
 							{#snippet children(evmCoinInstance)}
 								{#if evmCoinInstance != null}
-									{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 									<div>
 										<dt>Native currency</dt>
 										<dd>
 											<EvmCoinInstanceView
-												selection={select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector])}
+												selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 												layout={EntityLayout.Value}
 											/>
 										</dd>
@@ -1397,7 +1397,6 @@
 								}
 							>
 								{#snippet children(dydxChainNetwork)}
-									{@const dydxChainNetworkInitial = untrack(() => dydxChainNetwork)}
 									<section
 										id={id}
 										aria-labelledby={`${id}:marker`}
@@ -1408,7 +1407,7 @@
 									>
 										<DydxChainNetworkView
 											selection={
-												select(EntityType.DydxChainNetwork, (dydxChainNetwork ?? dydxChainNetworkInitial)[EntityMetaKey.Selector], {
+												select(EntityType.DydxChainNetwork, dydxChainNetwork[EntityMetaKey.Selector], {
 													sources: dydxNetworkSources,
 												})
 											}
@@ -2786,7 +2785,6 @@
 							>
 								{#snippet children(evmCoinInstance)}
 									{#if evmCoinInstance != null}
-										{@const evmCoinInstanceInitial = untrack(() => evmCoinInstance)}
 										<section
 											id={id}
 											aria-labelledby={`${id}:marker`}
@@ -2797,7 +2795,7 @@
 										>
 											<EvmCoinInstanceView
 												selection={
-													select(EntityType.EvmCoinInstance, (evmCoinInstance ?? evmCoinInstanceInitial)[EntityMetaKey.Selector], {
+													select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], {
 														sources: [
 															Source.Constants_Internal,
 														],
@@ -5288,27 +5286,18 @@
 						{/snippet}
 
 						{#snippet SectionArweaveChainObservations({ id, label })}
-							<EntitiesList
-								entityType={EntityType.ArweaveNetwork_Timestamp}
-								collapsible={false}
-								title={label}
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<ArweaveNetwork_TimestampsView
+								selection={
 									projection
 									.$$timestamps({
 										sources: arweaveGraphqlAndArweaveRestSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: arweaveNetworkTimestamp })}
-									<EntityView
-										entityType={EntityType.ArweaveNetwork_Timestamp}
-										entitySelector={arweaveNetworkTimestamp[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 						{#snippet SectionArweaveChainBlocks({ id, label })}
@@ -6562,27 +6551,18 @@
 						{/snippet}
 
 						{#snippet SectionTronChainObservations({ id, label })}
-							<EntitiesList
-								entityType={EntityType.TronNetwork_Timestamp}
-								collapsible={false}
-								title={label}
-								open={true}
-								id={`${id}-list`}
-								resource={
+							<TronNetwork_TimestampsView
+								selection={
 									projection
 									.$$timestamps({
 										sources: tronGridRestSources,
 										limit: 16,
-									})()
+									})
 								}
-							>
-								{#snippet Item({ item: tronNetworkTimestamp })}
-									<EntityView
-										entityType={EntityType.TronNetwork_Timestamp}
-										entitySelector={tronNetworkTimestamp[EntityMetaKey.Selector]}
-									/>
-								{/snippet}
-							</EntitiesList>
+								collapsible={false}
+								title={label}
+								id={`${id}-list`}
+							/>
 						{/snippet}
 
 						{#snippet SectionTronChainBlocks({ id, label })}

@@ -137,12 +137,11 @@
 			>
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null}
-						{@const tezosAccountInitial = untrack(() => tezosAccount)}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<TezosAccountView
-									selection={select(EntityType.TezosAccount, (tezosAccount ?? tezosAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -156,12 +155,11 @@
 			>
 				{#snippet children(tezosMichelsonScript)}
 					{#if tezosMichelsonScript != null}
-						{@const tezosMichelsonScriptInitial = untrack(() => tezosMichelsonScript)}
 						<div>
 							<dt>script</dt>
 							<dd>
 								<TezosMichelsonScriptView
-									selection={select(EntityType.TezosMichelsonScript, (tezosMichelsonScript ?? tezosMichelsonScriptInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosMichelsonScript, tezosMichelsonScript[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

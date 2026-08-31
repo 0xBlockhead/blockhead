@@ -116,12 +116,11 @@
 			>
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null}
-						{@const stellarAssetInitial = untrack(() => stellarAsset)}
 						<div>
 							<dt>asset</dt>
 							<dd>
 								<StellarAssetView
-									selection={select(EntityType.StellarAsset, (stellarAsset ?? stellarAssetInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -179,12 +178,11 @@
 			>
 				{#snippet children(stellarTransaction)}
 					{#if stellarTransaction != null}
-						{@const stellarTransactionInitial = untrack(() => stellarTransaction)}
 						<div>
 							<dt>claimed by transaction</dt>
 							<dd>
 								<StellarTransactionView
-									selection={select(EntityType.StellarTransaction, (stellarTransaction ?? stellarTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarTransaction, stellarTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

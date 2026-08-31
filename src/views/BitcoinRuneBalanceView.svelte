@@ -188,12 +188,11 @@
 			>
 				{#snippet children(utxoOutput)}
 					{#if utxoOutput != null}
-						{@const utxoOutputInitial = untrack(() => utxoOutput)}
 						<div>
 							<dt>Output</dt>
 							<dd>
 								<UtxoOutputView
-									selection={select(EntityType.UtxoOutput, (utxoOutput ?? utxoOutputInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -207,12 +206,11 @@
 			>
 				{#snippet children(utxoAddress)}
 					{#if utxoAddress != null}
-						{@const utxoAddressInitial = untrack(() => utxoAddress)}
 						<div>
 							<dt>Address</dt>
 							<dd>
 								<UtxoAddressView
-									selection={select(EntityType.UtxoAddress, (utxoAddress ?? utxoAddressInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

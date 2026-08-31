@@ -102,12 +102,11 @@
 			>
 				{#snippet children(xrplAccount)}
 					{#if xrplAccount != null}
-						{@const xrplAccountInitial = untrack(() => xrplAccount)}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<XrplAccountView
-									selection={select(EntityType.XrplAccount, (xrplAccount ?? xrplAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -121,12 +120,11 @@
 			>
 				{#snippet children(xrplAccount)}
 					{#if xrplAccount != null}
-						{@const xrplAccountInitial = untrack(() => xrplAccount)}
 						<div>
 							<dt>issuer account</dt>
 							<dd>
 								<XrplAccountView
-									selection={select(EntityType.XrplAccount, (xrplAccount ?? xrplAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

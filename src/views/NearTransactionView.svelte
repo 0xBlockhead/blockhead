@@ -106,9 +106,8 @@
 				>
 					{#snippet children(nearAccount)}
 						{#if nearAccount != null}
-							{@const nearAccountInitial = untrack(() => nearAccount)}
 							<NearAccountView
-								selection={select(EntityType.NearAccount, (nearAccount ?? nearAccountInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 								href={null}
 								layout={EntityLayout.Value}
 							/>
@@ -127,10 +126,9 @@
 		>
 			{#snippet children(nearAccount)}
 				{#if nearAccount != null}
-					{@const nearAccountInitial = untrack(() => nearAccount)}
 					<span data-text="muted">
 						<NearAccountView
-							selection={select(EntityType.NearAccount, (nearAccount ?? nearAccountInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -176,12 +174,11 @@
 			>
 				{#snippet children(nearAccount)}
 					{#if nearAccount != null}
-						{@const nearAccountInitial = untrack(() => nearAccount)}
 						<div>
 							<dt>Signer</dt>
 							<dd>
 								<NearAccountView
-									selection={select(EntityType.NearAccount, (nearAccount ?? nearAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -195,12 +192,11 @@
 			>
 				{#snippet children(nearAccount)}
 					{#if nearAccount != null}
-						{@const nearAccountInitial = untrack(() => nearAccount)}
 						<div>
 							<dt>Receiver</dt>
 							<dd>
 								<NearAccountView
-									selection={select(EntityType.NearAccount, (nearAccount ?? nearAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

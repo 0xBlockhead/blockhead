@@ -366,12 +366,11 @@
 			>
 				{#snippet children(hyperliquidOrder)}
 					{#if hyperliquidOrder != null}
-						{@const hyperliquidOrderInitial = untrack(() => hyperliquidOrder)}
 						<div>
 							<dt>order</dt>
 							<dd>
 								<HyperliquidOrderView
-									selection={select(EntityType.HyperliquidOrder, (hyperliquidOrder ?? hyperliquidOrderInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidOrder, hyperliquidOrder[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -385,12 +384,11 @@
 			>
 				{#snippet children(hyperliquidTransaction)}
 					{#if hyperliquidTransaction != null}
-						{@const hyperliquidTransactionInitial = untrack(() => hyperliquidTransaction)}
 						<div>
 							<dt>transaction</dt>
 							<dd>
 								<HyperliquidTransactionView
-									selection={select(EntityType.HyperliquidTransaction, (hyperliquidTransaction ?? hyperliquidTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidTransaction, hyperliquidTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -202,12 +202,11 @@
 			>
 				{#snippet children(hyperliquidAccount)}
 					{#if hyperliquidAccount != null}
-						{@const hyperliquidAccountInitial = untrack(() => hyperliquidAccount)}
 						<div>
 							<dt>signer</dt>
 							<dd>
 								<HyperliquidAccountView
-									selection={select(EntityType.HyperliquidAccount, (hyperliquidAccount ?? hyperliquidAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

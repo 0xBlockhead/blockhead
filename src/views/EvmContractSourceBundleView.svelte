@@ -110,7 +110,7 @@
 		>
 			{#snippet children(entity)}
 				{@const artifactContent = entity.files}
-				{#if artifactContent != null && artifactContent !== ''}
+				{#if artifactContent !== ''}
 					<a
 						href={`data:application/json;charset=utf-8,${encodeURIComponent(artifactContent)}`}
 						download='verified-source-bundle.json'

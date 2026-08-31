@@ -7006,7 +7006,6 @@ export const schema = {
 			}),
 
 
-
 			entity({
 				entityType: EntityType.AlgorandAccount,
 				labels: {

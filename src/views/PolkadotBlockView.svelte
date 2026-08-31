@@ -186,12 +186,11 @@
 			>
 				{#snippet children(polkadotBlock)}
 					{#if polkadotBlock != null}
-						{@const polkadotBlockInitial = untrack(() => polkadotBlock)}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<PolkadotBlockView
-									selection={select(EntityType.PolkadotBlock, (polkadotBlock ?? polkadotBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

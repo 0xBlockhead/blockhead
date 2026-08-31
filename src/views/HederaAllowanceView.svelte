@@ -125,10 +125,9 @@
 				>
 					{#snippet children(hederaToken)}
 						{#if hederaToken != null}
-							{@const hederaTokenInitial = untrack(() => hederaToken)}
 							<span data-text="muted">
 								<HederaTokenView
-									selection={select(EntityType.HederaToken, (hederaToken ?? hederaTokenInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 								/>
 							</span>
@@ -183,12 +182,11 @@
 			>
 				{#snippet children(hederaToken)}
 					{#if hederaToken != null}
-						{@const hederaTokenInitial = untrack(() => hederaToken)}
 						<div>
 							<dt>token</dt>
 							<dd>
 								<HederaTokenView
-									selection={select(EntityType.HederaToken, (hederaToken ?? hederaTokenInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -220,12 +218,11 @@
 			>
 				{#snippet children(hederaNft)}
 					{#if hederaNft != null}
-						{@const hederaNftInitial = untrack(() => hederaNft)}
 						<div>
 							<dt>NFT</dt>
 							<dd>
 								<HederaNftView
-									selection={select(EntityType.HederaNft, (hederaNft ?? hederaNftInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

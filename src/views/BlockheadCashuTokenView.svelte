@@ -193,12 +193,11 @@
 			>
 				{#snippet children(cashuMint)}
 					{#if cashuMint != null}
-						{@const cashuMintInitial = untrack(() => cashuMint)}
 						<div>
 							<dt>mint</dt>
 							<dd>
 								<CashuMintView
-									selection={select(EntityType.CashuMint, (cashuMint ?? cashuMintInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

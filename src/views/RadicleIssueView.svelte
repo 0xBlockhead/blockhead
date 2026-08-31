@@ -204,12 +204,11 @@
 			>
 				{#snippet children(gitObject)}
 					{#if gitObject != null}
-						{@const gitObjectInitial = untrack(() => gitObject)}
 						<div>
 							<dt>payload object</dt>
 							<dd>
 								<GitObjectView
-									selection={select(EntityType.GitObject, (gitObject ?? gitObjectInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

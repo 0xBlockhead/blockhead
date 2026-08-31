@@ -93,12 +93,11 @@
 			>
 				{#snippet children(tezosToken)}
 					{#if tezosToken != null}
-						{@const tezosTokenInitial = untrack(() => tezosToken)}
 						<div>
 							<dt>token</dt>
 							<dd>
 								<TezosTokenView
-									selection={select(EntityType.TezosToken, (tezosToken ?? tezosTokenInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosToken, tezosToken[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -112,12 +111,11 @@
 			>
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null}
-						{@const tezosAccountInitial = untrack(() => tezosAccount)}
 						<div>
 							<dt>from</dt>
 							<dd>
 								<TezosAccountView
-									selection={select(EntityType.TezosAccount, (tezosAccount ?? tezosAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -131,12 +129,11 @@
 			>
 				{#snippet children(tezosAccount)}
 					{#if tezosAccount != null}
-						{@const tezosAccountInitial = untrack(() => tezosAccount)}
 						<div>
 							<dt>to</dt>
 							<dd>
 								<TezosAccountView
-									selection={select(EntityType.TezosAccount, (tezosAccount ?? tezosAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -150,12 +147,11 @@
 			>
 				{#snippet children(tezosOperation)}
 					{#if tezosOperation != null}
-						{@const tezosOperationInitial = untrack(() => tezosOperation)}
 						<div>
 							<dt>operation</dt>
 							<dd>
 								<TezosOperationView
-									selection={select(EntityType.TezosOperation, (tezosOperation ?? tezosOperationInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TezosOperation, tezosOperation[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

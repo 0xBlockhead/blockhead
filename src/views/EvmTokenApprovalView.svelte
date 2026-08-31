@@ -139,10 +139,9 @@
 			resource={selection.$approvedActor}
 		>
 			{#snippet children(evmAccount)}
-				{@const evmAccountInitial = untrack(() => evmAccount)}
 				<span data-text="muted">
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -187,9 +186,8 @@
 						resource={selection.$owner}
 					>
 						{#snippet children(evmAccount)}
-							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -204,9 +202,8 @@
 						resource={selection.$approvedActor}
 					>
 						{#snippet children(evmAccount)}
-							{@const evmAccountInitial = untrack(() => evmAccount)}
 							<EvmAccountView
-								selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

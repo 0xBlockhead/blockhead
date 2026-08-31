@@ -111,12 +111,11 @@
 			>
 				{#snippet children(nftCollection)}
 					{#if nftCollection != null}
-						{@const nftCollectionInitial = untrack(() => nftCollection)}
 						<div>
 							<dt>collection</dt>
 							<dd>
 								<NftCollectionView
-									selection={select(EntityType.NftCollection, (nftCollection ?? nftCollectionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.NftCollection, nftCollection[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -130,12 +129,11 @@
 			>
 				{#snippet children(nftToken)}
 					{#if nftToken != null}
-						{@const nftTokenInitial = untrack(() => nftToken)}
 						<div>
 							<dt>token</dt>
 							<dd>
 								<NftTokenView
-									selection={select(EntityType.NftToken, (nftToken ?? nftTokenInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.NftToken, nftToken[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

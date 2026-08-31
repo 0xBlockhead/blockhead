@@ -221,12 +221,11 @@
 			>
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null}
-						{@const mcpServerInitial = untrack(() => mcpServer)}
 						<div>
 							<dt>MCP server</dt>
 							<dd>
 								<McpServerView
-									selection={select(EntityType.McpServer, (mcpServer ?? mcpServerInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

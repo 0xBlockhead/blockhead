@@ -72,9 +72,8 @@
 		>
 			{#snippet children(acpAgentRuntime)}
 				{#if acpAgentRuntime != null}
-					{@const acpAgentRuntimeInitial = untrack(() => acpAgentRuntime)}
 					<AcpAgentRuntimeView
-						selection={select(EntityType.AcpAgentRuntime, (acpAgentRuntime ?? acpAgentRuntimeInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -116,12 +115,11 @@
 			>
 				{#snippet children(acpAgentRuntime)}
 					{#if acpAgentRuntime != null}
-						{@const acpAgentRuntimeInitial = untrack(() => acpAgentRuntime)}
 						<div>
 							<dt>runtime</dt>
 							<dd>
 								<AcpAgentRuntimeView
-									selection={select(EntityType.AcpAgentRuntime, (acpAgentRuntime ?? acpAgentRuntimeInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

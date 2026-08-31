@@ -22,6 +22,7 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 
 	assert.deepEqual(Object.keys(compiledApp), [
 		'generatedFiles',
+		'defaultPluralViewEntityTypes',
 		'presentationManifest',
 		'sourceClaims',
 		'sourceAccountability',
@@ -34,6 +35,16 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 	)
 	assertRecursivelyFrozen(compiledApp)
 	assert.ok(compiledApp.generatedFiles.length > 0)
+	assert.ok(compiledApp.defaultPluralViewEntityTypes.length > 0)
+	assert.deepEqual(
+		compiledApp.defaultPluralViewEntityTypes,
+		[...new Set(compiledApp.defaultPluralViewEntityTypes)].toSorted((left, right) => (
+			left.localeCompare(right, 'en', { sensitivity: 'base', numeric: true })
+		))
+	)
+	assert.equal(compiledApp.defaultPluralViewEntityTypes.every((entityType) => (
+		app.schema.entities.some((entity) => entity.entityType === entityType)
+	)), true)
 	const authoredLists = app.schema.entities.flatMap((entity) => (
 		(entity.views.singular?.lists ?? []).map((placement) => ({ entity, placement }))
 	))

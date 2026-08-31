@@ -131,12 +131,11 @@
 			>
 				{#snippet children(tonTransaction)}
 					{#if tonTransaction != null}
-						{@const tonTransactionInitial = untrack(() => tonTransaction)}
 						<div>
 							<dt>source transaction</dt>
 							<dd>
 								<TonTransactionView
-									selection={select(EntityType.TonTransaction, (tonTransaction ?? tonTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -411,12 +410,11 @@
 			>
 				{#snippet children(tonTrace)}
 					{#if tonTrace != null}
-						{@const tonTraceInitial = untrack(() => tonTrace)}
 						<div>
 							<dt>trace</dt>
 							<dd>
 								<TonTraceView
-									selection={select(EntityType.TonTrace, (tonTrace ?? tonTraceInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -430,12 +428,11 @@
 			>
 				{#snippet children(tonTransaction)}
 					{#if tonTransaction != null}
-						{@const tonTransactionInitial = untrack(() => tonTransaction)}
 						<div>
 							<dt>destination transaction</dt>
 							<dd>
 								<TonTransactionView
-									selection={select(EntityType.TonTransaction, (tonTransaction ?? tonTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

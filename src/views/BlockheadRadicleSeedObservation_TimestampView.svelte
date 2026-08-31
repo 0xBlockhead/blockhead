@@ -101,12 +101,11 @@
 			>
 				{#snippet children(blockheadRadicleNodeState)}
 					{#if blockheadRadicleNodeState != null}
-						{@const blockheadRadicleNodeStateInitial = untrack(() => blockheadRadicleNodeState)}
 						<div>
 							<dt>observer node</dt>
 							<dd>
 								<BlockheadRadicleNodeStateView
-									selection={select(EntityType.BlockheadRadicleNodeState, (blockheadRadicleNodeState ?? blockheadRadicleNodeStateInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -99,12 +99,11 @@
 			>
 				{#snippet children(tonNftItem)}
 					{#if tonNftItem != null}
-						{@const tonNftItemInitial = untrack(() => tonNftItem)}
 						<div>
 							<dt>item</dt>
 							<dd>
 								<TonNftItemView
-									selection={select(EntityType.TonNftItem, (tonNftItem ?? tonNftItemInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonNftItem, tonNftItem[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -118,12 +117,11 @@
 			>
 				{#snippet children(tonNftCollection)}
 					{#if tonNftCollection != null}
-						{@const tonNftCollectionInitial = untrack(() => tonNftCollection)}
 						<div>
 							<dt>collection</dt>
 							<dd>
 								<TonNftCollectionView
-									selection={select(EntityType.TonNftCollection, (tonNftCollection ?? tonNftCollectionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonNftCollection, tonNftCollection[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -137,12 +135,11 @@
 			>
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null}
-						{@const tonAccountInitial = untrack(() => tonAccount)}
 						<div>
 							<dt>from</dt>
 							<dd>
 								<TonAccountView
-									selection={select(EntityType.TonAccount, (tonAccount ?? tonAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -156,12 +153,11 @@
 			>
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null}
-						{@const tonAccountInitial = untrack(() => tonAccount)}
 						<div>
 							<dt>to</dt>
 							<dd>
 								<TonAccountView
-									selection={select(EntityType.TonAccount, (tonAccount ?? tonAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -175,12 +171,11 @@
 			>
 				{#snippet children(tonTrace)}
 					{#if tonTrace != null}
-						{@const tonTraceInitial = untrack(() => tonTrace)}
 						<div>
 							<dt>trace</dt>
 							<dd>
 								<TonTraceView
-									selection={select(EntityType.TonTrace, (tonTrace ?? tonTraceInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -194,12 +189,11 @@
 			>
 				{#snippet children(tonMessage)}
 					{#if tonMessage != null}
-						{@const tonMessageInitial = untrack(() => tonMessage)}
 						<div>
 							<dt>message</dt>
 							<dd>
 								<TonMessageView
-									selection={select(EntityType.TonMessage, (tonMessage ?? tonMessageInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

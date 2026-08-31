@@ -125,12 +125,11 @@
 			>
 				{#snippet children(issuerPower)}
 					{#if issuerPower != null}
-						{@const issuerPowerInitial = untrack(() => issuerPower)}
 						<div>
 							<dt>issuer power</dt>
 							<dd>
 								<IssuerPowerView
-									selection={select(EntityType.IssuerPower, (issuerPower ?? issuerPowerInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.IssuerPower, issuerPower[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

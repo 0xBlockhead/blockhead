@@ -103,9 +103,8 @@
 						resource={selection.$localNode}
 					>
 						{#snippet children(blockheadRadicleNodeState)}
-							{@const blockheadRadicleNodeStateInitial = untrack(() => blockheadRadicleNodeState)}
 							<BlockheadRadicleNodeStateView
-								selection={select(EntityType.BlockheadRadicleNodeState, (blockheadRadicleNodeState ?? blockheadRadicleNodeStateInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -131,12 +130,11 @@
 			>
 				{#snippet children(radicleRepository)}
 					{#if radicleRepository != null}
-						{@const radicleRepositoryInitial = untrack(() => radicleRepository)}
 						<div>
 							<dt>repository</dt>
 							<dd>
 								<RadicleRepositoryView
-									selection={select(EntityType.RadicleRepository, (radicleRepository ?? radicleRepositoryInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

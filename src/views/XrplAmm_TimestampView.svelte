@@ -205,12 +205,11 @@
 			>
 				{#snippet children(xrplLedgerEntry)}
 					{#if xrplLedgerEntry != null}
-						{@const xrplLedgerEntryInitial = untrack(() => xrplLedgerEntry)}
 						<div>
 							<dt>ledger entry</dt>
 							<dd>
 								<XrplLedgerEntryView
-									selection={select(EntityType.XrplLedgerEntry, (xrplLedgerEntry ?? xrplLedgerEntryInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.XrplLedgerEntry, xrplLedgerEntry[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -210,12 +210,11 @@
 			>
 				{#snippet children(utxoTransaction)}
 					{#if utxoTransaction != null}
-						{@const utxoTransactionInitial = untrack(() => utxoTransaction)}
 						<div>
 							<dt>Etching transaction</dt>
 							<dd>
 								<UtxoTransactionView
-									selection={select(EntityType.UtxoTransaction, (utxoTransaction ?? utxoTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

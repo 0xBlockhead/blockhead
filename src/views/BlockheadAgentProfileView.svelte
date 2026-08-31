@@ -160,12 +160,11 @@
 			>
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null}
-						{@const mcpServerInitial = untrack(() => mcpServer)}
 						<div>
 							<dt>MCP server</dt>
 							<dd>
 								<McpServerView
-									selection={select(EntityType.McpServer, (mcpServer ?? mcpServerInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -179,12 +178,11 @@
 			>
 				{#snippet children(eip8004AgentRegistration)}
 					{#if eip8004AgentRegistration != null}
-						{@const eip8004AgentRegistrationInitial = untrack(() => eip8004AgentRegistration)}
 						<div>
 							<dt>EIP-8004 registration</dt>
 							<dd>
 								<Eip8004AgentRegistrationView
-									selection={select(EntityType.Eip8004AgentRegistration, (eip8004AgentRegistration ?? eip8004AgentRegistrationInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -207,12 +207,11 @@
 			>
 				{#snippet children(solanaProgram)}
 					{#if solanaProgram != null}
-						{@const solanaProgramInitial = untrack(() => solanaProgram)}
 						<div>
 							<dt>Program</dt>
 							<dd>
 								<SolanaProgramView
-									selection={select(EntityType.SolanaProgram, (solanaProgram ?? solanaProgramInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

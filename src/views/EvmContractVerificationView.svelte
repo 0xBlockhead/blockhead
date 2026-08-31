@@ -233,12 +233,11 @@
 			>
 				{#snippet children(evmContractSourceBundle)}
 					{#if evmContractSourceBundle != null}
-						{@const evmContractSourceBundleInitial = untrack(() => evmContractSourceBundle)}
 						<div>
 							<dt>Source bundle</dt>
 							<dd>
 								<EvmContractSourceBundleView
-									selection={select(EntityType.EvmContractSourceBundle, (evmContractSourceBundle ?? evmContractSourceBundleInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmContractSourceBundle, evmContractSourceBundle[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

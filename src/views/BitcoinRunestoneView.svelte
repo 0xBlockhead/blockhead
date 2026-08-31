@@ -116,12 +116,11 @@
 			>
 				{#snippet children(utxoOutput)}
 					{#if utxoOutput != null}
-						{@const utxoOutputInitial = untrack(() => utxoOutput)}
 						<div>
 							<dt>Output</dt>
 							<dd>
 								<UtxoOutputView
-									selection={select(EntityType.UtxoOutput, (utxoOutput ?? utxoOutputInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -77,10 +77,9 @@
 		>
 			{#snippet children(zeroGConsensusNetwork)}
 				{#if zeroGConsensusNetwork != null}
-					{@const zeroGConsensusNetworkInitial = untrack(() => zeroGConsensusNetwork)}
 					<span data-text="muted">
 						<ZeroGConsensusNetworkView
-							selection={select(EntityType.ZeroGConsensusNetwork, (zeroGConsensusNetwork ?? zeroGConsensusNetworkInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -113,12 +112,11 @@
 			>
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null}
-						{@const zeroGConsensusNetworkInitial = untrack(() => zeroGConsensusNetwork)}
 						<div>
 							<dt>consensus network</dt>
 							<dd>
 								<ZeroGConsensusNetworkView
-									selection={select(EntityType.ZeroGConsensusNetwork, (zeroGConsensusNetwork ?? zeroGConsensusNetworkInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

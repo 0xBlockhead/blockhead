@@ -82,9 +82,8 @@
 		>
 			{#snippet children(filecoinMiner)}
 				{#if filecoinMiner != null}
-					{@const filecoinMinerInitial = untrack(() => filecoinMiner)}
 					<FilecoinMinerView
-						selection={select(EntityType.FilecoinMiner, (filecoinMiner ?? filecoinMinerInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -99,10 +98,9 @@
 		>
 			{#snippet children(filecoinTipset)}
 				{#if filecoinTipset != null}
-					{@const filecoinTipsetInitial = untrack(() => filecoinTipset)}
 					<span data-text="muted">
 						<FilecoinTipsetView
-							selection={select(EntityType.FilecoinTipset, (filecoinTipset ?? filecoinTipsetInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -135,12 +133,11 @@
 			>
 				{#snippet children(filecoinTipset)}
 					{#if filecoinTipset != null}
-						{@const filecoinTipsetInitial = untrack(() => filecoinTipset)}
 						<div>
 							<dt>Tipset</dt>
 							<dd>
 								<FilecoinTipsetView
-									selection={select(EntityType.FilecoinTipset, (filecoinTipset ?? filecoinTipsetInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -154,12 +151,11 @@
 			>
 				{#snippet children(filecoinMiner)}
 					{#if filecoinMiner != null}
-						{@const filecoinMinerInitial = untrack(() => filecoinMiner)}
 						<div>
 							<dt>Miner</dt>
 							<dd>
 								<FilecoinMinerView
-									selection={select(EntityType.FilecoinMiner, (filecoinMiner ?? filecoinMinerInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinMiner, filecoinMiner[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -104,10 +104,9 @@
 				>
 					{#snippet children(utxoAddress)}
 						{#if utxoAddress != null}
-							{@const utxoAddressInitial = untrack(() => utxoAddress)}
 							<span data-text="muted">
 								<UtxoAddressView
-									selection={select(EntityType.UtxoAddress, (utxoAddress ?? utxoAddressInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
 									layout={EntityLayout.Title}
 								/>
 							</span>
@@ -170,12 +169,11 @@
 			>
 				{#snippet children(utxoAddress)}
 					{#if utxoAddress != null}
-						{@const utxoAddressInitial = untrack(() => utxoAddress)}
 						<div>
 							<dt>Address</dt>
 							<dd>
 								<UtxoAddressView
-									selection={select(EntityType.UtxoAddress, (utxoAddress ?? utxoAddressInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -329,12 +327,11 @@
 			>
 				{#snippet children(bitcoinRunestone)}
 					{#if bitcoinRunestone != null}
-						{@const bitcoinRunestoneInitial = untrack(() => bitcoinRunestone)}
 						<div>
 							<dt>Bitcoin runestone</dt>
 							<dd>
 								<BitcoinRunestoneView
-									selection={select(EntityType.BitcoinRunestone, (bitcoinRunestone ?? bitcoinRunestoneInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BitcoinRunestone, bitcoinRunestone[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

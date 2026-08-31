@@ -175,12 +175,11 @@
 			>
 				{#snippet children(ensName)}
 					{#if ensName != null}
-						{@const ensNameInitial = untrack(() => ensName)}
 						<div>
 							<dt>Primary name</dt>
 							<dd>
 								<EnsNameView
-									selection={select(EntityType.EnsName, (ensName ?? ensNameInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

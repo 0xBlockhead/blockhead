@@ -86,10 +86,9 @@
 		>
 			{#snippet children(evmAccount)}
 				{#if evmAccount != null}
-					{@const evmAccountInitial = untrack(() => evmAccount)}
 					<span data-text="muted">
 						<EvmAccountView
-							selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -122,12 +121,11 @@
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null}
-						{@const evmAccountInitial = untrack(() => evmAccount)}
 						<div>
 							<dt>requester</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, (evmAccount ?? evmAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -185,12 +183,11 @@
 			>
 				{#snippet children(zeroGSettlementTrace)}
 					{#if zeroGSettlementTrace != null}
-						{@const zeroGSettlementTraceInitial = untrack(() => zeroGSettlementTrace)}
 						<div>
 							<dt>settlement trace</dt>
 							<dd>
 								<ZeroGSettlementTraceView
-									selection={select(EntityType.ZeroGSettlementTrace, (zeroGSettlementTrace ?? zeroGSettlementTraceInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGSettlementTrace, zeroGSettlementTrace[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -189,12 +189,11 @@
 			>
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null}
-						{@const zeroGConsensusNetworkInitial = untrack(() => zeroGConsensusNetwork)}
 						<div>
 							<dt>consensus network</dt>
 							<dd>
 								<ZeroGConsensusNetworkView
-									selection={select(EntityType.ZeroGConsensusNetwork, (zeroGConsensusNetwork ?? zeroGConsensusNetworkInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -208,12 +207,11 @@
 			>
 				{#snippet children(zeroGDaQuorum)}
 					{#if zeroGDaQuorum != null}
-						{@const zeroGDaQuorumInitial = untrack(() => zeroGDaQuorum)}
 						<div>
 							<dt>DA quorum</dt>
 							<dd>
 								<ZeroGDaQuorumView
-									selection={select(EntityType.ZeroGDaQuorum, (zeroGDaQuorum ?? zeroGDaQuorumInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -227,12 +225,11 @@
 			>
 				{#snippet children(zeroGStorageLogEntry)}
 					{#if zeroGStorageLogEntry != null}
-						{@const zeroGStorageLogEntryInitial = untrack(() => zeroGStorageLogEntry)}
 						<div>
 							<dt>storage log entry</dt>
 							<dd>
 								<ZeroGStorageLogEntryView
-									selection={select(EntityType.ZeroGStorageLogEntry, (zeroGStorageLogEntry ?? zeroGStorageLogEntryInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

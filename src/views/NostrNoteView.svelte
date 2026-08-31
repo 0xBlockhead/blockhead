@@ -182,12 +182,11 @@
 				>
 					{#snippet children(nostrProfile)}
 						{#if nostrProfile != null}
-							{@const nostrProfileInitial = untrack(() => nostrProfile)}
 							<div>
 								<dt>Author profile</dt>
 								<dd>
 									<NostrProfileView
-										selection={select(EntityType.NostrProfile, (nostrProfile ?? nostrProfileInitial)[EntityMetaKey.Selector])}
+										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										layout={EntityLayout.Value}
 									/>
 								</dd>

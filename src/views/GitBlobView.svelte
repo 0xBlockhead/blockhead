@@ -97,9 +97,8 @@
 						resource={selection.$object}
 					>
 						{#snippet children(gitObject)}
-							{@const gitObjectInitial = untrack(() => gitObject)}
 							<GitObjectView
-								selection={select(EntityType.GitObject, (gitObject ?? gitObjectInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

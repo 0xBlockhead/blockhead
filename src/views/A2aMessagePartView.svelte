@@ -113,12 +113,11 @@
 			>
 				{#snippet children(a2aMessage)}
 					{#if a2aMessage != null}
-						{@const a2aMessageInitial = untrack(() => a2aMessage)}
 						<div>
 							<dt>message</dt>
 							<dd>
 								<A2aMessageView
-									selection={select(EntityType.A2aMessage, (a2aMessage ?? a2aMessageInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

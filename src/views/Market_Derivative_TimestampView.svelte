@@ -329,9 +329,8 @@
 						resource={selection.$parentMarket}
 					>
 						{#snippet children(market)}
-							{@const marketInitial = untrack(() => market)}
 							<MarketView
-								selection={select(EntityType.Market, (market ?? marketInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

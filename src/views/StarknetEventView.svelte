@@ -90,10 +90,9 @@
 		>
 			{#snippet children(starknetContract)}
 				{#if starknetContract != null}
-					{@const starknetContractInitial = untrack(() => starknetContract)}
 					<span data-text="muted">
 						<StarknetContractView
-							selection={select(EntityType.StarknetContract, (starknetContract ?? starknetContractInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -128,12 +127,11 @@
 			>
 				{#snippet children(starknetContract)}
 					{#if starknetContract != null}
-						{@const starknetContractInitial = untrack(() => starknetContract)}
 						<div>
 							<dt>from contract</dt>
 							<dd>
 								<StarknetContractView
-									selection={select(EntityType.StarknetContract, (starknetContract ?? starknetContractInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

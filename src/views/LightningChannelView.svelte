@@ -96,9 +96,8 @@
 		>
 			{#snippet children(lightningNode)}
 				{#if lightningNode != null}
-					{@const lightningNodeInitial = untrack(() => lightningNode)}
 					<LightningNodeView
-						selection={select(EntityType.LightningNode, (lightningNode ?? lightningNodeInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 						href={null}
 						layout={EntityLayout.Value}
 					/>
@@ -149,12 +148,11 @@
 			>
 				{#snippet children(lightningNode)}
 					{#if lightningNode != null}
-						{@const lightningNodeInitial = untrack(() => lightningNode)}
 						<div>
 							<dt>Peer node</dt>
 							<dd>
 								<LightningNodeView
-									selection={select(EntityType.LightningNode, (lightningNode ?? lightningNodeInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

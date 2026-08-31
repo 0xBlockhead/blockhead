@@ -101,9 +101,8 @@
 						resource={selection.$parentLiquidityPool}
 					>
 						{#snippet children(liquidityPool)}
-							{@const liquidityPoolInitial = untrack(() => liquidityPool)}
 							<LiquidityPoolView
-								selection={select(EntityType.LiquidityPool, (liquidityPool ?? liquidityPoolInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

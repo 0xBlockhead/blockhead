@@ -192,12 +192,11 @@
 			>
 				{#snippet children(evmTransaction)}
 					{#if evmTransaction != null}
-						{@const evmTransactionInitial = untrack(() => evmTransaction)}
 						<div>
 							<dt>claim transaction</dt>
 							<dd>
 								<EvmTransactionView
-									selection={select(EntityType.EvmTransaction, (evmTransaction ?? evmTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

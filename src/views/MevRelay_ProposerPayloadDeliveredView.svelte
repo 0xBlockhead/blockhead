@@ -98,10 +98,9 @@
 			resource={selection.$builder}
 		>
 			{#snippet children(mevBuilder)}
-				{@const mevBuilderInitial = untrack(() => mevBuilder)}
 				<span data-text="muted">
 					<MevBuilderView
-						selection={select(EntityType.MevBuilder, (mevBuilder ?? mevBuilderInitial)[EntityMetaKey.Selector])}
+						selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 						layout={EntityLayout.Title}
 					/>
 				</span>
@@ -184,9 +183,8 @@
 						resource={selection.$builder}
 					>
 						{#snippet children(mevBuilder)}
-							{@const mevBuilderInitial = untrack(() => mevBuilder)}
 							<MevBuilderView
-								selection={select(EntityType.MevBuilder, (mevBuilder ?? mevBuilderInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}

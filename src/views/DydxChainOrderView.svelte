@@ -122,12 +122,11 @@
 			>
 				{#snippet children(dydxChainMarket)}
 					{#if dydxChainMarket != null}
-						{@const dydxChainMarketInitial = untrack(() => dydxChainMarket)}
 						<div>
 							<dt>market</dt>
 							<dd>
 								<DydxChainMarketView
-									selection={select(EntityType.DydxChainMarket, (dydxChainMarket ?? dydxChainMarketInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -118,12 +118,11 @@
 			>
 				{#snippet children(filecoinNetwork)}
 					{#if filecoinNetwork != null}
-						{@const filecoinNetworkInitial = untrack(() => filecoinNetwork)}
 						<div>
 							<dt>network</dt>
 							<dd>
 								<FilecoinNetworkView
-									selection={select(EntityType.FilecoinNetwork, (filecoinNetwork ?? filecoinNetworkInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -137,12 +136,11 @@
 			>
 				{#snippet children(filecoinMessage)}
 					{#if filecoinMessage != null}
-						{@const filecoinMessageInitial = untrack(() => filecoinMessage)}
 						<div>
 							<dt>message</dt>
 							<dd>
 								<FilecoinMessageView
-									selection={select(EntityType.FilecoinMessage, (filecoinMessage ?? filecoinMessageInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinMessage, filecoinMessage[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -156,12 +154,11 @@
 			>
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null}
-						{@const filecoinActorInitial = untrack(() => filecoinActor)}
 						<div>
 							<dt>from</dt>
 							<dd>
 								<FilecoinActorView
-									selection={select(EntityType.FilecoinActor, (filecoinActor ?? filecoinActorInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -175,12 +172,11 @@
 			>
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null}
-						{@const filecoinActorInitial = untrack(() => filecoinActor)}
 						<div>
 							<dt>to</dt>
 							<dd>
 								<FilecoinActorView
-									selection={select(EntityType.FilecoinActor, (filecoinActor ?? filecoinActorInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

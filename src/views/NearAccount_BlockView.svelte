@@ -143,12 +143,11 @@
 			>
 				{#snippet children(nearContract)}
 					{#if nearContract != null}
-						{@const nearContractInitial = untrack(() => nearContract)}
 						<div>
 							<dt>Contract</dt>
 							<dd>
 								<NearContractView
-									selection={select(EntityType.NearContract, (nearContract ?? nearContractInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.NearContract, nearContract[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

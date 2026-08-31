@@ -116,12 +116,11 @@
 			>
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null}
-						{@const stellarAccountInitial = untrack(() => stellarAccount)}
 						<div>
 							<dt>base account</dt>
 							<dd>
 								<StellarAccountView
-									selection={select(EntityType.StellarAccount, (stellarAccount ?? stellarAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -135,12 +134,11 @@
 			>
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null}
-						{@const stellarAccountInitial = untrack(() => stellarAccount)}
 						<div>
 							<dt>counter account</dt>
 							<dd>
 								<StellarAccountView
-									selection={select(EntityType.StellarAccount, (stellarAccount ?? stellarAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -154,12 +152,11 @@
 			>
 				{#snippet children(stellarOffer)}
 					{#if stellarOffer != null}
-						{@const stellarOfferInitial = untrack(() => stellarOffer)}
 						<div>
 							<dt>base offer</dt>
 							<dd>
 								<StellarOfferView
-									selection={select(EntityType.StellarOffer, (stellarOffer ?? stellarOfferInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarOffer, stellarOffer[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -173,12 +170,11 @@
 			>
 				{#snippet children(stellarOffer)}
 					{#if stellarOffer != null}
-						{@const stellarOfferInitial = untrack(() => stellarOffer)}
 						<div>
 							<dt>counter offer</dt>
 							<dd>
 								<StellarOfferView
-									selection={select(EntityType.StellarOffer, (stellarOffer ?? stellarOfferInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarOffer, stellarOffer[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -192,12 +188,11 @@
 			>
 				{#snippet children(stellarLiquidityPool)}
 					{#if stellarLiquidityPool != null}
-						{@const stellarLiquidityPoolInitial = untrack(() => stellarLiquidityPool)}
 						<div>
 							<dt>base liquidity pool</dt>
 							<dd>
 								<StellarLiquidityPoolView
-									selection={select(EntityType.StellarLiquidityPool, (stellarLiquidityPool ?? stellarLiquidityPoolInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -211,12 +206,11 @@
 			>
 				{#snippet children(stellarLiquidityPool)}
 					{#if stellarLiquidityPool != null}
-						{@const stellarLiquidityPoolInitial = untrack(() => stellarLiquidityPool)}
 						<div>
 							<dt>counter liquidity pool</dt>
 							<dd>
 								<StellarLiquidityPoolView
-									selection={select(EntityType.StellarLiquidityPool, (stellarLiquidityPool ?? stellarLiquidityPoolInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -230,12 +224,11 @@
 			>
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null}
-						{@const stellarAssetInitial = untrack(() => stellarAsset)}
 						<div>
 							<dt>base asset</dt>
 							<dd>
 								<StellarAssetView
-									selection={select(EntityType.StellarAsset, (stellarAsset ?? stellarAssetInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -249,12 +242,11 @@
 			>
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null}
-						{@const stellarAssetInitial = untrack(() => stellarAsset)}
 						<div>
 							<dt>counter asset</dt>
 							<dd>
 								<StellarAssetView
-									selection={select(EntityType.StellarAsset, (stellarAsset ?? stellarAssetInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -356,12 +348,11 @@
 			>
 				{#snippet children(stellarTransaction)}
 					{#if stellarTransaction != null}
-						{@const stellarTransactionInitial = untrack(() => stellarTransaction)}
 						<div>
 							<dt>transaction</dt>
 							<dd>
 								<StellarTransactionView
-									selection={select(EntityType.StellarTransaction, (stellarTransaction ?? stellarTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarTransaction, stellarTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -375,12 +366,11 @@
 			>
 				{#snippet children(stellarOperation)}
 					{#if stellarOperation != null}
-						{@const stellarOperationInitial = untrack(() => stellarOperation)}
 						<div>
 							<dt>operation</dt>
 							<dd>
 								<StellarOperationView
-									selection={select(EntityType.StellarOperation, (stellarOperation ?? stellarOperationInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.StellarOperation, stellarOperation[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

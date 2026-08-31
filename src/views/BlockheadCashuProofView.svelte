@@ -98,9 +98,8 @@
 						resource={selection.$mint}
 					>
 						{#snippet children(cashuMint)}
-							{@const cashuMintInitial = untrack(() => cashuMint)}
 							<CashuMintView
-								selection={select(EntityType.CashuMint, (cashuMint ?? cashuMintInitial)[EntityMetaKey.Selector])}
+								selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 								layout={EntityLayout.Value}
 							/>
 						{/snippet}
@@ -126,12 +125,11 @@
 			>
 				{#snippet children(cashuKeyset)}
 					{#if cashuKeyset != null}
-						{@const cashuKeysetInitial = untrack(() => cashuKeyset)}
 						<div>
 							<dt>keyset</dt>
 							<dd>
 								<CashuKeysetView
-									selection={select(EntityType.CashuKeyset, (cashuKeyset ?? cashuKeysetInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.CashuKeyset, cashuKeyset[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

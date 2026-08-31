@@ -108,12 +108,11 @@
 			>
 				{#snippet children(algorandAccount)}
 					{#if algorandAccount != null}
-						{@const algorandAccountInitial = untrack(() => algorandAccount)}
 						<div>
 							<dt>account</dt>
 							<dd>
 								<AlgorandAccountView
-									selection={select(EntityType.AlgorandAccount, (algorandAccount ?? algorandAccountInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AlgorandAccount, algorandAccount[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -127,12 +126,11 @@
 			>
 				{#snippet children(algorandNetwork)}
 					{#if algorandNetwork != null}
-						{@const algorandNetworkInitial = untrack(() => algorandNetwork)}
 						<div>
 							<dt>network</dt>
 							<dd>
 								<AlgorandNetworkView
-									selection={select(EntityType.AlgorandNetwork, (algorandNetwork ?? algorandNetworkInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.AlgorandNetwork, algorandNetwork[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

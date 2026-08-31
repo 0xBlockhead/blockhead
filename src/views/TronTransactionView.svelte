@@ -93,10 +93,9 @@
 		>
 			{#snippet children(tronAccount)}
 				{#if tronAccount != null}
-					{@const tronAccountInitial = untrack(() => tronAccount)}
 					<span data-text="muted">
 						<TronAccountView
-							selection={select(EntityType.TronAccount, (tronAccount ?? tronAccountInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -109,10 +108,9 @@
 		>
 			{#snippet children(tronAccount)}
 				{#if tronAccount != null}
-					{@const tronAccountInitial = untrack(() => tronAccount)}
 					<span data-text="muted">
 						<TronAccountView
-							selection={select(EntityType.TronAccount, (tronAccount ?? tronAccountInitial)[EntityMetaKey.Selector])}
+							selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 							layout={EntityLayout.Title}
 						/>
 					</span>
@@ -138,12 +136,11 @@
 			>
 				{#snippet children(tronBlock)}
 					{#if tronBlock != null}
-						{@const tronBlockInitial = untrack(() => tronBlock)}
 						<div>
 							<dt>Block</dt>
 							<dd>
 								<TronBlockView
-									selection={select(EntityType.TronBlock, (tronBlock ?? tronBlockInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronBlock, tronBlock[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -372,12 +369,11 @@
 			>
 				{#snippet children(tronTransactionReceipt)}
 					{#if tronTransactionReceipt != null}
-						{@const tronTransactionReceiptInitial = untrack(() => tronTransactionReceipt)}
 						<div>
 							<dt>Receipt</dt>
 							<dd>
 								<TronTransactionReceiptView
-									selection={select(EntityType.TronTransactionReceipt, (tronTransactionReceipt ?? tronTransactionReceiptInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.TronTransactionReceipt, tronTransactionReceipt[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

@@ -134,12 +134,11 @@
 			>
 				{#snippet children(zeroGDataBlob)}
 					{#if zeroGDataBlob != null}
-						{@const zeroGDataBlobInitial = untrack(() => zeroGDataBlob)}
 						<div>
 							<dt>data blob</dt>
 							<dd>
 								<ZeroGDataBlobView
-									selection={select(EntityType.ZeroGDataBlob, (zeroGDataBlob ?? zeroGDataBlobInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -153,12 +152,11 @@
 			>
 				{#snippet children(blockheadZeroGStoredChunk)}
 					{#if blockheadZeroGStoredChunk != null}
-						{@const blockheadZeroGStoredChunkInitial = untrack(() => blockheadZeroGStoredChunk)}
 						<div>
 							<dt>chunk</dt>
 							<dd>
 								<BlockheadZeroGStoredChunkView
-									selection={select(EntityType.BlockheadZeroGStoredChunk, (blockheadZeroGStoredChunk ?? blockheadZeroGStoredChunkInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.BlockheadZeroGStoredChunk, blockheadZeroGStoredChunk[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

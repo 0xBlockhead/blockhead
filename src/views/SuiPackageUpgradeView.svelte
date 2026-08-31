@@ -199,12 +199,11 @@
 			>
 				{#snippet children(suiTransaction)}
 					{#if suiTransaction != null}
-						{@const suiTransactionInitial = untrack(() => suiTransaction)}
 						<div>
 							<dt>transaction</dt>
 							<dd>
 								<SuiTransactionView
-									selection={select(EntityType.SuiTransaction, (suiTransaction ?? suiTransactionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SuiTransaction, suiTransaction[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -218,12 +217,11 @@
 			>
 				{#snippet children(suiPackageVersion)}
 					{#if suiPackageVersion != null}
-						{@const suiPackageVersionInitial = untrack(() => suiPackageVersion)}
 						<div>
 							<dt>package version</dt>
 							<dd>
 								<SuiPackageVersionView
-									selection={select(EntityType.SuiPackageVersion, (suiPackageVersion ?? suiPackageVersionInitial)[EntityMetaKey.Selector])}
+									selection={select(EntityType.SuiPackageVersion, suiPackageVersion[EntityMetaKey.Selector])}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
