@@ -7,7 +7,6 @@ import {
 	youtubeApiPlaylistsListResponseWire,
 	youtubeApiSearchListResponseWire,
 	youtubeApiVideosListResponseWire,
-	type YoutubeApiCommentsListResponse,
 } from '$/sources/Youtube/Rest/types.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
@@ -266,7 +265,10 @@ export const listCompleteCommentReplies = async (
 	if (!Number.isSafeInteger(limit))
 		throw new Error(`Youtube_Rest: invalid reply limit ${limit}`)
 	const boundedLimit = Math.min(youtubeReplyResponseLimit, Math.max(1, limit))
-	const commentById = new Map<string, NonNullable<YoutubeApiCommentsListResponse['items']>[number]>()
+	const commentById = new Map<
+		string,
+		NonNullable<Awaited<ReturnType<typeof listCommentReplies>>['items']>[number]
+	>()
 	let nextPageToken = pageToken
 	let totalReplyCount: number | undefined
 
@@ -276,7 +278,11 @@ export const listCompleteCommentReplies = async (
 			throw new Error('Youtube_Rest: comment thread does not belong to requested video')
 
 		totalReplyCount = thread.snippet.totalReplyCount
-		if (!Number.isSafeInteger(totalReplyCount) || totalReplyCount < 0)
+		if (
+			totalReplyCount == null
+			|| !Number.isSafeInteger(totalReplyCount)
+			|| totalReplyCount < 0
+		)
 			throw new Error('Youtube_Rest: comment thread reply count not found')
 
 		for (const comment of thread.replies?.comments ?? []) {

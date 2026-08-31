@@ -12,12 +12,6 @@ import {
 
 export type YoutubeApiThumbnail = components['schemas']['Thumbnail']
 
-export type YoutubeApiSnippet =
-	| components['schemas']['ChannelSnippet']
-	| components['schemas']['VideoSnippet']
-	| components['schemas']['PlaylistSnippet']
-	| components['schemas']['SearchResultSnippet']
-
 export type YoutubeApiStatistics = components['schemas']['ChannelStatistics'] | components['schemas']['VideoStatistics']
 
 export type YoutubeApiChannel = components['schemas']['Channel']
@@ -48,21 +42,27 @@ export type YoutubeApiCommentThreadReplies = components['schemas']['CommentThrea
 
 export type YoutubeApiCommentThread = components['schemas']['CommentThread']
 
-export type YoutubeApiChannelsListResponse = components['schemas']['ChannelListResponse']
+type YoutubeApiListResponse<_Item> = {
+	kind?: string
+	etag?: string
+	nextPageToken?: string
+	prevPageToken?: string
+	pageInfo?: {
+		totalResults?: number
+		resultsPerPage?: number
+	}
+	items?: _Item[]
+}
 
-export type YoutubeApiVideosListResponse = components['schemas']['VideoListResponse']
-
-export type YoutubeApiPlaylistsListResponse = components['schemas']['PlaylistListResponse']
-
-export type YoutubeApiPlaylistItemsListResponse = components['schemas']['PlaylistItemListResponse']
-
-export type YoutubeApiCommentThreadsListResponse = components['schemas']['CommentThreadListResponse']
-
-export type YoutubeApiCommentsListResponse = components['schemas']['CommentListResponse']
+export type YoutubeApiChannelsListResponse = YoutubeApiListResponse<typeof youtubeApiChannelWire.infer>
+export type YoutubeApiVideosListResponse = YoutubeApiListResponse<typeof youtubeApiVideoWire.infer>
+export type YoutubeApiPlaylistsListResponse = YoutubeApiListResponse<typeof youtubeApiPlaylistWire.infer>
+export type YoutubeApiPlaylistItemsListResponse = YoutubeApiListResponse<typeof youtubeApiPlaylistItemWire.infer>
+export type YoutubeApiCommentThreadsListResponse = YoutubeApiListResponse<typeof youtubeApiCommentThreadWire.infer>
+export type YoutubeApiCommentsListResponse = YoutubeApiListResponse<typeof youtubeApiCommentWire.infer>
 
 export type YoutubeApiSearchResult = components['schemas']['SearchResult']
-
-export type YoutubeApiSearchListResponse = components['schemas']['SearchListResponse']
+export type YoutubeApiSearchListResponse = YoutubeApiListResponse<typeof youtubeApiSearchResultWire.infer>
 
 
 const nonNegativeInteger = arktype('number.integer >= 0')
@@ -94,6 +94,8 @@ const youtubeApiSnippetWire = arktype({
 	'liveBroadcastContent?': "'none' | 'upcoming' | 'live' | 'completed'",
 	'thumbnails?': youtubeApiThumbnailsWire,
 })
+
+export type YoutubeApiSnippet = typeof youtubeApiSnippetWire.infer
 
 const youtubeApiChannelStatisticsWire = arktype({
 	'viewCount?': uint64String,
@@ -226,37 +228,37 @@ const youtubeApiListResponseBase = {
 	'pageInfo?': youtubeApiPageInfoWire,
 } as const
 
-export const youtubeApiChannelsListResponseWire = arktype({
+export const youtubeApiChannelsListResponseWire: Type<YoutubeApiChannelsListResponse> = arktype({
 	...youtubeApiListResponseBase,
 	'items?': youtubeApiChannelWire.array(),
-}) satisfies Type<YoutubeApiChannelsListResponse>
+})
 
-export const youtubeApiVideosListResponseWire = arktype({
+export const youtubeApiVideosListResponseWire: Type<YoutubeApiVideosListResponse> = arktype({
 	...youtubeApiListResponseBase,
 	'items?': youtubeApiVideoWire.array(),
-}) satisfies Type<YoutubeApiVideosListResponse>
+})
 
-export const youtubeApiPlaylistsListResponseWire = arktype({
+export const youtubeApiPlaylistsListResponseWire: Type<YoutubeApiPlaylistsListResponse> = arktype({
 	...youtubeApiListResponseBase,
 	'items?': youtubeApiPlaylistWire.array(),
-}) satisfies Type<YoutubeApiPlaylistsListResponse>
+})
 
-export const youtubeApiPlaylistItemsListResponseWire = arktype({
+export const youtubeApiPlaylistItemsListResponseWire: Type<YoutubeApiPlaylistItemsListResponse> = arktype({
 	...youtubeApiListResponseBase,
 	'items?': youtubeApiPlaylistItemWire.array(),
-}) satisfies Type<YoutubeApiPlaylistItemsListResponse>
+})
 
-export const youtubeApiCommentThreadsListResponseWire = arktype({
+export const youtubeApiCommentThreadsListResponseWire: Type<YoutubeApiCommentThreadsListResponse> = arktype({
 	...youtubeApiListResponseBase,
 	'items?': youtubeApiCommentThreadWire.array(),
-}) satisfies Type<YoutubeApiCommentThreadsListResponse>
+})
 
-export const youtubeApiCommentsListResponseWire = arktype({
+export const youtubeApiCommentsListResponseWire: Type<YoutubeApiCommentsListResponse> = arktype({
 	...youtubeApiListResponseBase,
 	'items?': youtubeApiCommentWire.array(),
-}) satisfies Type<YoutubeApiCommentsListResponse>
+})
 
-export const youtubeApiSearchListResponseWire = arktype({
+export const youtubeApiSearchListResponseWire: Type<YoutubeApiSearchListResponse> = arktype({
 	...youtubeApiListResponseBase,
 	'items?': youtubeApiSearchResultWire.array(),
-}) satisfies Type<YoutubeApiSearchListResponse>
+})

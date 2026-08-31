@@ -115,20 +115,21 @@ const redditLinkCardReference = (
 	)
 		return undefined
 	const subreddit = optionalNonemptyString(thing.data.subreddit?.trim())?.toLowerCase()
+	const title = optionalNonemptyString(thing.data.title)
+	const selftext = optionalNonemptyString(thing.data.selftext)
+	const url = optionalNonemptyString(thing.data.url)
+	const permalink = canonicalRedditPermalink(thing.data.permalink)
+	const author = optionalNonemptyString(thing.data.author)
+	const createdAt = timestampMsFromUnixSeconds(thing.data.created_utc)
 	return {
 		[EntityMetaKey.Selector]: { fullname: thing.data.name },
 		[EntityMetaKey.Fields]: {
-			...Object.fromEntries([
-				['title', optionalNonemptyString(thing.data.title)],
-				['selftext', optionalNonemptyString(thing.data.selftext)],
-				['url', optionalNonemptyString(thing.data.url)],
-				['permalink', canonicalRedditPermalink(thing.data.permalink)],
-				['author', optionalNonemptyString(thing.data.author)],
-				['createdAt', timestampMsFromUnixSeconds(thing.data.created_utc)],
-			].flatMap(([fieldName, value]) => value == null ? [] : [[
-				entityFieldAddressKey(EntityType.RedditLink, [], fieldName),
-				value,
-			]])),
+			...(title != null && { [entityFieldAddressKey(EntityType.RedditLink, [], 'title')]: title }),
+			...(selftext != null && { [entityFieldAddressKey(EntityType.RedditLink, [], 'selftext')]: selftext }),
+			...(url != null && { [entityFieldAddressKey(EntityType.RedditLink, [], 'url')]: url }),
+			...(permalink != null && { [entityFieldAddressKey(EntityType.RedditLink, [], 'permalink')]: permalink }),
+			...(author != null && { [entityFieldAddressKey(EntityType.RedditLink, [], 'author')]: author }),
+			...(createdAt != null && { [entityFieldAddressKey(EntityType.RedditLink, [], 'createdAt')]: createdAt }),
 			...(subreddit != null && { [entityFieldAddressKey(EntityType.RedditLink, [], '$subreddit')]: {
 				[EntityMetaKey.Selector]: { name: subreddit },
 			} }),

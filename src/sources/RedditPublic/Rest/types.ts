@@ -1,12 +1,12 @@
 import {
+	scope,
 	type as arktype,
 	type Type,
 } from 'arktype'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export type RedditPublicApiThing = {
 	kind: string
-	data: Record<string, JsonValue> & {
+	data: {
 		name?: string
 		title?: string
 		selftext?: string
@@ -66,18 +66,41 @@ export type RedditPublicApiSubredditAbout = {
 }
 
 
-const redditPublicThingWire = arktype({
-	kind: 'string',
-	data: 'Record<string, unknown>',
-})
-
-export const redditPublicListingWire = arktype({
-	kind: "'Listing'",
-	data: {
-		'after?': 'string | null',
-		'children?': redditPublicThingWire.array(),
+const redditPublicWireModule = scope({
+	thing: {
+		kind: 'string',
+		data: {
+			'name?': 'string',
+			'title?': 'string',
+			'selftext?': 'string',
+			'author?': 'string',
+			'url?': 'string',
+			'subreddit?': 'string',
+			'body?': 'string',
+			'permalink?': 'string',
+			'link_id?': 'string',
+			'parent_id?': 'string',
+			'score?': 'number',
+			'num_comments?': 'number',
+			'created_utc?': 'number',
+			'depth?': 'number',
+			'replies?': "listing | ''",
+		},
 	},
-}) satisfies Type<RedditPublicApiListing>
+	listing: {
+		kind: "'Listing'",
+		data: {
+			'after?': 'string | null',
+			'children?': 'thing[]',
+		},
+	},
+}).export()
+
+const redditPublicThingWire = arktype(redditPublicWireModule.thing)
+
+export const redditPublicListingWire = arktype(
+	redditPublicWireModule.listing
+) satisfies Type<RedditPublicApiListing>
 
 export const redditPublicInfoResponseWire = arktype({
 	kind: "'Listing'",

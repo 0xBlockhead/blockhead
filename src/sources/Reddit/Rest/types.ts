@@ -1,8 +1,8 @@
 import {
+	scope,
 	type as arktype,
 	type Type,
 } from 'arktype'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export type RedditOAuthTokenResponse = {
 	access_token?: string
@@ -11,7 +11,7 @@ export type RedditOAuthTokenResponse = {
 
 export type RedditApiThing = {
 	kind: string
-	data: Record<string, JsonValue> & {
+	data: {
 		name?: string
 		title?: string
 		selftext?: string
@@ -71,18 +71,41 @@ export type RedditApiSubredditAbout = {
 }
 
 
-const redditApiThingWire = arktype({
-	kind: 'string',
-	data: 'Record<string, unknown>',
-})
-
-export const redditApiListingWire = arktype({
-	kind: "'Listing'",
-	data: {
-		'after?': 'string | null',
-		'children?': redditApiThingWire.array(),
+const redditApiWireModule = scope({
+	thing: {
+		kind: 'string',
+		data: {
+			'name?': 'string',
+			'title?': 'string',
+			'selftext?': 'string',
+			'author?': 'string',
+			'url?': 'string',
+			'subreddit?': 'string',
+			'body?': 'string',
+			'permalink?': 'string',
+			'link_id?': 'string',
+			'parent_id?': 'string',
+			'score?': 'number',
+			'num_comments?': 'number',
+			'created_utc?': 'number',
+			'depth?': 'number',
+			'replies?': "listing | ''",
+		},
 	},
-}) satisfies Type<RedditApiListing>
+	listing: {
+		kind: "'Listing'",
+		data: {
+			'after?': 'string | null',
+			'children?': 'thing[]',
+		},
+	},
+}).export()
+
+const redditApiThingWire = arktype(redditApiWireModule.thing)
+
+export const redditApiListingWire = arktype(
+	redditApiWireModule.listing
+) satisfies Type<RedditApiListing>
 
 export const redditApiInfoResponseWire = arktype({
 	kind: "'Listing'",

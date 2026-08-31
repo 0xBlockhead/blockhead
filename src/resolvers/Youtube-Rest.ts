@@ -251,7 +251,9 @@ export default {
 							const value = d.contentDetails?.duration
 							if (value == null) return undefined
 							const match = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/.exec(value)
-							if (match == null || match.slice(1).every((part) => part == null)) return undefined
+							if (match == null) return undefined
+							const durationParts = [match.at(1), match.at(2), match.at(3), match.at(4)]
+							if (durationParts.every((part) => part == null)) return undefined
 							const [
 								,
 								days = '0',
