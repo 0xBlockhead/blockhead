@@ -374,20 +374,21 @@ export const waitForLiveQueryCollections = (
 			subscriptions.length = 0
 			resolve()
 		}
+		const isSettled = () => settled
 
 		for (const query of queries) {
 			if (query.initialSnapshot === false)
 				continue
 
 			const unsubscribeFirstReady = query.collection.onFirstReady(complete)
-			if (settled) {
+			if (isSettled()) {
 				unsubscribeFirstReady()
 				continue
 			}
 
 			subscriptions.push(unsubscribeFirstReady)
 			const unsubscribeLoadingSubset = query.collection.on('loadingSubset:change', complete)
-			if (settled)
+			if (isSettled())
 				unsubscribeLoadingSubset()
 			else
 				subscriptions.push(unsubscribeLoadingSubset)
@@ -1056,7 +1057,7 @@ export function subscribeEntityField<
 				isError: rowsFailed || requiredFieldResolvedEmpty,
 				error: (
 					rowsFailed ?
-						new Error(rowsFailure?.error ?? queries.rows.status)
+						new Error(rowsFailure.error)
 					: requiredFieldResolvedEmpty ?
 						requiredFieldResolvedEmptyError(entityType, definition)
 					:
@@ -1361,7 +1362,7 @@ const subscribeEntitySelection = <
 		context.schema,
 		context.entityDefinitionByType[entityType],
 		[selectorKey],
-		context.resolverIndexes.resolverDefinitionsByEntityType[entityType] ?? [],
+		context.resolverIndexes.resolverDefinitionsByEntityType[entityType] ?? []
 	)
 	const entityRowsCollection = createLiveQueryCollection({
 		gcTime: 1,
@@ -1723,7 +1724,7 @@ const subscribeEntitySelection = <
 					isError: rowsFailed || entityMissing,
 					error: (
 						rowsFailed ?
-							new Error(rowsFailure?.error ?? entityRows.status)
+							new Error(rowsFailure.error)
 						: entityMissing ?
 							new Error(`${entityType} ${selectorKey} does not exist`)
 						:
@@ -1778,7 +1779,7 @@ const subscribeEntitySelection = <
 						isError: fieldRowsFailed || requiredFieldResolvedEmpty,
 						error: (
 							fieldRowsFailed ?
-								new Error(fieldRowsFailure?.error ?? queries.rows.status)
+								new Error(fieldRowsFailure.error)
 							: requiredFieldResolvedEmpty ?
 								requiredFieldResolvedEmptyError(entityType, definition)
 							:

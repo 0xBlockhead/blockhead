@@ -85,7 +85,7 @@ describe('BrowserPersistenceRuntime', () => {
 	test('opens OPFS only in the cold owner and tears its handle down', async () => {
 		const calls: string[] = []
 		const runtime = new BrowserPersistenceRuntime({
-			name: crypto.randomUUID(), channel: new TestChannel('cold') as never, locks: lockManager() as never,
+			name: crypto.randomUUID(), channel: new TestChannel('cold'), locks: lockManager(),
 			openOwner: async () => ({ persistence: persistence(calls), close: () => { calls.push('close') } }),
 		})
 		await runtime.ready
@@ -98,8 +98,8 @@ describe('BrowserPersistenceRuntime', () => {
 		let opens = 0
 		const runtime = new BrowserPersistenceRuntime({
 			name: crypto.randomUUID(),
-			channel: new TestChannel('failed-owner') as never,
-			locks: lockManager() as never,
+			channel: new TestChannel('failed-owner'),
+			locks: lockManager(),
 			openOwner: async () => {
 				opens++
 				throw new Error('sqlite3_open_v2')
@@ -120,8 +120,8 @@ describe('BrowserPersistenceRuntime', () => {
 		const name = crypto.randomUUID()
 		const owner = new BrowserPersistenceRuntime({
 			name,
-			channel: new TestChannel(name) as never,
-			locks: locks as never,
+			channel: new TestChannel(name),
+			locks: locks,
 			openOwner: async () => ({
 				persistence: {
 					adapter: {
@@ -143,8 +143,8 @@ describe('BrowserPersistenceRuntime', () => {
 		const close = owner.close()
 		const follower = new BrowserPersistenceRuntime({
 			name,
-			channel: new TestChannel(name) as never,
-			locks: locks as never,
+			channel: new TestChannel(name),
+			locks: locks,
 			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
 			heartbeatMs: 5,
 		})
@@ -166,12 +166,12 @@ describe('BrowserPersistenceRuntime', () => {
 		const ownerCalls: string[] = []
 		const followerCalls: string[] = []
 		const owner = new BrowserPersistenceRuntime({
-			name, channel: new TestChannel(name) as never, locks: locks as never,
+			name, channel: new TestChannel(name), locks: locks,
 			openOwner: async () => ({ persistence: persistence(ownerCalls), close: () => undefined }), heartbeatMs: 5,
 		})
 		await owner.ready
 		const follower = new BrowserPersistenceRuntime({
-			name, channel: new TestChannel(name) as never, locks: locks as never,
+			name, channel: new TestChannel(name), locks: locks,
 			openOwner: async () => ({ persistence: persistence(followerCalls), close: () => undefined }), heartbeatMs: 5,
 		})
 		await follower.ready
@@ -193,8 +193,8 @@ describe('BrowserPersistenceRuntime', () => {
 		const ownerLoads: object[] = []
 		const owner = new BrowserPersistenceRuntime({
 			name,
-			channel: new TestChannel(name) as never,
-			locks: locks as never,
+			channel: new TestChannel(name),
+			locks: locks,
 			openOwner: async () => ({
 				persistence: {
 					adapter: {
@@ -211,8 +211,8 @@ describe('BrowserPersistenceRuntime', () => {
 		await owner.ready
 		const follower = new BrowserPersistenceRuntime({
 			name,
-			channel: new TestChannel(name) as never,
-			locks: locks as never,
+			channel: new TestChannel(name),
+			locks: locks,
 			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
 		})
 		await follower.ready
@@ -252,15 +252,15 @@ describe('BrowserPersistenceRuntime', () => {
 		}
 		const owner = new BrowserPersistenceRuntime({
 			name,
-			channel: new TestChannel(name) as never,
-			locks: locks as never,
+			channel: new TestChannel(name),
+			locks: locks,
 			openOwner: async () => ({ persistence: ownerPersistence, close: () => undefined }),
 		})
 		await owner.ready
 		const follower = new BrowserPersistenceRuntime({
 			name,
-			channel: new TestChannel(name) as never,
-			locks: locks as never,
+			channel: new TestChannel(name),
+			locks: locks,
 			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
 		})
 		await follower.ready
@@ -294,8 +294,8 @@ describe('BrowserPersistenceRuntime', () => {
 		})
 		owner = new BrowserPersistenceRuntime({
 			name,
-			channel: new TestChannel(name) as never,
-			locks: locks as never,
+			channel: new TestChannel(name),
+			locks: locks,
 			openOwner: async () => ({ persistence: durablePersistence(), close: () => undefined }),
 			heartbeatMs: 5,
 			requestTimeoutMs: 5,
@@ -303,8 +303,8 @@ describe('BrowserPersistenceRuntime', () => {
 		await owner.ready
 		const follower = new BrowserPersistenceRuntime({
 			name,
-			channel: new TestChannel(name) as never,
-			locks: locks as never,
+			channel: new TestChannel(name),
+			locks: locks,
 			openOwner: async () => ({ persistence: durablePersistence(), close: () => undefined }),
 			heartbeatMs: 5,
 			requestTimeoutMs: 5,
@@ -328,7 +328,7 @@ describe('BrowserPersistenceRuntime', () => {
 		locks.hold()
 		let opened = 0
 		const runtime = new BrowserPersistenceRuntime({
-			name: crypto.randomUUID(), channel: new TestChannel('opening') as never, locks: locks as never,
+			name: crypto.randomUUID(), channel: new TestChannel('opening'), locks: locks,
 			openOwner: async () => {
 				opened++
 				return { persistence: persistence([]), close: () => undefined }
@@ -347,12 +347,12 @@ describe('BrowserPersistenceRuntime', () => {
 		const calls: string[] = []
 		const name = crypto.randomUUID()
 		const runtime = new BrowserPersistenceRuntime({
-			name, channel: new TestChannel(name) as never, locks: lockManager() as never,
+			name, channel: new TestChannel(name), locks: lockManager(),
 			openOwner: async () => ({ persistence: persistence(calls), close: () => undefined }),
 		})
 		await runtime.ready
 		const follower = new BrowserPersistenceRuntime({
-			name, channel: new TestChannel(name) as never, locks: { request: async (_name: string, _options: object, callback: (lock: Lock | null) => Promise<void>) => callback(null) } as never,
+			name, channel: new TestChannel(name), locks: { request: async (_name: string, _options: object, callback: (lock: Lock | null) => Promise<void>) => callback(null) },
 			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }), requestTimeoutMs: 5,
 		})
 		await follower.ready
@@ -372,7 +372,7 @@ describe('BrowserPersistenceRuntime', () => {
 			),
 		}
 		const runtime = new BrowserPersistenceRuntime({
-			name: crypto.randomUUID(), channel: new TestChannel('follower-before-owner') as never, locks: locks as never,
+			name: crypto.randomUUID(), channel: new TestChannel('follower-before-owner'), locks: locks,
 			openOwner: async () => ({ persistence: persistence(calls), close: () => undefined }), heartbeatMs: 5,
 			requestTimeoutMs: 5,
 		})
@@ -389,13 +389,13 @@ describe('BrowserPersistenceRuntime', () => {
 
 	test('fails a bounded bootstrap and rejects pending follower work during teardown', async () => {
 		const runtime = new BrowserPersistenceRuntime({
-			name: crypto.randomUUID(), channel: new TestChannel('bounded-bootstrap') as never,
-			locks: { request: async () => new Promise<void>(() => {}) } as never,
+			name: crypto.randomUUID(), channel: new TestChannel('bounded-bootstrap'),
+			locks: { request: async () => new Promise<void>(() => {}) },
 			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
 			bootstrapTimeoutMs: 10,
 			requestTimeoutMs: 5,
 		})
-		const pending = runtime.persistence.adapter.loadSubset('rows', {} as never)
+		const pending = runtime.persistence.adapter.loadSubset('rows', {})
 		await expect(runtime.ready).rejects.toThrow('bootstrap timed out')
 		await expect(pending).rejects.toThrow('runtime closed')
 		expect(runtime.phase).toBe('closed')
@@ -408,18 +408,18 @@ describe('BrowserPersistenceRuntime', () => {
 		const name = crypto.randomUUID()
 		const locks = lockManager()
 		const owner = new BrowserPersistenceRuntime({
-			name, channel: new TestChannel(name) as never, locks: locks as never,
+			name, channel: new TestChannel(name), locks: locks,
 			openOwner: async () => ({ persistence: persistence(calls), close: () => undefined }),
 		})
 		await owner.ready
 		const follower = new BrowserPersistenceRuntime({
-			name, channel: new TestChannel(name) as never, locks: locks as never,
+			name, channel: new TestChannel(name), locks: locks,
 			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }), requestTimeoutMs: 10,
 		})
 		await follower.ready
 		const request = follower.persistence.adapter.applyCommittedTx('rows', {
 			txId: 'durable-tx', term: 1, seq: 1, rowVersion: 1, mutations: [],
-		} as never)
+		})
 		await vi.advanceTimersByTimeAsync(20)
 		await request
 		expect(calls).toEqual(['commit'])
@@ -431,7 +431,7 @@ describe('BrowserPersistenceRuntime', () => {
 	test('bounds a stalled bootstrap and tears down every timer', async () => {
 		vi.useFakeTimers()
 		const runtime = new BrowserPersistenceRuntime({
-			name: crypto.randomUUID(), channel: new TestChannel('timeout') as never, locks: lockManager() as never,
+			name: crypto.randomUUID(), channel: new TestChannel('timeout'), locks: lockManager(),
 			openOwner: () => new Promise<never>(() => undefined), bootstrapTimeoutMs: 10, heartbeatMs: 5,
 		})
 		const ready = expect(runtime.ready).rejects.toThrow('bootstrap timed out')
@@ -548,7 +548,7 @@ describe('BrowserPersistenceRuntime', () => {
 	test('close is idempotent and clears pending request retries', async () => {
 		vi.useFakeTimers()
 		const runtime = new BrowserPersistenceRuntime({
-			name: crypto.randomUUID(), channel: new TestChannel('teardown') as never, locks: lockManager() as never,
+			name: crypto.randomUUID(), channel: new TestChannel('teardown'), locks: lockManager(),
 			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }), requestTimeoutMs: 10,
 		})
 		await runtime.ready

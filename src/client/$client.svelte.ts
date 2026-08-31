@@ -3893,7 +3893,7 @@ export const client = <
 							schema,
 							entityDefinition,
 							subset.selectorKeys,
-							entityResolvers,
+							entityResolvers
 						)
 						return [...new Set([
 							...(
@@ -3905,7 +3905,7 @@ export const client = <
 										entityDefinition,
 										subset.selectorKeys,
 										entityResolvers,
-										subset.sources,
+										subset.sources
 									)
 							),
 							...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
@@ -3935,7 +3935,7 @@ export const client = <
 							schema,
 							entityDefinition,
 							subset.selectorKeys,
-							entityResolvers,
+							entityResolvers
 						)
 						const sources = new Set([
 							...(
@@ -3947,7 +3947,7 @@ export const client = <
 										entityDefinition,
 										subset.selectorKeys,
 										entityResolvers,
-										subset.sources,
+										subset.sources
 									)
 							),
 							...(includesEnabledLocalInternal(subset.sources, enabledSources) ? [Source.Local_Internal] : []),
