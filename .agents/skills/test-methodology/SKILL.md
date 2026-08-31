@@ -29,3 +29,11 @@ Delete a test only after naming the retained oracle for its obligation. Coverage
 When route screenshots expose a repeatable failure, promote its predicate or representative route into a dedicated behavioral test. Share the classifier with the capture runner; keep image geometry and capture mechanics out of the product oracle.
 
 Run the same smallest relevant suite before and after a consolidation when practical, then broaden according to shared behavior. Report surviving obligations, changed declarations and runtime matrix cases, net representation change, and any validation that did not complete.
+
+## Diagnostic and scaling oracles
+
+- Give every partition an explicit, source-backed target manifest and verify that manifests are disjoint and their union equals the intended denominator. Loaded dependency counts, directory names, alphabetical labels, and generated shard numbers are not coverage evidence.
+- Minimize large diagnostic cascades by deterministic bisection over exact manifests. Re-run the same smallest witness before and after each causal change; a lower error count alone is not a pass when the primary diagnostic or contract remains.
+- Do not make one test a compiler aggregation root by importing several full schema-generic modules only to inspect their registries. Keep provider-local shape or behavior assertions with each provider and test cross-provider enrollment through an existing runtime summary or endpoint whose result already names the invariant.
+- For generic or compiler-performance work, keep both a definition-level oracle and one real consumer-instantiation oracle. Preserve a checked scaling contract at two input sizes when the requirement is constant-time behavior; record its durable path and command rather than relying on an ephemeral run claim.
+- Prefer one oracle that distinguishes several failure modes through labeled expectations over many near-duplicate tests, but retain separate cases when lifecycle, failure identity, ownership, or tooling boundary differs.

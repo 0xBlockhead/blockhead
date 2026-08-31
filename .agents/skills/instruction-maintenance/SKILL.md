@@ -12,7 +12,7 @@ Encode decisions the agent would otherwise get wrong, not domain knowledge it al
 1. Read [references/architecture.md](references/architecture.md) and [references/coverage.md](references/coverage.md). Inspect nearby instructions, skills, and the real tasks, corrections, failures, or artifacts that justify the change.
 2. Choose the narrowest reliable owner. Keep standing or path rules in `AGENTS.md`, mechanically enforceable rules in code or tests, and repeatable task procedure here. Do not create a skill if those owners suffice.
 3. Write the description as a classifier: capability, concrete triggers, and only exclusions that prevent plausible false activation. Do not summarize the body.
-4. Keep only decision-changing instructions: surprising defaults, hard boundaries, failure recovery, tool choice, and verification. For every sentence ask: would removal change an action or catch a real failure? If not, cut it.
+4. Express each retained decision as a standalone condition, behavior, and boundary. Revise its canonical passage when feedback changes the contract; keep the incident in evaluation evidence. Remove sentences whose absence changes no decision.
 5. Prefer one coherent skill over fragments that normally co-activate. Split only when triggers and loaded detail are independently useful.
 6. Put inevitable gotchas in `SKILL.md`. Put conditional detail in a focused reference and link it directly at the decision point with the exact condition for reading it. Never add a second routing hop.
 7. Use a script when deterministic mechanics would otherwise be regenerated or explained repeatedly. State its contract and stopping condition; do not narrate its implementation.
