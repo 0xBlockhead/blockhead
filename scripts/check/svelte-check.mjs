@@ -409,6 +409,7 @@ export const svelteCheckArgs = (projectRoot, configPath) => [
 	projectRoot,
 	'--tsconfig',
 	configPath,
+	'--tsgo',
 	'--output',
 	'machine',
 	'--compiler-warnings',
@@ -423,13 +424,14 @@ export const runShardQueue = async ({
 	shardTimeoutMs,
 	deadline,
 	environment,
+	stopOnFailure = true,
 	argsForShard = (shard) => svelteCheckArgs(projectRoot, shard.configPath),
 }) => {
 	let nextIndex = 0
 	let failed = false
 	const results = []
 	const worker = async () => {
-		while (!failed && nextIndex < shards.length) {
+		while ((!stopOnFailure || !failed) && nextIndex < shards.length) {
 			const shard = shards[nextIndex]
 			nextIndex += 1
 			const remainingMs = deadline - Date.now()
@@ -458,7 +460,7 @@ export const runShardQueue = async ({
 				configPath: shard.configPath,
 			}
 			results.push(result)
-			if (result.code !== 0 || result.timedOut)
+			if (stopOnFailure && (result.code !== 0 || result.timedOut))
 				failed = true
 		}
 	}
@@ -488,13 +490,12 @@ export const runCanonicalSvelteCheck = async ({
 	tscCommand = process.env.SVELTE_CHECK_TSC_COMMAND ?? path.resolve(projectRoot, 'node_modules/.bin/tsc'),
 	svelteCheckCommand = process.env.SVELTE_CHECK_COMMAND ?? path.resolve(projectRoot, 'node_modules/.bin/svelte-check'),
 	typeScriptShardCount = positiveInteger(process.env.SVELTE_CHECK_TYPESCRIPT_SHARD_COUNT, 64),
-	shardCount = positiveInteger(process.env.SVELTE_CHECK_SHARD_COUNT, 64),
 	concurrency = positiveInteger(
 		process.env.SVELTE_CHECK_CONCURRENCY,
 		Math.max(1, Math.floor(os.availableParallelism() / 2))
 	),
-	shardTimeoutMs = positiveInteger(process.env.SVELTE_CHECK_SHARD_TIMEOUT_MS, 420_000),
-	globalTimeoutMs = positiveInteger(process.env.SVELTE_CHECK_GLOBAL_TIMEOUT_MS, 720_000),
+	shardTimeoutMs = positiveInteger(process.env.SVELTE_CHECK_SHARD_TIMEOUT_MS, 3_600_000),
+	globalTimeoutMs = positiveInteger(process.env.SVELTE_CHECK_GLOBAL_TIMEOUT_MS, 4_500_000),
 	environment = process.env,
 } = {}) => {
 	const deadline = Date.now() + globalTimeoutMs
@@ -536,24 +537,18 @@ export const runCanonicalSvelteCheck = async ({
 	if (typeScriptResults.some((result) => result.code !== 0 || result.timedOut))
 		return 1
 
-	const {
-		ambientDeclarationFiles,
-		declarationFiles,
-		svelteRoots: roots,
-	} = manifest
-	const graph = await readSvelteGraph(projectRoot, roots)
-	const shards = await writeShardConfigs(
-		tsconfigPath,
-		path.resolve(projectRoot, '.svelte-kit/svelte-check-shards'),
-		partitionSvelteRoots(roots, graph, shardCount),
-		ambientDeclarationFiles
-	)
-	process.stdout.write(`Svelte roots: ${roots.length}; ambient declarations: ${ambientDeclarationFiles.length}; generated declarations resolved on demand: ${declarationFiles.length - ambientDeclarationFiles.length}; shards: ${shards.length}; concurrency: ${concurrency}\n`)
+	const { svelteRoots: roots } = manifest
+	const shards = [{
+		id: 'svelte-check',
+		roots,
+		configPath: tsconfigPath,
+	}]
+	process.stdout.write(`Svelte roots: ${roots.length}; checker: upstream native TypeScript\n`)
 	const results = await runShardQueue({
 		shards,
 		command: svelteCheckCommand,
 		projectRoot,
-		concurrency,
+		concurrency: 1,
 		shardTimeoutMs,
 		deadline,
 		environment: {

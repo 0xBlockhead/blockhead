@@ -185,6 +185,7 @@ test('keeps every shard nonincremental with complete diagnostics and fatal warni
 		'/project',
 		'--tsconfig',
 		'/project/shard.json',
+		'--tsgo',
 		'--output',
 		'machine',
 		'--compiler-warnings',
@@ -192,7 +193,6 @@ test('keeps every shard nonincremental with complete diagnostics and fatal warni
 	])
 	for (const forbidden of [
 		'--incremental',
-		'--tsgo',
 		'--tsgo-experimental-api',
 		'--no-tsconfig',
 		'--diagnostic-sources',
@@ -381,7 +381,7 @@ while (!fs.existsSync(${JSON.stringify(releasePath)}))
 	assert.match(progress, /progress: PASS/)
 })
 
-test('shard union preserves root, dependency, TypeScript, Svelte, and CSS diagnostics', async () => {
+test('canonical native check preserves root, dependency, TypeScript, Svelte, and CSS diagnostics', async () => {
 	const root = await fixture()
 	await fs.writeFile(
 		path.join(root, 'src/views/RootTypeError.svelte'),
@@ -410,14 +410,6 @@ test('shard union preserves root, dependency, TypeScript, Svelte, and CSS diagno
 	)
 
 	const tsconfigPath = path.join(root, 'tsconfig.json')
-	const roots = readCanonicalSvelteRoots(root, tsconfigPath)
-	const graph = await readSvelteGraph(root, roots)
-	const shards = await writeShardConfigs(
-		tsconfigPath,
-		path.join(root, 'shards'),
-		partitionSvelteRoots(roots, graph, 3),
-		readCanonicalFileManifest(root, tsconfigPath).declarationFiles
-	)
 	const checker = path.resolve('node_modules/.bin/svelte-check')
 	const monolithic = await runProcess({
 		command: checker,
@@ -426,17 +418,8 @@ test('shard union preserves root, dependency, TypeScript, Svelte, and CSS diagno
 		timeoutMs: 30_000,
 		label: 'monolithic',
 	})
-	const shardResults = await Promise.all(shards.map((shard) => runProcess({
-		command: checker,
-		args: svelteCheckArgs(root, shard.configPath),
-		cwd: root,
-		timeoutMs: 30_000,
-		label: shard.id,
-	})))
-	const shardOutput = shardResults.map((result) => result.output).join('\n')
 
 	assert.notEqual(monolithic.code, 0)
-	assert.equal(shardResults.some((result) => result.code !== 0), true)
 	for (const fileName of [
 		'RootTypeError.svelte',
 		'DependencyTypeError.svelte',
@@ -445,6 +428,5 @@ test('shard union preserves root, dependency, TypeScript, Svelte, and CSS diagno
 		'CssDiagnostic.svelte',
 	]) {
 		assert.match(monolithic.output, new RegExp(fileName.replace('.', '\\.')), `monolithic missed ${fileName}`)
-		assert.match(shardOutput, new RegExp(fileName.replace('.', '\\.')), `shards missed ${fileName}`)
 	}
 })

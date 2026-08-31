@@ -28,7 +28,7 @@
 		"lint:svelte-formatting": "node --import tsx scripts/lint/check-svelte-formatting.ts",
 		"check": "pnpm run app:check && svelte-kit sync && SVELTE_CHECK_TSC_COMMAND=./node_modules/@typescript/native/bin/tsc node scripts/check/svelte-check.mjs",
 		"check:watch": "svelte-kit sync && NODE_OPTIONS=--max-old-space-size=8192 svelte-check --tsconfig ./tsconfig.svelte-check.json --watch",
-		"check:e2e": "svelte-kit sync && ./node_modules/@typescript/native/bin/tsc --project ./tsconfig.e2e.json",
+		"check:e2e": "svelte-kit sync && node scripts/check/e2e-check.mjs",
 		"check:diagnostics": "./node_modules/.bin/oxlint --type-check --ignore-pattern '.worktrees/**'",
 		"check:sources": "pnpm run sources:graphql:check && pnpm run sources:openapi:check && pnpm run sources:openrpc:check && pnpm run sources:discovery:check && pnpm run sources:lifi:check-bridge-tools && pnpm run sources:precompiles:check",
 		"check:generated": "pnpm run app:check && pnpm run check:sources",

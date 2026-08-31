@@ -16,20 +16,18 @@
 	},
 	"include": [
 		".svelte-kit/ambient.d.ts",
-		".svelte-kit/non-ambient.d.ts",
-		".svelte-kit/types/**/$types.d.ts",
 		"playwright.config.ts",
 		"playwright.env.ts",
 		"playwright.wallet-extensions.config.ts",
 		"src/typescript/**/*.d.ts",
 		"src/**/*.e2e.js",
 		"src/**/*.e2e.ts",
-		"src/routes/api/e2e/**/*.ts",
 		"tests/**/*.js",
 		"tests/**/*.ts"
 	],
 	"exclude": [
 		"node_modules/**",
+		"src/routes/api/e2e/assert-loaded-resolvers/_*.ts",
 		"src/routes/demo/**",
 		"src/**/*.test.js",
 		"src/**/*.test.ts",

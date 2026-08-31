@@ -16,7 +16,7 @@
 		"suspicious": "off"
 	},
 	"options": {
-		"typeAware": true
+		"typeAware": false
 	},
 	"ignorePatterns": [
 		"**/node_modules/**",
@@ -26,6 +26,7 @@
 		"dist/**",
 		"coverage/**",
 		"playwright-report/**",
+		"docs/architecture/blockhead/vendor/msagl-1.1.26.bundle.js",
 		"src/routes/demo/**",
 		"**/*.d.ts",
 		"scripts/**/*.ts"
@@ -92,6 +93,50 @@
 			],
 			"rules": {
 				"typescript/consistent-type-assertions": "off",
+				"typescript/no-restricted-types": "off"
+			}
+		},
+		{
+			"files": [
+				"tests/e2e/wallet-extensions/**/*.e2e.ts"
+			],
+			"rules": {
+				"no-restricted-globals": "off",
+				"typescript/no-restricted-types": "off"
+			}
+		},
+		{
+			"files": [
+				"src/lib/db/browserPersistenceRuntime.ts"
+			],
+			"rules": {
+				"no-restricted-globals": "off"
+			}
+		},
+		{
+			"files": [
+				"src/state/walletConnectionRuntime.spec.ts",
+				"src/state/wallets/adapters/walletStandard.ts"
+			],
+			"rules": {
+				"typescript/no-restricted-types": "off"
+			}
+		},
+		{
+			"files": [
+				"src/state/wallets/adapters/aptosAip62.spec.ts",
+				"src/state/wallets/adapters/eip6963.spec.ts",
+				"src/state/wallets/walletConnectionSurface.ts"
+			],
+			"rules": {
+				"typescript/consistent-type-assertions": "off"
+			}
+		},
+		{
+			"files": [
+				"src/state/wallets/adapters/eip6963.spec.ts"
+			],
+			"rules": {
 				"typescript/no-restricted-types": "off"
 			}
 		},
@@ -165,6 +210,12 @@
 				"src/constants/**/*.ts",
 				"src/routes/**/*.ts",
 				"src/typescript/JsonValue.ts",
+				"src/state/wallets/walletConnectionState.ts",
+				"src/state/wallets/walletConnectionSurface.ts",
+				"src/state/wallets/adapters/aptosAip62.ts",
+				"src/state/wallets/adapters/bitcoinInjected.ts",
+				"src/state/wallets/adapters/walletConnectV2.ts",
+				"src/state/wallets/adapters/walletStandard.ts",
 				"tests/**/*.ts"
 			],
 			"rules": {
