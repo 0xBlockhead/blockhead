@@ -146,7 +146,7 @@ const getTransaction = async (
 
 const requireIndexedSlot = (
 	lastIndexedSlot: number | undefined,
-	label: string,
+	label: string
 ) => {
 	if (lastIndexedSlot == null)
 		throw new Error(`Helius: ${label} missing last_indexed_slot`)
@@ -159,7 +159,7 @@ const heliusTokenMintTimestampFields = (
 		mintAddress: string
 	},
 	asset: DasAssetWire,
-	slot: bigint,
+	slot: bigint
 ) => ({
 	[EntityMetaKey.Selector]: {
 		$mint: mint,

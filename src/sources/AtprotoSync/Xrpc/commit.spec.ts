@@ -125,13 +125,13 @@ describe('AtprotoSync #commit → AtprotoRepoCommit projection', () => {
 describe('AtprotoSync getBlocks CAR → repository commit projection', () => {
 	it('binds the requested CAR root to its signed repository commit facts', async () => {
 		const dataCid = CID.createV1(0x71, await sha256.digest(new Uint8Array([1, 2, 3])))
-		const previousDataCid = CID.createV1(0x71, await sha256.digest(new Uint8Array([4, 5, 6])))
+		const previousCommitCid = CID.createV1(0x71, await sha256.digest(new Uint8Array([4, 5, 6])))
 		const blockBytes = encode({
 			did: 'did:plc:example',
 			version: 3,
 			data: cidLink(dataCid),
 			rev: '3jzfcijpj2z2a',
-			prev: cidLink(previousDataCid),
+			prev: cidLink(previousCommitCid),
 			sig: new Uint8Array([7, 8, 9]),
 		})
 		const rootCid = CID.createV1(0x71, await sha256.digest(blockBytes))
@@ -155,7 +155,7 @@ describe('AtprotoSync getBlocks CAR → repository commit projection', () => {
 		})).resolves.toEqual({
 			rev: '3jzfcijpj2z2a',
 			dataCid: dataCid.toString(),
-			previousDataCid: previousDataCid.toString(),
+			previousCommitCid: previousCommitCid.toString(),
 			carByteLength: car.byteLength,
 		})
 	})

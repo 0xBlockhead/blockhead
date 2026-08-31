@@ -24,7 +24,7 @@ import {
 
 const assertSolanaAddress = (
 	value: string,
-	label: string,
+	label: string
 ) => {
 	try {
 		if (base58.decode(value).length !== 32)
@@ -37,7 +37,7 @@ const assertSolanaAddress = (
 const assertEnvelope = <_Value>(
 	label: string,
 	wire: { assert: (value: unknown) => _Value },
-	response: unknown,
+	response: unknown
 ) => {
 	try {
 		return wire.assert(response)
@@ -47,7 +47,7 @@ const assertEnvelope = <_Value>(
 }
 
 const assertPagination = (
-	pagination: GetAssetsByOwnerPage | GetTokenAccountsPage,
+	pagination: GetAssetsByOwnerPage | GetTokenAccountsPage
 ) => {
 	if (pagination.page != null && (!Number.isSafeInteger(pagination.page) || pagination.page < 1))
 		throw new Error('Helius DAS: page must be a positive safe integer')
@@ -58,7 +58,7 @@ const assertPagination = (
 }
 
 const assertLimit = (
-	limit: number,
+	limit: number
 ) => {
 	if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000)
 		throw new Error('Helius DAS: limit must be an integer from 1 through 1000')
@@ -66,7 +66,7 @@ const assertLimit = (
 
 const paginationRequestId = (
 	prefix: string,
-	pagination: GetAssetsByOwnerPage | GetTokenAccountsPage,
+	pagination: GetAssetsByOwnerPage | GetTokenAccountsPage
 ) => (
 	pagination.page != null ?
 		`${prefix}:page:${String(pagination.page)}`
@@ -141,7 +141,7 @@ export const heliusDasQueries = (binding: SourceBinding) => {
 				},
 			},
 			publicEnv,
-		}),
+		})
 	)
 }
 
@@ -173,7 +173,7 @@ export const heliusDasQueries = (binding: SourceBinding) => {
 				},
 			},
 			publicEnv,
-		}),
+		})
 	)
 
 	if (assets.length !== ids.length)
@@ -202,7 +202,7 @@ export const heliusDasQueries = (binding: SourceBinding) => {
 				id,
 			},
 			publicEnv,
-		}),
+		})
 	)
 }
 
@@ -240,7 +240,7 @@ export const heliusDasQueries = (binding: SourceBinding) => {
 				},
 			},
 			publicEnv,
-		}),
+		})
 	)
 }
 
@@ -299,7 +299,7 @@ export const heliusDasQueries = (binding: SourceBinding) => {
 				},
 			},
 			publicEnv,
-		}),
+		})
 	)
 }
 

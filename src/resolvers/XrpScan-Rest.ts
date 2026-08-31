@@ -253,7 +253,7 @@ export default {
 							getAccount(account.account),
 							tipLedgerIndexFromServerInfo(),
 						])
-						const subject = response.Account ?? response.account
+						const subject = response.Account
 						if (subject !== account.account)
 							throw new Error('XrpScan_Rest: account response does not match the subject')
 						if (response.LedgerEntryType !== 'AccountRoot')
@@ -303,7 +303,7 @@ export default {
 
 						const { getAccount } = await import('$/sources/XrpScan/Rest/queries.ts')
 						const response = await getAccount($account.account)
-						const subject = response.Account ?? response.account
+						const subject = response.Account
 						if (subject !== $account.account)
 							throw new Error('XrpScan_Rest: account response does not match the subject')
 						if (response.LedgerEntryType !== 'AccountRoot')

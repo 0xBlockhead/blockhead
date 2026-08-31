@@ -149,12 +149,8 @@ export default {
 								[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'sinkCount')]: blockdag.tipHashes.length,
 								[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'blockCount')]: Number(blockdag.blockCount),
 								[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'difficulty')]: blockdag.difficulty,
-								...(kaspad.isUtxoIndexed != null && {
 									[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'hasUtxoIndex')]: kaspad.isUtxoIndexed,
-								}),
-								...(kaspad.serverVersion != null && kaspad.serverVersion.length > 0 && {
 									[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'serverVersion')]: kaspad.serverVersion,
-								}),
 							},
 						}]
 					},
@@ -418,62 +414,30 @@ export default {
 							blockId: blockHash,
 							includeTransactions: false,
 						})
-						const parentHashes = (
-							block.header.parents ?? []
-						)
-							.flatMap((parent) => parent.parentHashes ?? [])
+						const parentHashes = block.header.parents
+							.flatMap((parent) => parent.parentHashes)
 						return {
-							...(block.header.version != null && {
-								version: block.header.version,
-							}),
-							...(block.header.timestamp != null && {
-								timestampMs: Number(block.header.timestamp),
-							}),
-							...(
-								(
-									block.header.blueScore
-									?? block.verboseData.blueScore
-								) != null && {
-									blueScore: BigInt(
-										block.header.blueScore
-										?? block.verboseData.blueScore
-									),
-								}
-							),
-							...(block.header.daaScore != null && {
-								daaScore: BigInt(block.header.daaScore),
-							}),
-							...(block.header.bits != null && {
-								bits: block.header.bits,
-							}),
-							...(block.header.nonce != null && {
-								nonce: BigInt(block.header.nonce),
-							}),
-							...(block.header.hashMerkleRoot != null && {
-								hashMerkleRoot: block.header.hashMerkleRoot,
-							}),
-							...(block.header.acceptedIdMerkleRoot != null && {
-								acceptedIdMerkleRoot: block.header.acceptedIdMerkleRoot,
-							}),
-							...(block.header.utxoCommitment != null && {
-								utxoCommitment: block.header.utxoCommitment,
-							}),
-							...(block.verboseData.selectedParentHash != null && {
-								selectedParentHash: block.verboseData.selectedParentHash,
-							}),
+							version: block.header.version,
+							timestampMs: Number(block.header.timestamp),
+							blueScore: BigInt(block.header.blueScore),
+							daaScore: BigInt(block.header.daaScore),
+							bits: block.header.bits,
+							nonce: BigInt(block.header.nonce),
+							hashMerkleRoot: block.header.hashMerkleRoot,
+							acceptedIdMerkleRoot: block.header.acceptedIdMerkleRoot,
+							utxoCommitment: block.header.utxoCommitment,
+							selectedParentHash: block.verboseData.selectedParentHash,
 							...(parentHashes.length > 0 && {
 								parentHashes,
 							}),
 							...(
-								block.verboseData.mergeSetBluesHashes != null
-								&& block.verboseData.mergeSetBluesHashes.length > 0
+								block.verboseData.mergeSetBluesHashes.length > 0
 								&& {
 									mergeSetBlues: block.verboseData.mergeSetBluesHashes,
 								}
 							),
 							...(
-								block.verboseData.mergeSetRedsHashes != null
-								&& block.verboseData.mergeSetRedsHashes.length > 0
+								block.verboseData.mergeSetRedsHashes.length > 0
 								&& {
 									mergeSetReds: block.verboseData.mergeSetRedsHashes,
 								}

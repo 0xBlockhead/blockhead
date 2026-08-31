@@ -129,7 +129,7 @@ export const substrateJsonRpcQueries = (binding: SourceBinding) => ({
 				binding,
 				method: 'state_getRuntimeVersion',
 			})
-		) as SubstrateRuntimeVersion
+		)
 	),
 	getSystemHealth: async () => (
 		assertEnvelope(
@@ -139,6 +139,6 @@ export const substrateJsonRpcQueries = (binding: SourceBinding) => ({
 				binding,
 				method: 'system_health',
 			})
-		) as SubstrateSystemHealth
+		)
 	),
 })

@@ -449,7 +449,7 @@ const beaconSlotReference = (
 
 const beaconEpochReference = (
 	$network: EntitySelector<typeof schema, EntityType.Network>,
-	epoch: number,
+	epoch: number
 ) => ({
 	[EntityMetaKey.Selector]: {
 		$network,
@@ -536,7 +536,7 @@ const beaconFinalityTimestampReference = (
 			>
 		>
 	>,
-	timestampMs: number,
+	timestampMs: number
 ) => ({
 	[EntityMetaKey.Selector]: {
 		$network,
@@ -649,7 +649,6 @@ export default {
 
 						if (
 							genesisTimeSeconds == null
-							|| headSlot == null
 							|| secondsPerSlot == null
 						)
 							throw new Error('Beacon_Rest: missing provider clock for endpoint observation')

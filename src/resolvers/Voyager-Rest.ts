@@ -139,7 +139,7 @@ const contractTypeEqualityFilter = (
 	))
 	if (types.length > 1)
 		throw new Error('Voyager_Rest: conflicting type filters')
-	const type = types[0]
+	const type = types.at(0)
 	if (type == null)
 		return undefined
 	if (!isVoyagerContractType(type))

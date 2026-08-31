@@ -101,7 +101,7 @@ describe('Dexscreener liquidity pool observation clock', () => {
 
 		const snapshot = await resolver.resolve['EvmNetworkId'].resolve(
 			poolSelector,
-			emptyContext,
+			emptyContext
 		)
 		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -157,7 +157,7 @@ describe('Dexscreener liquidity pool observation clock', () => {
 		})
 		await expect(resolver.resolve['Scope'].resolve(
 			{},
-			emptyContext,
+			emptyContext
 		)).rejects.toThrow('returned no liquidity pools')
 	})
 
@@ -183,7 +183,7 @@ describe('Dexscreener liquidity pool observation clock', () => {
 
 		const snapshot = await resolver.resolve['Scope'].resolve(
 			{},
-			emptyContext,
+			emptyContext
 		)
 		expect(resolver.projections.$$liquidityPools.select(snapshot)).toEqual([{
 			[EntityMetaKey.Selector]: poolSelector,
@@ -211,7 +211,7 @@ describe('Dexscreener liquidity pool observation clock', () => {
 		})
 		await expect(resolver.resolve['EvmNetworkId'].resolve(
 			poolSelector,
-			emptyContext,
+			emptyContext
 		)).rejects.toThrow('not valid EVM addresses')
 	})
 

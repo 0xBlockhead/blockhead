@@ -440,7 +440,7 @@ const evmTransactionKindFromSignedFields = ({
 
 const zeroExHexFromIntegerQuantity = (
 	raw: string | number | null | undefined,
-	byteSize: 20 | 32,
+	byteSize: 20 | 32
 ) => {
 	if (raw == null || raw === '')
 		return undefined

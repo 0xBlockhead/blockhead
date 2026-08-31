@@ -15,7 +15,7 @@ const omitUndefinedJson = (
 		return value.map(omitUndefinedJson)
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
-			Object.entries(value)
+			Object.entries<unknown>(value)
 				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
@@ -169,7 +169,7 @@ export const getContractLookupsByAddress = async ({
 		'contract match list',
 		sourcifyContractMatchListEnvelope,
 		json
-	).results as SourcifyContractMatchSummary[]
+	).results
 	assertMatchListAddressSubject(results, normalizedAddress)
 	return results
 }
@@ -199,7 +199,7 @@ export const listVerifiedContracts = async ({
 		'verified contract list',
 		sourcifyContractMatchListEnvelope,
 		json
-	).results as SourcifyContractMatchSummary[]
+	).results
 	assertMatchListChainSubject(results, chainId)
 	return results
 }

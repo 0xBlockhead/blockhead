@@ -172,7 +172,7 @@ export const getRegistryServerVersions = (
 export const getRegistryServer = (
 	binding: SourceBinding,
 	serverName: string,
-	version = 'latest',
+	version = 'latest'
 ) => {
 	if (binding.source !== Source.McpPackageRegistry_Rest)
 		throw new Error('MCP registry server detail requires McpPackageRegistry_Rest binding')

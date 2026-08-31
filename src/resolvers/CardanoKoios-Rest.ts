@@ -189,9 +189,9 @@ export default {
 			entityType: EntityType.Network,
 			resolve: cardanoNetworkSelectors(
 				async (network) => {
-				assertCardanoMainnet(network)
-				const { listBlocks } = await import('$/sources/CardanoKoios/Rest/queries.ts')
-				const [block] = await listBlocks(1)
+					assertCardanoMainnet(network)
+					const { listBlocks } = await import('$/sources/CardanoKoios/Rest/queries.ts')
+					const block = (await listBlocks(1)).at(0)
 				if (block == null)
 					throw new Error('CardanoKoios_Rest: tip block is missing')
 

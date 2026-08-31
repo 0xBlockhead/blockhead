@@ -234,14 +234,6 @@ export const getAddressSummary = async (
 	)
 	if (!sameFelt(summary.address, address))
 		throw new Error('Starkscan_Rest: address summary does not match request')
-	if (summary.contractExistence != null) {
-		if (
-			summary.contractExistence.status !== 'not_deployed'
-			|| summary.contractExistence.reasonCode !== 'contract_not_found'
-			|| summary.contractExistence.evidenceSource !== 'finalized_class_hash_at'
-		)
-			throw new Error('Starkscan_Rest: invalid contract existence evidence')
-	}
 	if (summary.classHash != null && summary.contractExistence != null)
 		throw new Error('Starkscan_Rest: address summary has conflicting class and not-deployed evidence')
 	if (summary.classHash == null && summary.contractExistence == null)

@@ -22,14 +22,12 @@ import type {
 	HyperliquidHistoricalOrder,
 	HyperliquidL2Book,
 	HyperliquidMeta,
-	HyperliquidMetaAndAssetCtxs,
 	HyperliquidOpenOrder,
 	HyperliquidOrderStatus,
 	HyperliquidPortfolio,
 	HyperliquidPredictedFunding,
 	HyperliquidSpotClearinghouseState,
 	HyperliquidSpotMeta,
-	HyperliquidSpotMetaAndAssetCtxs,
 	HyperliquidUserAbstraction,
 	HyperliquidUserDexAbstraction,
 	HyperliquidUserFees,
@@ -87,6 +85,10 @@ const hyperliquidAssetCtxEnvelope = arktype({
 	]).or(arktype.null),
 	'dayBaseVlm?': 'string',
 })
+const hyperliquidMetaAndAssetCtxsEnvelope = arktype([
+	hyperliquidMetaEnvelope,
+	hyperliquidAssetCtxEnvelope.array(),
+])
 const hyperliquidSpotMetaEnvelope = arktype({
 	tokens: arktype({
 		name: 'string',
@@ -441,6 +443,10 @@ const hyperliquidSpotAssetCtxEnvelope = arktype({
 	totalSupply: 'string',
 	'dayBaseVlm?': 'string',
 })
+const hyperliquidSpotMetaAndAssetCtxsEnvelope = arktype([
+	hyperliquidSpotMetaEnvelope,
+	hyperliquidSpotAssetCtxEnvelope.array(),
+])
 
 const assertInfoAddress = (
 	user: string,
@@ -510,16 +516,12 @@ export const getMeta = () => (
  * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals
  */
 export const getMetaAndAssetCtxs = async () => {
-	const snapshot = await info<HyperliquidMetaAndAssetCtxs>({
+	const snapshot = await info<unknown>({
 		body: {
 			type: 'metaAndAssetCtxs',
 		},
 	})
-	if (
-		snapshot.length !== 2
-		|| !hyperliquidMetaEnvelope.allows(snapshot[0])
-		|| !hyperliquidAssetCtxEnvelope.array().allows(snapshot[1])
-	)
+	if (!hyperliquidMetaAndAssetCtxsEnvelope.allows(snapshot))
 		throw new Error('Hyperliquid_Rest: invalid metaAndAssetCtxs response envelope')
 
 	return snapshot
@@ -692,8 +694,8 @@ export const getL2Book = async ({
 	mantissa,
 }: {
 	coin: string
-	nSigFigs?: 2 | 3 | 4 | 5
-	mantissa?: 1 | 2 | 5
+	nSigFigs?: number
+	mantissa?: number
 }) => {
 	if (coin === '')
 		throw new Error('Hyperliquid_Rest: invalid book coin')
@@ -1153,16 +1155,12 @@ export const getPerpsAtOpenInterestCap = async () => {
  * https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-metadata-and-asset-contexts
  */
 export const getSpotMetaAndAssetCtxs = async () => {
-	const snapshot = await info<HyperliquidSpotMetaAndAssetCtxs>({
+	const snapshot = await info<unknown>({
 		body: {
 			type: 'spotMetaAndAssetCtxs',
 		},
 	})
-	if (
-		snapshot.length !== 2
-		|| !hyperliquidSpotMetaEnvelope.allows(snapshot[0])
-		|| !hyperliquidSpotAssetCtxEnvelope.array().allows(snapshot[1])
-	)
+	if (!hyperliquidSpotMetaAndAssetCtxsEnvelope.allows(snapshot))
 		throw new Error('Hyperliquid_Rest: invalid spotMetaAndAssetCtxs response envelope')
 
 	if (snapshot[0].universe.length !== snapshot[1].length)

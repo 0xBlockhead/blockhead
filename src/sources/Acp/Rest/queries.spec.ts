@@ -65,7 +65,7 @@ describe('AcpRegistry REST queries', () => {
 		await expect(fetchRegistry()).resolves.toEqual(registry)
 		expect(sourceGetJson).toHaveBeenCalledWith(
 			registryBinding,
-			'https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json',
+			'https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json'
 		)
 	})
 

@@ -731,9 +731,7 @@ const contractLogRef = (
 			[entityFieldAddressKey(EntityType.HederaContractLog, [], '$contract')]: {
 				[EntityMetaKey.Selector]: contractSelector,
 			},
-			...(log.address != null && {
-				[entityFieldAddressKey(EntityType.HederaContractLog, [], 'address')]: normalizeEvmAddress(log.address, 'contract log address'),
-			}),
+			[entityFieldAddressKey(EntityType.HederaContractLog, [], 'address')]: normalizeEvmAddress(log.address, 'contract log address'),
 			...(log.bloom != null && {
 				[entityFieldAddressKey(EntityType.HederaContractLog, [], 'bloom')]: log.bloom,
 			}),

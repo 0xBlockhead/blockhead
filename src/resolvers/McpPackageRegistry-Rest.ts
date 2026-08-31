@@ -85,9 +85,6 @@ export default {
 			resolve: {
 				PackageVersion: {
 					resolve: async ({ $package, version }, context) => {
-						if ($package?.registryServerName == null || version == null)
-							throw new Error('McpPackageRegistry_Rest: package version requires registry identity')
-
 						const response = await registryServer($package.registryServerName, version, context)
 						const metadata = registryMetadata(response)
 						const packageDefinition = response.server.packages?.find((candidate) => candidate.version === version)

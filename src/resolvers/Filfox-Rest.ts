@@ -439,8 +439,8 @@ export default {
 													},
 												},
 											}),
-											...(message.blocks != null && message.blocks[0] != null && {
-												[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'blockCid')]: message.blocks[0],
+												...(message.blocks.at(0) != null && {
+													[entityFieldAddressKey(EntityType.FilecoinMessageReceipt, [], 'blockCid')]: message.blocks[0],
 											}),
 										},
 									},
@@ -805,9 +805,9 @@ export default {
 					}) => {
 						assertFilecoinMainnet($message.$network)
 						const { getMessageEvents } = await import('$/sources/Filfox/Rest/queries.ts')
-						const event = (await getMessageEvents({
-							messageCid: $message.cid,
-						}))[index]
+							const event = (await getMessageEvents({
+								messageCid: $message.cid,
+							})).at(index)
 						if (event == null)
 							throw new Error(`Filfox_Rest: message event not found for ${$message.cid}:${String(index)}`)
 
@@ -853,9 +853,9 @@ export default {
 					}) => {
 						assertFilecoinMainnet($message.$network)
 						const { getMessageSubcalls } = await import('$/sources/Filfox/Rest/queries.ts')
-						const subcall = (await getMessageSubcalls({
-							messageCid: $message.cid,
-						}))[index]
+							const subcall = (await getMessageSubcalls({
+								messageCid: $message.cid,
+							})).at(index)
 						if (subcall == null)
 							throw new Error(`Filfox_Rest: message subcall not found for ${$message.cid}:${String(index)}`)
 

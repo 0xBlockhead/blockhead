@@ -9,6 +9,7 @@ import {
 	ApiFamily,
 	SourceTargetKind,
 } from '$/sources/SourceBinding.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import { evmExecutionJsonRpc } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
 
 
@@ -161,6 +162,15 @@ const COMET_ABI = new Abi([
 	},
 ])
 
+const isExecutionBindingForChain = (
+	binding: SourceBinding,
+	chainId: number
+) => (
+	binding.apiFamily === ApiFamily.EvmExecutionJsonRpc
+	&& binding.target.kind === SourceTargetKind.Eip155Chain
+	&& binding.target.key === String(chainId)
+)
+
 const UINT256_OUTPUT = [
 	{ type: 'uint256' as const, name: '' },
 ] as const
@@ -214,10 +224,8 @@ export const getAccountPositions = async ({
 	if (accountAddress == null)
 		throw new Error(`${Source.Compound_Rest}: invalid account ${account}`)
 
-	const binding = bindings[Source.Compound_Rest].find(({ apiFamily, target }) => (
-		apiFamily === ApiFamily.EvmExecutionJsonRpc
-		&& target.kind === SourceTargetKind.Eip155Chain
-		&& target.key === String(chainId)
+	const binding = bindings[Source.Compound_Rest].find((candidate) => (
+		isExecutionBindingForChain(candidate, chainId)
 	))
 	if (binding == null)
 		throw new Error(`${Source.Compound_Rest}: no EVM execution binding for chain ${String(chainId)}`)
@@ -316,10 +324,8 @@ export const getCometTipRates = async ({
 	if (normalizedCometAddress == null)
 		throw new Error(`${Source.Compound_Rest}: invalid comet address ${cometAddress}`)
 
-	const binding = bindings[Source.Compound_Rest].find(({ apiFamily, target }) => (
-		apiFamily === ApiFamily.EvmExecutionJsonRpc
-		&& target.kind === SourceTargetKind.Eip155Chain
-		&& target.key === String(chainId)
+	const binding = bindings[Source.Compound_Rest].find((candidate) => (
+		isExecutionBindingForChain(candidate, chainId)
 	))
 	if (binding == null)
 		throw new Error(`${Source.Compound_Rest}: no EVM execution binding for chain ${String(chainId)}`)

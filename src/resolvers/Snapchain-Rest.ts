@@ -92,7 +92,7 @@ const snapchainCastEmbedEntities = (
 	castSelector: {
 		fid: number
 		hash: `0x${string}`
-	},
+	}
 ) => (
 	snapchainCastEmbedEntries(cast).map((embed, indexInCast) => ({
 		[EntityMetaKey.Selector]: {

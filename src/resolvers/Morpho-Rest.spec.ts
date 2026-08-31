@@ -38,7 +38,8 @@ const context = {
 	publicEnv: {},
 }
 
-const morphoMarketResolver = morphoRest.resolvers.find((resolver) => (
+const resolvers: readonly { entityType: EntityType }[] = morphoRest.resolvers
+const morphoMarketResolver = resolvers.find((resolver) => (
 	resolver.entityType === EntityType.MorphoMarket
 ))
 

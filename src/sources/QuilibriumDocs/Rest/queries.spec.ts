@@ -30,7 +30,7 @@ describe('QuilibriumDocs Rest queries', () => {
 			{ label: 'Node REST', port: 8338 },
 		])
 		expect(() => getNodeInterfaces({ networkSlug: 'ethereum' })).toThrow(
-			'QuilibriumDocs_Rest: unsupported network: ethereum',
+			'QuilibriumDocs_Rest: unsupported network: ethereum'
 		)
 
 		const facts = getProtocolFacts({ networkSlug: 'quilibrium' })
@@ -42,10 +42,10 @@ describe('QuilibriumDocs Rest queries', () => {
 			'Storage',
 		])
 		expect(facts.find((fact) => fact.label === 'Consensus')?.value).toBe(
-			'Proof of Meaningful Work',
+			'Proof of Meaningful Work'
 		)
 		expect(() => getProtocolFacts({ networkSlug: 'ethereum' })).toThrow(
-			'QuilibriumDocs_Rest: unsupported network: ethereum',
+			'QuilibriumDocs_Rest: unsupported network: ethereum'
 		)
 
 		expect(getServiceLayers({ networkSlug: 'quilibrium' }).map(({ label }) => label)).toEqual([
@@ -55,7 +55,7 @@ describe('QuilibriumDocs Rest queries', () => {
 			'QStorage',
 		])
 		expect(() => getServiceLayers({ networkSlug: 'ethereum' })).toThrow(
-			'QuilibriumDocs_Rest: unsupported network: ethereum',
+			'QuilibriumDocs_Rest: unsupported network: ethereum'
 		)
 	})
 
@@ -70,11 +70,11 @@ describe('QuilibriumDocs Rest queries', () => {
 			},
 		])
 		expect(getProtocolDocument({ number: 1 }).documentTitle).toBe(
-			'Quilibrium protocol documentation',
+			'Quilibrium protocol documentation'
 		)
 		expect(getPrimaryProtocolDocument().number).toBe(1)
 		expect(() => getProtocolDocument({ number: 99 })).toThrow(
-			'QuilibriumDocs_Rest: document not found 99',
+			'QuilibriumDocs_Rest: document not found 99'
 		)
 	})
 
@@ -85,10 +85,10 @@ describe('QuilibriumDocs Rest queries', () => {
 		expect(getPages.some((page) => page.url.includes('/docs/api/q-kms/overview/'))).toBe(true)
 		expect(getPages.some((page) => page.url.includes('/docs/run-node/qclient/setup/'))).toBe(true)
 		expect(() => getPage({ url: 'https://quilibrium.com/' })).toThrow(
-			'QuilibriumDocs_Rest: url outside docs origin: https://quilibrium.com/',
+			'QuilibriumDocs_Rest: url outside docs origin: https://quilibrium.com/'
 		)
 		expect(() => getPage({ url: `${quilibriumDocsBaseUrl}/docs/unknown/` })).toThrow(
-			`QuilibriumDocs_Rest: unknown docs page: ${quilibriumDocsBaseUrl}/docs/unknown/`,
+			`QuilibriumDocs_Rest: unknown docs page: ${quilibriumDocsBaseUrl}/docs/unknown/`
 		)
 	})
 })

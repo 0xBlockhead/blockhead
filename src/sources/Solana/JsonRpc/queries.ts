@@ -396,7 +396,7 @@ export const getEpochInfo = async () => (
 				commitment: 'finalized',
 			},
 		])
-	) as SolanaRpcEpochInfo
+	)
 )
 
 export const getHealth = async () => (
@@ -412,7 +412,7 @@ export const getVersion = async () => (
 		'version',
 		solanaVersionWire,
 		await jsonRpc2<unknown>(binding, 'getVersion', [])
-	) as SolanaRpcVersion
+	)
 )
 
 export const getTransaction = async ({
@@ -578,7 +578,7 @@ export const getAccountInfo = async ({
 				}),
 			},
 		])
-	) as SolanaRpcAccountInfo
+	)
 )
 
 export const getProgramInfo = async ({

@@ -350,33 +350,23 @@ export const getBlock = async (
 		binding,
 		`/blocks/${blockId}?${parameters.toString()}`
 	)
-	if (block.verboseData.hash != null) {
-		assertBlockHash(block.verboseData.hash)
-		if (block.verboseData.hash !== blockId)
-			throw new Error('Kaspa Explorer: block response belongs to a different hash')
-	}
-	if (block.header.version != null)
-		assertSafeUnsigned(block.header.version, 'block version')
-	if (block.header.timestamp != null)
-		assertSafeUnsignedDecimalString(block.header.timestamp, 'block timestamp')
-	if (block.header.bits != null)
-		assertSafeUnsigned(block.header.bits, 'block bits')
-	if (block.header.nonce != null)
-		assertUnsignedDecimal(block.header.nonce, 'block nonce')
-	if (block.header.daaScore != null)
-		assertUnsignedDecimal(block.header.daaScore, 'block DAA score')
-	if (block.header.blueScore != null)
-		assertUnsignedDecimal(block.header.blueScore, 'block blue score')
-	if (block.verboseData.blueScore != null)
-		assertUnsignedDecimal(block.verboseData.blueScore, 'verbose blue score')
-	if (block.verboseData.selectedParentHash != null)
-		assertBlockHash(block.verboseData.selectedParentHash, 'selected parent hash')
-	for (const parent of block.header.parents ?? [])
-		for (const parentHash of parent.parentHashes ?? [])
+	assertBlockHash(block.verboseData.hash)
+	if (block.verboseData.hash !== blockId)
+		throw new Error('Kaspa Explorer: block response belongs to a different hash')
+	assertSafeUnsigned(block.header.version, 'block version')
+	assertSafeUnsignedDecimalString(block.header.timestamp, 'block timestamp')
+	assertSafeUnsigned(block.header.bits, 'block bits')
+	assertUnsignedDecimal(block.header.nonce, 'block nonce')
+	assertUnsignedDecimal(block.header.daaScore, 'block DAA score')
+	assertUnsignedDecimal(block.header.blueScore, 'block blue score')
+	assertUnsignedDecimal(block.verboseData.blueScore, 'verbose blue score')
+	assertBlockHash(block.verboseData.selectedParentHash, 'selected parent hash')
+	for (const parent of block.header.parents)
+		for (const parentHash of parent.parentHashes)
 			assertBlockHash(parentHash, 'parent hash')
-	for (const mergeSetHash of block.verboseData.mergeSetBluesHashes ?? [])
+	for (const mergeSetHash of block.verboseData.mergeSetBluesHashes)
 		assertBlockHash(mergeSetHash, 'merge-set blue hash')
-	for (const mergeSetHash of block.verboseData.mergeSetRedsHashes ?? [])
+	for (const mergeSetHash of block.verboseData.mergeSetRedsHashes)
 		assertBlockHash(mergeSetHash, 'merge-set red hash')
 	return block
 }
@@ -415,7 +405,6 @@ export const getKaspadInfo = async () => {
 		binding,
 		'/info/kaspad'
 	)
-	if (info.mempoolSize != null)
-		assertSafeUnsignedDecimalString(info.mempoolSize, 'mempool size')
+	assertSafeUnsignedDecimalString(info.mempoolSize, 'mempool size')
 	return info
 }

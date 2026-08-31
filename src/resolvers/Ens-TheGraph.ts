@@ -213,12 +213,12 @@ export default {
 
 						const parentName = matchingEnsDomain.parent?.name
 						const resolverAddress = hexLowerOfByteSize(
-							String(matchingEnsDomain.resolver?.address ?? ''),
+								String(matchingEnsDomain.resolver.address),
 							20
 						)
 						const resolvedActor = evmAccountFromSubgraphAccount(
 							matchingEnsDomain.resolvedAddress
-							?? matchingEnsDomain.resolver?.addr
+								?? matchingEnsDomain.resolver.addr
 						)
 						const ownerActor = evmAccountFromSubgraphAccount(matchingEnsDomain.owner)
 						const registrantActor = evmAccountFromSubgraphAccount(
@@ -236,10 +236,10 @@ export default {
 						const wrapperExpiryAtMs = timestampMsFromSubgraphUnixSeconds(
 							matchingEnsDomain.wrappedDomain?.expiryDate
 						)
-						const resolverTextKeys = matchingEnsDomain.resolver?.texts?.map(String) ?? []
-						const resolverCoinTypes = matchingEnsDomain.resolver?.coinTypes
-							?.filter((coinType) => coinType != null)
-							.map(String) ?? []
+							const resolverTextKeys = matchingEnsDomain.resolver.texts.map(String)
+							const resolverCoinTypes = matchingEnsDomain.resolver.coinTypes
+								.filter((coinType) => coinType != null)
+								.map(String)
 						const ttl = bigintFromSubgraphScalar(matchingEnsDomain.ttl)
 						const subdomainEnsNameEntities = matchingEnsDomain.subdomains.flatMap((subdomain) => (
 							subdomain.name != null && subdomain.name !== '' ?
@@ -545,9 +545,7 @@ export default {
 							publicEnv: context.publicEnv,
 							name: normalizedName,
 						})
-						if (domains == null)
-							throw new Error('TheGraph_Graphql: ENS record name not in subgraph')
-						const matchingEnsDomain = domains.find((candidate) => candidate.name === normalizedName)
+							const matchingEnsDomain = domains.find((candidate) => candidate.name === normalizedName)
 						if (matchingEnsDomain == null)
 							throw new Error('TheGraph_Graphql: ENS record name not in subgraph')
 

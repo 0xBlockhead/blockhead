@@ -97,7 +97,7 @@ export const getActivityDay = async ({
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage('SpaceAndTime_MakeInfinite SQL', response))
 
-	const [row] = assertSqlResponse(await response.json())
+	const row = assertSqlResponse(await response.json()).at(0)
 	if (row == null)
 		return undefined
 

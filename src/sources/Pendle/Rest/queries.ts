@@ -252,7 +252,7 @@ export const listMarkets = async ({
 
 const assertTokenAddressList = (
 	values: string[],
-	label: string,
+	label: string
 ) => {
 	const normalized = values.map((value) => assertAddress(value, label))
 	const unique = [

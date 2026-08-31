@@ -85,4 +85,3 @@ describe('Zcash ZIPs GitHub queries', () => {
 		expect(httpRuntime.sourceGetJson).not.toHaveBeenCalled()
 	})
 })
-

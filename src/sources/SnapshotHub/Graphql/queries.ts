@@ -317,7 +317,7 @@ const assertVote = (
 	)
 		throw new Error('SnapshotHub_Graphql: vote lies outside the proposal lifecycle')
 
-	const choice = vote.choice as JsonValue
+	const choice = vote.choice
 	const choiceIndexes = (
 		vote.proposal.type === 'single-choice-basic' || vote.proposal.type === 'basic' ?
 			(isJsonNumber(choice) ? [choice] : [])

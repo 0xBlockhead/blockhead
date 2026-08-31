@@ -170,12 +170,12 @@ export const projectAtprotoRepoCommitBlock = async ({
 		const dataCid = atprotoCidString(commit.data)
 		if (dataCid == null)
 			throw new Error('AtprotoSync_Xrpc: repository commit block has malformed data CID')
-		const previousDataCid = optionalCidString(commit.prev)
+		const previousCommitCid = optionalCidString(commit.prev)
 
 		return {
 			rev: commit.rev,
 			dataCid,
-			...(previousDataCid != null && { previousDataCid }),
+			...(previousCommitCid != null && { previousCommitCid }),
 			carByteLength: car.byteLength,
 		}
 	}

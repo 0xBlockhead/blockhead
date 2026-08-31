@@ -21,28 +21,28 @@ describe('LogosDocs Rest queries', () => {
 
 	it('rejects unsupported networks before returning a summary', () => {
 		expect(() => getNetworkSummary({ networkSlug: 'ethereum' })).toThrow(
-			'LogosDocs_Rest: unsupported network: ethereum',
+			'LogosDocs_Rest: unsupported network: ethereum'
 		)
 	})
 
 	it('maps every documented zone to its closed summary kind', () => {
 		expect(getZoneSummary({ networkSlug: 'logos-testnet', zoneId: 'DVCI' }).zoneKind).toBe(
-			'distributed-virtual-computing-infrastructure',
+			'distributed-virtual-computing-infrastructure'
 		)
 		expect(getZoneSummary({ networkSlug: 'logos-testnet', zoneId: 'Logos Chain' }).zoneKind).toBe(
-			'blockchain',
+			'blockchain'
 		)
 		expect(getZoneSummary({ networkSlug: 'logos-testnet', zoneId: 'Network Gatekeeper' }).zoneKind).toBe(
-			'access-control',
+			'access-control'
 		)
 		expect(getZoneSummary({ networkSlug: 'logos-testnet', zoneId: 'W3bI' }).zoneKind).toBe(
-			'computation-distribution-regulator',
+			'computation-distribution-regulator'
 		)
 	})
 
 	it('rejects unsupported zones instead of returning a soft empty summary', () => {
 		expect(() => getZoneSummary({ networkSlug: 'logos-testnet', zoneId: 'unknown' })).toThrow(
-			'LogosDocs_Rest: unsupported zone: unknown',
+			'LogosDocs_Rest: unsupported zone: unknown'
 		)
 	})
 

@@ -20,7 +20,8 @@ vi.mock('$/sources/Kingnodes/Rest/queries.ts', () => ({
 
 const { default: kingnodes } = await import('$/resolvers/Kingnodes-Rest.ts')
 
-const networkResolver = kingnodes.resolvers.find((resolver) => (
+const resolvers: readonly { entityType: EntityType }[] = kingnodes.resolvers
+const networkResolver = resolvers.find((resolver) => (
 	resolver.entityType === EntityType.DydxChainNetwork
 ))
 if (networkResolver == null)
@@ -60,7 +61,7 @@ describe('Kingnodes dYdX LCD tip projections', () => {
 	})
 
 	it('does not replay the latest block at an arbitrary observation timestamp', () => {
-		expect(kingnodes.resolvers.some((resolver) => (
+		expect(resolvers.some((resolver) => (
 			resolver.entityType === EntityType.DydxChainNetwork_Timestamp
 		))).toBe(false)
 	})

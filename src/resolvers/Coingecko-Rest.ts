@@ -232,7 +232,7 @@ const coingeckoDerivativeMarketSelectors = async (
 				if (exchange == null)
 					throw new Error(`Coingecko_Rest: derivatives exchange not found for ${exchangeId}`)
 
-				return (exchange.tickers ?? []).flatMap((ticker) => {
+				return exchange.tickers.flatMap((ticker) => {
 					const market = coingeckoDerivativeMarketSelector(
 						ticker,
 						marketVenueId,
@@ -284,7 +284,7 @@ const coingeckoDerivativeTickerForMarket = async (
 	if (exchange == null)
 		throw new Error(`Coingecko_Rest: derivatives exchange not found for ${exchangeId}`)
 
-	const ticker = (exchange.tickers ?? []).find((exchangeTicker) => {
+	const ticker = exchange.tickers.find((exchangeTicker) => {
 		const exchangeMarket = coingeckoDerivativeMarketSelector(
 			exchangeTicker,
 			market.$marketVenue.marketVenueId,
@@ -754,15 +754,10 @@ export default {
 							coingeckoCatalogCoinIds,
 							idByCoinId,
 						} = await import('$/sources/Coingecko/Rest/constants.ts')
-						const { getSimplePrice } = await import('$/sources/Coingecko/Rest/queries.ts')
-						const lim = resolverContextRowLimit(context)
-						if (coingeckoCatalogCoinIds.length === 0)
-							return {
-								marketPrices: [],
-								marketPriceCount: 0,
-							}
+							const { getSimplePrice } = await import('$/sources/Coingecko/Rest/queries.ts')
+							const lim = resolverContextRowLimit(context)
 
-						const prices = await getSimplePrice({
+							const prices = await getSimplePrice({
 							publicEnv: context.publicEnv,
 							ids: coingeckoCatalogCoinIds.map((coinId) => idByCoinId[coinId]).join(','),
 							vs_currencies: 'usd',

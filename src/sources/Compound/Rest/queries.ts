@@ -255,7 +255,7 @@ export const getConfiguration = async ({
 	assertDeploymentSlug(networkSlug, 'network slug')
 	assertDeploymentSlug(marketSlug, 'market slug')
 
-	const wire = await sourceGetJson<CompoundCometConfigurationWire>(
+	const wire = await sourceGetJson<CompoundCometConfigurationWire | undefined>(
 		binding,
 		httpUrl(binding, deploymentPath(networkSlug, marketSlug, 'configuration.json'))
 	)
@@ -280,7 +280,7 @@ export const getRoots = async ({
 	assertDeploymentSlug(marketSlug, 'market slug')
 
 	const normalizedCometAddress = assertCometAddress(expectedCometAddress)
-	const wire = await sourceGetJson<CompoundCometRootsWire>(
+	const wire = await sourceGetJson<CompoundCometRootsWire | undefined>(
 		binding,
 		httpUrl(binding, deploymentPath(networkSlug, marketSlug, 'roots.json'))
 	)

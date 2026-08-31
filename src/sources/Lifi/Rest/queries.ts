@@ -4,6 +4,8 @@
  * @see https://docs.li.fi/api-reference/fetch-all-known-tokens
  */
 
+import { type as arktype } from 'arktype'
+
 import { throwHttpError } from '$/lib/http.ts'
 import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'
 import {
@@ -31,6 +33,57 @@ import type {
 
 const unsignedIntegerPattern = /^(0|[1-9]\d*)$/
 const decimalPattern = /^(0|[1-9]\d*)(\.\d+)?$/
+
+const lifiStatusTokenWire = arktype({
+	address: 'string',
+	decimals: 'number',
+	symbol: 'string',
+	chainId: 'number',
+	'coinKey?': 'string',
+	name: 'string',
+	'logoURI?': 'string',
+	'priceUSD?': 'string',
+})
+const lifiStatusTransactionWire = arktype({
+	txHash: 'string',
+	txLink: 'string',
+	amount: 'string',
+	token: lifiStatusTokenWire,
+	chainId: 'number',
+	'gasToken?': lifiStatusTokenWire,
+	'gasAmount?': 'string',
+	'gasAmountUSD?': 'string',
+	'gasPrice?': 'string',
+	'gasUsed?': 'string',
+	'timestamp?': 'number',
+	'value?': 'string',
+	'includedSteps?': 'unknown[]',
+})
+const lifiStatusFeeCostWire = arktype({
+	'name?': 'string',
+	'description?': 'string',
+	'percentage?': 'string',
+	'token?': lifiStatusTokenWire.partial(),
+	'amount?': 'string',
+	'amountUSD?': 'string',
+	'included?': 'boolean',
+})
+const lifiStatusWire = arktype({
+	'sending?': 'unknown',
+	'receiving?': 'unknown',
+	'feeCosts?': 'unknown',
+	status: '"NOT_FOUND" | "INVALID" | "PENDING" | "DONE" | "FAILED"',
+	'substatus?': 'string',
+	'substatusMessage?': 'string',
+	'tool?': 'string',
+	'transactionId?': 'string',
+	'fromAddress?': 'string',
+	'toAddress?': 'string',
+	'lifiExplorerLink?': 'string',
+	'metadata?': {
+		'integrator?': 'string',
+	},
+})
 
 const assertQuoteIdentity = (
 	value: string,
@@ -80,14 +133,12 @@ const throwIfLifiHttpNotOk = async (
 }
 
 const assertTransactionInfo = (
-	info: NonNullable<LifiStatusWireResponse['sending']>,
+	info: typeof lifiStatusTransactionWire.infer,
 	label: string
 ) => {
 	if (
-		info.txHash == null
-		|| info.txHash === ''
-		|| !unsignedIntegerPattern.test(info.amount ?? '')
-		|| info.token == null
+		info.txHash === ''
+		|| !unsignedIntegerPattern.test(info.amount)
 		|| !Number.isSafeInteger(info.chainId)
 		|| info.chainId <= 0
 		|| !Number.isSafeInteger(info.token.decimals)
@@ -202,7 +253,10 @@ export async function fetchChains(
 	const path = `/v1/chains${queryString ? `?${queryString}` : ''}`
 	const res = await lifiRestFetch(path)
 	await throwIfLifiHttpNotOk(res, path)
-	const result = await res.json<LifiChainsResponse>()
+	const result = await res.json<
+		Omit<LifiChainsResponse, 'chains'>
+		& { chains?: LifiChainsResponse['chains'] }
+	>()
 	if (
 		result.chains == null
 		|| result.chains.length > maximumCatalogChains
@@ -237,7 +291,10 @@ export async function fetchTokens(
 	const path = `/v1/tokens${queryString ? `?${queryString}` : ''}`
 	const res = await lifiRestFetch(path)
 	await throwIfLifiHttpNotOk(res, path)
-	const result = await res.json<LifiTokensResponse>()
+	const result = await res.json<
+		Omit<LifiTokensResponse, 'tokens'>
+		& { tokens?: LifiTokensResponse['tokens'] }
+	>()
 	if (
 		result.tokens == null
 		|| Object.values(result.tokens).reduce((total, tokens) => total + tokens.length, 0) > maximumCatalogTokens
@@ -277,16 +334,12 @@ export const fetchTransferStatus = async (
 	})}`
 	const response = await lifiRestFetch(path)
 	await throwIfLifiHttpNotOk(response, path)
-	const status = await response.json<LifiStatusWireResponse>()
-	if (
-		status.status !== 'NOT_FOUND'
-		&& status.status !== 'INVALID'
-		&& status.status !== 'PENDING'
-		&& status.status !== 'DONE'
-		&& status.status !== 'FAILED'
-	)
+	let status: typeof lifiStatusWire.infer
+	try {
+		status = lifiStatusWire.assert(await response.json<unknown>())
+	} catch {
 		throw new Error('Lifi_Rest: malformed transfer status')
-
+	}
 	if (status.status === 'NOT_FOUND' || status.status === 'INVALID') {
 		if (
 			status.sending != null
@@ -317,12 +370,24 @@ export const fetchTransferStatus = async (
 	)
 		throw new Error('Lifi_Rest: malformed transfer status')
 
-	assertTransactionInfo(status.sending, 'sending')
-
-	if (status.receiving != null)
-		assertTransactionInfo(status.receiving, 'receiving')
-
-	assertStatusFeeCosts(status.feeCosts)
+	let sending: typeof lifiStatusTransactionWire.infer
+	let receiving: typeof lifiStatusTransactionWire.infer | undefined
+	let feeCosts: typeof lifiStatusFeeCostWire.infer[] | undefined
+	try {
+		sending = lifiStatusTransactionWire.assert(status.sending)
+		receiving = status.receiving == null
+			? undefined
+			: lifiStatusTransactionWire.assert(status.receiving)
+		feeCosts = status.feeCosts == null
+			? undefined
+			: lifiStatusFeeCostWire.array().assert(status.feeCosts)
+	} catch {
+		throw new Error('Lifi_Rest: malformed transfer status')
+	}
+	assertTransactionInfo(sending, 'sending')
+	if (receiving != null)
+		assertTransactionInfo(receiving, 'receiving')
+	assertStatusFeeCosts(feeCosts)
 
 	if (
 		status.transactionId != null
@@ -330,7 +395,12 @@ export const fetchTransferStatus = async (
 	)
 		throw new Error('Lifi_Rest: malformed transfer status')
 
-	return status
+	return {
+		...status,
+		sending,
+		...(receiving != null && { receiving }),
+		...(feeCosts != null && { feeCosts }),
+	}
 }
 
 /**

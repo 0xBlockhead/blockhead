@@ -5,7 +5,7 @@ import { sourceFetch } from '$/sources/_runtime/http.ts'
 
 
 export const probeSourceHttpEndpoint = async (source: Source) => {
-	const endpoints = sourceBindingsBySource[source]?.flatMap((binding) => (
+	const endpoints = sourceBindingsBySource[source].flatMap((binding) => (
 		binding.endpoints.flatMap((endpoint, endpointIndex) => (
 			endpoint.endpointKind === SourceEndpointKind.HttpUrl
 				&& !endpoint.locator.includes('{') ?
@@ -17,7 +17,7 @@ export const probeSourceHttpEndpoint = async (source: Source) => {
 			:
 				[]
 		))
-	)) ?? []
+	))
 	if (endpoints.length === 0)
 		return undefined
 

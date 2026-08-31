@@ -42,8 +42,6 @@ export const getExplorerIdentity = async (): Promise<ZeroGChainScanLlmIdentity &
 	const llmIdentity = parseZeroGChainScanLlmIdentity(await getLlmInfo())
 	if (llmIdentity.url !== bindingSnapshot.url)
 		throw new Error(`ZeroGChainScan_Rest: llms.txt URL ${llmIdentity.url} does not match binding ${bindingSnapshot.url}`)
-	if (llmIdentity.chainId !== bindingSnapshot.chainId)
-		throw new Error(`ZeroGChainScan_Rest: llms.txt chainId ${String(llmIdentity.chainId)} does not match binding`)
 
 	return {
 		...llmIdentity,

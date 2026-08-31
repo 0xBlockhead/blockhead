@@ -153,7 +153,7 @@ const mapAaveReservePositionSnapshot = (
 		borrowedBalance?: string
 		borrowedBalanceUsd?: string
 		borrowApy?: string
-	},
+	}
 ) => ({
 	$account: {
 		[EntityMetaKey.Selector]: $account,

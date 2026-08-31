@@ -307,8 +307,8 @@ const blockFields = (
 		newRoot: validatedFelt(block.new_root, 'state root'),
 		timestampMs: unixSecondsToMs(block.timestamp, 'block timestamp'),
 		sequencerAddress: validatedFelt(block.sequencer_address, 'sequencer address'),
-		l1GasPrice: block.l1_gas_price?.price_in_wei,
-		l1DataGasPrice: block.l1_data_gas_price?.price_in_wei,
+		l1GasPrice: block.l1_gas_price.price_in_wei,
+		l1DataGasPrice: block.l1_data_gas_price.price_in_wei,
 		status: block.status,
 		$$transactions: block.transactions.map((transactionHash) => ({
 			[EntityMetaKey.Selector]: {
@@ -511,11 +511,7 @@ const transactionFields = (
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.StarknetTransaction_Timestamp, [], 'blockNumber')]: blockNumber,
 				[entityFieldAddressKey(EntityType.StarknetTransaction_Timestamp, [], 'finalityStatus')]: receipt.finality_status,
-				...(
-					receipt.execution_status != null && {
-						[entityFieldAddressKey(EntityType.StarknetTransaction_Timestamp, [], 'executionStatus')]: receipt.execution_status,
-					}
-				),
+					[entityFieldAddressKey(EntityType.StarknetTransaction_Timestamp, [], 'executionStatus')]: receipt.execution_status,
 				[entityFieldAddressKey(EntityType.StarknetTransaction_Timestamp, [], 'actualFee')]: (
 					BigInt(validatedFelt(receipt.actual_fee.amount, 'actual fee'))
 				),

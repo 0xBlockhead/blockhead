@@ -49,7 +49,8 @@ describe('Dune_Rest _Global usage resolver', () => {
 			credits_included: 1000,
 		})
 
-		const resolver = duneRest.resolvers.find((candidate) => (
+		const resolvers: readonly { entityType: EntityType }[] = duneRest.resolvers
+		const resolver = resolvers.find((candidate) => (
 			candidate.entityType === EntityType._Global
 		))
 		if (resolver == null)

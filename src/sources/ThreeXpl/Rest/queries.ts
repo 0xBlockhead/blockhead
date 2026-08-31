@@ -29,7 +29,7 @@ const omitUndefinedJson = (
 		return value.map(omitUndefinedJson)
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
-			Object.entries(value)
+			Object.entries<unknown>(value)
 				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,

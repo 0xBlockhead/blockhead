@@ -459,8 +459,7 @@ export const aptosTableItemTimestampResolver = aptosIndexerResolver(
 					return {
 						value: versioned.decoded_value,
 						...(
-							current != null
-							&& bigintFromWire(current.last_transaction_version, 'table item last transaction version') === ledgerVersion
+							bigintFromWire(current.last_transaction_version, 'table item last transaction version') === ledgerVersion
 							&& {
 								pruned: current.is_deleted,
 							}

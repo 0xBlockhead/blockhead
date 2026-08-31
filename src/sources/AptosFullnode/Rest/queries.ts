@@ -184,7 +184,7 @@ export const getAccountResources = async (
 
 	const resources = response.body.map((resource) => (
 		assertEnvelope('account resource', aptosMoveResourceWire, resource)
-	)) as AptosMoveResource[]
+	))
 	const resourceTypes = new Set<string>()
 	for (const resource of resources) {
 		if (resourceTypes.has(resource.type))
@@ -265,12 +265,12 @@ export const getBlockByVersion = async (
 	withTransactions = true
 ) => {
 	const response = await request(binding, `blocks/by_version/${version.toString()}?with_transactions=${String(withTransactions)}`)
-	for (const transaction of block.transactions ?? [])
-		assertTransactionEffects(transaction)
-
 	const block = assertEnvelope('block', aptosBlockWire, response.body) as AptosBlock
 	if (BigInt(block.first_version) > version || BigInt(block.last_version) < version)
 		throw new Error('AptosFullnode_Rest: block version response does not contain request')
+	for (const transaction of block.transactions ?? [])
+		assertTransactionEffects(transaction)
+
 	return {
 		body: block,
 		metadata: response.metadata,

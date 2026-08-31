@@ -2,9 +2,6 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
-import {
-	EntityMetaKey,
-} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import {
 	defaultAtprotoSyncRelayOrigin,
@@ -106,11 +103,6 @@ const projectLatestCommit = async ({
 		commitCid: latest.commitCid,
 		...commitBlock,
 		relayHost: new URL(defaultAtprotoSyncRelayOrigin).host,
-		operationPaths: [],
-		createdRecordCids: [],
-		updatedRecordCids: [],
-		deletedRecordPaths: [],
-		$$posts: [],
 	}
 }
 
@@ -133,13 +125,12 @@ const projectCommitByCid = async ({
 		commitCid,
 		...commitBlock,
 		relayHost: new URL(defaultAtprotoSyncRelayOrigin).host,
-		operationPaths: [],
-		createdRecordCids: [],
-		updatedRecordCids: [],
-		deletedRecordPaths: [],
-		$$posts: [],
 	}
 }
+
+const commitApplicability = [{
+	source: Source.AtprotoSync_Xrpc,
+}] as const
 
 export default {
 	source: Source.AtprotoSync_Xrpc,
@@ -149,9 +140,7 @@ export default {
 			entityType: EntityType.AtprotoRepoCommit,
 			resolve: {
 				RepoDidRevSource: {
-					appliesTo: [{
-						source: Source.AtprotoSync_Xrpc,
-					}],
+					appliesTo: commitApplicability,
 					resolve: async ({
 						repoDid,
 						rev,
@@ -172,38 +161,16 @@ export default {
 			rev: (commit) => commit.rev,
 			source: (commit) => commit.source,
 			commitCid: (commit) => commit.commitCid,
-			previousRev: (commit) => commit.previousRev,
-			previousDataCid: (commit) => commit.previousDataCid,
 			dataCid: (commit) => commit.dataCid,
-			sequence: (commit) => commit.sequence,
-			pdsHost: (commit) => commit.pdsHost,
 			relayHost: (commit) => commit.relayHost,
-			time: (commit) => commit.time,
-			tooBig: (commit) => commit.tooBig,
-			rebase: (commit) => commit.rebase,
-			operationCount: (commit) => commit.operationCount,
-			blobCount: (commit) => commit.blobCount,
 			carByteLength: (commit) => commit.carByteLength,
-			operationPaths: (commit) => commit.operationPaths,
-			createdRecordCids: (commit) => commit.createdRecordCids,
-			updatedRecordCids: (commit) => commit.updatedRecordCids,
-			deletedRecordPaths: (commit) => commit.deletedRecordPaths,
-			$$posts: (commit) => (
-				commit.$$posts.map((post) => ({
-					[EntityMetaKey.Selector]: {
-						uri: post.uri,
-					},
-				}))
-			),
 		}),
 
 		defineResolver({
 			entityType: EntityType.AtprotoRepoCommit,
 			resolve: {
 				RepoDidCommitCidSource: {
-					appliesTo: [{
-						source: Source.AtprotoSync_Xrpc,
-					}],
+					appliesTo: commitApplicability,
 					resolve: async ({
 						repoDid,
 						commitCid,
@@ -224,29 +191,12 @@ export default {
 			rev: (commit) => commit.rev,
 			source: (commit) => commit.source,
 			commitCid: (commit) => commit.commitCid,
-			previousRev: (commit) => commit.previousRev,
-			previousDataCid: (commit) => commit.previousDataCid,
 			dataCid: (commit) => commit.dataCid,
-			sequence: (commit) => commit.sequence,
-			pdsHost: (commit) => commit.pdsHost,
 			relayHost: (commit) => commit.relayHost,
-			time: (commit) => commit.time,
-			tooBig: (commit) => commit.tooBig,
-			rebase: (commit) => commit.rebase,
-			operationCount: (commit) => commit.operationCount,
-			blobCount: (commit) => commit.blobCount,
 			carByteLength: (commit) => commit.carByteLength,
-			operationPaths: (commit) => commit.operationPaths,
-			createdRecordCids: (commit) => commit.createdRecordCids,
-			updatedRecordCids: (commit) => commit.updatedRecordCids,
-			deletedRecordPaths: (commit) => commit.deletedRecordPaths,
-			$$posts: (commit) => (
-				commit.$$posts.map((post) => ({
-					[EntityMetaKey.Selector]: {
-						uri: post.uri,
-					},
-				}))
-			),
 		}),
-	],
+	].map((resolver) => ({
+		...resolver,
+		source: Source.AtprotoSync_Xrpc,
+	})),
 } satisfies RegisteredSourceResolverModule

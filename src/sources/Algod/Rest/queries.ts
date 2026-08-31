@@ -382,7 +382,7 @@ export const getBlockHash = async (
 		blockHashWire,
 		await query(`/v2/blocks/${round.toString()}/hash`),
 		'block hash'
-	) as AlgodBlockHash
+	)
 }
 
 export const getTransactionProof = async (
@@ -413,7 +413,7 @@ export const getTransactionProof = async (
 			`/v2/blocks/${round.toString()}/transactions/${encodeURIComponent(txId)}/proof?hashtype=${encodeURIComponent(hashType)}`
 		),
 		'transaction proof'
-	) as AlgodTransactionProof
+	)
 
 	if (proof.hashtype !== hashType)
 		throw new Error('Algod_Rest: transaction proof hashtype does not match the request')

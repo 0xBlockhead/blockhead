@@ -140,8 +140,6 @@ const assertTransaction = (
 		assertNonnegativeIntegerWire(transaction.nonce, 'transaction nonce')
 	if (transaction.block?.block_height != null)
 		assertNonnegativeIntegerWire(transaction.block.block_height, 'transaction block height')
-	if (transaction.actions == null)
-		throw new Error('NearBlocks_Rest: transaction actions missing')
 	for (const action of transaction.actions) {
 		if (action.action.length === 0)
 			throw new Error('NearBlocks_Rest: transaction action kind must not be empty')
@@ -172,7 +170,7 @@ export const getAccount = async ({
 		nearBlocksAccountResponseWire,
 		await getNearBlocksJson(`/v1/account/${encodeURIComponent(accountId)}`)
 	)
-	const account = response.account[0]
+	const account = response.account.at(0)
 	if (account == null)
 		throw new Error(`NearBlocks_Rest: account ${accountId} not found`)
 	return assertAccount(account, accountId)
@@ -188,7 +186,7 @@ export const getBlock = async ({
 		nearBlocksBlockResponseWire,
 		await getNearBlocksJson(`/v1/blocks/${encodeURIComponent(String(block))}`)
 	)
-	const wireBlock = response.blocks[0]
+	const wireBlock = response.blocks.at(0)
 	if (wireBlock == null)
 		throw new Error(`NearBlocks_Rest: block ${String(block)} not found`)
 	return (
@@ -254,7 +252,7 @@ export const getTransaction = async ({
 		nearBlocksTransactionResponseWire,
 		await getNearBlocksJson(`/v1/txns/${encodeURIComponent(transactionHash)}`)
 	)
-	const transaction = response.txns[0]
+	const transaction = response.txns.at(0)
 	if (transaction == null)
 		throw new Error(`NearBlocks_Rest: transaction ${transactionHash} not found`)
 	return assertTransaction(transaction, transactionHash)

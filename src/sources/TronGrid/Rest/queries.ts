@@ -117,7 +117,7 @@ export const listWitnesses = async () => {
 				visible: true,
 			},
 		})
-	) as TronNodeWitnesses
+	)
 	if (
 		response.witnesses.some((witness) => witness.address.length === 0)
 		|| new Set(response.witnesses.map((witness) => witness.address)).size !== response.witnesses.length
@@ -136,7 +136,7 @@ export const getChainParameters = async () => (
 			path: 'wallet/getchainparameters',
 			body: {},
 		})
-	) as TronNodeChainParameters
+	)
 )
 
 export const getNodeInfo = async () => (

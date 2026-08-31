@@ -105,7 +105,7 @@ export const createKaspaNodeResolverModule = (
 					[EntityMetaKey.Fields]: {
 						[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'virtualDaaScore')]: BigInt(dag.virtualDaaScore),
 						...(dag.virtualBlueScore != null && { [entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'virtualBlueScore')]: BigInt(dag.virtualBlueScore) }),
-						...(dag.virtualParentHashes[0] != null && { [entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'virtualSelectedParentHash')]: dag.virtualParentHashes[0] }),
+							[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'virtualSelectedParentHash')]: dag.virtualParentHashes[0],
 						[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'pruningPointHash')]: dag.pruningPointHash,
 						[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'sinkCount')]: dag.tipHashes.length,
 						[entityFieldAddressKey(EntityType.KaspaNetwork_Timestamp, [], 'blockCount')]: dag.blockCount,
@@ -212,7 +212,7 @@ export const createKaspaNodeResolverModule = (
 					...(value.minConfirmationCount != null && { [entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'minConfirmationCount')]: value.minConfirmationCount }),
 					[entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'addedChainBlockHashes')]: value.addedChainBlockHashes,
 					[entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'removedChainBlockHashes')]: value.removedChainBlockHashes,
-					...(value.acceptedTransactionIds != null && { [entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'acceptedTransactionCount')]: value.acceptedTransactionIds.reduce((count, row) => count + row.acceptedTransactionIds.length, 0) }),
+						[entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'acceptedTransactionCount')]: value.acceptedTransactionIds.reduce((count, row) => count + row.acceptedTransactionIds.length, 0),
 					...(value.nextCheckpointHash != null && { [entityFieldAddressKey(EntityType.KaspaVirtualChain_Timestamp, [], 'nextCheckpointHash')]: value.nextCheckpointHash }),
 				} }]
 			} } },

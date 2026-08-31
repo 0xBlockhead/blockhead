@@ -1131,7 +1131,8 @@ export default {
 							getFeatures(),
 							getValidatedLedger(),
 						])
-						const feature = features[amendment.amendmentId]
+						const featuresById: Partial<typeof features> = features
+						const feature = featuresById[amendment.amendmentId]
 						if (feature == null)
 							throw new Error('Xrpl_Rippled: amendment is not advertised by this rippled')
 						if (!ledger.validated)
@@ -1197,7 +1198,8 @@ export default {
 							getFeatures(),
 							getValidatedLedger(),
 						])
-						const feature = features[$amendment.amendmentId]
+						const featuresById: Partial<typeof features> = features
+						const feature = featuresById[$amendment.amendmentId]
 						if (feature == null)
 							throw new Error('Xrpl_Rippled: amendment is not advertised by this rippled')
 						if (!ledger.validated)

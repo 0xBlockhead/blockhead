@@ -5,7 +5,6 @@ import {
 } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/EntityType.ts'
 import {
 	evmDomainSupportByDomainId,
 	evmDomainSupports,
@@ -41,17 +40,9 @@ describe('Circle CCTP contract catalogs', () => {
 		expect(circleCctpContractsSolana.source).toBe(Source.CircleCctpContracts_Solana)
 		expect(circleCctpContractsStellar.source).toBe(Source.CircleCctpContracts_Stellar)
 
-		const evmResolver = circleCctpContractsEvm.resolvers.find((candidate) => (
-			candidate.entityType === EntityType.CctpDomainSupport
-		))
-		const solanaResolver = circleCctpContractsSolana.resolvers.find((candidate) => (
-			candidate.entityType === EntityType.CctpDomainSupport
-		))
-		const stellarResolver = circleCctpContractsStellar.resolvers.find((candidate) => (
-			candidate.entityType === EntityType.CctpDomainSupport
-		))
-		if (evmResolver == null || solanaResolver == null || stellarResolver == null)
-			throw new Error('missing CctpDomainSupport resolvers')
+		const [evmResolver] = circleCctpContractsEvm.resolvers
+		const [solanaResolver] = circleCctpContractsSolana.resolvers
+		const [stellarResolver] = circleCctpContractsStellar.resolvers
 
 		await expect(evmResolver.resolve.CctpVersionDomainId.resolve({
 			cctpVersion: 2,

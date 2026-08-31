@@ -67,11 +67,7 @@ const latest = {
 describe('ChainlinkDataFeeds resolvers', () => {
 	it('projects catalog OracleFeed identity fields', async () => {
 		expect(addressCatalog.source).toBe(Source.ChainlinkDataFeeds_AddressCatalog)
-		const resolver = addressCatalog.resolvers.find((candidate) => (
-			candidate.entityType === EntityType.OracleFeed
-		))
-		if (resolver == null)
-			throw new Error('missing OracleFeed address-catalog resolver')
+		const [resolver] = addressCatalog.resolvers
 
 		getPriceFeed.mockReturnValue(ethUsd)
 		await expect(resolver.resolve.EvmNetworkAddress.resolve({

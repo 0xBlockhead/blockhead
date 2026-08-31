@@ -5,7 +5,7 @@
  */
 import gmxBindingIndex from '$/sources/Gmx/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceTargetKind } from '$/sources/SourceBinding.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 
 
 // Types
@@ -62,18 +62,15 @@ export const gmxPositionsInfoResponseMax = 500
 // Lookups
 
 
-export const gmxApiByChainId = Object.fromEntries(
+export const gmxApiByChainId: Partial<Record<number, GmxApiDeployment>> = Object.fromEntries(
 	gmxApiDeployments.map((deployment) => [
 		deployment.chainId,
 		deployment,
 	])
 )
 
-export const gmxRestBindingByChainId = Object.fromEntries(
-	(gmxBindingIndex[Source.Gmx_Rest] ?? [])
-		.filter((binding) => (
-			binding.target.kind === SourceTargetKind.Eip155Chain
-		))
+export const gmxRestBindingByChainId: Partial<Record<number, SourceBinding>> = Object.fromEntries(
+	gmxBindingIndex[Source.Gmx_Rest]
 		.map((binding) => [
 			Number(binding.target.key),
 			binding,

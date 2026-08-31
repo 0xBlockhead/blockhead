@@ -35,7 +35,7 @@ const omitUndefinedJson = (
 		return value.map(omitUndefinedJson)
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
-			Object.entries(value)
+			Object.entries<unknown>(value)
 				.filter(([, entry]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
@@ -105,7 +105,7 @@ export const getServerInfo = async () => (
 		'server_info',
 		xrpScanServerInfo,
 		await sourceGetJson<unknown>(binding, `${baseUrl}/network/server_info`)
-	) as XrpScanServerInfo
+	)
 )
 
 export const getAccount = async (
@@ -119,7 +119,7 @@ export const getAccount = async (
 			binding,
 			`${baseUrl}/account/${encodeURIComponent(account)}`
 		)
-	) as XrpScanAccount
+	)
 }
 
 export const getAccountTransactions = async ({
@@ -144,7 +144,7 @@ export const getAccountTransactions = async ({
 			binding,
 			`${baseUrl}/account/${encodeURIComponent(account)}/transactions${search.length > 0 ? `?${search}` : ''}`
 		)
-	) as XrpScanAccountTransactions
+	)
 }
 
 export const getAccountTrustlines = async ({
@@ -165,7 +165,7 @@ export const getAccountTrustlines = async ({
 			binding,
 			`${baseUrl}/account/${encodeURIComponent(account)}/trustlines2${search.length > 0 ? `?${search}` : ''}`
 		)
-	) as XrpScanAccountTrustlines
+	)
 }
 
 export const getLedger = async (
@@ -180,7 +180,7 @@ export const getLedger = async (
 			binding,
 			`${baseUrl}/ledger/${encodeURIComponent(key)}`
 		)
-	) as XrpScanLedger
+	)
 }
 
 export const getLedgers = async () => (
@@ -188,7 +188,7 @@ export const getLedgers = async () => (
 		'ledgers',
 		xrpScanLedgers,
 		await sourceGetJson<unknown>(binding, `${baseUrl}/ledgers`)
-	) as XrpScanLedgers
+	)
 )
 
 export const getLedgerTransactions = async (
@@ -203,7 +203,7 @@ export const getLedgerTransactions = async (
 			binding,
 			`${baseUrl}/ledger/${encodeURIComponent(String(ledgerIndex))}/transactions`
 		)
-	) as XrpScanTransaction[]
+	)
 }
 
 export const getTransaction = async (
@@ -217,7 +217,7 @@ export const getTransaction = async (
 			binding,
 			`${baseUrl}/tx/${encodeURIComponent(hash)}`
 		)
-	) as XrpScanTransaction
+	)
 }
 
 export const getAmm = async (
@@ -231,7 +231,7 @@ export const getAmm = async (
 			binding,
 			`${baseUrl}/amm/${encodeURIComponent(ammAccount)}`
 		)
-	) as XrpScanAmm
+	)
 }
 
 export const getObject = async (
@@ -245,5 +245,5 @@ export const getObject = async (
 			binding,
 			`${baseUrl}/object/${encodeURIComponent(objectId)}`
 		)
-	) as XrpScanObject
+	)
 }

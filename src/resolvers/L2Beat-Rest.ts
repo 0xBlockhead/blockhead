@@ -197,7 +197,8 @@ export default {
 					resolve: async ({ $network, projectId }) => {
 						const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 						const summary = await fetchScalingSummary()
-						const project = summary.projects[projectId]
+						const projects: Partial<typeof summary.projects> = summary.projects
+						const project = projects[projectId]
 						if (project == null)
 							throw new Error('L2Beat_Rest: rollup project not found')
 						const hostChain = l2BeatHostChainByLabel.get(project.hostChain)
@@ -255,7 +256,8 @@ export default {
 
 						const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 						const summary = await fetchScalingSummary()
-						const project = summary.projects[$rollup.projectId]
+						const projects: Partial<typeof summary.projects> = summary.projects
+						const project = projects[$rollup.projectId]
 						if (project == null)
 							throw new Error('L2Beat_Rest: rollup project not found')
 
@@ -394,7 +396,8 @@ export default {
 								projectId: childProjectId,
 								chainId: childChainId,
 							}) => {
-								const childProject = summary.projects[childProjectId]
+									const projects: Partial<typeof summary.projects> = summary.projects
+									const childProject = projects[childProjectId]
 								return (
 									childChainId === chainId
 									|| childProject == null

@@ -292,7 +292,7 @@ const slashObservations = (
 		if (strategyAddress == null)
 			throw new Error('EigenExplorer_Rest: slash strategy address not normalized')
 
-		const wadSlashed = slash.wadSlashed[index]
+		const wadSlashed = slash.wadSlashed.at(index)
 		if (wadSlashed == null)
 			throw new Error('EigenExplorer_Rest: slash wad missing')
 		if (!/^\d+$/.test(wadSlashed))
@@ -464,7 +464,7 @@ export default {
 									strategyAddress.toLowerCase() === $strategy.strategyAddress.toLowerCase()
 								))
 							))
-							.toSorted((left, right) => right.updatedAtBlock - left.updatedAtBlock)[0]
+								.toSorted((left, right) => right.updatedAtBlock - left.updatedAtBlock).at(0)
 						const withdrawalRoot = (
 							withdrawal == null ?
 								undefined
@@ -738,7 +738,7 @@ export default {
 							contextKind,
 							contextAddressWire,
 						] = rewardContextKey.split(':')
-						const contextAddress = hexLowerOfByteSize(contextAddressWire ?? '', 20)
+							const contextAddress = hexLowerOfByteSize(contextAddressWire, 20)
 						if (
 							(contextKind !== 'strategy' && contextKind !== 'token')
 							|| contextAddress == null

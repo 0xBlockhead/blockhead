@@ -70,7 +70,7 @@ const neynarCastSnapshot = (
 		clientUrl?: string
 		username?: string
 		hashPrefix?: CastHash
-	},
+	}
 ) => {
 	const castHash = zeroXLowerHexCastHash(cast.hash)
 	const timestamp = Date.parse(cast.timestamp)

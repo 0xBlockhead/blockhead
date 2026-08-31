@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
-import { EntityType } from '$/schema/EntityType.ts'
 
 const getCategoryMetadata = vi.fn()
 
@@ -11,12 +10,7 @@ vi.mock('$/sources/BitcoinCashBcmr/Github/queries.ts', () => ({
 
 const { default: bitcoinCashBcmrResolvers } = await import('$/resolvers/BitcoinCashBcmr-Github.ts')
 
-const metadataResolver = bitcoinCashBcmrResolvers.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BitcoinCashBcmrMetadata
-))
-
-if (metadataResolver == null)
-	throw new Error('BitcoinCashBcmr-Github spec missing metadata resolver')
+const [metadataResolver] = bitcoinCashBcmrResolvers.resolvers
 
 const resolverContext = {
 	filters: [],

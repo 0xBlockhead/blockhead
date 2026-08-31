@@ -143,6 +143,7 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 			},
 		})
 	})
+
 	it.each([undefined, '42'])('rejects a pending transaction from the version endpoint (version=%s)', async (version) => {
 		sourceFetch.mockResolvedValueOnce(jsonResponse({
 			type: 'pending_transaction',
@@ -152,7 +153,6 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 		await expect(getTransactionByVersion(binding, 42n))
 			.rejects.toThrow('transaction version response does not match request')
 	})
-
 
 	it('fail-closes malformed ledger / account / block / transaction envelopes', async () => {
 		sourceFetch
@@ -176,6 +176,7 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 		await expect(getBlockByHeight(binding, 9n)).rejects.toThrow('invalid block response envelope')
 		await expect(getTransactionByVersion(binding, 42n)).rejects.toThrow('invalid transaction response envelope')
 	})
+
 	it.each(['transaction', 'height', 'version'])('validates nested event JSON through %s responses', async (endpoint) => {
 		const transaction = {
 			type: 'user_transaction',
@@ -210,7 +211,6 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 		}))
 		await expect(load()).rejects.toThrow('invalid transaction event response envelope')
 	})
-
 
 	it('fail-closes malformed committed transaction effects before resolver materialization', async () => {
 		sourceFetch
@@ -389,29 +389,6 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 					fields: [{
 						name: 'coin',
 						type: 'u64',
-	it('fail-closes malformed Move enum variants', async () => {
-		sourceFetch.mockResolvedValueOnce(jsonResponse({
-			bytecode: '0xab',
-			abi: {
-				address: '0xa11ce',
-				name: 'payments',
-				friends: [],
-				exposed_functions: [],
-				structs: [{
-					name: 'CoinStore',
-					is_native: false,
-					is_event: false,
-					is_enum: true,
-					abilities: [],
-					generic_type_params: [],
-					fields: [],
-					variants: [{ name: 'Some', fields: 3 }],
-				}],
-			},
-		}))
-		await expect(getAccountModule(binding, '0xa11ce', 'payments')).rejects.toThrow('invalid account module response envelope')
-	})
-
 					}],
 				}],
 			},
@@ -450,6 +427,29 @@ describe('AptosFullnode Rest arktype envelopes', () => {
 				},
 			},
 		})
+	})
+
+	it('fail-closes malformed Move enum variants', async () => {
+		sourceFetch.mockResolvedValueOnce(jsonResponse({
+			bytecode: '0xab',
+			abi: {
+				address: '0xa11ce',
+				name: 'payments',
+				friends: [],
+				exposed_functions: [],
+				structs: [{
+					name: 'CoinStore',
+					is_native: false,
+					is_event: false,
+					is_enum: true,
+					abilities: [],
+					generic_type_params: [],
+					fields: [],
+					variants: [{ name: 'Some', fields: 3 }],
+				}],
+			},
+		}))
+		await expect(getAccountModule(binding, '0xa11ce', 'payments')).rejects.toThrow('invalid account module response envelope')
 	})
 
 	it('fail-closes malformed Move-module / table-item envelopes', async () => {

@@ -45,7 +45,7 @@ const omitUndefinedJson = (
 		return value.map(omitUndefinedJson)
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
-			Object.entries(value)
+			Object.entries<unknown>(value)
 				.filter(([, entry]) => entry != null)
 				.map(([key, entry]) => [
 					key,
@@ -132,7 +132,7 @@ export const getBigMap = async ({
 					`?${queryString({ level: String(level) })}`
 			)}`
 		)
-	) as TzktBigMap
+	)
 )
 
 export const listBigMaps = async ({
@@ -152,7 +152,7 @@ export const listBigMaps = async ({
 				limit,
 			})}`
 		)
-	) as TzktBigMap[]
+	)
 )
 
 export const getBigMapKey = async ({
@@ -176,7 +176,7 @@ export const getBigMapKey = async ({
 					`?${queryString({ level: String(level) })}`
 			)}`
 		)
-	) as TzktBigMapKey
+	)
 )
 
 export const listBigMapKeys = async ({
@@ -195,7 +195,7 @@ export const listBigMapKeys = async ({
 				limit,
 			})}`
 		)
-	) as TzktBigMapKey[]
+	)
 )
 
 export const listBigMapUpdates = async ({
@@ -225,7 +225,7 @@ export const listBigMapUpdates = async ({
 					limit,
 				})}`
 		)
-	) as TzktBigMapUpdate[]
+	)
 )
 
 export const listEntrypoints = async ({
@@ -244,7 +244,7 @@ export const listEntrypoints = async ({
 				micheline: 'true',
 			})}`
 		)
-	) as TzktEntrypoint[]
+	)
 }
 
 export const getContract = async ({
@@ -260,7 +260,7 @@ export const getContract = async ({
 			binding,
 			`${baseUrl}/v1/contracts/${encodeURIComponent(address)}`
 		)
-	) as TzktContract
+	)
 }
 
 export const getDelegate = async ({
@@ -276,7 +276,7 @@ export const getDelegate = async ({
 			binding,
 			`${baseUrl}/v1/delegates/${encodeURIComponent(address)}`
 		)
-	) as TzktDelegate
+	)
 	if (delegate.address !== address)
 		throw new Error('TzKT delegate response does not match the subject')
 	return delegate
@@ -301,7 +301,7 @@ export const listDelegates = async ({
 				'sort.desc': 'stakingBalance',
 			})}`
 		)
-	) as TzktDelegate[]
+	)
 	if (delegates.length > limit)
 		throw new Error('TzKT delegates exceeded the requested limit')
 	if (new Set(delegates.map((delegate) => delegate.address)).size !== delegates.length)
@@ -327,7 +327,7 @@ export const listContracts = async ({
 				limit,
 			})}`
 		)
-	) as TzktContract[]
+	)
 	if (contracts.length > limit)
 		throw new Error('TzKT contracts exceeded the requested limit')
 	return contracts
@@ -353,7 +353,7 @@ export const getAccount = async ({
 					`?${queryString({ level: String(level) })}`
 			)}`
 		)
-	) as TzktAccount
+	)
 }
 
 const assertAccountPage = (
@@ -385,7 +385,7 @@ export const listAccountOperations = async ({
 				limit,
 			})}`
 		)
-	) as TzktOperation[]
+	)
 	if (operations.length > limit)
 		throw new Error('TzKT account operations exceeded the requested limit')
 
@@ -431,7 +431,7 @@ export const listAccountTokenBalances = async ({
 				limit,
 			})}`
 		)
-	) as TzktTokenBalance[]
+	)
 	if (balances.length > limit)
 		throw new Error('TzKT account token balances exceeded the requested limit')
 
@@ -461,7 +461,7 @@ export const listAccountTokenTransfers = async ({
 				limit,
 			})}`
 		)
-	) as TzktTokenTransfer[]
+	)
 	if (transfers.length > limit)
 		throw new Error('TzKT account token transfers exceeded the requested limit')
 
@@ -480,7 +480,7 @@ export const getBlock = async ({
 			binding,
 			`${baseUrl}/v1/blocks/${String(level)}`
 		)
-	) as TzktBlock
+	)
 )
 
 export const getBlockByHash = async ({
@@ -498,7 +498,7 @@ export const getBlockByHash = async ({
 			binding,
 			`${baseUrl}/v1/blocks/${encodeURIComponent(hash)}`
 		)
-	) as TzktBlock
+	)
 	if (block.hash !== hash)
 		throw new Error('TzKT block response hash does not match the subject')
 	return block
@@ -523,7 +523,7 @@ export const listAccounts = async ({
 				'sort.desc': 'id',
 			})}`
 		)
-	) as TzktAccount[]
+	)
 	if (accounts.length > limit)
 		throw new Error('TzKT accounts exceeded the requested limit')
 	return accounts
@@ -548,7 +548,7 @@ export const listOperations = async ({
 				'sort.desc': 'id',
 			})}`
 		)
-	) as TzktOperation[]
+	)
 	if (operations.length > limit)
 		throw new Error('TzKT operations exceeded the requested limit')
 	return operations
@@ -573,7 +573,7 @@ export const listBlocks = async ({
 				'sort.desc': 'level',
 			})}`
 		)
-	) as TzktBlock[]
+	)
 	if (blocks.length > limit)
 		throw new Error('TzKT blocks exceeded the requested limit')
 	if (new Set(blocks.map((block) => block.hash)).size !== blocks.length)
@@ -590,7 +590,7 @@ export const getHead = async () => (
 			binding,
 			`${baseUrl}/v1/head`
 		)
-	) as TzktHead
+	)
 )
 
 export const getCurrentStatistics = async () => (
@@ -601,7 +601,7 @@ export const getCurrentStatistics = async () => (
 			binding,
 			`${baseUrl}/v1/statistics/current`
 		)
-	) as TzktStatistics
+	)
 )
 
 export const getCoherentCurrentNetworkSnapshot = async () => {
@@ -638,7 +638,7 @@ export const listOperationsByHash = async ({
 			binding,
 			`${baseUrl}/v1/operations/${encodeURIComponent(operationHash)}`
 		)
-	) as TzktOperation[]
+	)
 }
 
 export const listTokenTransfers = async ({
@@ -659,7 +659,7 @@ export const listTokenTransfers = async ({
 				limit,
 			})}`
 		)
-	) as TzktTokenTransfer[]
+	)
 	if (transfers.length > limit)
 		throw new Error('TzKT token transfers exceeded the requested limit')
 
@@ -684,7 +684,7 @@ export const listTokens = async ({
 				limit,
 			})}`
 		)
-	) as TzktToken[]
+	)
 	if (tokens.length > limit)
 		throw new Error('TzKT tokens exceeded the requested limit')
 
@@ -710,8 +710,8 @@ export const getToken = async ({
 				limit: 1,
 			})}`
 		)
-	) as TzktToken[]
-	const token = tokens[0]
+	)
+	const token = tokens.at(0)
 	if (token == null)
 		throw new Error(`TzKT token ${contractAddress}/${String(tokenId)} not found`)
 	if (

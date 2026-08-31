@@ -35,7 +35,7 @@ const yellowstoneAccountTimestampFields = (
 		pubkey: string
 	},
 	update: GetBlockYellowstoneAccountUpdate,
-	slot: bigint,
+	slot: bigint
 ) => ({
 	$account: {
 		[EntityMetaKey.Selector]: account,
@@ -59,7 +59,7 @@ const yellowstoneAccountTimestampFields = (
 const firstAccountUpdate = async (
 	binding: NonNullable<import('$/resolvers/$resolvers.ts').ResolverContext['sourceBinding']>,
 	pubkey: string,
-	signal?: AbortSignal,
+	signal?: AbortSignal
 ) => {
 	const { subscribeSolanaAccountUpdates } = await import('$/sources/GetBlock/Yellowstone/queries.ts')
 	for await (const update of subscribeSolanaAccountUpdates(binding, {
@@ -93,7 +93,7 @@ export default {
 								pubkey,
 							},
 							update,
-							slot,
+							slot
 						)
 						return {
 							$$timestamps: [

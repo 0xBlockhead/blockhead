@@ -7,7 +7,8 @@
 import { type as arktype } from 'arktype'
 
 
-const unsignedSafe = arktype(`number.integer >= 0 <= ${Number.MAX_SAFE_INTEGER}`)
+const unsignedSafe = arktype('number.integer >= 0')
+	.and(arktype(`number <= ${Number.MAX_SAFE_INTEGER}`))
 const nonEmptyString = arktype('string > 0')
 const lovelaceQuantity = arktype('/^(0|[1-9][0-9]*)$/')
 const blake2b256Hex = arktype('/^[0-9a-fA-F]{64}$/')

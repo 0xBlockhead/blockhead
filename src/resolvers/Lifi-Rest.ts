@@ -231,12 +231,7 @@ const lifiBridgeTransferSnapshot = async (
 	} = await lifiTransferStatusSnapshot(
 		transfer
 	)
-	const sourceTxHash = (
-		fromNetwork == null ?
-			undefined
-		:
-			hexLowerOfByteSize(status.sending.txHash, 32)
-	)
+	const sourceTxHash = hexLowerOfByteSize(status.sending.txHash, 32)
 	const destinationTxHash = (
 		status.receiving == null || toNetwork == null ?
 			undefined
@@ -244,7 +239,7 @@ const lifiBridgeTransferSnapshot = async (
 			hexLowerOfByteSize(status.receiving.txHash, 32)
 	)
 	const sender = (
-		fromNetwork == null || status.fromAddress == null ?
+		status.fromAddress == null ?
 			undefined
 		:
 			hexLowerOfByteSize(status.fromAddress, 20)
@@ -276,7 +271,7 @@ const lifiBridgeTransferSnapshot = async (
 	return {
 		source: Source.Lifi_Rest,
 		transferId,
-		...(sourceTxHash != null && fromNetwork != null && {
+		...(sourceTxHash != null && {
 			$sourceTx: {
 				[EntityMetaKey.Selector]: {
 					$network: fromNetwork[EntityMetaKey.Selector],
@@ -302,10 +297,8 @@ const lifiBridgeTransferSnapshot = async (
 				[EntityMetaKey.Selector]: { address: recipient },
 			},
 		}),
-		...(fromNetwork != null && {
-			$fromNetwork: fromNetwork,
-			$fromToken: coinInstanceRefFromLifiToken(status.sending.token),
-		}),
+		$fromNetwork: fromNetwork,
+		$fromToken: coinInstanceRefFromLifiToken(status.sending.token),
 		...(toNetwork != null && status.receiving != null && {
 			$toNetwork: toNetwork,
 			$toToken: coinInstanceRefFromLifiToken(status.receiving.token),

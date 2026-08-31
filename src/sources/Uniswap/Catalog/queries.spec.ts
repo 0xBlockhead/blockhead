@@ -127,12 +127,12 @@ describe('Uniswap Contracts queries', () => {
 
 	it('rejects malformed pool response envelopes with a source-scoped error', async () => {
 		await expect(getPoolSlot0({
-			getCall: async () => (`0x${'z'.repeat(7 * 64)}`) as `0x${string}`,
+			getCall: async () => (`0x${'z'.repeat(7 * 64)}`),
 			poolAddress: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
 		})).rejects.toThrow('UniswapContracts_Evm: invalid slot0 response envelope')
 
 		await expect(getFactoryPool({
-			getCall: async () => (`0x${'z'.repeat(64)}`) as `0x${string}`,
+			getCall: async () => (`0x${'z'.repeat(64)}`),
 			factoryAddress: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
 			token0: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
 			token1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
@@ -142,7 +142,7 @@ describe('Uniswap Contracts queries', () => {
 
 	it('decodes pool fee growth globals and protocol fees', async () => {
 		const word = (hex: string) => hex.padStart(64, '0')
-		const feeGrowthResponse = (`0x${word('abc')}`) as `0x${string}`
+		const feeGrowthResponse = (`0x${word('abc')}`)
 		const protocolFeesResponse = (
 			'0x'
 			+ word('11')
@@ -165,10 +165,10 @@ describe('Uniswap Contracts queries', () => {
 
 	it('decodes pool fee and factory getPool', async () => {
 		const word = (hex: string) => hex.padStart(64, '0')
-		const feeResponse = (`0x${word((500).toString(16))}`) as `0x${string}`
+		const feeResponse = (`0x${word((500).toString(16))}`)
 		const poolResponse = (
 			`0x${word('88e6a0c2ddd26feeb64f039a2c41296fcb3f5640')}`
-		) as `0x${string}`
+		)
 
 		expect(await getPoolFee({
 			getCall: async () => feeResponse,
@@ -227,7 +227,7 @@ describe('Uniswap Contracts queries', () => {
 
 	it('rejects malformed position response envelopes with a source-scoped error', async () => {
 		await expect(getPosition({
-			getCall: async () => (`0x${'z'.repeat(12 * 64)}`) as `0x${string}`,
+			getCall: async () => (`0x${'z'.repeat(12 * 64)}`),
 			positionManager: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
 			tokenId: 1n,
 		})).rejects.toThrow('UniswapContracts_Evm: invalid positions response envelope')
@@ -235,7 +235,7 @@ describe('Uniswap Contracts queries', () => {
 
 	it('rejects a position lookup whose uninitialized tokens prove it is absent', async () => {
 		await expect(getPosition({
-			getCall: async () => (`0x${'0'.repeat(12 * 64)}`) as `0x${string}`,
+			getCall: async () => (`0x${'0'.repeat(12 * 64)}`),
 			positionManager: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
 			tokenId: 1n,
 		})).rejects.toThrow('UniswapContracts_Evm: invalid positions token addresses')

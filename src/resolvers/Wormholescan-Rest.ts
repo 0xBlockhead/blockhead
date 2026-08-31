@@ -28,17 +28,14 @@ import { wormholescanNonNegativeDecimalString } from '$/sources/Wormholescan/Res
 const wormholescanTransferIdParts = (
 	transferId: string
 ) => {
+	const parts = transferId.split('/')
 	const [
 		chainIdText,
 		emitter,
 		sequence,
-		...rest
-	] = transferId.split('/')
+	] = parts
 	if (
-		chainIdText == null
-		|| emitter == null
-		|| sequence == null
-		|| rest.length > 0
+		parts.length !== 3
 		|| chainIdText === ''
 		|| emitter === ''
 		|| sequence === ''

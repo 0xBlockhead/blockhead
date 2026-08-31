@@ -21,7 +21,7 @@ describe('resolver projection paths', () => {
 					mod.resolvers.map((resolver) => ({
 						...resolver,
 						source: mod.source,
-					})),
+					}))
 				)
 			} catch (error) {
 				const message = error instanceof Error ? error.message : String(error)

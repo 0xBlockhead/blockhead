@@ -443,7 +443,7 @@ describe('extractEsploraProtocolPayloads', () => {
 		} satisfies EsploraTransaction)
 		const runestone = payloads.find((payload) => payload.protocol === BitcoinProtocolId.Runes)
 		expect(runestone).toBeDefined()
-		if (runestone == null || runestone.protocol !== BitcoinProtocolId.Runes)
+		if (runestone == null)
 			return
 
 		const decoded = decodeRunestonePayload(runestone.payloadHex, {

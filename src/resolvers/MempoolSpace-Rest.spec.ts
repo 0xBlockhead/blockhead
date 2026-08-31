@@ -1728,7 +1728,8 @@ describe('LightningMempoolSpace live network statistics', () => {
 			signal: abortController.signal,
 			trigger: resolverContext,
 		})
-		await vi.waitFor(() => expect(replaceTimestamps).toHaveBeenCalledOnce())
+		await vi.dynamicImportSettled()
+		expect(replaceTimestamps).toHaveBeenCalledOnce()
 
 		const row = replaceTimestamps.mock.calls[0]?.[0]?.[0]?.value[0]
 		if (row == null)

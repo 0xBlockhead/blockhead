@@ -220,9 +220,6 @@ const rpc = async ({
 		throw new Error('ChainlinkDataFeeds_Contracts: JSON-RPC response identity mismatch')
 	if ('error' in envelope && envelope.error != null)
 		throw new Error(`ChainlinkDataFeeds_Contracts: ${envelope.error.message}`)
-	if (!('result' in envelope) || envelope.result == null)
-		throw new Error('ChainlinkDataFeeds_Contracts: JSON-RPC result is missing')
-
 	return envelope.result
 }
 
@@ -426,7 +423,7 @@ export const getLatestRound = async ({
 				requestId: `${network}:${to}:${input}:${blockTag}`,
 			})
 			try {
-				return chainlinkAbiHexWire.assert(result) as `0x${string}`
+					return chainlinkAbiHexWire.assert(result)
 			} catch {
 				throw new Error('ChainlinkDataFeeds_Contracts: malformed ABI response')
 			}
@@ -483,7 +480,7 @@ export const getRoundData = async ({
 				requestId: `${network}:${to}:${input}:${blockTag}`,
 			})
 			try {
-				return chainlinkAbiHexWire.assert(result) as `0x${string}`
+					return chainlinkAbiHexWire.assert(result)
 			} catch {
 				throw new Error('ChainlinkDataFeeds_Contracts: malformed ABI response')
 			}

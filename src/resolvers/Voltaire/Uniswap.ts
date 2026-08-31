@@ -81,7 +81,7 @@ const withTransports = async <_Result>(
 	fieldName: string,
 	resolve: (
 		getCall: UniswapGetCall,
-		getBlockNumber: () => Promise<bigint>,
+		getBlockNumber: () => Promise<bigint>
 	) => Promise<_Result>
 ) => {
 	const jsonRpcTransports = (await voltaireJsonRpcHttpTransportsByChainId())[chainId] ?? []

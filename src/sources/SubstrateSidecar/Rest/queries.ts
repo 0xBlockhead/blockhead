@@ -656,7 +656,7 @@ export const getBlockExtrinsic = async ({
 	)
 	return {
 		at: response.at,
-		extrinsic: response.extrinsics as SidecarExtrinsic,
+		extrinsic: response.extrinsics,
 	} satisfies SidecarBlockExtrinsic
 }
 
@@ -917,7 +917,7 @@ export const getNodeVersion = async ({
 			bindingOrDefault(binding),
 			'/node/version'
 		)
-	) as SidecarNodeVersion
+	)
 )
 
 export const getStakingValidators = async ({

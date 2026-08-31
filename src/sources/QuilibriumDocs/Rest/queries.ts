@@ -19,10 +19,15 @@ import type {
 import { getText } from '$/sources/_shared/wire/HttpRest/client.ts'
 import bindings from '$/sources/QuilibriumDocs/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceEndpointKind } from '$/sources/SourceBinding.ts'
+import {
+	SourceEndpointKind,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 
-const docsBinding = () => {
-	const binding = bindings[Source.QuilibriumDocs_Rest].find((candidate) => candidate.target.key === 'docs')
+const isDocsBinding = (candidate: SourceBinding) => candidate.target.key === 'docs'
+
+const docsBinding = (): SourceBinding => {
+	const binding: SourceBinding | undefined = bindings[Source.QuilibriumDocs_Rest].find(isDocsBinding)
 	if (binding == null)
 		throw new Error('QuilibriumDocs_Rest: docs binding is unavailable')
 	return binding
@@ -33,7 +38,7 @@ const assertQuilibriumNetwork = (networkSlug: string) => {
 		throw new Error(`QuilibriumDocs_Rest: unsupported network: ${networkSlug}`)
 }
 
-export const getDocsEndpoints = () => {
+export const getDocsEndpoints = (): QuilibriumDocsEndpoint[] => {
 	const endpoints = docsBinding().endpoints
 		.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
 		.filter((endpoint) => endpoint.locator === quilibriumDocsBaseUrl)
@@ -41,7 +46,7 @@ export const getDocsEndpoints = () => {
 			url: endpoint.locator,
 			transportType: TransportType.Http,
 			providerName: 'Quilibrium docs',
-		})) satisfies QuilibriumDocsEndpoint[]
+		}))
 
 	if (endpoints.length === 0)
 		throw new Error('QuilibriumDocs_Rest: no docs endpoints')
@@ -93,7 +98,7 @@ export const getProtocolDocument = ({
 }
 
 export const getPrimaryProtocolDocument = (): QuilibriumDocsProtocolDocument => {
-	const document = quilibriumProtocolDocuments[0]
+	const document = quilibriumProtocolDocuments.at(0)
 	if (document == null)
 		throw new Error('QuilibriumDocs_Rest: primary protocol document is unavailable')
 	return document

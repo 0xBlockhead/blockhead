@@ -26,7 +26,7 @@ const unsignedDecimalPattern = /^(0|[1-9]\d*)(\.\d+)?$/
 const assertEnvelope = <_Value>(
 	label: string,
 	wire: { assert: (value: unknown) => _Value },
-	response: unknown,
+	response: unknown
 ) => {
 	try {
 		return wire.assert(response)
@@ -36,7 +36,7 @@ const assertEnvelope = <_Value>(
 }
 
 const requireApiChainId = (
-	chainId: string,
+	chainId: string
 ) => {
 	if (chainId === '' || !numericChainIdByDexscreenerApiChainLabel.has(chainId))
 		throw new Error(`Dexscreener_Rest: unsupported chain ${chainId}`)
@@ -76,7 +76,7 @@ const normalizeTimeframeNumbers = (
 }
 
 const normalizeTxnCounts = (
-	txns: Record<string, unknown> | undefined,
+	txns: Record<string, unknown> | undefined
 ) => {
 	const entries = Object.entries(txns ?? {})
 	if (entries.length > maximumTimeframes)
@@ -105,7 +105,7 @@ const normalizeTxnCounts = (
 }
 
 const normalizePairInfo = (
-	info: DexscreenerPair['info'],
+	info: DexscreenerPair['info']
 ) => {
 	if (info == null)
 		return undefined
@@ -128,7 +128,7 @@ const normalizePairInfo = (
 
 const normalizePair = (
 	pair: DexscreenerPair | null | undefined,
-	resolvedAtMs: number,
+	resolvedAtMs: number
 ) => {
 	if (pair == null)
 		throw new Error('Dexscreener_Rest: null pair row')
@@ -231,7 +231,7 @@ const normalizePair = (
 const normalizePairs = (
 	pairs: (DexscreenerPair | null)[] | null | undefined,
 	resolvedAtMs = Date.now(),
-	label = 'pairs',
+	label = 'pairs'
 ) => {
 	if (pairs == null)
 		throw new Error(`Dexscreener_Rest: invalid ${label} response envelope`)
@@ -258,7 +258,7 @@ export const getLatestPairs = async ({
 		dexscreenerPairsResponseWire,
 		await getDexscreenerJson(
 			`/latest/dex/pairs/${encodeURIComponent(chainId)}/${encodeURIComponent(pairId)}`
-		),
+		)
 	)
 	if (response.pairs == null)
 		throw new Error('Dexscreener_Rest: invalid latest-pairs response envelope')
@@ -288,7 +288,7 @@ export const getTokenPairs = async ({
 		dexscreenerPairListWire,
 		await getDexscreenerJson(
 			`/token-pairs/v1/${encodeURIComponent(chainId)}/${encodeURIComponent(tokenAddress)}`
-		),
+		)
 	)
 	const pairs = normalizePairs(response, Date.now(), 'token-pairs')
 	if (pairs.some((pair) => (
@@ -323,7 +323,7 @@ export const getTokens = async ({
 		dexscreenerPairListWire,
 		await getDexscreenerJson(
 			`/tokens/v1/${encodeURIComponent(chainId)}/${tokenAddresses.map(encodeURIComponent).join(',')}`
-		),
+		)
 	)
 	const pairs = normalizePairs(response, Date.now(), 'tokens')
 	if (pairs.some((pair) => (
@@ -349,7 +349,7 @@ export const getPairSearch = async ({
 		dexscreenerPairsResponseWire,
 		await getDexscreenerJson(
 			`/latest/dex/search?q=${encodeURIComponent(q)}`
-		),
+		)
 	)
 	if (response.pairs == null)
 		throw new Error('Dexscreener_Rest: invalid pair-search response envelope')
@@ -362,7 +362,7 @@ export const getLatestTokenProfiles = async () => (
 	assertEnvelope(
 		'token-profiles',
 		dexscreenerTokenMarketingListWire,
-		await getDexscreenerJson('/token-profiles/latest/v1'),
+		await getDexscreenerJson('/token-profiles/latest/v1')
 	)
 )
 
@@ -370,7 +370,7 @@ export const getLatestTokenBoosts = async () => (
 	assertEnvelope(
 		'token-boosts-latest',
 		dexscreenerTokenMarketingListWire,
-		await getDexscreenerJson('/token-boosts/latest/v1'),
+		await getDexscreenerJson('/token-boosts/latest/v1')
 	)
 )
 
@@ -378,7 +378,7 @@ export const getTopTokenBoosts = async () => (
 	assertEnvelope(
 		'token-boosts-top',
 		dexscreenerTokenMarketingListWire,
-		await getDexscreenerJson('/token-boosts/top/v1'),
+		await getDexscreenerJson('/token-boosts/top/v1')
 	)
 )
 
@@ -397,7 +397,7 @@ export const getTokenOrders = async ({
 		dexscreenerOrdersResponseWire,
 		await getDexscreenerJson(
 			`/orders/v1/${encodeURIComponent(chainId)}/${encodeURIComponent(tokenAddress)}`
-		),
+		)
 	)
 	const orders = (
 		Array.isArray(response) ?

@@ -1,8 +1,8 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	resolverContextRowLimit,
-	type ResolverValue,
 	resolverSourceBinding,
+	type ResolverValue,
 } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import {

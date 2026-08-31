@@ -25,7 +25,7 @@ const assertStableChannel = (channel: string) => {
 }
 
 const priceFeedAttributes = (
-	attributes: Record<string, string>
+	attributes: Partial<Record<string, string>>
 ) => ({
 	...(attributes.symbol != null && attributes.symbol !== '' && {
 		symbol: attributes.symbol,
@@ -67,11 +67,12 @@ const observationFromParsedUpdate = (
 	observedAtMs: number
 ) => {
 	const publishTimeMs = update.price.publish_time * 1000
+	const binaryUpdate = priceUpdate.binary.data.at(0)
 	const hexUpdate = (
 		priceUpdate.binary.encoding === 'hex'
-		&& priceUpdate.binary.data[0] != null
-		&& priceUpdate.binary.data[0] !== '' ?
-			with0xHex(priceUpdate.binary.data[0])
+		&& binaryUpdate != null
+		&& binaryUpdate !== '' ?
+			with0xHex(binaryUpdate)
 		:
 			undefined
 	)

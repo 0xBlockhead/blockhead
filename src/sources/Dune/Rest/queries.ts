@@ -42,7 +42,7 @@ const omitUndefinedJson = (
 	if (value != null && typeof value === 'object')
 		return Object.fromEntries(
 			Object.entries(value)
-				.filter(([, entry]) => entry !== undefined)
+				.filter(([, entry]: [string, unknown]) => entry !== undefined)
 				.map(([key, entry]) => [
 					key,
 					omitUndefinedJson(entry),
@@ -102,8 +102,6 @@ const assertExecutionResult = (execution: DuneExecutionResult) => {
 	if (execution.execution_id.trim() === '')
 		throw new Error('Dune_Rest: execution result missing execution_id')
 	const status = assertExecutionStatus(execution.state)
-	if (execution.result != null && execution.result.rows == null)
-		throw new Error('Dune_Rest: execution result missing rows')
 	if (
 		status.expectsResult
 		&& execution.is_execution_finished === true

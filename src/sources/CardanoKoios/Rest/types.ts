@@ -9,6 +9,12 @@ import {
 } from 'arktype'
 
 
+const { jsonValue: cardanoKoiosJsonValue } = arktype.module({
+	jsonArray: 'jsonValue[]',
+	jsonObject: { '[string]': 'jsonValue' },
+	jsonValue: 'null | boolean | number | bigint | string | jsonArray | jsonObject',
+})
+
 export interface CardanoKoiosTip {
 	hash: string
 	epoch_no: number
@@ -104,7 +110,7 @@ type CardanoKoiosTransactionProposalProcedureWire = Omit<
 	CardanoKoiosTransactionProposalProcedure,
 	'description'
 > & {
-	description: unknown
+	description: JsonValue
 }
 
 export const cardanoKoiosTransactionProposalProcedure = arktype({
@@ -113,7 +119,7 @@ export const cardanoKoiosTransactionProposalProcedure = arktype({
 	deposit: '/^(0|[1-9][0-9]*)$/',
 	meta_url: 'string | null',
 	meta_hash: 'string | null',
-	description: 'unknown',
+	description: cardanoKoiosJsonValue,
 	return_address: 'string',
 }) satisfies Type<CardanoKoiosTransactionProposalProcedureWire>
 
@@ -191,7 +197,7 @@ export const cardanoKoiosTransactionInfoScalars = arktype({
 >>
 
 export const cardanoKoiosTransactionCertificate = arktype({
-	info: 'unknown',
+	info: cardanoKoiosJsonValue,
 	type: 'string',
 	index: 'number.integer >= 0',
 }) satisfies Type<CardanoKoiosTransactionCertificate>
@@ -199,20 +205,20 @@ export const cardanoKoiosTransactionCertificate = arktype({
 export const cardanoKoiosTransactionNativeScript = arktype({
 	script_hash: 'string',
 	'type?': 'string',
-	'script?': 'unknown',
+	'script?': cardanoKoiosJsonValue,
 }) satisfies Type<CardanoKoiosTransactionNativeScript>
 
 export const cardanoKoiosTransactionPlutusContract = arktype({
 	script_hash: 'string',
 	input: {
-		datum: 'unknown | null',
+		datum: cardanoKoiosJsonValue,
 		redeemer: {
 			fee: 'string',
 			unit: {
 				mem: 'string',
 				steps: 'string',
 			},
-			datum: 'unknown',
+			datum: cardanoKoiosJsonValue,
 			purpose: 'string',
 		},
 	},
@@ -245,13 +251,13 @@ export const cardanoKoiosTransactionUtxo = arktype({
 	tx_index: 'number.integer >= 0',
 	value: '/^(0|[1-9][0-9]*)$/',
 	'datum_hash?': 'string | null',
-	'inline_datum?': 'unknown | null',
+	'inline_datum?': cardanoKoiosJsonValue,
 	'reference_script?': arktype({
 		hash: 'string',
 		'size?': 'number.integer >= 0',
 		'type?': 'string',
 		'bytes?': 'string',
-		'value?': 'unknown | null',
+		'value?': cardanoKoiosJsonValue,
 	}).or('null'),
 	'asset_list?': cardanoKoiosTransactionAsset.array().or('null'),
 }) satisfies Type<CardanoKoiosTransactionUtxo>
@@ -265,7 +271,7 @@ export const cardanoKoiosTransactionInfo = cardanoKoiosTransactionInfoScalars.an
 	native_scripts: cardanoKoiosTransactionNativeScript.array(),
 	plutus_contracts: cardanoKoiosTransactionPlutusContract.array(),
 	voting_procedures: cardanoKoiosTransactionVotingProcedure.array(),
-	proposal_procedures: 'unknown[]',
+	proposal_procedures: cardanoKoiosJsonValue.array(),
 })
 
 export interface CardanoKoiosStakePool {

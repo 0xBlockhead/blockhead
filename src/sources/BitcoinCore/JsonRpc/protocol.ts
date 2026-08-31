@@ -352,7 +352,7 @@ export const decodeRunestonePayload = (
 	let index = 0
 
 	while (index < integers.length) {
-		const tag = integers[index]!
+		const tag = integers[index]
 		index += 1
 
 		if (tag === RunestoneTag.Body)
@@ -363,7 +363,7 @@ export const decodeRunestonePayload = (
 			break
 		}
 
-		const value = integers[index]!
+		const value = integers[index]
 		index += 1
 		const existing = fields.get(tag)
 		if (existing == null)
@@ -377,10 +377,10 @@ export const decodeRunestonePayload = (
 
 	while (index + 3 < integers.length) {
 		edicts.push({
-			runeIdBlock: integers[index]!,
-			runeIdTx: integers[index + 1]!,
-			amount: integers[index + 2]!,
-			output: integers[index + 3]!,
+			runeIdBlock: integers[index],
+			runeIdTx: integers[index + 1],
+			amount: integers[index + 2],
+			output: integers[index + 3],
 		})
 		index += 4
 	}
@@ -427,7 +427,7 @@ const extractFromWitnessAndOutputs = ({
 
 	// Runes: at most one runestone per tx; extra OP_RETURN OP_13 outputs make a cenotaph.
 	const runestoneOutputs = vout.filter(({ scriptHex }) => scriptHex.startsWith(runesScriptPrefixHex))
-	const runestoneOutput = runestoneOutputs[0]
+	const runestoneOutput = runestoneOutputs.at(0)
 	const runes = (
 		runestoneOutput == null ?
 			[]

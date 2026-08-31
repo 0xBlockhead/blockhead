@@ -437,13 +437,13 @@ describe('Filfox REST resolvers', () => {
 			},
 		})
 		expect(messageResolver.projections.$$transfers.select(snapshot)).toHaveLength(1)
-		expect(messageResolver.projections.$$transfers.resolveCount?.(snapshot)).toBe(1)
+			expect(messageResolver.projections.$$transfers.resolveCount(snapshot)).toBe(1)
 		expect(messageResolver.projections.$$tokenTransfers.select(snapshot)).toHaveLength(1)
-		expect(messageResolver.projections.$$tokenTransfers.resolveCount?.(snapshot)).toBe(1)
+			expect(messageResolver.projections.$$tokenTransfers.resolveCount(snapshot)).toBe(1)
 		expect(messageResolver.projections.$$events.select(snapshot)).toHaveLength(1)
-		expect(messageResolver.projections.$$events.resolveCount?.(snapshot)).toBe(2)
+			expect(messageResolver.projections.$$events.resolveCount(snapshot)).toBe(2)
 		expect(messageResolver.projections.$$subcalls.select(snapshot)).toHaveLength(1)
-		expect(messageResolver.projections.$$subcalls.resolveCount?.(snapshot)).toBe(3)
+			expect(messageResolver.projections.$$subcalls.resolveCount(snapshot)).toBe(3)
 	})
 
 	it('omits $$timestamps when Filfox message lacks inclusion clocks', async () => {

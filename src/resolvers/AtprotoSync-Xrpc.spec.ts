@@ -6,7 +6,6 @@ import {
 	vi,
 } from 'vitest'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getLatestCommit = vi.hoisted(() => vi.fn())
@@ -76,7 +75,8 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 			dataCid: 'bafyreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe',
 			carByteLength: 3,
 		})
-		expect(repoCommitResolvers[0].projections.$$posts(snapshot)).toEqual([])
+		expect(snapshot).not.toHaveProperty('$$posts')
+		expect(snapshot).not.toHaveProperty('operationPaths')
 		expect(getLatestCommit).toHaveBeenCalledWith({
 			serviceOrigin: 'https://bsky.network',
 			did: 'did:plc:example',
@@ -147,11 +147,8 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		expect(getLatestCommit).not.toHaveBeenCalled()
 		expect(getRepoStatus).not.toHaveBeenCalled()
 		expect(repoCommitResolvers[1].projections.repoDid(snapshot)).toBe('did:plc:example')
-		expect(EntityMetaKey.Selector in (repoCommitResolvers[1].projections.$$posts({
-			...snapshot,
-			$$posts: [{
-				uri: 'at://did:plc:example/app.bsky.feed.post/abc',
-			}],
-		})[0])).toBe(true)
+		expect(repoCommitResolvers[1].projections.dataCid(snapshot)).toBe('bafyreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe')
+		expect(snapshot).not.toHaveProperty('$$posts')
+		expect(snapshot).not.toHaveProperty('operationPaths')
 	})
 })

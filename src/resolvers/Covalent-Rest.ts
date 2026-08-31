@@ -290,9 +290,7 @@ const goldRushLogEntity = (
 				hex,
 			},
 		} satisfies Entity<typeof schema, EntityType.EvmTopic>)),
-		...(topics[0] != null && {
-			topic0: topics[0],
-		}),
+		topic0: topics[0],
 		...(log.raw_log_data != null && {
 			data: with0xHex(log.raw_log_data),
 		}),
@@ -661,7 +659,7 @@ export default {
 								withInternal: true,
 							},
 						})).items[0].internal_transfers ?? []
-						const transfer = transfers[indexInTransaction]
+							const transfer = transfers.at(indexInTransaction)
 						if (transfer == null)
 							throw new Error('GoldRushFoundational_Rest: internal transfer not found')
 

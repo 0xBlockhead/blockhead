@@ -26,7 +26,7 @@ const binding = bindings[Source.GetBlockYellowstone_Grpc][0]
 
 const respond = (
 	body: unknown,
-	status = 200,
+	status = 200
 ) => {
 	vi.mocked(sourceFetch).mockResolvedValueOnce(new Response(
 		body == null ? null : JSON.stringify(body),

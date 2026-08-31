@@ -73,7 +73,10 @@ const assertEnvelope = <_Value>(
 const adminPassword = (
 	publicEnv: SourcePublicEnv
 ) => {
-	const value = (publicEnv.FEDIMINT_GATEWAYD_PASSWORD ?? '').trim()
+	const value = Object.hasOwn(publicEnv, 'FEDIMINT_GATEWAYD_PASSWORD') ?
+		publicEnv.FEDIMINT_GATEWAYD_PASSWORD.trim()
+	:
+		''
 	if (value === '')
 		throw new Error('FedimintGatewayd_Rest: missing FEDIMINT_GATEWAYD_PASSWORD')
 

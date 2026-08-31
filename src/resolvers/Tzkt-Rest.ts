@@ -1700,21 +1700,19 @@ export default {
 						})
 						if (operations.length === 0)
 							throw new Error(`Tzkt_Rest: operation group ${operationHash} not found`)
-						const level = operations[0]?.level
+						const level = operations[0].level
 						return {
 							$network: {
 								[EntityMetaKey.Selector]: $network,
 							},
 							operationHash,
 							operationCount: operations.length,
-							...(level != null && {
-								$block: {
-									[EntityMetaKey.Selector]: {
-										$network,
-										level: BigInt(level),
-									},
+							$block: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									level: BigInt(level),
 								},
-							}),
+							},
 						}
 					},
 				},
@@ -1775,14 +1773,12 @@ export default {
 							),
 							contentIndex,
 							...operationFieldsFromWire(operation),
-							...(operation.level != null && {
-								$block: {
-									[EntityMetaKey.Selector]: {
-										$network: $operationGroup.$network,
-										level: BigInt(operation.level),
-									},
+							$block: {
+								[EntityMetaKey.Selector]: {
+									$network: $operationGroup.$network,
+									level: BigInt(operation.level),
 								},
-							}),
+							},
 						}
 					},
 				},

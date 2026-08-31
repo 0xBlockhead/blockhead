@@ -53,7 +53,7 @@ export const getServerInfo = async () => (
 		'server_info',
 		xrplClioServerInfo,
 		await jsonRpc2<unknown>(remoteQueryBinding(), 'server_info')
-	) as XrplClioServerInfoResult
+	)
 )
 
 export const getLedgerClosed = async () => (
@@ -61,7 +61,7 @@ export const getLedgerClosed = async () => (
 		'ledger_closed',
 		xrplClioLedgerClosed,
 		await jsonRpc2<unknown>(remoteQueryBinding(), 'ledger_closed')
-	) as XrplClioLedgerClosedResult
+	)
 )
 
 export const getClosedLedger = () => getLedgerClosed()
@@ -96,7 +96,7 @@ export const getLedger = async (
 			transactions: false,
 			expand: false,
 		}])
-	) as XrplClioLedgerResult
+	)
 }
 
 export const getValidatedLedger = async () => (
@@ -159,7 +159,7 @@ export const getLedgerTransactions = async (
 			transactions: true,
 			expand: true,
 		}])
-	) as XrplClioLedgerWithTransactionsResult
+	)
 }
 
 export const getLedgerData = async (

@@ -51,7 +51,8 @@ describe('ZeroGChainScan_Rest resolver identity', () => {
 	})
 
 	it('projects consensus network tip from explorer identity URL', async () => {
-		const consensusResolver = zeroGChainScan.resolvers.find((candidate) => (
+		const resolvers: readonly { entityType: EntityType }[] = zeroGChainScan.resolvers
+		const consensusResolver = resolvers.find((candidate) => (
 			candidate.entityType === EntityType.ZeroGConsensusNetwork
 		))
 		if (consensusResolver == null)

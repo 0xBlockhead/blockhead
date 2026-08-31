@@ -54,14 +54,14 @@ export const aptosLedgerInfoWire = arktype({
 })
 
 export const aptosAccountWire = arktype({
-const aptosJsonValue = arktype('string | number | boolean | null | object.json')
-
 	sequence_number: aptosU64String,
 	authentication_key: 'string',
 }) satisfies Type<{
 	sequence_number: string
 	authentication_key: string
 }>
+
+const aptosJsonValue = arktype('string | number | boolean | null | object.json')
 
 export const aptosMoveResourceWire = arktype({
 	type: 'string',

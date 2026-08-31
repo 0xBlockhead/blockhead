@@ -236,14 +236,17 @@ export const getFeeEstimates = async (
 
 export const getSuggestedFeePerByteSats = async (
 	target: EsploraTarget
-) => {
+	) => {
 	const estimates = await getFeeEstimates(target)
+	const estimateForTarget = (blockTarget: string) => (
+		Object.entries(estimates).find(([candidate]) => candidate === blockTarget)?.[1]
+	)
 	const candidate = (
-		estimates['6']
-		?? estimates['3']
-		?? estimates['2']
-		?? estimates['1']
-		?? Object.values(estimates)[0]
+		estimateForTarget('6')
+		?? estimateForTarget('3')
+		?? estimateForTarget('2')
+		?? estimateForTarget('1')
+		?? Object.values(estimates).at(0)
 	)
 	if (candidate == null || !Number.isFinite(candidate) || candidate < 0)
 		throw new Error('Esplora_Rest: missing fee estimate')

@@ -162,6 +162,7 @@ describe('Aptos Indexer account portfolio queries', () => {
 		})
 		await expect(getTableItem('0xhandle', '0xkeyhash')).rejects.toThrow('response envelope')
 	})
+
 	it('preserves nested table-item JSON values', async () => {
 		const item = {
 			...currentTableItem,
@@ -190,7 +191,6 @@ describe('Aptos Indexer account portfolio queries', () => {
 		})
 		await expect(getTableItem('0xhandle', '0xkeyhash')).rejects.toThrow('response envelope')
 	})
-
 
 	it('bounds offset pages and avoids transport for zero cardinality', async () => {
 		await expect(getAccountTransactions('0xa11ce', 0)).resolves.toEqual([])

@@ -34,9 +34,10 @@ const context = {
 	publicEnv: {},
 }
 
-const nodeStateResolver = avalancheInfo.resolvers.find((resolver) => (
-	resolver.entityType === EntityType.BlockheadAvalancheNodeState
+const findResolver = (entityType: EntityType) => avalancheInfo.resolvers.find((resolver) => (
+	resolver.entityType === entityType
 ))
+const nodeStateResolver = findResolver(EntityType.BlockheadAvalancheNodeState)
 if (nodeStateResolver == null)
 	throw new Error('AvalancheInfo_JsonRpc spec missing node-state resolvers')
 
@@ -117,7 +118,5 @@ it('materializes best-effort node observations without arbitrary timestamp repla
 	expect(nodeState.$$timestamps[0][EntityMetaKey.Fields]).not.toHaveProperty(
 		entityFieldAddressKey(EntityType.BlockheadAvalancheNodeState_Timestamp, [], 'uptimePercent')
 	)
-	expect(avalancheInfo.resolvers.some((resolver) => (
-		resolver.entityType === EntityType.BlockheadAvalancheNodeState_Timestamp
-	))).toBe(false)
+	expect(findResolver(EntityType.BlockheadAvalancheNodeState_Timestamp)).toBeUndefined()
 })
