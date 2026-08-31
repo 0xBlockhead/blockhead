@@ -11,6 +11,7 @@ export enum BridgeRailId {
 	Cctp = 'Cctp',
 	Chainflip = 'Chainflip',
 	Eco = 'Eco',
+	FraxMesh = 'FraxMesh',
 	Garden = 'Garden',
 	GasZip = 'GasZip',
 	Glacis = 'Glacis',
@@ -95,6 +96,14 @@ export const bridgeTools = [
 		settlementModel: BridgeSettlementModel.LiquidityNetwork,
 		verificationModel: BridgeVerificationModel.External,
 		assetOutcome: BridgeAssetOutcome.LiquidityPoolNative,
+	},
+	{
+		key: 'frax',
+		label: 'Frax Bridge',
+		railId: BridgeRailId.FraxMesh,
+		settlementModel: BridgeSettlementModel.BurnMint,
+		verificationModel: BridgeVerificationModel.External,
+		assetOutcome: BridgeAssetOutcome.SameNative,
 	},
 	{
 		key: 'arbitrum',
@@ -587,6 +596,10 @@ export const bridgeRails = [
 	{
 		railId: BridgeRailId.Eco,
 		label: 'Eco',
+	},
+	{
+		railId: BridgeRailId.FraxMesh,
+		label: 'Frax Mesh',
 	},
 	{
 		railId: BridgeRailId.Garden,
