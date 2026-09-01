@@ -97,12 +97,20 @@ export const inspectDiscovery = ({ pathnames, proofOwners, observationMatchers =
 	const promotedObservations = entries
 		.filter(({ lane, owners }) => lane === 'observation' && owners.some(({ lane: ownerLane }) => ownerLane === 'acceptance'))
 		.map(({ pathname, owners }) => ({ pathname, owners: owners.map(({ id }) => id) }))
+	const laneMismatches = entries
+		.filter(({ owners, lane }) => owners.some(({ lane: ownerLane }) => ownerLane !== lane))
+		.map(({ pathname, lane, owners }) => ({
+			pathname,
+			lane,
+			owners,
+		}))
 
 	return {
 		entries,
 		undiscovered,
 		duplicated,
 		promotedObservations,
+		laneMismatches,
 		counts: {
 			total: entries.length,
 			acceptance: entries.filter(({ lane }) => lane === 'acceptance').length,
@@ -113,11 +121,17 @@ export const inspectDiscovery = ({ pathnames, proofOwners, observationMatchers =
 }
 
 export const assertDiscoveryContract = (inventory) => {
-	if (inventory.undiscovered.length || inventory.duplicated.length || inventory.promotedObservations.length)
+	if (
+		inventory.undiscovered.length
+		|| inventory.duplicated.length
+		|| inventory.promotedObservations.length
+		|| inventory.laneMismatches.length
+	)
 		throw new Error(JSON.stringify({
 			undiscovered: inventory.undiscovered,
 			duplicated: inventory.duplicated,
 			promotedObservations: inventory.promotedObservations,
+			laneMismatches: inventory.laneMismatches,
 		}, null, 2))
 }
 
@@ -152,5 +166,6 @@ if (process.argv.includes('--report')) {
 		undiscovered: inventory.undiscovered,
 		duplicated: inventory.duplicated,
 		promotedObservations: inventory.promotedObservations,
+		laneMismatches: inventory.laneMismatches,
 	}))
 }

@@ -96,6 +96,19 @@ test('fails when an observational suite is promoted to acceptance', () => {
 	assert.deepEqual(inventory.promotedObservations, [{ pathname: 'tests/e2e/provider-discovery.e2e.ts', owners: ['acceptance-config'] }])
 })
 
+test('fails when an acceptance suite is assigned only to an observation runner', () => {
+	const inventory = inspectDiscovery({
+		pathnames: ['tests/e2e/route-matrix.e2e.ts'],
+		proofOwners: [{ id: 'observation-config', lane: 'observation', matches: () => true }],
+	})
+	assert.deepEqual(inventory.laneMismatches, [{
+		pathname: 'tests/e2e/route-matrix.e2e.ts',
+		lane: 'acceptance',
+		owners: [{ id: 'observation-config', lane: 'observation' }],
+	}])
+	assert.throws(() => assertDiscoveryContract(inventory), /laneMismatches/)
+})
+
 test('keeps a deterministic live-named route on the main acceptance lane', () => {
 	const inventory = configuredContract([
 		'src/routes/network/dydx-chain-market-live-dl.e2e.ts',
