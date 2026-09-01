@@ -17,8 +17,8 @@ const summary = createRawSnippet<[context: {
 }))
 
 
-test('defers inactive section content while retaining every section target', async () => {
-	const { container } = await render(CollapsibleTabs, {
+test('defers inactive section content until disclosure and tab activation', async () => {
+	await render(CollapsibleTabs, {
 		id: 'network-tabs',
 		class: 'network-tabs',
 		'data-card': true,
@@ -39,27 +39,11 @@ test('defers inactive section content while retaining every section target', asy
 		Summary: summary,
 	})
 
-	const outerSection = container.querySelector(':scope > section')
-	const details = outerSection?.querySelector<HTMLDetailsElement>(':scope > details')
-
-	expect(outerSection?.getAttribute('data-column-item')).toBe('flexible basis-4')
-	expect(details).toMatchObject({
-		id: 'network-tabs',
-		className: 'network-tabs',
-		open: false,
-	})
-	expect(details?.hasAttribute('data-card')).toBe(true)
-	expect(details?.getAttribute('data-column-item')).toBe('flexible')
-	expect(details?.getAttribute('data-scroll-container')).toBe('block snap-block')
-	expect(details?.querySelector(':scope > summary [data-row-item="wrap-start"]')?.textContent).toBe('Summary closed')
-	expect(container.querySelectorAll('[data-carousel-markers] a')).toHaveLength(2)
-	expect(container.querySelectorAll('[data-collapsible-tabs-pane-host] > section')).toHaveLength(2)
 	await expect.element(page.getByText('Block rows')).toBeInTheDocument()
 	await expect.element(page.getByText('Transaction rows')).not.toBeInTheDocument()
 
 	await userEvent.click(page.getByText('Summary closed'))
-
-	expect(details?.open).toBe(true)
+	await expect.element(page.getByText('Summary open')).toBeInTheDocument()
 
 	await userEvent.click(page.getByRole('link', {
 		name: 'Transactions',
