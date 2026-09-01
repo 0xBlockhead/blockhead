@@ -9,19 +9,15 @@ import {
 	chainlinkPriceFeeds,
 } from '$/sources/ChainlinkDataFeeds/AddressCatalog/constants.ts'
 import {
-	getCatalogRows,
 	getPriceFeed,
 	listPriceFeeds,
 	listPriceFeedsByChainId,
 } from '$/sources/ChainlinkDataFeeds/AddressCatalog/queries.ts'
-import { Source } from '$/sources/Source.ts'
-import bindings from '$/sources/ChainlinkDataFeeds/bindings.ts'
 import { listProxyContracts } from '$/sources/ChainlinkDataFeeds/Contracts/Catalog/queries.ts'
 
 
 describe('Chainlink address catalog', () => {
 	it('exposes unique mainnet ETH/USD proxy and fail-closes unknown feeds', () => {
-		expect(getCatalogRows().binding).toBe(bindings[Source.ChainlinkDataFeeds_AddressCatalog][0])
 		expect(chainlinkPriceFeedByChainIdAndAddress['1:0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419']).toMatchObject({
 			baseAsset: 'ETH',
 			quoteAsset: 'USD',

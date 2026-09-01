@@ -14,6 +14,10 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 }))
 
 import { rssFetchFeed } from '$/sources/Rss/Rest/client.ts'
+import {
+	getFeed,
+	rssBindingByOrigin,
+} from '$/sources/Rss/Rest/queries.ts'
 
 beforeEach(() => {
 	sourceFetch.mockReset()
@@ -41,6 +45,19 @@ test('uses the feed-target HttpProxy binding and parses its response', async () 
 			},
 		],
 	})
+	expect(sourceFetch).toHaveBeenCalledWith(
+		hnrssBinding,
+		'https://hnrss.org/frontpage'
+	)
+})
+
+test('selects the registered origin binding before executing the feed workflow', async () => {
+	sourceFetch.mockResolvedValueOnce(new Response('<rss><channel /></rss>'))
+
+	expect(rssBindingByOrigin.get('https://hnrss.org')).toBe(hnrssBinding)
+	expect(rssBindingByOrigin.has('https://unknown.example')).toBe(false)
+	await getFeed(hnrssBinding, 'https://hnrss.org/frontpage')
+
 	expect(sourceFetch).toHaveBeenCalledWith(
 		hnrssBinding,
 		'https://hnrss.org/frontpage'

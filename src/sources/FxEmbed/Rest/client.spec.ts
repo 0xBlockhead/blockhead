@@ -20,6 +20,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 }))
 
 const {
+	getStatus,
 	getUser,
 	getUserStatuses,
 	searchStatuses,
@@ -36,6 +37,7 @@ beforeEach(() => {
 it('preserves FxEmbed identities, bounds, empty results, and application failures', async () => {
 	await getUser('123')
 	await getUser('@alice/example')
+	await getStatus('status/+ %=id')
 
 	expect(sourceGetJson.mock.calls[0][0]).toBe(fxEmbedRestBinding)
 	expect(sourceGetJson.mock.calls[0][1]).toBe(
@@ -43,6 +45,9 @@ it('preserves FxEmbed identities, bounds, empty results, and application failure
 	)
 	expect(sourceGetJson.mock.calls[1][1]).toBe(
 		'https://api.fxtwitter.com/2/profile/%40alice%2Fexample'
+	)
+	expect(sourceGetJson.mock.calls[2][1]).toBe(
+		'https://api.fxtwitter.com/2/status/status%2F%2B%20%25%3Did'
 	)
 })
 

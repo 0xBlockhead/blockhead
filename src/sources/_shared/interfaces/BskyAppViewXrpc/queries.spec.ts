@@ -41,6 +41,12 @@ const socialAppViewQueries = bindQueries(
 	socialBindings[Source.Atproto_BskySocial_Xrpc][0]
 )
 const {
+	getFollowers: getSocialFollowers,
+	getFollows: getSocialFollows,
+	getLikes: getSocialLikes,
+	getRepostedBy: getSocialRepostedBy,
+} = socialAppViewQueries
+const {
 	getAuthorFeed,
 	getPostThread,
 	getPosts,
@@ -166,6 +172,32 @@ it('preserves repeated uri parameters and reserved values without direct fetch',
 	)
 	expect(new URL(sourceGetJson.mock.calls[2][1]).searchParams.get('limit')).toBe('17')
 	expect(directFetch).not.toHaveBeenCalled()
+})
+
+it('routes social graph and reaction operations through the social AppView binding', async () => {
+	const actor = 'did:plc:alice'
+	const uri = 'at://did:plc:alice/app.bsky.feed.post/3post?x=1&y=2'
+	sourceGetJson
+		.mockResolvedValueOnce({ subject: { did: actor, handle: 'alice.test' }, followers: [] })
+		.mockResolvedValueOnce({ subject: { did: actor, handle: 'alice.test' }, follows: [] })
+		.mockResolvedValueOnce({ uri, cid: 'bafypost', likes: [] })
+		.mockResolvedValueOnce({ uri, cid: 'bafypost', repostedBy: [] })
+
+	await getSocialFollowers({ actor, cursor: 'followers/+ cursor' })
+	await getSocialFollows({ actor, cursor: 'follows/+ cursor' })
+	await getSocialLikes({ uri, cid: 'bafypost', cursor: 'likes/+ cursor' })
+	await getSocialRepostedBy({ uri, cid: 'bafypost', cursor: 'reposts/+ cursor' })
+
+	for (const [binding] of sourceGetJson.mock.calls)
+		expect(binding).toBe(socialBindings[Source.Atproto_BskySocial_Xrpc][0])
+	expect(sourceGetJson.mock.calls.map(([, requestUrl]) => new URL(requestUrl).pathname)).toEqual([
+		'/xrpc/app.bsky.graph.getFollowers',
+		'/xrpc/app.bsky.graph.getFollows',
+		'/xrpc/app.bsky.feed.getLikes',
+		'/xrpc/app.bsky.feed.getRepostedBy',
+	])
+	expect(new URL(sourceGetJson.mock.calls[2][1]).searchParams.get('uri')).toBe(uri)
+	expect(new URL(sourceGetJson.mock.calls[3][1]).searchParams.get('cursor')).toBe('reposts/+ cursor')
 })
 
 it('propagates HandleNotFound without substituting a profile request', async () => {
