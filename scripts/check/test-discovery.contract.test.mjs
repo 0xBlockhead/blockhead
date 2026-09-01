@@ -66,6 +66,12 @@ test('owns the complete current inventory, including colocated route suites', ()
 	assert.equal(inventory.counts.colocatedRoutes, 1)
 })
 
+test('assigns the isolated schema-selection type contract to one unit runner', () => {
+	const inventory = configuredContract(['src/client/schema-selection-types.test.ts'])
+	assertDiscoveryContract(inventory)
+	assert.deepEqual(inventory.entries[0].owners, [{ id: 'vitest-server', lane: 'acceptance' }])
+})
+
 test('fails when a colocated route suite is omitted from the configured runner', () => {
 	const owners = proofOwners.filter(({ id }) => id !== 'playwright-main')
 	const inventory = contract(['src/routes/root-navigation.e2e.ts'], owners)

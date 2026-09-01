@@ -91,7 +91,7 @@ test('discovers every canonical active Svelte root and partitions deterministica
 	assert.deepEqual(manifest.ambientDeclarationFiles, manifest.declarationFiles)
 })
 
-test('leaves the expensive schema selection type fixture to its dedicated unit harness', async () => {
+test('leaves the expensive schema selection type fixture out of the application denominator', () => {
 	const root = process.cwd()
 	const fixturePath = path.join(root, 'src/client/schema-selection-types.types.ts')
 	const manifest = readCanonicalFileManifest(
@@ -99,10 +99,6 @@ test('leaves the expensive schema selection type fixture to its dedicated unit h
 		path.join(root, 'tsconfig.svelte-check.json')
 	)
 	assert.equal(manifest.typeScriptRoots.includes(fixturePath), false)
-	assert.match(
-		await fs.readFile(path.join(root, 'src/client/schema-selection-types.test.ts'), 'utf8'),
-		/files: \[path\.join\(root, 'src\/client\/schema-selection-types\.types\.ts'\)\]/
-	)
 })
 
 test('emits unchanged canonical inheritance without shard exclusions', async () => {
