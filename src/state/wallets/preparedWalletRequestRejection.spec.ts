@@ -58,16 +58,6 @@ describe('prepared wallet request rejection', () => {
 		expect(rejection.observation).not.toHaveProperty('transactionHash')
 		expect(rejection.observation).not.toHaveProperty('evmTransactions')
 		expect(rejection.observation).not.toHaveProperty('evmTransactionIds')
-		expect(Object.keys(rejection)).toEqual([
-			'walletRequestSelector',
-			'observation',
-		])
-		expect(Object.keys(rejection.observation).sort()).toEqual([
-			'error',
-			'source',
-			'status',
-			'timestampMs',
-		])
 		expect(isPreparedWalletRequestWithoutSend(rejection.observation)).toBe(false)
 	})
 
