@@ -15,7 +15,13 @@ export function applicationRuntimeWhenReady<_Client>(
 				return
 			}
 
-			destroyRuntime = mount(client).destroy
+			const runtime = mount(client)
+			if (!active) {
+				runtime.destroy()
+				return
+			}
+
+			destroyRuntime = runtime.destroy
 		}),
 		destroy: () => {
 			active = false

@@ -65,6 +65,27 @@ test('does not mount after the layout is destroyed before client readiness', asy
 	expect(disposeCount).toBe(1)
 })
 
+test('destroys runtime ownership acquired during a reentrant layout teardown', async () => {
+	let destroyCount = 0
+	let runtime: ReturnType<typeof applicationRuntimeWhenReady<{ id: string }>>
+	runtime = applicationRuntimeWhenReady(
+		Promise.resolve({ id: 'canonical' }),
+		() => {
+			runtime.destroy()
+			return {
+				destroy: () => {
+					destroyCount += 1
+				},
+			}
+		}
+	)
+
+	await runtime.ready
+	expect(destroyCount).toBe(1)
+	runtime.destroy()
+	expect(destroyCount).toBe(1)
+})
+
 test('propagates a late bootstrap rejection after teardown without mounting', async () => {
 	let rejectClient: ((error: Error) => void) | undefined
 	const clientPromise = new Promise<{ id: string }>((_, reject) => {
