@@ -214,10 +214,47 @@ const checkTypeScriptNode = (
 	node.forEachChild((child) => checkTypeScriptNode(file, sourceFile, offset, child, failures, edits))
 }
 
+const typescriptScriptBlocks = (text: string) => {
+	const blocks: { offset: number, script: string }[] = []
+	let searchFrom = 0
+	while (searchFrom < text.length) {
+		const tagStart = text.indexOf('<script', searchFrom)
+		if (tagStart === -1)
+			break
+
+		let quote: string | undefined
+		let tagEnd = tagStart + '<script'.length
+		for (; tagEnd < text.length; tagEnd++) {
+			const character = text[tagEnd]
+			if (quote != null) {
+				if (character === quote && text[tagEnd - 1] !== '\\')
+					quote = undefined
+			} else if (character === '"' || character === "'")
+				quote = character
+			else if (character === '>')
+				break
+		}
+
+		const tag = text.slice(tagStart, tagEnd + 1)
+		const closeStart = text.indexOf('</script>', tagEnd + 1)
+		if (closeStart === -1)
+			break
+		if (/\blang=(['"])ts\1/.test(tag)) {
+			blocks.push({
+				offset: tagEnd + 1,
+				script: text.slice(tagEnd + 1, closeStart),
+			})
+		}
+		searchFrom = closeStart + '</script>'.length
+	}
+	return blocks
+}
+
 const checkScriptTypeScript = (file: string, text: string, failures: Failure[], edits: Edit[]) => {
-	for (const match of text.matchAll(/<script\b[^>]*\blang=(['"])ts\1[^>]*>([\s\S]*?)<\/script>/g)) {
-		const script = match[2]
-		const offset = match.index + match[0].indexOf(script)
+	for (const {
+		offset,
+		script,
+	} of typescriptScriptBlocks(text)) {
 		const parsed = parseTypeScript(`${file}.${offset}.ts`, script)
 		const sourceFile = parsed.sourceFile
 
