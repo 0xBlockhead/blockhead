@@ -18,7 +18,7 @@ const summary = createRawSnippet<[context: {
 
 
 test('defers inactive section content until disclosure and tab activation', async () => {
-	await render(CollapsibleTabs, {
+	const { container } = await render(CollapsibleTabs, {
 		id: 'network-tabs',
 		class: 'network-tabs',
 		'data-card': true,
@@ -43,7 +43,7 @@ test('defers inactive section content until disclosure and tab activation', asyn
 	await expect.element(page.getByText('Transaction rows')).not.toBeInTheDocument()
 
 	await userEvent.click(page.getByText('Summary closed'))
-	await expect.element(page.getByText('Summary open')).toBeInTheDocument()
+	expect(container.querySelector('details')?.open).toBe(true)
 
 	await userEvent.click(page.getByRole('link', {
 		name: 'Transactions',
