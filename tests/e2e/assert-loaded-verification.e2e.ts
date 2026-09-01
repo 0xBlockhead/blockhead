@@ -163,9 +163,39 @@ test.describe('assertLoaded verification', () => {
 			&& c.assertThrew
 		))
 		expect(body.fulfilledButAssertFailed).toEqual(failedAfterResolve)
+		expect(body.fulfilledButAssertFailed).toEqual([])
+		expect(
+			body.assertOk,
+			`expected at least one fulfilled resolver to pass assert; got ${body.assertOk}. Check env / network.`
+		).toBeGreaterThan(0)
+
+		for (const c of cases) {
+			expect(c.resolveRejected && c.assertThrew, `${c.key} has two failure owners`).toBe(false)
+		}
+		expect(
+			cases.filter((c) => c.resolveRejected || c.assertThrew).length + body.assertOk,
+			'every probe must have exactly one terminal classification'
+		).toBe(cases.length)
 
 		for (const category of assertLoadedResolverProbeCategories) {
 			expect(body.categorySummary[category]).toBeDefined()
 		}
+
+		const categorySummaryLines = assertLoadedResolverProbeCategories.map((category) => {
+			const bucket = body.categorySummary[category]
+			return (
+				`${category}: total ${bucket.total}, resolveRejected ${bucket.resolveRejected}, `
+				+ `assertOk ${bucket.assertOk}, fulfilledButAssertFailed ${bucket.fulfilledButAssertFailed}`
+			)
+		})
+
+		test.info().attach('summary', {
+			body: [
+				`assert ok ${body.assertOk}/${cases.length}; resolve ok ${body.resolveOk}/${cases.length}`,
+				`fulfilledButAssertFailed ${body.fulfilledButAssertFailed.length}`,
+				...categorySummaryLines,
+			].join('\n'),
+			contentType: 'text/plain',
+		})
 	})
 })
