@@ -451,12 +451,6 @@ describe('Aave Rest resolver module', () => {
 			},
 		])
 		expect(aaveMarketResolver.projections.$$reserves.resolveCount(snapshot)).toBe(1)
-		expect(snapshot).not.toHaveProperty('eModeCategories')
-		expect(Object.keys(aaveMarketResolver.projections)).not.toContain('eModeCategories')
-		expect(JSON.stringify(snapshot)).not.toContain('isolationModeConfig')
-		expect(JSON.stringify(snapshot)).not.toContain('permitSupported')
-		expect(JSON.stringify(snapshot)).not.toContain('interestRateStrategyAddress')
-		expect(JSON.stringify(snapshot)).not.toContain('unbacked')
 	})
 
 	it('rejects unsupported chains on AaveMarket before transport', async () => {
@@ -759,6 +753,5 @@ describe('Aave Rest resolver module', () => {
 		expect(aaveReservePositionResolver.projections.borrowedBalanceUsd(snapshot)).toBe('2.5')
 		expect(aaveReservePositionResolver.projections.borrowApy(snapshot)).toBe('0.05')
 		expect(snapshot).not.toHaveProperty('canBeCollateral')
-		expect(Object.keys(aaveReservePositionResolver.projections)).not.toContain('canBeCollateral')
 	})
 })

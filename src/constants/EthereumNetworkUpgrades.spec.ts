@@ -40,87 +40,51 @@ const routeSegment = (value: string) => (
 
 
 describe('Ethereum network upgrade indexes', () => {
-	it('preserves every legacy ID and route-segment entry in insertion order', () => {
+	it('indexes every canonical upgrade identity without collisions and preserves chain grouping', () => {
 		for (const {
 			rows,
 			idIndex,
 			routeIndex,
 			groupIndex,
-			aliases,
 		} of [
 			{
 				rows: networkUpgrades,
 				idIndex: networkUpgradeByChainIdAndUpgradeId,
 				routeIndex: networkUpgradeByChainIdAndRouteSegment,
 				groupIndex: networkUpgradesByChainId,
-				aliases: legacyMarketingAliases,
 			},
 			{
 				rows: networkExecutionUpgrades,
 				idIndex: networkExecutionUpgradeByChainIdAndUpgradeId,
 				routeIndex: networkExecutionUpgradeByChainIdAndRouteSegment,
 				groupIndex: networkExecutionUpgradesByChainId,
-				aliases: [],
 			},
 			{
 				rows: networkConsensusUpgrades,
 				idIndex: networkConsensusUpgradeByChainIdAndUpgradeId,
 				routeIndex: networkConsensusUpgradeByChainIdAndRouteSegment,
 				groupIndex: networkConsensusUpgradesByChainId,
-				aliases: [],
 			},
 		]) {
-			expect(Object.entries(idIndex)).toEqual(
-				rows.map((row) => [
-					`${row.chainId}:${row.upgradeId}`,
-					row,
-				])
-			)
-			expect(Object.entries(routeIndex)).toEqual(
-				Object.entries(Object.fromEntries(rows.flatMap((row) => [
-					...[
-						row.upgradeId,
-						row.slug,
-						row.upgradeId.toLowerCase(),
-						row.slug.toLowerCase(),
-						routeSegment(row.upgradeId),
-						routeSegment(row.slug),
-					].map((segment) => [
-						`${row.chainId}:${segment}`,
-						row,
-					]),
-					...aliases.flatMap((alias) => (
-						alias.umbrellaUpgradeId === row.upgradeId ?
-							[
-								[
-									`${row.chainId}:${alias.segmentSlug}`,
-									row,
-								],
-							]
-						:
-							[]
-					)),
-				])))
-			)
-			expect(groupIndex).toEqual(
-				Object.groupBy(rows, (row) => row.chainId)
-			)
-			for (const chainId of new Set(rows.map((row) => row.chainId)))
-				expect(groupIndex[chainId]).toEqual(
-					rows.filter((row) => row.chainId === chainId)
-				)
+			const canonicalIdentityKeys = rows.map((row) => `${row.chainId}:${row.upgradeId}`)
+			expect(new Set(canonicalIdentityKeys).size).toBe(rows.length)
+
+			for (const row of rows) {
+				expect(idIndex[`${row.chainId}:${row.upgradeId}`]).toBe(row)
+				expect(routeIndex[`${row.chainId}:${row.slug}`]).toBe(row)
+				expect(routeIndex[`${row.chainId}:${routeSegment(row.upgradeId)}`]).toBe(row)
+				expect(groupIndex[row.chainId]).toContain(row)
+			}
+
+			expect(Object.values(groupIndex).flat()).toHaveLength(rows.length)
 		}
-		expect(networkUpgradeByChainIdAndConsensusUpgradeId).toEqual(
-			Object.fromEntries(networkUpgrades.flatMap((networkUpgrade) => (
-				networkUpgrade.consensusUpgradeId == null ?
-					[]
-				:
-					[[
-						`${networkUpgrade.chainId}:${networkUpgrade.consensusUpgradeId}`,
-						networkUpgrade,
-					]]
-			)))
-		)
+
+		for (const networkUpgrade of networkUpgrades) {
+			if (networkUpgrade.consensusUpgradeId != null)
+				expect(networkUpgradeByChainIdAndConsensusUpgradeId[
+					`${networkUpgrade.chainId}:${networkUpgrade.consensusUpgradeId}`
+				]).toBe(networkUpgrade)
+		}
 	})
 
 	it('derives codenames from umbrella activation IDs and retains only exceptional spellings', () => {

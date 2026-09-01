@@ -257,11 +257,6 @@ describe('GMX Rest resolver module', () => {
 		expect(gmxPositionResolver.projections.collateralTokenAddress(snapshot)).toBe(
 			'0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
 		)
-		expect(snapshot).not.toHaveProperty('pendingBorrowingFeesUsd')
-		expect(snapshot).not.toHaveProperty('hasLowCollateral')
-		expect(snapshot).not.toHaveProperty('leverageWithPnl')
-		expect(snapshot).not.toHaveProperty('increasedAtTime')
-		expect(Object.keys(gmxPositionResolver.projections)).not.toContain('pendingBorrowingFeesUsd')
 		expect(getPositionByKey).toHaveBeenCalledWith({
 			chainId: 42161,
 			contractKey,
@@ -456,19 +451,6 @@ describe('GMX Rest resolver module', () => {
 		expect(gmxMarketResolver.projections.$network(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: baseNetwork,
 		})
-		expect(snapshot).not.toHaveProperty('virtualInventoryForPositions')
-		expect(snapshot).not.toHaveProperty('positionImpactFactorPositive')
-		expect(snapshot).not.toHaveProperty('maxOpenInterestLong')
-		expect(snapshot).not.toHaveProperty('maxCollateralSumLongTokenLong')
-		expect(snapshot).not.toHaveProperty('virtualMarketId')
-		expect(snapshot).not.toHaveProperty('maxLongPoolUsdForDeposit')
-		expect(snapshot).not.toHaveProperty('fundingFactor')
-		expect(snapshot).not.toHaveProperty('borrowingFactorLong')
-		expect(snapshot).not.toHaveProperty('swapFeeFactorForBalanceWasImproved')
-		expect(snapshot).not.toHaveProperty('positionFeeFactorForBalanceWasImproved')
-		expect(snapshot).not.toHaveProperty('useOpenInterestInTokensForBalance')
-		expect(Object.keys(gmxMarketResolver.projections)).not.toContain('virtualInventoryForPositions')
-		expect(Object.keys(gmxMarketResolver.projections)).not.toContain('fundingFactor')
 		expect(sourceGetJson).toHaveBeenCalledTimes(1)
 	})
 

@@ -620,4 +620,46 @@ describe('Balancer Rest resolver module', () => {
 			relativeWeightCap: '0.1',
 		})
 	})
+
+	it('preserves the voting-gauge identity when optional pool-version enrichment fails', async () => {
+		const balancerGaugeResolver = balancerRest.resolvers.find((resolver) => (
+			resolver.entityType === EntityType.BalancerGauge
+		))
+		if (balancerGaugeResolver == null)
+			throw new Error('missing BalancerGauge resolver')
+
+		const gaugeAddress = '0x1111111111111111111111111111111111111111'
+		graphql
+			.mockResolvedValueOnce({
+				veBalGetVotingList: [{
+					id: weightedV2PoolId,
+					address: weightedV2Pool.address,
+					chain: 'MAINNET',
+					type: 'WEIGHTED',
+					symbol: '20wstETH-80AAVE',
+					protocolVersion: 2,
+					gauge: {
+						address: gaugeAddress,
+						isKilled: false,
+					},
+					tokens: [{
+						address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+						symbol: 'wstETH',
+					}],
+				}],
+			})
+			.mockRejectedValueOnce(new Error('pool detail unavailable'))
+
+		const snapshot = await balancerGaugeResolver.resolve.NetworkGaugeAddress.resolve({
+			$network: ethereumNetwork,
+			gaugeAddress,
+		}, context)
+
+		expect(snapshot).toMatchObject({
+			gaugeAddress,
+			isKilled: false,
+			poolSymbol: '20wstETH-80AAVE',
+		})
+		expect(snapshot).not.toHaveProperty('version')
+	})
 })

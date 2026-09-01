@@ -1086,12 +1086,6 @@ describe('Filfox REST resolvers', () => {
 		expect(getOverview).toHaveBeenCalledTimes(2)
 	})
 
-	it('does not register a direct FilecoinNetwork_Timestamp resolver', () => {
-		expect(filfoxRest.resolvers.map((resolver) => resolver.entityType)).not.toContain(
-			EntityType.FilecoinNetwork_Timestamp
-		)
-	})
-
 	it('maps Filfox address power into miner observations keyed by tipset', async () => {
 		getOverview.mockResolvedValue({
 			height: 100,

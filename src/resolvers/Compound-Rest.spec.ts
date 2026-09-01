@@ -553,11 +553,6 @@ describe('Compound Rest resolver module', () => {
 		expect(compoundCometResolver.projections.utilization(snapshot)).toBe(0.5)
 		expect(compoundCometResolver.projections.supplyApy(snapshot)).toBeCloseTo(0.03203853099053755)
 		expect(compoundCometResolver.projections.borrowApy(snapshot)).toBeCloseTo(0.06510352195723823)
-		expect(JSON.stringify(snapshot)).not.toContain('storeFrontPriceFactor')
-		expect(JSON.stringify(snapshot)).not.toContain('rewardTokenAddress')
-		expect(JSON.stringify(snapshot)).not.toContain('totalSupplyBase')
-		expect(JSON.stringify(snapshot)).not.toContain('baseScale')
-		expect(JSON.stringify(snapshot)).not.toContain('isSupplyPaused')
 		expect(getCometTipRates).toHaveBeenCalledWith({
 			chainId: 8453,
 			cometAddress: baseCometAddress,

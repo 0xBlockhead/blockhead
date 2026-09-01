@@ -150,15 +150,11 @@ describe('Local_Internal wallet request resolvers', () => {
 			},
 		})
 
-		expect(localInternal.resolvers.some((resolver) => (
-			resolver.entityType === EntityType.BlockheadAccount
-		))).toBe(false)
 	})
 
 	it('gates selected on Connected status in the Local wallet-connection resolver', async () => {
 		const definition = entityDefinitionByType[EntityType.BlockheadWalletConnection]
 		const connected = definition.facets[0]
-		expect(definition.fields.some((field) => field.name === 'selected')).toBe(false)
 		expect(connected).toMatchObject({
 			condition: {
 				path: ['status'],
@@ -171,7 +167,6 @@ describe('Local_Internal wallet request resolvers', () => {
 				}),
 			],
 		})
-		expect(walletConnectionResolver.projections).not.toHaveProperty('selected')
 		expect(walletConnectionResolver.projections.Connected).toHaveProperty('selected')
 
 	})

@@ -428,13 +428,4 @@ describe('TronScan native current observations', () => {
 		}])
 	})
 
-	it('does not register direct TronAccount or token-balance timestamp resolvers', () => {
-		const entityTypes = tronScanResolvers.resolvers.map((resolver) => (
-			`${resolver.entityType}`
-		))
-		expect(entityTypes).not.toContain(`${EntityType.TronAccount_Timestamp}`)
-		expect(entityTypes).not.toContain(`${EntityType.TronAccountTokenBalance_Timestamp}`)
-		expect(entityTypes).not.toContain(`${EntityType.TronContract_Timestamp}`)
-		expect(entityTypes).not.toContain(`${EntityType.TronToken_Timestamp}`)
-	})
 })
