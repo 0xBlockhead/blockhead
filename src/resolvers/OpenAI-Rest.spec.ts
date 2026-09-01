@@ -122,4 +122,26 @@ describe('OpenAI AI catalog source and resolver materialization', () => {
 		}, context)).rejects.toThrow('OpenAI_Rest: unsupported operation unknownOperation')
 		expect(sourceFetch).not.toHaveBeenCalled()
 	})
+
+	it('fails closed on malformed model and model-list envelopes', async () => {
+		const modelResolver = resolverFor(EntityType.AiModel)
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			...model,
+			created: 'yesterday',
+		})))
+		await expect(modelResolver.resolve['ProviderModelId'].resolve({
+			$provider,
+			providerModelId: model.id,
+		}, context)).rejects.toThrow('OpenAI_Rest: invalid model response envelope')
+
+		const operationResolver = resolverFor(EntityType.AiProviderApiOperation)
+		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+			object: 'list',
+			data: [{ id: 'missing-model-fields' }],
+		})))
+		await expect(operationResolver.resolve['ProviderOperationId'].resolve({
+			$provider,
+			operationId: 'listModels',
+		}, context)).rejects.toThrow('OpenAI_Rest: invalid model list response envelope')
+	})
 })
