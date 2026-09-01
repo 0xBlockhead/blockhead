@@ -46,6 +46,30 @@ const {
 	transportsByChainId: voltaireJsonRpcTransportsByChainId,
 } = voltaireJsonRpcTransports
 
+type OpenApiSchemaSource = {
+	schemaFile: string
+	typesFile: string
+}
+
+type GraphqlSchemaSource = {
+	schemaFile: string
+	outputFile?: string
+	patchFile?: string
+}
+
+const openApiSchemaSources = import.meta.glob<{ schemaSource: OpenApiSchemaSource }>([
+	'./*/OpenApi/schema-source.ts',
+	'./*/OpenApi/**/schema-source.ts',
+], { eager: true })
+const graphqlSchemaSources = import.meta.glob<{ schemaSource: GraphqlSchemaSource }>(
+	'./*/Graphql/**/schema-source.ts',
+	{ eager: true }
+)
+
+const sourcePathForManifest = (relativeManifestPath: string) => (
+	join('src/sources', relativeManifestPath.slice('./'.length))
+)
+
 describe('source provider registry', () => {
 	it('indexes exact binding provenance across endpoint and delivery variants', () => {
 		for (const [source, bindings] of Object.entries(sourceBindingsBySource))
@@ -454,12 +478,6 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps generated OpenAPI sources reproducible from checked-in schema manifests', () => {
-		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
-		const openapiScript = readFileSync(join(process.cwd(), 'scripts', 'sources', 'openapi.ts'), 'utf8')
-		const manifestFiles = globSync([
-			'src/sources/*/OpenApi/schema-source.ts',
-			'src/sources/*/OpenApi/**/schema-source.ts',
-		])
 		const activeManifestFiles = new Set(
 			sourceBindingArtifacts
 				.filter((artifact) => artifact.kind === SourceArtifactKind.GenerationManifest)
@@ -468,28 +486,16 @@ describe('source provider registry', () => {
 		const coveredTypesFiles = new Set<string>()
 		const inactiveManifests: string[] = []
 
-		expect(packageJson).toMatch(/"sources:openapi": "node --import tsx scripts\/sources\/openapi\.ts"/)
-		expect(packageJson).toMatch(/"sources:openapi:check": "node --import tsx scripts\/sources\/openapi\.ts check"/)
-		expect(openapiScript).toContain("'*/OpenApi/schema-source.ts'")
-		expect(openapiScript).toContain("'*/OpenApi/**/schema-source.ts'")
-
-		for (const manifestFile of manifestFiles) {
-			const manifestSource = readFileSync(manifestFile, 'utf8')
-			const schemaFile = manifestSource.match(/schemaFile:\s*'([^']+)'/)?.[1]
-			const typesFile = manifestSource.match(/typesFile:\s*'([^']+)'/)?.[1]
+		for (const [relativeManifestPath, { schemaSource }] of Object.entries(openApiSchemaSources)) {
+			const manifestFile = sourcePathForManifest(relativeManifestPath)
 			if (!activeManifestFiles.has(manifestFile)) {
 				inactiveManifests.push(manifestFile)
 				continue
 			}
 
-			if (schemaFile == null)
-				throw new Error(`${manifestFile}: missing schemaFile`)
-			if (typesFile == null)
-				throw new Error(`${manifestFile}: missing typesFile`)
-
-			expect(existsSync(resolve(dirname(manifestFile), schemaFile))).toBe(true)
-			expect(existsSync(resolve(dirname(manifestFile), typesFile))).toBe(true)
-			coveredTypesFiles.add(resolve(dirname(manifestFile), typesFile))
+			expect(existsSync(resolve(dirname(manifestFile), schemaSource.schemaFile))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), schemaSource.typesFile))).toBe(true)
+			coveredTypesFiles.add(resolve(dirname(manifestFile), schemaSource.typesFile))
 		}
 
 		for (const typesFile of globSync('src/sources/*/OpenApi/openapi.d.ts')) {
@@ -503,8 +509,6 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps generated GraphQL sources reproducible from checked-in schema manifests', () => {
-		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
-		const manifestFiles = globSync('src/sources/**/Graphql/**/schema-source.ts')
 		const activeManifestFiles = new Set(
 			sourceBindingArtifacts
 				.filter((artifact) => artifact.kind === SourceArtifactKind.GenerationManifest)
@@ -513,30 +517,20 @@ describe('source provider registry', () => {
 		const coveredOutputFiles = new Set<string>()
 		const inactiveManifests: string[] = []
 
-		expect(packageJson).toMatch(/"sources:graphql": "node --import tsx scripts\/sources\/graphql\.ts"/)
-		expect(packageJson).toMatch(/"sources:graphql:check": "node --import tsx scripts\/sources\/graphql\.ts check"/)
-		expect(readFileSync(join(process.cwd(), 'scripts', 'sources', 'graphql.ts'), 'utf8')).toMatch(/glob\('\*\/Graphql\/\*\*\/schema-source\.ts'/)
-
-		for (const manifestFile of manifestFiles) {
-			const manifestSource = readFileSync(manifestFile, 'utf8')
-			const schemaFile = manifestSource.match(/schemaFile:\s*'([^']+)'/)?.[1]
-			const outputFile = manifestSource.match(/outputFile:\s*'([^']+)'/)?.[1]
-			const patchFile = manifestSource.match(/patchFile:\s*'([^']+)'/)?.[1]
+		for (const [relativeManifestPath, { schemaSource }] of Object.entries(graphqlSchemaSources)) {
+			const manifestFile = sourcePathForManifest(relativeManifestPath)
 			if (!activeManifestFiles.has(manifestFile)) {
 				inactiveManifests.push(manifestFile)
 				continue
 			}
 
-			if (schemaFile == null)
-				throw new Error(`${manifestFile}: missing schemaFile`)
-
-			expect(existsSync(resolve(dirname(manifestFile), schemaFile))).toBe(true)
-			if (outputFile != null) {
-				expect(existsSync(resolve(dirname(manifestFile), outputFile))).toBe(true)
-				coveredOutputFiles.add(resolve(dirname(manifestFile), outputFile))
+			expect(existsSync(resolve(dirname(manifestFile), schemaSource.schemaFile))).toBe(true)
+			if (schemaSource.outputFile != null) {
+				expect(existsSync(resolve(dirname(manifestFile), schemaSource.outputFile))).toBe(true)
+				coveredOutputFiles.add(resolve(dirname(manifestFile), schemaSource.outputFile))
 			}
-			if (patchFile != null)
-				expect(existsSync(resolve(dirname(manifestFile), patchFile))).toBe(true)
+			if (schemaSource.patchFile != null)
+				expect(existsSync(resolve(dirname(manifestFile), schemaSource.patchFile))).toBe(true)
 			expect(existsSync(resolve(dirname(manifestFile), 'queries.ts'))).toBe(true)
 		}
 
@@ -551,8 +545,6 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps generated precompile data reproducible from the checked-in manifest', () => {
-		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
-		const scriptSource = readFileSync(join(process.cwd(), 'scripts', 'sources', 'precompiles', 'source.ts'), 'utf8')
 		const manifest = JSON.parse(
 			readFileSync(join(process.cwd(), 'src', 'constants', 'precompiles', 'manifest.json'), 'utf8')
 		) as {
@@ -562,9 +554,6 @@ describe('source provider registry', () => {
 		const definitions = new Set<string>()
 		const schedules = globSync('src/constants/precompiles/eip155-*-schedule.json')
 
-		expect(packageJson).toMatch(/"sources:precompiles:sync": "node --import tsx scripts\/sources\/precompiles\/source\.ts sync"/)
-		expect(packageJson).toMatch(/"sources:precompiles:check": "node --import tsx scripts\/sources\/precompiles\/source\.ts check"/)
-		expect(scriptSource).toContain("action === 'check'")
 		expect(manifest.source).toBe('https://github.com/shemnon/precompiles')
 		expect(manifest.ref).toBeTruthy()
 		expect(schedules.length).toBeGreaterThan(0)

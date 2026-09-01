@@ -18,6 +18,7 @@ import {
  * 1. Add `schema-source.ts`, `schema.graphql`, `graphql-env.d.ts`, `client.ts`, and `queries.ts`
  * 2. Export `schemaSource` with `schemaUrl`, `schemaFile`, and `outputFile` for typed GraphQL sources
  * 3. Run `pnpm run sources:graphql` to sync all, or `-- <SourceModule>` to sync one
+ * 4. Run `check` for deterministic checked-in generation and `freshness` for upstream drift
  */
 type GraphqlSchemaSource = {
 	schemaUrl: string
@@ -210,18 +211,8 @@ const checkModule = async (sourceModule: string) => {
 	const manifest = mod.schemaSource as GraphqlSchemaSource | undefined
 	if (manifest == null) throw new Error(`Missing \`schemaSource\` export in ${manifestFile}`)
 	const schemaFile = resolve(dirname(manifestFile), manifest.schemaFile)
-	if (manifest.outputFile == null) {
-		if (await downloadSchemaSnapshotText(manifest.schemaUrl) !== await readFile(schemaFile, 'utf8'))
-			throw new Error(`${sourceModule}: GraphQL schema snapshot drifts from checked-in ${schemaFile}`)
-
+	if (manifest.outputFile == null)
 		return
-	}
-
-	if (manifest.verifySchemaFromUrl === true) {
-		const officialSchema = await downloadSchemaText(manifest.schemaUrl)
-		if (officialSchema !== await readFile(schemaFile, 'utf8'))
-			throw new Error(`${sourceModule}: GraphQL schema drifts from official ${manifest.schemaUrl}`)
-	}
 
 	const outputFile = resolve(dirname(manifestFile), manifest.outputFile)
 	const patchFile =
@@ -277,15 +268,37 @@ const checkModule = async (sourceModule: string) => {
 	}
 }
 
+const checkFreshnessModule = async (sourceModule: string) => {
+	const manifestFile = resolve(sourcesDir, sourceModule, 'schema-source.ts')
+	const mod = await import(pathToFileURL(manifestFile).href)
+	const manifest = mod.schemaSource as GraphqlSchemaSource | undefined
+	if (manifest == null) throw new Error(`Missing \`schemaSource\` export in ${manifestFile}`)
+	if (manifest.outputFile != null && manifest.verifySchemaFromUrl !== true)
+		return
+
+	console.log(`Checking upstream freshness for ${sourceModule}`)
+	const schemaFile = resolve(dirname(manifestFile), manifest.schemaFile)
+	const upstreamSchema = (
+		manifest.outputFile == null ?
+			await downloadSchemaSnapshotText(manifest.schemaUrl)
+		:
+			await downloadSchemaText(manifest.schemaUrl)
+	)
+	if (upstreamSchema !== await readFile(schemaFile, 'utf8'))
+		throw new Error(`${sourceModule}: GraphQL schema drifts from official ${manifest.schemaUrl}`)
+}
+
 const [
 	modeOrFilter,
 	filterAfterMode,
 ] = process.argv.slice(2).filter((arg) => arg !== '--')
-const check = modeOrFilter === 'check'
-const modules = await discoverModules(check ? filterAfterMode : modeOrFilter)
+const mode = modeOrFilter === 'check' || modeOrFilter === 'freshness' ? modeOrFilter : 'sync'
+const modules = await discoverModules(mode === 'sync' ? modeOrFilter : filterAfterMode)
 for (const sourceModule of modules) {
-	if (check)
+	if (mode === 'check')
 		await checkModule(sourceModule)
+	else if (mode === 'freshness')
+		await checkFreshnessModule(sourceModule)
 	else
 		await syncModule(sourceModule)
 }
