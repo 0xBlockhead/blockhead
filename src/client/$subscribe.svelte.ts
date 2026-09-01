@@ -300,25 +300,30 @@ export const subscribeToLiveQueryCollections = (
 	update: () => void,
 	subscribeToFailures: (update: () => void) => () => void
 ) => {
+	let active = true
+	const notify = () => {
+		if (active)
+			update()
+	}
 	const subscriptions = [
-		subscribeToFailures(update),
+		subscribeToFailures(notify),
 	]
 	for (const query of queries) {
-		subscriptions.push(query.collection.onFirstReady(update))
+		subscriptions.push(query.collection.onFirstReady(notify))
 		const subscription = (
 			query.initialSnapshot === false ?
 				query.collection.subscribeChanges(() => {
-					queueMicrotask(update)
+					queueMicrotask(notify)
 				}, {
 					includeInitialState: false,
 					onStatusChange: () => {
-						queueMicrotask(update)
+						queueMicrotask(notify)
 					},
 				})
 			:
-				query.collection.subscribeChanges(update, {
+				query.collection.subscribeChanges(notify, {
 					includeInitialState: true,
-					onStatusChange: update,
+					onStatusChange: notify,
 				})
 		)
 		subscriptions.push(() => subscription.unsubscribe())
@@ -327,11 +332,12 @@ export const subscribeToLiveQueryCollections = (
 	void (async () => {
 		for (const query of queries) {
 			if (query.initialSnapshot !== false && query.collection.status === 'idle')
-				await query.collection.preload().catch(update)
+				await query.collection.preload().catch(notify)
 		}
 	})()
 
 	return () => {
+		active = false
 		for (const subscription of subscriptions)
 			subscription()
 	}

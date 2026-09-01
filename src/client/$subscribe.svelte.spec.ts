@@ -43,6 +43,39 @@ describe('live query collection lifecycle', () => {
 		expect(disposeChanges).toHaveBeenCalledOnce()
 	})
 
+	it('ignores a pending preload rejection after subscription teardown', async () => {
+		const preload = Promise.withResolvers<void>()
+		const update = vi.fn()
+		const status: CollectionStatus = 'idle'
+		const collection = {
+			status,
+			isLoadingSubset: false,
+			onFirstReady: vi.fn((_update: () => void) => vi.fn()),
+			on: vi.fn((_event: 'loadingSubset:change', _update: () => void) => vi.fn()),
+			preload: vi.fn(() => preload.promise),
+			subscribeChanges: vi.fn((_update: () => void) => ({
+				unsubscribe: vi.fn(),
+			})),
+		}
+
+		const unsubscribe = subscribeToLiveQueryCollections(
+			[{
+				collection,
+			}],
+			update,
+			() => vi.fn()
+		)
+		expect(collection.preload).toHaveBeenCalledOnce()
+		unsubscribe()
+
+		const lateFailure = new Error('late preload failure')
+		preload.reject(lateFailure)
+		await expect(preload.promise).rejects.toBe(lateFailure)
+		await new Promise((resolve) => setTimeout(resolve, 0))
+
+		expect(update).not.toHaveBeenCalled()
+	})
+
 	it('does not retain listeners when first-ready completes synchronously', async () => {
 		const status: CollectionStatus = 'ready'
 		const disposeFirstReady = vi.fn()
