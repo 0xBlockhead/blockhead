@@ -11,7 +11,7 @@ export const getRepository = ({
 	owner: string
 	repo: string
 }) => (
-	getJson<JsonValue>(binding, `/repos/${owner}/${repo}`)
+	getJson<JsonValue>(binding, `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`)
 )
 
 export const getContents = ({
@@ -29,6 +29,6 @@ export const getContents = ({
 }) => (
 	getJson<JsonValue>(
 		binding,
-		`/repos/${owner}/${repo}/contents/${path}${ref == null ? '' : `?ref=${encodeURIComponent(ref)}`}`
+		`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${path.split('/').map(encodeURIComponent).join('/')}${ref == null ? '' : `?ref=${encodeURIComponent(ref)}`}`
 	)
 )

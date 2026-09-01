@@ -50,12 +50,13 @@ export const fetchIconSlugs = async () => {
 	)
 	return new Set(
 		(result.tree ?? [])
-			.flatMap((row) => (
-				row.path?.startsWith('_data/icons/') && row.path.endsWith('.json') ?
-					[row.path.slice('_data/icons/'.length, -'.json'.length)]
+			.flatMap((row) => {
+				const slug = row.path?.startsWith('_data/icons/') && row.path.endsWith('.json') ?
+					row.path.slice('_data/icons/'.length, -'.json'.length)
 				:
-					[]
-			))
+					undefined
+				return slug == null || slug.length === 0 ? [] : [slug]
+			})
 	)
 }
 

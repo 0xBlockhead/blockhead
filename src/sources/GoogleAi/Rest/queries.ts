@@ -41,6 +41,6 @@ export const retrieveModel = ({
 	modelName: string
 	credential: string
 }) => requestGoogleAiJson({
-	path: `/v1beta/${modelName}`,
+	path: `/v1beta/${modelName.split('/').map(encodeURIComponent).join('/')}`,
 	credential,
 })
