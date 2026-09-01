@@ -19,10 +19,17 @@ const request = async <_Method extends keyof KaspaNodeWrpcMethodResult>(
 		const close = () => socket.close()
 		socket.addEventListener('open', () => socket.send(JSON.stringify({ id, method, params })))
 		socket.addEventListener('message', (event) => {
-			const response = JSON.parse(String(event.data)) as {
+			let response: {
 				id?: string
 				result?: KaspaNodeWrpcMethodResult[_Method]
 				error?: { message?: string }
+			}
+			try {
+				response = JSON.parse(String(event.data))
+			} catch {
+				close()
+				reject(new Error(`KaspaNode_Wrpc: ${method} returned malformed JSON`))
+				return
 			}
 			if (response.id !== id)
 				return
@@ -34,7 +41,10 @@ const request = async <_Method extends keyof KaspaNodeWrpcMethodResult>(
 			else
 				resolve(response.result)
 		})
-		socket.addEventListener('error', () => reject(new Error(`KaspaNode_Wrpc: ${method} transport failed`)))
+		socket.addEventListener('error', () => {
+			close()
+			reject(new Error(`KaspaNode_Wrpc: ${method} transport failed`))
+		})
 	})
 }
 
