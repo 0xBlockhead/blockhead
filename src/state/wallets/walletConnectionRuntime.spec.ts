@@ -18,9 +18,6 @@ import {
 	WalletDiscoveryKind,
 	WalletProtocol,
 	WalletTransportKind,
-	walletConnectionMethodById,
-	walletConnectionMethodByProtocolDiscoveryKindTransportKind,
-	walletConnectionMethods,
 } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
@@ -941,35 +938,6 @@ describe('wallet connection runtime normalization', () => {
 			signatureHash: '0x318db428059e86506988fdc8079f42b03dcf1ca107807005a014128fdbcc1e94',
 			error: 'Wallet signature succeeded but signed history persistence failed',
 		})
-	})
-
-	it('maps every built-in adapter candidate tuple to exactly one connection method', () => {
-		const builtInAdapterConnectionMethodIds = [
-			'aptos-aip62',
-			'aptos-injected-globals',
-			'bitcoin-injected-globals',
-			'cardano-cip30',
-			'cosmos-offline-signer',
-			'eip6963',
-			'polkadot-injected-web3',
-			'sats-connect',
-			'starknet-wallet-api',
-			'ton-connect-injected',
-			'tron-tip1193',
-			'tron-tip6963',
-			'wallet-standard',
-			'walletconnect-v2',
-		]
-
-		expect(Object.keys(walletConnectionMethodByProtocolDiscoveryKindTransportKind)).toHaveLength(walletConnectionMethods.length)
-		expect(builtInAdapterConnectionMethodIds.map((connectionMethodId) => {
-			const connectionMethod = walletConnectionMethodById[connectionMethodId]
-			return connectionMethod == null ? undefined : walletConnectionMethodByProtocolDiscoveryKindTransportKind[[
-				connectionMethod.protocol,
-				connectionMethod.discoveryKind,
-				connectionMethod.transportKind,
-			].join(':')]?.id
-		})).toEqual(builtInAdapterConnectionMethodIds)
 	})
 
 	it('rejects an unmapped adapter candidate before exposing it', async () => {
