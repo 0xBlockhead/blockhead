@@ -66,8 +66,26 @@ export const sourceFetch = async (
 		waiters: [],
 	}
 	sourceFetchQueueByEndpoint.set(queueKey, queue)
-	if (queue.activeCount >= sourceFetchConcurrency)
-		await new Promise<void>((resolve) => queue.waiters.push(resolve))
+	if (queue.activeCount >= sourceFetchConcurrency) {
+		const signal = init?.signal
+		if (signal?.aborted)
+			throw signal.reason
+
+		await new Promise<void>((resolve, reject) => {
+			const resume = () => {
+				signal?.removeEventListener('abort', abort)
+				resolve()
+			}
+			const abort = () => {
+				const index = queue.waiters.indexOf(resume)
+				if (index >= 0)
+					queue.waiters.splice(index, 1)
+				reject(signal?.reason)
+			}
+			signal?.addEventListener('abort', abort, { once: true })
+			queue.waiters.push(resume)
+		})
+	}
 
 	queue.activeCount++
 	try {
