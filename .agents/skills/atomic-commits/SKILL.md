@@ -16,4 +16,6 @@ Do not commit without explicit user authorization. Preserve every existing worki
 7. After every commit, verify its file list and confirm unrelated staged and unstaged state is unchanged. If authorization is declined, unstage only the paths or hunks added by this workflow and leave all content intact.
 8. If checks expose a small related issue, fix it in the same group. If the worktree is broadly inconsistent, stop without trying to reconstruct or roll back the user's state.
 
+For replay or local history repair, preserve an exact recovery ref before changing ancestry and record old-to-new mappings with splits, altered hunks, exclusions, and patch-equivalence limits. Do not call a combined cohort independently qualified: each revertible outcome needs its own current-base diff and acceptance evidence.
+
 Never use `git reset --hard`, `git checkout --`, `git restore` on worktree content, or a revert to separate or repair changes in a dirty worktree.

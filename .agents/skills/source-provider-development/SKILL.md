@@ -23,4 +23,6 @@ For a new provider or binding, read [provider-onboarding.md](references/provider
 
 Use official provider documentation and machine-readable schemas for current endpoint or authentication facts. Do not infer provider changes from third-party examples.
 
+For generated application or security policy, derive values from the compiled source/binding authority and verify the runtime actually consumes every declared field. Reject dead declarations and hand-maintained endpoint mirrors; keep platform-only synchronization outside a shared policy packet unless that platform is the requested owner.
+
 Run the smallest provider-specific generation or check first, then `pnpm run check:sources` when the change is ready for broad verification.
