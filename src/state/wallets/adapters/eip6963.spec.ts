@@ -89,6 +89,7 @@ const providerDetail = (
 
 describe('EIP-6963 discovery identity', () => {
 	afterEach(() => {
+		vi.useRealTimers()
 		vi.unstubAllGlobals()
 	})
 
@@ -159,6 +160,20 @@ describe('EIP-6963 discovery identity', () => {
 		)
 
 		stop()
+	})
+
+	it('cancels legacy injected-provider polling when discovery stops', () => {
+		vi.useFakeTimers()
+		const { candidates, stop } = startDiscovery()
+		expect(candidates).toHaveBeenCalledOnce()
+
+		stop()
+		window.ethereum = {
+			request: vi.fn(async () => []),
+		}
+		vi.advanceTimersByTime(200)
+
+		expect(candidates).toHaveBeenCalledOnce()
 	})
 })
 
