@@ -5,10 +5,6 @@ import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
 
 import {
-	buildSchema,
-	introspectionFromSchema,
-} from 'graphql'
-import {
 	checkFreshnessModule,
 	downloadManifestSchemaText,
 	normalizeGraphqlSchemaText,
@@ -33,41 +29,29 @@ const manifestAndSchema = async (sourceModule) => {
 	const { schemaSource: manifest } = await import(pathToFileURL(manifestFile).href)
 	const schemaFile = resolve(dirname(manifestFile), manifest.schemaFile)
 	return {
-		manifest,
 		schemaFile,
 		schemaText: await readFile(schemaFile, 'utf8'),
 	}
 }
 
-const upstreamResponse = (
-	manifest,
-	schemaText
-) => (
-	new URL(manifest.schemaUrl).pathname.replace(/\/$/, '').endsWith('/graphql') ?
-		new Response(JSON.stringify({
-			data: introspectionFromSchema(buildSchema(schemaText)),
-		}))
-	:
-		new Response(schemaText)
-)
-
 test('checks every typed manifest freshness without writing schemas', async () => {
 	for (const sourceModule of typedModules) {
 		const {
-			manifest,
 			schemaFile,
 			schemaText,
 		} = await manifestAndSchema(sourceModule)
 		const before = await stat(schemaFile, { bigint: true })
+		const probeError = new Error(`fetch probe ${sourceModule}`)
 		let fetchCount = 0
 		const fetchSchema = async () => {
 			fetchCount += 1
-			return upstreamResponse(manifest, schemaText)
+			throw probeError
 		}
 
-		await checkFreshnessModule(sourceModule, fetchSchema).catch((error) => {
-			assert.match(error.message, /GraphQL schema drifts from official/)
-		})
+		await assert.rejects(
+			checkFreshnessModule(sourceModule, fetchSchema),
+			(error) => error === probeError
+		)
 
 		assert.equal(fetchCount, 1)
 		assert.equal(await readFile(schemaFile, 'utf8'), schemaText)

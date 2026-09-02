@@ -4,6 +4,7 @@ import {
 	mkdtemp,
 	readFile,
 	rm,
+	stat,
 	writeFile,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -22,6 +23,8 @@ test('freshness recursively compares local refs without writing checked-in schem
 		await mkdir(join(root, 'components'))
 		await writeFile(schemaFile, rootText)
 		await writeFile(refFile, refText)
+		const schemaMtime = (await stat(schemaFile, { bigint: true })).mtimeNs
+		const refMtime = (await stat(refFile, { bigint: true })).mtimeNs
 		const remote = new Map([
 			['https://schemas.example/openapi.yaml', rootText],
 			['https://schemas.example/components/model.yaml', refText],
@@ -39,6 +42,8 @@ test('freshness recursively compares local refs without writing checked-in schem
 		})
 		assert.equal(await readFile(schemaFile, 'utf8'), rootText)
 		assert.equal(await readFile(refFile, 'utf8'), refText)
+		assert.equal((await stat(schemaFile, { bigint: true })).mtimeNs, schemaMtime)
+		assert.equal((await stat(refFile, { bigint: true })).mtimeNs, refMtime)
 
 		remote.set('https://schemas.example/components/model.yaml', 'Model:\n  type: string\n')
 		await assert.rejects(
@@ -51,6 +56,7 @@ test('freshness recursively compares local refs without writing checked-in schem
 			/drifted from checked-in .*model\.yaml/
 		)
 		assert.equal(await readFile(refFile, 'utf8'), refText)
+		assert.equal((await stat(refFile, { bigint: true })).mtimeNs, refMtime)
 
 		remote.delete('https://schemas.example/components/model.yaml')
 		await assert.rejects(

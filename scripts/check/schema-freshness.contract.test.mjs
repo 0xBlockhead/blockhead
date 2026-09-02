@@ -12,9 +12,6 @@ test('schema freshness compares exact upstream text without writing checked-in s
 	const schemaFile = join(fixtureDir, 'schema.json')
 	const checkedInSchema = '{"version":"checked-in"}\n'
 	const originalFetch = globalThis.fetch
-	const originalLog = console.log
-	const logs = []
-	console.log = (message) => logs.push(String(message))
 
 	const discovery = {
 		manifest: {
@@ -78,25 +75,21 @@ test('schema freshness compares exact upstream text without writing checked-in s
 			fixtureDir,
 			'EvmExecutionJsonRpc/schema-source.ts'
 		)
-		await checkOpenRpcFreshness({
-			manifest: {
-				schemaUrl: 'https://github.com/ethereum/execution-apis',
-				schemaDirectory: './src',
-			},
-			manifestFile: schemaDirectoryManifest,
-			schemaFile: undefined,
-			typesFile: undefined,
-		})
-		assert.equal(fetchCalled, false)
-		assert.equal(
-			logs.at(-1)?.endsWith(
-				'EvmExecutionJsonRpc/schema-source.ts freshness: schemaDirectory manifests do not declare one comparable schemaFile'
-			),
-			true
+		await assert.rejects(
+			checkOpenRpcFreshness({
+				manifest: {
+					schemaUrl: 'https://github.com/ethereum/execution-apis',
+					schemaDirectory: './src',
+				},
+				manifestFile: schemaDirectoryManifest,
+				schemaFile: undefined,
+				typesFile: undefined,
+			}),
+			/cannot check schemaDirectory manifest freshness without one comparable schemaFile/
 		)
+		assert.equal(fetchCalled, false)
 	} finally {
 		globalThis.fetch = originalFetch
-		console.log = originalLog
 		await rm(fixtureDir, { recursive: true, force: true })
 	}
 })

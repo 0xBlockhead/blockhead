@@ -305,10 +305,8 @@ const checkTypes = async (loaded: LoadedOpenRpcSchemaSource) => {
 }
 
 export const checkOpenRpcFreshness = async (loaded: LoadedOpenRpcSchemaSource) => {
-	if (!isGeneratable(loaded)) {
-		console.log(`Skipping ${relative(sourcesDir, loaded.manifestFile)} freshness: schemaDirectory manifests do not declare one comparable schemaFile`)
-		return
-	}
+	if (!isGeneratable(loaded))
+		throw new Error(`${loaded.manifestFile}: cannot check schemaDirectory manifest freshness without one comparable schemaFile`)
 
 	console.log(`Checking upstream freshness for ${relative(sourcesDir, loaded.manifestFile)}`)
 	const response = await fetch(loaded.manifest.schemaUrl)
