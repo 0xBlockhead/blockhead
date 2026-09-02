@@ -56,6 +56,7 @@ const usage = `
 Usage:
   pnpm run sources:openrpc [-- <Filter>]
   pnpm run sources:openrpc -- check [<Filter>]
+  pnpm run sources:openrpc -- freshness [<Filter>]
   pnpm run sources:openrpc -- generate [<Filter>]
   pnpm run sources:openrpc -- dry-run [<Filter>]
   pnpm run sources:openrpc -- help
@@ -303,6 +304,22 @@ const checkTypes = async (loaded: LoadedOpenRpcSchemaSource) => {
 	}
 }
 
+export const checkOpenRpcFreshness = async (loaded: LoadedOpenRpcSchemaSource) => {
+	if (!isGeneratable(loaded)) {
+		console.log(`Skipping ${relative(sourcesDir, loaded.manifestFile)} freshness: schemaDirectory manifests do not declare one comparable schemaFile`)
+		return
+	}
+
+	console.log(`Checking upstream freshness for ${relative(sourcesDir, loaded.manifestFile)}`)
+	const response = await fetch(loaded.manifest.schemaUrl)
+	if (!response.ok)
+		throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
+
+	const upstreamSchema = await response.text()
+	if (upstreamSchema !== await readFile(loaded.schemaFile, 'utf8'))
+		throw new Error(`${loaded.manifestFile}: OpenRPC schema drifts from official ${loaded.manifest.schemaUrl}`)
+}
+
 const syncSchemaSource = async (loaded: LoadedOpenRpcSchemaSource) => {
 	if (!isGeneratable(loaded)) {
 		console.log(`Skipping ${relative(sourcesDir, loaded.manifestFile)}: no schemaFile/typesFile`)
@@ -338,48 +355,59 @@ const dryRunSchemaSource = (loaded: LoadedOpenRpcSchemaSource) => {
 	)
 }
 
-const argv = process.argv.slice(2).filter((arg) => arg !== '--')
-const [
-	modeOrFilter,
-	filterAfterMode,
-] = argv
+export const runOpenRpcSources = async (rawArgs = process.argv.slice(2)) => {
+	const argv = rawArgs.filter((arg) => arg !== '--')
+	const [
+		modeOrFilter,
+		filterAfterMode,
+	] = argv
 
-if (modeOrFilter === 'help' || modeOrFilter === '--help' || modeOrFilter === '-h') {
-	console.log(usage)
-	process.exit(0)
+	if (modeOrFilter === 'help' || modeOrFilter === '--help' || modeOrFilter === '-h') {
+		console.log(usage)
+		return
+	}
+
+	const mode = (
+		modeOrFilter === 'check'
+		|| modeOrFilter === 'freshness'
+		|| modeOrFilter === 'generate'
+		|| modeOrFilter === 'dry-run' ?
+			modeOrFilter
+		:
+			'sync'
+	)
+	const filter = (
+		mode === 'sync' ?
+			modeOrFilter
+		:
+			filterAfterMode
+	)
+
+	for (const manifestFile of await discoverSchemaSources(filter)) {
+		const loaded = await loadSchemaSource(manifestFile)
+		if (mode === 'dry-run')
+			dryRunSchemaSource(loaded)
+		else if (mode === 'check')
+			await checkTypes(loaded)
+		else if (mode === 'freshness')
+			await checkOpenRpcFreshness(loaded)
+		else if (mode === 'generate') {
+			if (!isGeneratable(loaded)) {
+				console.log(`Skipping ${relative(sourcesDir, manifestFile)}: no schemaFile/typesFile`)
+				continue
+			}
+			console.log(`Generating ${relative(sourcesDir, manifestFile)}`)
+			await generateTypes({
+				schemaFile: loaded.schemaFile,
+				typesFile: loaded.typesFile,
+			})
+		} else
+			await syncSchemaSource(loaded)
+	}
 }
 
-const mode = (
-	modeOrFilter === 'check'
-	|| modeOrFilter === 'generate'
-	|| modeOrFilter === 'dry-run' ?
-		modeOrFilter
-	:
-		'sync'
+if (
+	process.argv[1] != null
+	&& import.meta.url === pathToFileURL(resolve(process.argv[1])).href
 )
-const filter = (
-	mode === 'sync' ?
-		modeOrFilter
-	:
-		filterAfterMode
-)
-
-for (const manifestFile of await discoverSchemaSources(filter)) {
-	const loaded = await loadSchemaSource(manifestFile)
-	if (mode === 'dry-run')
-		dryRunSchemaSource(loaded)
-	else if (mode === 'check')
-		await checkTypes(loaded)
-	else if (mode === 'generate') {
-		if (!isGeneratable(loaded)) {
-			console.log(`Skipping ${relative(sourcesDir, manifestFile)}: no schemaFile/typesFile`)
-			continue
-		}
-		console.log(`Generating ${relative(sourcesDir, manifestFile)}`)
-		await generateTypes({
-			schemaFile: loaded.schemaFile,
-			typesFile: loaded.typesFile,
-		})
-	} else
-		await syncSchemaSource(loaded)
-}
+	await runOpenRpcSources()

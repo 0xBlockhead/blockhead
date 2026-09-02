@@ -20,7 +20,7 @@ import {
  * 3. Run `pnpm run sources:graphql` to sync all, or `-- <SourceModule>` to sync one
  * 4. Run `check` for deterministic checked-in generation and `freshness` for upstream drift
  */
-type GraphqlSchemaSource = {
+export type GraphqlSchemaSource = {
 	schemaUrl: string
 	schemaFile: string
 	outputFile?: string
@@ -52,11 +52,11 @@ const discoverModules = async (filter?: string): Promise<string[]> => {
 	return modules
 }
 
-const normalizeSchemaText = (schemaText: string) => (
+export const normalizeSchemaText = (schemaText: string) => (
 	`${schemaText.replace(/[\t ]+$/gm, '').trimEnd()}\n`
 )
 
-const normalizeGraphqlSchemaText = (schemaText: string) => {
+export const normalizeGraphqlSchemaText = (schemaText: string) => {
 	const normalizedSchemaText = normalizeSchemaText(schemaText)
 	const missingDeclarations = theGraphScalarDeclarations.filter(
 		(declaration) => !normalizedSchemaText.includes(declaration)
@@ -74,10 +74,13 @@ const readGeneratedOutput = async (outputFile: string) => {
 	return output.endsWith('\n') ? output : `${output}\n`
 }
 
-const downloadSchemaText = async (schemaUrl: string) => {
+const downloadSchemaText = async (
+	schemaUrl: string,
+	fetchSchema: typeof fetch = fetch
+) => {
 	const schemaUrlPath = new URL(schemaUrl).pathname.replace(/\/$/, '')
 	if (schemaUrlPath.endsWith('/graphql')) {
-		const response = await fetch(schemaUrl, {
+		const response = await fetchSchema(schemaUrl, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -108,17 +111,20 @@ const downloadSchemaText = async (schemaUrl: string) => {
 		return normalizeSchemaText(printSchema(buildClientSchema(data)))
 	}
 
-	const response = await fetch(schemaUrl)
+	const response = await fetchSchema(schemaUrl)
 	if (!response.ok) {
 		throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
 	}
 	return normalizeSchemaText(await response.text())
 }
 
-const downloadSchemaSnapshotText = async (schemaUrl: string) => {
+const downloadSchemaSnapshotText = async (
+	schemaUrl: string,
+	fetchSchema: typeof fetch = fetch
+) => {
 	const schemaUrlPath = new URL(schemaUrl).pathname.replace(/\/$/, '')
 	if (schemaUrlPath.endsWith('/graphql')) {
-		const response = await fetch(schemaUrl, {
+		const response = await fetchSchema(schemaUrl, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -133,8 +139,21 @@ const downloadSchemaSnapshotText = async (schemaUrl: string) => {
 		return `${JSON.stringify(await response.json(), null, '\t')}\n`
 	}
 
-	return normalizeGraphqlSchemaText(await downloadSchemaText(schemaUrl))
+	return normalizeGraphqlSchemaText(await downloadSchemaText(schemaUrl, fetchSchema))
 }
+
+export const downloadManifestSchemaText = async (
+	manifest: GraphqlSchemaSource,
+	fetchSchema: typeof fetch = fetch
+) => (
+	manifest.outputFile == null ?
+		await downloadSchemaSnapshotText(manifest.schemaUrl, fetchSchema)
+	:
+		manifest.verifySchemaFromUrl === true ?
+			await downloadSchemaText(manifest.schemaUrl, fetchSchema)
+		:
+			normalizeGraphqlSchemaText(await downloadSchemaText(manifest.schemaUrl, fetchSchema))
+)
 
 const syncModule = async (sourceModule: string) => {
 	const manifestFile = resolve(sourcesDir, sourceModule, 'schema-source.ts')
@@ -145,7 +164,7 @@ const syncModule = async (sourceModule: string) => {
 	const schemaFile = resolve(dirname(manifestFile), manifest.schemaFile)
 	if (manifest.outputFile == null) {
 		await mkdir(dirname(schemaFile), { recursive: true })
-		await writeFile(schemaFile, await downloadSchemaSnapshotText(manifest.schemaUrl))
+		await writeFile(schemaFile, await downloadManifestSchemaText(manifest))
 		console.log(`Downloaded ${sourceModule} schema snapshot`)
 		return
 	}
@@ -157,10 +176,7 @@ const syncModule = async (sourceModule: string) => {
 	await mkdir(dirname(schemaFile), { recursive: true })
 	await writeFile(
 		schemaFile,
-		manifest.verifySchemaFromUrl === true ?
-			await downloadSchemaText(manifest.schemaUrl)
-		:
-			normalizeGraphqlSchemaText(await downloadSchemaText(manifest.schemaUrl))
+		await downloadManifestSchemaText(manifest)
 	)
 	console.log(`Downloaded ${sourceModule} schema`)
 
@@ -268,37 +284,40 @@ const checkModule = async (sourceModule: string) => {
 	}
 }
 
-const checkFreshnessModule = async (sourceModule: string) => {
+export const checkFreshnessModule = async (
+	sourceModule: string,
+	fetchSchema: typeof fetch = fetch
+) => {
 	const manifestFile = resolve(sourcesDir, sourceModule, 'schema-source.ts')
 	const mod = await import(pathToFileURL(manifestFile).href)
 	const manifest = mod.schemaSource as GraphqlSchemaSource | undefined
 	if (manifest == null) throw new Error(`Missing \`schemaSource\` export in ${manifestFile}`)
-	if (manifest.outputFile != null && manifest.verifySchemaFromUrl !== true)
-		return
-
 	console.log(`Checking upstream freshness for ${sourceModule}`)
 	const schemaFile = resolve(dirname(manifestFile), manifest.schemaFile)
-	const upstreamSchema = (
-		manifest.outputFile == null ?
-			await downloadSchemaSnapshotText(manifest.schemaUrl)
-		:
-			await downloadSchemaText(manifest.schemaUrl)
-	)
+	const upstreamSchema = await downloadManifestSchemaText(manifest, fetchSchema)
 	if (upstreamSchema !== await readFile(schemaFile, 'utf8'))
 		throw new Error(`${sourceModule}: GraphQL schema drifts from official ${manifest.schemaUrl}`)
 }
 
-const [
-	modeOrFilter,
-	filterAfterMode,
-] = process.argv.slice(2).filter((arg) => arg !== '--')
-const mode = modeOrFilter === 'check' || modeOrFilter === 'freshness' ? modeOrFilter : 'sync'
-const modules = await discoverModules(mode === 'sync' ? modeOrFilter : filterAfterMode)
-for (const sourceModule of modules) {
-	if (mode === 'check')
-		await checkModule(sourceModule)
-	else if (mode === 'freshness')
-		await checkFreshnessModule(sourceModule)
-	else
-		await syncModule(sourceModule)
+export const runGraphqlSources = async (args: string[]) => {
+	const [
+		modeOrFilter,
+		filterAfterMode,
+	] = args.filter((arg) => arg !== '--')
+	const mode = modeOrFilter === 'check' || modeOrFilter === 'freshness' ? modeOrFilter : 'sync'
+	const modules = await discoverModules(mode === 'sync' ? modeOrFilter : filterAfterMode)
+	for (const sourceModule of modules) {
+		if (mode === 'check')
+			await checkModule(sourceModule)
+		else if (mode === 'freshness')
+			await checkFreshnessModule(sourceModule)
+		else
+			await syncModule(sourceModule)
+	}
 }
+
+if (
+	process.argv[1] != null
+	&& import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+)
+	await runGraphqlSources(process.argv.slice(2))

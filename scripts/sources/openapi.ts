@@ -1,6 +1,6 @@
 import { glob, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { dirname, join, normalize, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import openapiTS, { astToString } from 'openapi-typescript'
@@ -160,67 +160,52 @@ const parseSchema = async (
 	return patchLifiOpenApiSpec(dedupeOpenApiOperationIds(converted), schemaFile)
 }
 
-const downloadSchema = async ({
-	manifest,
-	schemaFile,
-}: {
-	manifest: OpenApiSchemaSource
-	schemaFile: string
-}) => {
-	const response = await fetch(manifest.schemaUrl)
-
-	if (!response.ok) {
-		throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
-	}
-
-	await mkdir(dirname(schemaFile), { recursive: true })
-	await writeFile(
-		schemaFile,
-		await response.text()
-	)
-
-	console.log(`Downloaded schema to ${schemaFile}`)
-}
-
 const localRefPattern = /\$ref:\s*['"]?((?:\.{1,2}\/)?(?!\/)[^'"\s#:]+)(?:#[^'"\s]*)?['"]?|"\$ref"\s*:\s*"((?:\.{1,2}\/)?(?!\/)[^"#:]+)(?:#[^"]*)?"/g
 
-const syncLocalOpenApiRefs = async ({
-	manifest,
+export const transferOpenApiSchemaTree = async ({
+	schemaUrl,
 	schemaFile,
+	mode,
+	fetchSchema = fetch,
 }: {
-	manifest: OpenApiSchemaSource
+	schemaUrl: string
 	schemaFile: string
+	mode: 'freshness' | 'sync'
+	fetchSchema?: typeof fetch
 }) => {
-	const pending = [schemaFile]
+	const pending = [{
+		file: schemaFile,
+		url: new URL(schemaUrl),
+	}]
 	const seen = new Set<string>()
-	const schemaRoot = dirname(schemaFile)
-	const schemaUrl = new URL(manifest.schemaUrl)
 
-	for (const currentFile of pending) {
-		if (seen.has(currentFile)) continue
-		seen.add(currentFile)
+	for (const current of pending) {
+		if (seen.has(current.file)) continue
+		seen.add(current.file)
 
-		const currentText = await readFile(currentFile, 'utf8')
-		const currentUrl = new URL(
-			normalize(currentFile.slice(schemaRoot.length + 1)),
-			schemaUrl
-		)
+		const response = await fetchSchema(current.url)
+		if (!response.ok)
+			throw new Error(`Failed to download OpenAPI schema: ${response.status} ${response.statusText} ${current.url}`)
+		const remoteText = await response.text()
 
-		for (const match of currentText.matchAll(localRefPattern)) {
+		if (mode === 'sync') {
+			await mkdir(dirname(current.file), { recursive: true })
+			await writeFile(current.file, remoteText)
+			console.log(`Downloaded schema to ${current.file}`)
+		} else {
+			const checkedInText = await readFile(current.file, 'utf8')
+			if (remoteText !== checkedInText)
+				throw new Error(`Upstream OpenAPI schema drifted from checked-in ${current.file}`)
+		}
+
+		for (const match of remoteText.matchAll(localRefPattern)) {
 			const refPath = match[1] ?? match[2]
-			const refFile = resolve(dirname(currentFile), refPath)
+			const refFile = resolve(dirname(current.file), refPath)
 			if (seen.has(refFile)) continue
-
-			const response = await fetch(new URL(refPath, currentUrl))
-			if (!response.ok)
-				throw new Error(`Failed to download referenced schema: ${response.status} ${response.statusText} ${refPath}`)
-
-			await mkdir(dirname(refFile), { recursive: true })
-			await writeFile(
-				refFile,
-				await response.text()
-			)
-			pending.push(refFile)
+			pending.push({
+				file: refFile,
+				url: new URL(refPath, current.url),
+			})
 		}
 	}
 }
@@ -283,13 +268,10 @@ const checkTypes = async (manifestFile: string) => {
 const syncSchemaSource = async (manifestFile: string) => {
 	const { manifest, schemaFile, typesFile } = await loadSchemaSource(manifestFile)
 	console.log(`Syncing ${manifestFile.slice(sourcesDir.length + 1)}`)
-	await downloadSchema({
-		manifest,
+	await transferOpenApiSchemaTree({
+		schemaUrl: manifest.schemaUrl,
 		schemaFile,
-	})
-	await syncLocalOpenApiRefs({
-		manifest,
-		schemaFile,
+		mode: 'sync',
 	})
 	await generateTypes({
 		schemaFile,
@@ -297,14 +279,32 @@ const syncSchemaSource = async (manifestFile: string) => {
 	})
 }
 
-const [
-	modeOrFilter,
-	filterAfterMode,
-] = process.argv.slice(2).filter((arg) => arg !== '--')
-const check = modeOrFilter === 'check'
-for (const manifestFile of await discoverSchemaSources(check ? filterAfterMode : modeOrFilter)) {
-	if (check)
-		await checkTypes(manifestFile)
-	else
-		await syncSchemaSource(manifestFile)
+const checkSchemaFreshness = async (manifestFile: string) => {
+	const { manifest, schemaFile } = await loadSchemaSource(manifestFile)
+	console.log(`Checking upstream freshness ${manifestFile.slice(sourcesDir.length + 1)}`)
+	await transferOpenApiSchemaTree({
+		schemaUrl: manifest.schemaUrl,
+		schemaFile,
+		mode: 'freshness',
+	})
 }
+
+const main = async () => {
+	const [
+		modeOrFilter,
+		filterAfterMode,
+	] = process.argv.slice(2).filter((arg) => arg !== '--')
+	const mode = modeOrFilter === 'check' || modeOrFilter === 'freshness' ? modeOrFilter : 'sync'
+	const filter = mode === 'sync' ? modeOrFilter : filterAfterMode
+	for (const manifestFile of await discoverSchemaSources(filter)) {
+		if (mode === 'check')
+			await checkTypes(manifestFile)
+		else if (mode === 'freshness')
+			await checkSchemaFreshness(manifestFile)
+		else
+			await syncSchemaSource(manifestFile)
+	}
+}
+
+if (process.argv[1] != null && resolve(process.argv[1]) === fileURLToPath(import.meta.url))
+	await main()

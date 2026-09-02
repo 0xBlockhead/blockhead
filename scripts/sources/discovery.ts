@@ -53,6 +53,7 @@ const usage = `
 Usage:
   pnpm run sources:discovery [-- <Provider>]
   pnpm run sources:discovery -- check [<Provider>]
+  pnpm run sources:discovery -- freshness [<Provider>]
   pnpm run sources:discovery -- generate [<Provider>]
   pnpm run sources:discovery -- dry-run [<Provider>]
   pnpm run sources:discovery -- help
@@ -213,6 +214,17 @@ const checkTypes = async (loaded: LoadedDiscoverySchemaSource) => {
 	}
 }
 
+export const checkDiscoveryFreshness = async (loaded: LoadedDiscoverySchemaSource) => {
+	console.log(`Checking upstream freshness for ${relative(sourcesDir, loaded.manifestFile)}`)
+	const response = await fetch(loaded.manifest.schemaUrl)
+	if (!response.ok)
+		throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
+
+	const upstreamSchema = await response.text()
+	if (upstreamSchema !== await readFile(loaded.schemaFile, 'utf8'))
+		throw new Error(`${loaded.manifestFile}: Discovery schema drifts from official ${loaded.manifest.schemaUrl}`)
+}
+
 const syncSchemaSource = async (loaded: LoadedDiscoverySchemaSource) => {
 	console.log(`Syncing ${relative(sourcesDir, loaded.manifestFile)}`)
 	await downloadSchema({
@@ -231,44 +243,55 @@ const dryRunSchemaSource = (loaded: LoadedDiscoverySchemaSource) => {
 	)
 }
 
-const argv = process.argv.slice(2).filter((arg) => arg !== '--')
-const [
-	modeOrFilter,
-	filterAfterMode,
-] = argv
+export const runDiscoverySources = async (rawArgs = process.argv.slice(2)) => {
+	const argv = rawArgs.filter((arg) => arg !== '--')
+	const [
+		modeOrFilter,
+		filterAfterMode,
+	] = argv
 
-if (modeOrFilter === 'help' || modeOrFilter === '--help' || modeOrFilter === '-h') {
-	console.log(usage)
-	process.exit(0)
+	if (modeOrFilter === 'help' || modeOrFilter === '--help' || modeOrFilter === '-h') {
+		console.log(usage)
+		return
+	}
+
+	const mode = (
+		modeOrFilter === 'check'
+		|| modeOrFilter === 'freshness'
+		|| modeOrFilter === 'generate'
+		|| modeOrFilter === 'dry-run' ?
+			modeOrFilter
+		:
+			'sync'
+	)
+	const filter = (
+		mode === 'sync' ?
+			modeOrFilter
+		:
+			filterAfterMode
+	)
+
+	for (const manifestFile of await discoverSchemaSources(filter)) {
+		const loaded = await loadSchemaSource(manifestFile)
+		if (mode === 'dry-run')
+			dryRunSchemaSource(loaded)
+		else if (mode === 'check')
+			await checkTypes(loaded)
+		else if (mode === 'freshness')
+			await checkDiscoveryFreshness(loaded)
+		else if (mode === 'generate') {
+			console.log(`Generating ${relative(sourcesDir, loaded.manifestFile)}`)
+			await generateTypes({
+				schemaFile: loaded.schemaFile,
+				typesFile: loaded.typesFile,
+			})
+		} else
+			await syncSchemaSource(loaded)
+	}
 }
 
-const mode = (
-	modeOrFilter === 'check'
-	|| modeOrFilter === 'generate'
-	|| modeOrFilter === 'dry-run' ?
-		modeOrFilter
-	:
-		'sync'
+if (
+	process.argv[1] != null
+	&& import.meta.url === pathToFileURL(resolve(process.argv[1])).href
 )
-const filter = (
-	mode === 'sync' ?
-		modeOrFilter
-	:
-		filterAfterMode
-)
-
-for (const manifestFile of await discoverSchemaSources(filter)) {
-	const loaded = await loadSchemaSource(manifestFile)
-	if (mode === 'dry-run')
-		dryRunSchemaSource(loaded)
-	else if (mode === 'check')
-		await checkTypes(loaded)
-	else if (mode === 'generate') {
-		console.log(`Generating ${relative(sourcesDir, loaded.manifestFile)}`)
-		await generateTypes({
-			schemaFile: loaded.schemaFile,
-			typesFile: loaded.typesFile,
-		})
-	} else
-		await syncSchemaSource(loaded)
-}
+	await runDiscoverySources()
