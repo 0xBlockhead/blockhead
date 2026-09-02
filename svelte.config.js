@@ -1,6 +1,20 @@
 import adapterAuto from '@sveltejs/adapter-auto'
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
+import { readFileSync } from 'node:fs'
 import { relative, sep } from 'node:path'
+
+const productionSecurityHeaders = JSON.parse(readFileSync(
+	new URL('./scripts/app/production-security-headers.json', import.meta.url),
+	'utf8',
+))
+const productionCspDirectives = Object.fromEntries(
+	productionSecurityHeaders['Content-Security-Policy']
+		.split('; ')
+		.map((entry) => {
+			const [directive, ...sources] = entry.split(' ')
+			return [directive, sources.map((source) => source.replace(/^'|'$/g, ''))]
+		}),
+)
 
 /** @type {import('@sveltejs/kit').Config} */
 export default {
@@ -31,6 +45,11 @@ export default {
 
 	kit: {
 		adapter: adapterAuto(),
+
+		csp: {
+			mode: 'auto',
+			directives: productionCspDirectives,
+		},
 
 		alias: {
 			'$': './src',

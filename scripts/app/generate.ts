@@ -5379,6 +5379,59 @@ const httpOriginFromLocator = (locator: string) => (
 		undefined
 )
 
+export const productionHttpOrigins = (
+	bindings: readonly Pick<SourceBinding, 'credentials' | 'delivery' | 'endpoints'>[]
+) => unique(bindings.flatMap((binding) => {
+	if (
+		(
+			binding.delivery !== SourceDelivery.BrowserDirect
+			&& binding.delivery !== SourceDelivery.HttpProxy
+		)
+		|| binding.credentials.length > 0
+	)
+		return []
+
+	return binding.endpoints.flatMap((endpoint) => {
+		if (
+			endpoint.endpointKind !== SourceEndpointKind.HttpUrl
+			|| endpoint.locator.includes('{')
+			|| !URL.canParse(endpoint.locator)
+		)
+			return []
+
+		const url = new URL(endpoint.locator)
+		return (
+			(url.protocol !== 'http:' && url.protocol !== 'https:')
+			|| url.username !== ''
+			|| url.password !== ''
+			|| url.hostname.includes('*')
+		) ? [] : [url.origin]
+	})
+})).toSorted()
+
+const productionContentSecurityPolicy = (bindings: readonly SourceBindingEntry[]) => [
+	"default-src 'self'",
+	"base-uri 'none'",
+	[
+		"connect-src 'self'",
+		'http://127.0.0.1:*',
+		'http://localhost:*',
+		'ws://127.0.0.1:*',
+		'ws://localhost:*',
+		...productionHttpOrigins(bindings.map(({ binding }) => binding)),
+	].join(' '),
+	"font-src 'self' data:",
+	"form-action 'none'",
+	"frame-ancestors 'none'",
+	"frame-src 'none'",
+	"img-src 'self' blob: data: http: https:",
+	"media-src 'self' blob: data: http: https:",
+	"object-src 'none'",
+	"script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'",
+	"style-src 'self' 'unsafe-inline'",
+	"worker-src 'self' blob:",
+].join('; ')
+
 // Compilation is the only phase that interprets APP.ts. It validates and indexes
 // domain facts first, then hands a closed set of facts to deterministic emitters.
 export const compileApp = (sourceApp: App): CompiledApp => {
@@ -6288,6 +6341,16 @@ const generateFiles = (compiledApp: CompiledAppFacts): GeneratedFile[] => {
 	]).filter((file) => file != null)
 	const routeFiles = compiledApp.physicalRouteFiles.flatMap((plan) => generateRouteFiles(plan, renderingIndexes))
 	const files = [
+		{
+			path: 'scripts/app/production-security-headers.json',
+			kind: 'text' as const,
+			body: [
+				...JSON.stringify({
+					'Content-Security-Policy': productionContentSecurityPolicy(indexes.sourceBindings),
+				}, null, '\t').split('\n'),
+				'',
+			],
+		},
 		// Schema contracts.
 		...([
 			['EntityFieldCardinality', Object.values(EntityFieldCardinality)],
