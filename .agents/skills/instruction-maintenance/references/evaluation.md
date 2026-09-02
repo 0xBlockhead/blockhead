@@ -33,6 +33,7 @@ For each case, record:
 | Fix stale DOM after a live-query notification | Root, `src`, and `src/collections` | `resource-reactivity`, `svelte-development`, and `playwright-route-testing` | Route architecture unless paths change |
 | Diagnose a browser CORS failure | Root and relevant source or test scope | `playwright-route-testing`, its CORS reference, and `source-provider-development` when transport changes | Entity-view skill |
 | Consolidate duplicated resolver tests while preserving fault detection | Root and relevant resolver scope | `test-methodology` and `reduce` | Playwright and view skills |
+| Establish a new test family, shared fixture, retry policy, runner, or evidence ledger | Root and relevant test scope | `test-methodology` and its adversarial-validation reference; `playwright-route-testing` when browser-specific | Unrelated product-domain skills |
 | Split existing changes into commits | Root | `atomic-commits` | Every code-domain skill unless a check exposes code work |
 | Create or revise repository instructions or a skill | Root | `instruction-maintenance` | Code-domain skills unless the instructions change that domain |
 | Consolidate duplicated repository instructions | Root | `reduce` and `instruction-maintenance` | Every code-domain skill |
@@ -59,6 +60,7 @@ Inspect behavior rather than asking the agent to repeat instructions:
 - An entity-view task does not repeat heading identity in its details list.
 - A CORS task changes transport ownership rather than adding fetch logic to a view.
 - A test consolidation names surviving obligations, removes source and registry mirrors, and keeps distinct empty, failure, lifecycle, and ownership oracles.
+- A newly pioneered test family proves its intended oracle by perturbation where practical; preserves the first no-retry failure; distinguishes acceptance, observation, and capability; challenges relevant order, worker, isolation, timer, persistence, and teardown assumptions with reproducible runner controls; and does not turn product tests into mirrors of test configuration.
 - A resolver-matrix consolidation validates canonical fixture closure by unique typed selector identity, keeps source-specific execution, and reports missing fixtures before network work without synthesizing or weakening selectors.
 - A compiler-check repair keeps authored entrypoints as roots, checks private helpers and generated declarations transitively, and moves cross-provider enrollment assertions to an existing runtime summary instead of importing several full schema-generic modules into one test.
 - A commit task asks for authorization before committing and preserves unrelated changes.

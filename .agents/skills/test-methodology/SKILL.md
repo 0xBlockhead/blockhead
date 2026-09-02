@@ -30,6 +30,8 @@ When route screenshots expose a repeatable failure, promote its predicate or rep
 
 Run the same smallest relevant suite before and after a consolidation when practical, then broaden according to shared behavior. Report surviving obligations, changed declarations and runtime matrix cases, net representation change, and any validation that did not complete.
 
+When pioneering a new test family or changing shared mocks, retries, timers, workers, isolation, or runner ownership, read [references/adversarial-validation.md](references/adversarial-validation.md). Use its probes to distinguish a real product fault from a harness assumption before promoting a new standing check.
+
 ## Diagnostic and scaling oracles
 
 - Give every partition an explicit, source-backed target manifest and verify that manifests are disjoint and their union equals the intended denominator. Loaded dependency counts, directory names, alphabetical labels, and generated shard numbers are not coverage evidence.
