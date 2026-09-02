@@ -306,6 +306,36 @@ describe('HTTP error helpers', () => {
 		}
 	})
 
+	it('stops retry backoff promptly when the caller aborts', async () => {
+		vi.useFakeTimers()
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('rate limited', {
+			status: 429,
+			headers: {
+				'retry-after': '60',
+			},
+		}))
+		vi.stubGlobal('fetch', fetchMock)
+		const controller = new AbortController()
+		try {
+			const request = corsFetch('https://registered.example/data', {
+				origins: [{
+					origin: 'https://registered.example',
+					corsEnabled: true,
+				}],
+				init: {
+					signal: controller.signal,
+				},
+			})
+			await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce())
+			controller.abort()
+			await expect(request).rejects.toBe(controller.signal.reason)
+			expect(fetchMock).toHaveBeenCalledOnce()
+		} finally {
+			vi.useRealTimers()
+			vi.unstubAllGlobals()
+		}
+	})
+
 	it('keeps browser proxy routing stable across retries', async () => {
 		const fetchMock = vi.fn<typeof fetch>()
 			.mockResolvedValueOnce(new Response('rate limited', {

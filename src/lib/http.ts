@@ -21,7 +21,25 @@ const defaultRetry: Required<RetryOptions> = {
 const directFetchTimeoutMs = 10_000
 const httpProxyFetchTimeoutMs = 35_000
 
-const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+const sleep = (
+	ms: number,
+	signal?: AbortSignal | null
+) => new Promise<void>((resolve, reject) => {
+	if (signal?.aborted) {
+		reject(signal.reason)
+		return
+	}
+
+	const timeout = setTimeout(() => {
+		signal?.removeEventListener('abort', abort)
+		resolve()
+	}, ms)
+	const abort = () => {
+		clearTimeout(timeout)
+		reject(signal?.reason)
+	}
+	signal?.addEventListener('abort', abort, { once: true })
+})
 
 const withTimeout = (
 	init: RequestInit | undefined,
@@ -131,7 +149,7 @@ export const corsFetch = async (
 			retryAfterMs(response)
 			?? jitterBackoff(attempt, retry.baseDelayMs, retry.maxDelayMs)
 		)
-		await sleep(delay)
+		await sleep(delay, options.init?.signal)
 	}
 }
 
