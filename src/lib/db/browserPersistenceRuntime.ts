@@ -82,6 +82,7 @@ export class BrowserPersistenceRuntime {
 		arguments: unknown[]
 		deferred: PromiseWithResolvers<unknown>
 		operation: AdapterOperation
+		removeAbortListener?: () => void
 		selection: PersistenceSelection
 		timer: ReturnType<typeof setInterval>
 	}>()
@@ -268,24 +269,49 @@ export class BrowserPersistenceRuntime {
 			return this.#execute(operation, arguments_, selection)
 		const requestId = crypto.randomUUID()
 		const deferred = Promise.withResolvers<unknown>()
+		const requestSignal = operation === 'loadSubset'
+			? (arguments_[1] as Parameters<PersistenceAdapter['loadSubset']>[1]).signal
+			: undefined
+		if (requestSignal?.aborted === true)
+			return Promise.reject(requestSignal.reason)
+		const remoteArguments = operation === 'loadSubset' ? (() => {
+			const [collectionId, options, context] = arguments_ as Parameters<PersistenceAdapter['loadSubset']>
+			const {
+				signal: _signal,
+				subscription: _subscription,
+				...serializableOptions
+			} = options
+			return [collectionId, serializableOptions, context]
+		})() : arguments_
 		const send = () => this.#channel.postMessage({
 			type: 'request',
 			requestId,
 			operation,
-			arguments: arguments_,
+			arguments: remoteArguments,
 			selection,
 		})
 		send()
 		const retry = setInterval(send, this.#requestTimeoutMs)
+		const abort = requestSignal === undefined ? undefined : () => {
+			clearInterval(retry)
+			deferred.reject(requestSignal.reason)
+		}
+		if (abort !== undefined)
+			requestSignal.addEventListener('abort', abort, { once: true })
 		this.#pending.set(requestId, {
 			arguments: arguments_,
 			deferred,
 			operation,
+			removeAbortListener: abort === undefined ? undefined : () => requestSignal.removeEventListener('abort', abort),
 			selection,
 			timer: retry,
 		})
-		return deferred.promise.finally(() => {
+		return deferred.promise.then((result) => {
+			requestSignal?.throwIfAborted()
+			return result
+		}).finally(() => {
 			clearInterval(retry)
+			this.#pending.get(requestId)?.removeAbortListener?.()
 			this.#pending.delete(requestId)
 		})
 	}

@@ -20,6 +20,7 @@ class TestChannel {
 	static channels = new Map<string, Set<TestChannel>>()
 	static droppedResponses = 0
 	static dropNextResponse = false
+	static requestMessages = 0
 	#listeners = new Set<(event: MessageEvent) => void>()
 	#name: string
 
@@ -31,6 +32,8 @@ class TestChannel {
 	}
 
 	postMessage(message: unknown) {
+		if ((message as { type?: string }).type === 'request')
+			TestChannel.requestMessages++
 		if ((message as { type?: string }).type === 'response' && TestChannel.droppedResponses > 0) {
 			TestChannel.droppedResponses--
 			return
@@ -187,7 +190,7 @@ describe('BrowserPersistenceRuntime', () => {
 		await follower.close()
 	})
 
-	test('removes the local subscription object before follower RPC structured clone', async () => {
+	test('removes local subscription and cancellation state before follower RPC structured clone', async () => {
 		const name = crypto.randomUUID()
 		const locks = lockManager()
 		const ownerLoads: object[] = []
@@ -220,8 +223,10 @@ describe('BrowserPersistenceRuntime', () => {
 			getKey: (row: { id: string }) => row.id,
 		}))
 		const subscription = collection.subscribeChanges(() => {})
+		const controller = new AbortController()
 		await follower.persistence.adapter.loadSubset('rows', {
 			limit: 1,
+			signal: controller.signal,
 			subscription,
 		})
 		expect(ownerLoads).toEqual([{ limit: 1 }])
@@ -229,6 +234,93 @@ describe('BrowserPersistenceRuntime', () => {
 		await collection.cleanup()
 		await follower.close()
 		await owner.close()
+	})
+
+	test('rejects an already-aborted follower request without dispatch or retry', async () => {
+		vi.useFakeTimers()
+		const locks = lockManager()
+		locks.hold()
+		const runtime = new BrowserPersistenceRuntime({
+			name: crypto.randomUUID(),
+			channel: new TestChannel('already-aborted'),
+			locks,
+			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
+		})
+		try {
+			await runtime.ready
+			TestChannel.requestMessages = 0
+			const controller = new AbortController()
+			const reason = new Error('request no longer current')
+			controller.abort(reason)
+			await expect(runtime.persistence.adapter.loadSubset('rows', { signal: controller.signal }))
+				.rejects.toBe(reason)
+			await vi.advanceTimersByTimeAsync(2_000)
+			expect(TestChannel.requestMessages).toBe(0)
+		}
+		finally {
+			await runtime.close()
+			expect(vi.getTimerCount()).toBe(0)
+			vi.useRealTimers()
+		}
+	})
+
+	test('stops retries and keeps a late owner response from completing an aborted follower request', async () => {
+		vi.useFakeTimers()
+		const name = crypto.randomUUID()
+		const locks = lockManager()
+		const started = Promise.withResolvers<void>()
+		const finish = Promise.withResolvers<void>()
+		let ownerCompleted = false
+		const owner = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name),
+			locks,
+			openOwner: async () => ({
+				persistence: {
+					adapter: {
+						...persistence([]).adapter,
+						loadSubset: async () => {
+							started.resolve()
+							await finish.promise
+							ownerCompleted = true
+							return []
+						},
+					},
+				},
+				close: () => undefined,
+			}),
+		})
+		const follower = new BrowserPersistenceRuntime({
+			name,
+			channel: new TestChannel(name),
+			locks,
+			openOwner: async () => ({ persistence: persistence([]), close: () => undefined }),
+			requestTimeoutMs: 10,
+		})
+		try {
+			await owner.ready
+			await follower.ready
+			TestChannel.requestMessages = 0
+			const controller = new AbortController()
+			const reason = new Error('subset superseded')
+			const request = follower.persistence.adapter.loadSubset('rows', { signal: controller.signal })
+			await started.promise
+			expect(TestChannel.requestMessages).toBe(1)
+			controller.abort(reason)
+			await expect(request).rejects.toBe(reason)
+			await vi.advanceTimersByTimeAsync(100)
+			expect(TestChannel.requestMessages).toBe(1)
+			finish.resolve()
+			await vi.advanceTimersByTimeAsync(0)
+			expect(ownerCompleted).toBe(true)
+		}
+		finally {
+			finish.resolve()
+			await follower.close()
+			await owner.close()
+			expect(vi.getTimerCount()).toBe(0)
+			vi.useRealTimers()
+		}
 	})
 
 	test('preserves collection mode and schema selection through follower RPC', async () => {
