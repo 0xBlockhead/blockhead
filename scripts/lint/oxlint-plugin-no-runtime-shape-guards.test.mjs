@@ -50,14 +50,16 @@ declare const value: unknown
 void (typeof value)
 void Array.isArray(value)
 void Array['isArray'](value)
+void Array?.isArray(value)
 void Reflect.get(value, 'field')
 void Reflect['get'](value, 'field')
+void Reflect?.get(value, 'field')
 `)
 		const rejected = lintFixture(configPath, rejectedPath)
 		assert.notEqual(rejected.status, 0)
 		assert.equal(
 			(rejected.stdout + rejected.stderr).match(/Runtime shape guard/g)?.length,
-			5
+			7
 		)
 
 		const permittedPath = path.join(fixtureDir, 'permitted.ts')

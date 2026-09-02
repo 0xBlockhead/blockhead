@@ -23,7 +23,6 @@ const isReflectGetCall = (callee) => (
 	callee?.type === 'MemberExpression'
 	&& callee.object?.type === 'Identifier'
 	&& callee.object.name === 'Reflect'
-	&& !callee.optional
 	&& (
 		(
 			callee.property.type === 'Identifier'
@@ -42,7 +41,6 @@ const isArrayIsArrayCall = (callee) => (
 	callee?.type === 'MemberExpression'
 	&& callee.object?.type === 'Identifier'
 	&& callee.object.name === 'Array'
-	&& !callee.optional
 	&& (
 		(
 			callee.property.type === 'Identifier'
