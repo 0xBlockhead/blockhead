@@ -1,4 +1,5 @@
 import {
+	beforeEach,
 	describe,
 	expect,
 	it,
@@ -27,6 +28,11 @@ const chain = {
 }
 
 describe('Chainlist REST queries', () => {
+	beforeEach(() => {
+		firstHttpUrlForBinding.mockClear()
+		sourceFetch.mockReset()
+	})
+
 	it('fetches and validates the chain identity fields', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify([chain])))
 

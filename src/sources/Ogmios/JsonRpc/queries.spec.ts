@@ -1,4 +1,5 @@
 import {
+	beforeEach,
 	describe,
 	expect,
 	it,
@@ -102,6 +103,10 @@ const protocolParameters = {
 } as const
 
 describe('Ogmios JsonRpc tip transport', () => {
+	beforeEach(() => {
+		jsonRpc2.mockReset()
+	})
+
 	it('accepts ledger tip / network tip / block height / epoch / protocol parameters', async () => {
 		jsonRpc2
 			.mockResolvedValueOnce(tipPoint)

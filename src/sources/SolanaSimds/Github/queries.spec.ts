@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/SolanaSimds/bindings.ts'
 import { Source } from '$/sources/Source.ts'
@@ -18,6 +18,11 @@ const {
 const binding = bindings[Source.SolanaSimds_Github][0]
 
 describe('Solana SIMDs GitHub queries', () => {
+	beforeEach(() => {
+		httpRuntime.sourceGetJson.mockReset()
+		httpRuntime.sourceGetText.mockReset()
+	})
+
 	it('uses the registered repository target', async () => {
 		httpRuntime.sourceGetJson.mockResolvedValueOnce([])
 
@@ -47,8 +52,6 @@ describe('Solana SIMDs GitHub queries', () => {
 	})
 
 	it('rejects invalid proposal numbers before requesting the index', async () => {
-		vi.clearAllMocks()
-
 		await expect(getProposalMarkdownText({ number: -1 })).rejects.toThrow(/invalid proposal number/)
 		await expect(getProposalMarkdownText({ number: 1.5 })).rejects.toThrow(/invalid proposal number/)
 		await expect(getProposalMarkdownText({ number: Number.MAX_SAFE_INTEGER + 1 })).rejects.toThrow(/invalid proposal number/)

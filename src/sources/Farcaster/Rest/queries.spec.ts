@@ -27,6 +27,10 @@ const {
 	'$/sources/Farcaster/Rest/queries.ts'
 )
 
+beforeEach(() => {
+	farcasterGet.mockReset()
+})
+
 describe('Farcaster channel request identity', () => {
 	it('loads all channels once and rejects duplicate ids', async () => {
 		farcasterGet.mockResolvedValueOnce({ result: { channels: [] } })
