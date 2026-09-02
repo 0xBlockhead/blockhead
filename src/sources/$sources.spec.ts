@@ -7,6 +7,7 @@ import {
 import {
 	dirname,
 	join,
+	relative,
 	resolve,
 } from 'node:path'
 
@@ -57,12 +58,31 @@ type GraphqlSchemaSource = {
 	patchFile?: string
 }
 
+type OpenRpcSchemaSource = {
+	schemaFile?: string
+	typesFile?: string
+	schemaDirectory?: string
+}
+
+type DiscoverySchemaSource = {
+	schemaFile: string
+	typesFile: string
+}
+
 const openApiSchemaSources = import.meta.glob<{ schemaSource: OpenApiSchemaSource }>([
 	'./*/OpenApi/schema-source.ts',
 	'./*/OpenApi/**/schema-source.ts',
 ], { eager: true })
 const graphqlSchemaSources = import.meta.glob<{ schemaSource: GraphqlSchemaSource }>(
 	'./*/Graphql/**/schema-source.ts',
+	{ eager: true }
+)
+const openRpcSchemaSources = import.meta.glob<{ schemaSource: OpenRpcSchemaSource }>([
+	'./**/OpenRpc/schema-source.ts',
+	'./**/JsonRpc/schema-source.ts',
+], { eager: true })
+const discoverySchemaSources = import.meta.glob<{ schemaSource: DiscoverySchemaSource }>(
+	'./*/Discovery/schema-source.ts',
 	{ eager: true }
 )
 
@@ -542,6 +562,62 @@ describe('source provider registry', () => {
 			expect(coveredOutputFiles.has(resolve(outputFile)), outputFile).toBe(true)
 		}
 			expect(inactiveManifests.every((manifestFile) => !activeManifestFiles.has(manifestFile))).toBe(true)
+	})
+
+	it('enrolls every OpenRPC and Discovery manifest with its checked-in artifacts', () => {
+		const activeManifestFiles = new Set(
+			sourceBindingArtifacts
+				.filter((artifact) => artifact.kind === SourceArtifactKind.GenerationManifest)
+				.map((artifact) => artifact.path)
+		)
+		const artifactPathsByKind = Map.groupBy(
+			sourceBindingArtifacts,
+			({ kind }) => kind
+		)
+		const artifactPaths = (kind: SourceArtifactKind) => new Set(
+			(artifactPathsByKind.get(kind) ?? []).map(({ path }) => path)
+		)
+		const openRpcSpecPaths = artifactPaths(SourceArtifactKind.OpenRpcSpec)
+		const openRpcTypesPaths = artifactPaths(SourceArtifactKind.OpenRpcTypes)
+		const discoveryPaths = artifactPaths(SourceArtifactKind.GoogleDiscovery)
+		const coveredOpenRpcTypes = new Set<string>()
+		const coveredDiscoveryTypes = new Set<string>()
+
+		for (const [relativeManifestPath, { schemaSource }] of Object.entries(openRpcSchemaSources)) {
+			const manifestFile = sourcePathForManifest(relativeManifestPath)
+			expect(activeManifestFiles.has(manifestFile), manifestFile).toBe(true)
+			const schemaPath = schemaSource.schemaFile ?? schemaSource.schemaDirectory
+			expect(schemaPath, manifestFile).toBeDefined()
+			if (schemaPath != null) {
+				const resolvedSchemaPath = relative(process.cwd(), resolve(dirname(manifestFile), schemaPath))
+				expect(openRpcSpecPaths.has(resolvedSchemaPath), resolvedSchemaPath).toBe(true)
+			}
+			if (schemaSource.typesFile != null) {
+				const typesPath = relative(process.cwd(), resolve(dirname(manifestFile), schemaSource.typesFile))
+				expect(openRpcTypesPaths.has(typesPath), typesPath).toBe(true)
+				coveredOpenRpcTypes.add(resolve(typesPath))
+			}
+		}
+
+		for (const typesFile of globSync('src/sources/**/{OpenRpc,JsonRpc}/openrpc.d.ts')) {
+			expect(existsSync(resolve(dirname(typesFile), 'schema-source.ts')), typesFile).toBe(true)
+			expect(coveredOpenRpcTypes.has(resolve(typesFile)), typesFile).toBe(true)
+		}
+
+		for (const [relativeManifestPath, { schemaSource }] of Object.entries(discoverySchemaSources)) {
+			const manifestFile = sourcePathForManifest(relativeManifestPath)
+			expect(activeManifestFiles.has(manifestFile), manifestFile).toBe(true)
+			const schemaPath = relative(process.cwd(), resolve(dirname(manifestFile), schemaSource.schemaFile))
+			expect(discoveryPaths.has(schemaPath), schemaPath).toBe(true)
+			const typesPath = resolve(dirname(manifestFile), schemaSource.typesFile)
+			expect(existsSync(typesPath), typesPath).toBe(true)
+			coveredDiscoveryTypes.add(typesPath)
+		}
+
+		for (const typesFile of globSync('src/sources/*/Discovery/discovery.d.ts')) {
+			expect(existsSync(resolve(dirname(typesFile), 'schema-source.ts')), typesFile).toBe(true)
+			expect(coveredDiscoveryTypes.has(resolve(typesFile)), typesFile).toBe(true)
+		}
 	})
 
 	it('keeps generated precompile data reproducible from the checked-in manifest', () => {
