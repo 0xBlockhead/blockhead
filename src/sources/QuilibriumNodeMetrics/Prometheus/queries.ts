@@ -104,7 +104,7 @@ export const nodeStateObservationFromPrometheusText = (
 		.map((line) => prometheusBuildVersionLine.exec(line.trim())?.groups?.version)
 		.find((version) => version != null)
 
-	return {
+	const observation = {
 		...(
 			engineStateCode != null
 			&& Number.isInteger(engineStateCode)
@@ -163,4 +163,8 @@ export const nodeStateObservationFromPrometheusText = (
 			}
 		),
 	}
+	if (Object.keys(observation).length === 0)
+		throw new Error('QuilibriumNodeMetrics_Prometheus: response contains no recognized node metrics')
+
+	return observation
 }

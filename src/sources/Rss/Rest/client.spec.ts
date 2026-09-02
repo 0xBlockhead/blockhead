@@ -151,6 +151,11 @@ test('withholds credentialed and non-HTTP feed metadata URLs from visible fields
 test('fails closed across request identity, response status, envelope, and item identity', async () => {
 	await expect(rssFetchFeed(
 		hnrssBinding,
+		'https://unknown.example/feed'
+	)).rejects.toThrow('feed URL does not match binding')
+
+	await expect(rssFetchFeed(
+		hnrssBinding,
 		'https://reader:secret@hnrss.org/frontpage'
 	)).rejects.toThrow('feed URL must not contain credentials')
 

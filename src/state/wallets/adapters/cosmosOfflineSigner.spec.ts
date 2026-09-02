@@ -45,6 +45,18 @@ describe('Cosmos offline signer adapter', () => {
 		vi.unstubAllGlobals()
 	})
 
+	it('discovers no injected wallets safely without a browser window', () => {
+		vi.stubGlobal('window', undefined)
+		const updateCandidates = vi.fn()
+		const adapter = createCosmosOfflineSignerAdapter()
+
+		const cleanup = adapter.start(updateCandidates)
+
+		expect(updateCandidates).toHaveBeenCalledOnce()
+		expect(updateCandidates).toHaveBeenCalledWith([])
+		expect(cleanup).not.toThrow()
+	})
+
 	it('uses Leap connection state for silent restoration without enabling again', async () => {
 		const { leap } = setup()
 		const adapter = createCosmosOfflineSignerAdapter()

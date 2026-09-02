@@ -65,6 +65,12 @@ quilibrium_build_info{revision="abcdef",version="2.1.0"} 1
 			lastSyncedAt: 1_000_000 - 12_500,
 		})
 	})
+
+	it('rejects a successful response without recognized node metrics', () => {
+		expect(() => queries.nodeStateObservationFromPrometheusText(
+			'<html>maintenance</html>'
+		)).toThrow('response contains no recognized node metrics')
+	})
 })
 
 describe('Quilibrium node metrics BlockheadQuilibrium node projections', () => {

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
@@ -44,11 +45,18 @@ const networkTimestampsResolver = polkadot.resolvers.find((resolver) => (
 	&& '$$timestamps' in resolver.projections
 ))
 
+const networkRpcEndpointsResolver = polkadot.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Polkadot' in resolver.projections
+	&& 'rpcEndpoints' in resolver.projections.Polkadot
+))
+
 if (
 	blockResolver == null
 	|| networkBlockListResolver == null
 	|| networkBlockCountResolver == null
 	|| networkTimestampsResolver == null
+	|| networkRpcEndpointsResolver == null
 )
 	throw new Error('Polkadot JsonRpc resolvers are missing')
 
@@ -90,6 +98,20 @@ const header = {
 describe('Polkadot JsonRpc block leftovers', () => {
 	beforeEach(() => {
 		sourceFetch.mockReset()
+	})
+
+	it('projects the selected mainnet RPC endpoint with its transport and provider identity', async () => {
+		const rpcEndpoints = await networkRpcEndpointsResolver.resolve.Slug.resolve({
+			slug: 'polkadot',
+		})
+
+		expect(networkRpcEndpointsResolver.projections.Polkadot.rpcEndpoints(rpcEndpoints)).toEqual([
+			{
+				url: 'https://rpc.polkadot.io',
+				transportType: TransportType.Http,
+				providerName: 'Parity',
+			},
+		])
 	})
 
 	it('resolves NetworkBlockNumber via hash lookup', async () => {
