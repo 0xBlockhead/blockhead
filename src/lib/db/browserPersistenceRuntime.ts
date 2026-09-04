@@ -98,7 +98,7 @@ export class BrowserPersistenceRuntime {
 
 	constructor(options: BrowserPersistenceRuntimeOptions) {
 		const heartbeatMs = options.heartbeatMs ?? 250
-		const bootstrapTimeoutMs = options.bootstrapTimeoutMs ?? 5_000
+		const bootstrapTimeoutMs = options.bootstrapTimeoutMs ?? 30_000
 		this.#requestTimeoutMs = options.requestTimeoutMs ?? 500
 		this.#channel = options.channel ?? new BroadcastChannel(`blockhead:sqlite:${options.name}`)
 		this.#channel.addEventListener('message', this.#onMessage)

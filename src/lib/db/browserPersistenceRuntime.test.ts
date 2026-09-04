@@ -535,6 +535,29 @@ describe('BrowserPersistenceRuntime', () => {
 		vi.useRealTimers()
 	})
 
+	test('allows a cold owner worker longer than five seconds to initialize', async () => {
+		vi.useFakeTimers()
+		const opened = Promise.withResolvers<void>()
+		const runtime = new BrowserPersistenceRuntime({
+			name: crypto.randomUUID(), channel: new TestChannel('cold-owner'), locks: lockManager(),
+			openOwner: async () => {
+				await opened.promise
+				return { persistence: persistence([]), close: () => undefined }
+			},
+		})
+		try {
+			await vi.advanceTimersByTimeAsync(5_000)
+			expect(runtime.phase).toBe('recovering')
+			opened.resolve()
+			await vi.advanceTimersByTimeAsync(0)
+			await expect(runtime.ready).resolves.toBeUndefined()
+			expect(runtime.phase).toBe('owner')
+		} finally {
+			await runtime.close()
+			vi.useRealTimers()
+		}
+	})
+
 	test('closes an owner that finishes after bootstrap timeout without leaking heartbeat failures', async () => {
 		vi.useFakeTimers()
 		const opened = Promise.withResolvers<void>()
