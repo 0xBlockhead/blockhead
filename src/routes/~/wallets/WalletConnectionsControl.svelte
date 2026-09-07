@@ -202,11 +202,15 @@
 								walletRequestPending = true
 								walletControlStatus = 'Wallet request pending.'
 								try {
-									const result = await walletRuntime.signMessage(
+									const submittedAt = Date.now()
+									const result = await walletRuntime.signMessage({
 										connectionKey,
-										String(new FormData(form).get('message'))
-									)
-									walletControlStatus = `Message signed by ${result.accountAddress}. Request history was saved.`
+										message: String(new FormData(form).get('message')),
+										authorityPresentation: {
+											submittedAt,
+										},
+									})
+									walletControlStatus = `Message signed by ${result.accountAddress}. Authority and dispatch history were saved.`
 									form.reset()
 								}
 								catch (error) {

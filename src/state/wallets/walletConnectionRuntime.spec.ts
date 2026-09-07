@@ -12,7 +12,13 @@ import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWe
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
-import type { WalletAdapter, WalletCandidate, WalletConnection } from './adapters/types.ts'
+import type {
+	WalletAdapter,
+	WalletCandidate,
+	WalletConnection,
+	WalletTonInternalMessages,
+	WalletStarknetTypedData,
+} from '$/state/wallets/adapters/types.ts'
 import {
 	WalletCapability,
 	WalletDiscoveryKind,
@@ -20,8 +26,9 @@ import {
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
-import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey, entitySelectorKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { entityDefinitionByType, schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -32,6 +39,10 @@ const mountMockWalletRuntime = async ({
 	disconnectDuringHydration,
 	connectionResults = [],
 	disconnect = vi.fn(),
+	authorityDecisionBeforeOccurrence,
+	persistActionAuthorityRequest = vi.fn(),
+	persistDispatchOccurrenceStart = vi.fn(),
+	persistDispatchEvidence = vi.fn(),
 	persistWalletRequest = vi.fn(),
 	persistWalletRequestObservation = vi.fn(),
 	persistWalletRequestSubmittedAt = vi.fn(),
@@ -40,8 +51,17 @@ const mountMockWalletRuntime = async ({
 	persistedStatus,
 	persistedTransportKind = WalletTransportKind.InjectedProvider,
 	persistedWalletId = 'eip6963:com.example.wallet',
+	candidateProtocol = WalletProtocol.Eip6963,
+	candidateDiscoveryKind = WalletDiscoveryKind.InjectedEvent,
+	candidateCapabilities = [WalletCapability.Connect],
+	accountNamespace = 'eip155',
+	accountReference = '1',
+	accountAddress = '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+	accountCapabilities = [WalletCapability.SignMessage],
 	selectedError,
 	signMessage = vi.fn(async () => '0xsigned'),
+	signTonInternalMessages = vi.fn(async () => 'te6ccgEBAQEA'),
+	signStarknetTypedData = vi.fn(async () => ['0x1', '0x2']),
 	signTypedData = vi.fn(async () => '0xtyped'),
 	switchScope,
 }: {
@@ -49,6 +69,10 @@ const mountMockWalletRuntime = async ({
 	disconnectDuringHydration?: 'resolve' | 'reject'
 	connectionResults?: (Error | WalletConnection)[]
 	disconnect?: (walletId: string, connectionKey?: string) => void | Promise<void>
+	authorityDecisionBeforeOccurrence?: 'denied' | 'cancelled' | 'prepared-without-dispatch'
+	persistActionAuthorityRequest?: (context: object, request: { id: string }) => void | Promise<void>
+	persistDispatchOccurrenceStart?: (context: object, occurrence: object) => void | Promise<void>
+	persistDispatchEvidence?: (context: object, occurrence: object, evidence: object) => void | Promise<void>
 	persistWalletRequest?: (context: object, request: object) => void | Promise<void>
 	persistWalletRequestObservation?: (
 		context: object,
@@ -72,8 +96,24 @@ const mountMockWalletRuntime = async ({
 	persistedStatus?: BlockheadConnectionStatus
 	persistedTransportKind?: WalletTransportKind
 	persistedWalletId?: string
+	candidateProtocol?: WalletProtocol
+	candidateDiscoveryKind?: WalletDiscoveryKind
+	candidateCapabilities?: WalletCapability[]
+	accountNamespace?: string
+	accountReference?: string
+	accountAddress?: string
+	accountCapabilities?: WalletCapability[]
 	selectedError?: Error
-	signMessage?: (walletId: string, accountAddress: string, message: string) => Promise<string>
+	signMessage?: (walletId: string, accountAddress: string, message: string, connectionKey?: string) => Promise<string>
+	signTonInternalMessages?: (walletId: string, accountAddress: string, request: WalletTonInternalMessages, connectionKey?: string) => Promise<string>
+	signStarknetTypedData?: (
+		walletId: string,
+		accountAddress: string,
+		reference: string,
+		typedData: WalletStarknetTypedData,
+		apiVersion?: string,
+		connectionKey?: string
+	) => Promise<string[]>
 	signTypedData?: (
 		walletId: string,
 		accountAddress: string,
@@ -88,12 +128,15 @@ const mountMockWalletRuntime = async ({
 		connectionKey?: string
 	) => Promise<WalletConnection | undefined>
 }) => {
+	let adapter: WalletAdapter | undefined
+	let updateAdapterCandidates: ((candidates: WalletCandidate[]) => void) | undefined
+	let updateConnection: ((connection: WalletConnection) => void) | undefined
 	const walletId = persistedWalletId
 	const account = {
-		namespace: 'eip155',
-		reference: '1',
-		accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
-		capabilities: [WalletCapability.SignMessage],
+		namespace: accountNamespace,
+		reference: accountReference,
+		accountAddress,
+		capabilities: accountCapabilities,
 	}
 	const persistedRows = (
 		persistedConnections
@@ -128,17 +171,87 @@ const mountMockWalletRuntime = async ({
 		_walletId: string,
 		_updateConnection: (connection: WalletConnection) => void,
 		_connectionKey?: string
-	) => () => {})
+	) => {
+		updateConnection = _updateConnection
+		return () => {}
+	})
 	const deleteConnection = vi.fn()
 	const writeConnection = vi.fn()
 	const writeWalletRequest = vi.fn(persistWalletRequest)
 	const writeWalletRequestObservation = vi.fn(persistWalletRequestObservation)
 	const writeWalletRequestSubmittedAt = vi.fn(persistWalletRequestSubmittedAt)
+	const authorityDecisionRows: MockRow[] = []
+	const authorityRowsByField = new Map<string, MockRow[]>([
+		['decision', authorityDecisionRows],
+		['actionRevisionBindings', []],
+		['$$sessionActions', []],
+	])
+	const writeActionAuthorityRequest = vi.fn(async (context: object, request: {
+		id: string
+		envelope: object
+		envelopeHash: string
+		account: object
+	}) => {
+		await persistActionAuthorityRequest(context, request)
+		const parentSelectorKey = entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadActionAuthorityRequest],
+			{ id: request.id }
+		)
+		for (const [fieldName, value] of [
+			['envelope', request.envelope],
+			['envelopeHash', request.envelopeHash],
+			['$account', { [EntityMetaKey.Selector]: request.account }],
+		] as const)
+			authorityRowsByField.set(fieldName, [{
+				[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				[EntityMetaKey.Value]: value,
+			}])
+		if (authorityDecisionBeforeOccurrence)
+			authorityDecisionRows.push({
+				[EntityMetaKey.ParentSelectorKey]: entitySelectorKey(
+					schema,
+					entityDefinitionByType[EntityType.BlockheadActionAuthorityRequest],
+					{ id: request.id }
+				),
+				[EntityMetaKey.Source]: Source.Local_Internal,
+				[EntityMetaKey.Value]: authorityDecisionBeforeOccurrence === 'denied' ? {
+					kind: authorityDecisionBeforeOccurrence,
+					decidedAt: 2,
+					reason: 'test decision',
+				} : {
+					kind: authorityDecisionBeforeOccurrence,
+					decidedAt: 2,
+				},
+			})
+		return { id: 'authority-request' }
+	})
+	const writeDispatchOccurrenceStart = vi.fn(async (context: object, occurrence: object) => {
+		await persistDispatchOccurrenceStart(context, occurrence)
+		return { id: 'dispatch-occurrence' }
+	})
+	const writeDispatchEvidence = vi.fn(async (context: object, occurrence: object, evidence: object) => {
+		await persistDispatchEvidence(context, occurrence, evidence)
+	})
+	const writeActionAuthorityDecision = vi.fn(async (
+		_context: object,
+		_selector: object,
+		decision: object
+	) => {
+		authorityDecisionRows.push({
+			[EntityMetaKey.ParentSelectorKey]: authorityRowsByField.get('envelope')?.[0][EntityMetaKey.ParentSelectorKey],
+			[EntityMetaKey.Source]: Source.Local_Internal,
+			[EntityMetaKey.Value]: decision,
+		})
+	})
 
 	vi.doMock('./adapters/eip6963.ts', () => ({
-		createEip6963Adapter: () => ({
+		createEip6963Adapter: () => {
+			adapter = {
 			id: 'eip6963',
 			start: (updateCandidates: (candidates: WalletCandidate[]) => void) => {
+				updateAdapterCandidates = updateCandidates
 				updateCandidates(
 					candidateAvailable ?
 						[
@@ -146,10 +259,10 @@ const mountMockWalletRuntime = async ({
 								id: walletId,
 								name: 'Example Wallet',
 								icon: '',
-								protocol: WalletProtocol.Eip6963,
-								discoveryKind: WalletDiscoveryKind.InjectedEvent,
+								protocol: candidateProtocol,
+								discoveryKind: candidateDiscoveryKind,
 								transportKind: WalletTransportKind.InjectedProvider,
-								capabilities: [WalletCapability.Connect],
+								capabilities: candidateCapabilities,
 							},
 						]
 					:
@@ -166,11 +279,15 @@ const mountMockWalletRuntime = async ({
 				return connectionResult
 			},
 			signMessage,
+			signTonInternalMessages,
+			signStarknetTypedData,
 			signTypedData,
 			...(switchScope != null && { switchScope }),
 			disconnect,
 			subscribeConnection,
-		}),
+			}
+			return adapter
+		},
 	}))
 	vi.doMock('$/collections/localMutations.ts', () => ({
 		deleteLocalBlockheadWalletConnection: deleteConnection,
@@ -179,6 +296,10 @@ const mountMockWalletRuntime = async ({
 		writeLocalBlockheadWalletRequest: writeWalletRequest,
 		writeLocalBlockheadWalletRequest_Timestamp: writeWalletRequestObservation,
 		writeLocalBlockheadWalletRequestSubmittedAt: writeWalletRequestSubmittedAt,
+		writeLocalBlockheadActionAuthorityRequest: writeActionAuthorityRequest,
+		writeLocalBlockheadActionAuthorityDecision: writeActionAuthorityDecision,
+		writeLocalBlockheadActionDispatchOccurrenceStart: writeDispatchOccurrenceStart,
+		writeLocalBlockheadActionDispatchEvidence: writeDispatchEvidence,
 	}))
 
 	const selectionFor = (
@@ -260,7 +381,23 @@ const mountMockWalletRuntime = async ({
 	const { mountWalletConnectionRuntime } = await import('./walletConnectionRuntime.svelte.ts')
 	const runtime = mountWalletConnectionRuntime({
 		entityCollections: {},
-		entityFieldCollections: {},
+		entityFieldCollections: {
+			[EntityType.BlockheadActionAuthorityRequest]: Object.fromEntries([
+					'decision',
+					'envelope',
+					'envelopeHash',
+					'actionRevisionBindings',
+					'$$sessionActions',
+					'$account',
+				].map((fieldName) => [
+					entityFieldAddressKey(EntityType.BlockheadActionAuthorityRequest, [], fieldName),
+					{
+						get toArray() {
+							return authorityRowsByField.get(fieldName) ?? []
+						},
+					},
+				])),
+		},
 		entityFieldCountCollections: {},
 		select: (
 			entityType: EntityType,
@@ -288,6 +425,21 @@ const mountMockWalletRuntime = async ({
 	})
 
 	return {
+		adapter: () => {
+			if (adapter == null)
+				throw new Error('Mock adapter is unavailable')
+			return adapter
+		},
+		updateAdapterCandidates: (candidates: WalletCandidate[]) => {
+			if (updateAdapterCandidates == null)
+				throw new Error('Mock adapter candidate updater is unavailable')
+			updateAdapterCandidates(candidates)
+		},
+		updateConnection: (connection: WalletConnection) => {
+			if (updateConnection == null)
+				throw new Error('Mock connection updater is unavailable')
+			updateConnection(connection)
+		},
 		hydration: hydration.promise,
 		deleteConnection,
 		disconnect,
@@ -297,6 +449,11 @@ const mountMockWalletRuntime = async ({
 		writeWalletRequest,
 		writeWalletRequestObservation,
 		writeWalletRequestSubmittedAt,
+		writeActionAuthorityRequest,
+		writeActionAuthorityDecision,
+		writeDispatchOccurrenceStart,
+		writeDispatchEvidence,
+		authorityDecisionRows,
 	}
 }
 
@@ -425,6 +582,7 @@ describe('wallet connection runtime normalization', () => {
 		vi.spyOn(Date, 'now')
 			.mockReturnValueOnce(1_700_000_000_000)
 			.mockReturnValueOnce(1_700_000_000_001)
+			.mockReturnValueOnce(1_700_000_000_002)
 		const connection = {
 			connectionKey: 'wallet-session',
 			walletId: 'eip6963:com.example.wallet',
@@ -445,14 +603,33 @@ describe('wallet connection runtime normalization', () => {
 			writeWalletRequest,
 			writeWalletRequestObservation,
 			writeWalletRequestSubmittedAt,
+			writeActionAuthorityRequest,
+			writeDispatchOccurrenceStart,
+			writeDispatchEvidence,
 		} = await mountMockWalletRuntime({
 			connectionResults: [connection],
 		})
 
 		await runtime.connect(connection.walletId)
-		expect(await runtime.signMessage(connection.connectionKey, 'Sign this private challenge')).toEqual({
+		expect(await runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Sign this private challenge', authorityPresentation: { submittedAt: 1_700_000_000_000 } })).toEqual({
 			accountAddress: connection.accounts[0].accountAddress,
 			signature: '0xsigned',
+		})
+		expect(writeActionAuthorityRequest).toHaveBeenCalledOnce()
+		expect(writeDispatchOccurrenceStart).toHaveBeenCalledOnce()
+		expect(writeDispatchOccurrenceStart.mock.calls[0][1]).toMatchObject({
+			startedAt: 1_700_000_000_001,
+		})
+		expect(writeDispatchEvidence).toHaveBeenCalledOnce()
+		expect(writeDispatchEvidence.mock.calls[0][2]).toEqual({
+			kind: 'returned',
+			response: {
+				adapterKey: 'evm.signature',
+				adapterVersion: '1',
+				value: {
+					signatureHash: '0x318db428059e86506988fdc8079f42b03dcf1ca107807005a014128fdbcc1e94',
+				},
+			},
 		})
 
 		expect(writeWalletRequest).toHaveBeenCalledOnce()
@@ -500,11 +677,11 @@ describe('wallet connection runtime normalization', () => {
 			{
 				id: 'wallet-request-00000000-0000-4000-8000-000000000001',
 			},
-			1_700_000_000_001
+			1_700_000_000_002
 		)
 		expect(JSON.stringify([
-			...writeWalletRequest.mock.calls,
-			...writeWalletRequestObservation.mock.calls,
+			...writeWalletRequest.mock.calls.map(([, request]) => request),
+			...writeWalletRequestObservation.mock.calls.map(([, selector, observation]) => ({ selector, observation })),
 		])).not.toContain(
 			'Sign this private challenge'
 		)
@@ -512,6 +689,77 @@ describe('wallet connection runtime normalization', () => {
 		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('transactionHash')
 		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('transactionId')
 	}, 30_000)
+
+	it('binds controlled Sui personal-message authority through dispatch and returned evidence', async () => {
+		vi.spyOn(Date, 'now')
+			.mockReturnValueOnce(100)
+			.mockReturnValueOnce(101)
+			.mockReturnValueOnce(102)
+		const signMessage = vi.fn(async () => '0xsui-signature')
+		const connection = {
+			connectionKey: 'sui-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.WalletStandard,
+			transportKind: WalletTransportKind.InjectedSigner,
+			scopes: [],
+			accounts: [{
+				namespace: 'sui',
+				reference: 'mainnet',
+				accountAddress: '0x1234',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			writeActionAuthorityRequest,
+			writeDispatchOccurrenceStart,
+			writeDispatchEvidence,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			signMessage,
+		})
+
+		await runtime.connect(connection.walletId)
+		await expect(runtime.signMessage({
+			connectionKey: connection.connectionKey,
+			message: 'Sign this exact Sui message',
+			authorityPresentation: { submittedAt: 100 },
+		})).resolves.toMatchObject({
+			accountAddress: '0x1234',
+			signature: '0xsui-signature',
+		})
+
+		expect(writeActionAuthorityRequest.mock.calls[0][1]).toMatchObject({
+			envelope: {
+				adapterKey: 'wallet.message-sign',
+				adapterVersion: '1',
+				value: {
+					namespace: 'sui',
+					method: 'sui:signPersonalMessage',
+					accountAddress: '0x1234',
+					message: 'Sign this exact Sui message',
+				},
+			},
+		})
+		expect(writeDispatchOccurrenceStart.mock.calls[0][1]).toMatchObject({
+			address: {
+				kind: 'wallet-connection',
+				connectionKey: 'sui-session',
+				method: 'sui:signPersonalMessage',
+			},
+			startedAt: 101,
+		})
+		expect(writeDispatchEvidence.mock.calls[0][2]).toMatchObject({
+			kind: 'returned',
+			response: {
+				adapterKey: 'wallet.signature',
+				adapterVersion: '1',
+				value: { namespace: 'sui' },
+			},
+		})
+	})
 
 	it('persists typed-data signing as hashes without claiming chain finality', async () => {
 		vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-0000000000td')
@@ -574,6 +822,274 @@ describe('wallet connection runtime normalization', () => {
 		})
 		expect(writeWalletRequestObservation.mock.calls.at(-1)?.[2]).not.toHaveProperty('transactionHash')
 	}, 30_000)
+
+	it('snapshots and audits Starknet typed-data authority across delayed persistence', async () => {
+		vi.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue('00000000-0000-4000-8000-0000000000sn')
+		vi.spyOn(Date, 'now')
+			.mockReturnValueOnce(1_700_000_000_200)
+			.mockReturnValueOnce(1_700_000_000_201)
+		const starknetTypedData = {
+			types: {
+				StarknetDomain: [
+					{ name: 'name', type: 'shortstring' },
+					{ name: 'version', type: 'shortstring' },
+					{ name: 'chainId', type: 'shortstring' },
+					{ name: 'revision', type: 'shortstring' },
+				],
+				Message: [
+					{ name: 'contents', type: 'felt' },
+				],
+			},
+			primaryType: 'Message',
+			domain: {
+				name: 'Blockhead',
+				version: '1',
+				chainId: 'SN_MAIN',
+				revision: '1',
+			},
+			message: {
+				contents: '0x1234',
+			},
+		} satisfies WalletStarknetTypedData
+		const accountAddress = '0x0000000000000000000000000000000000000000000000000000000000001234'
+		const connection = {
+			connectionKey: 'starknet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.StarknetWalletApi,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [{
+				namespace: 'starknet',
+				reference: 'SN_MAIN',
+				methods: ['wallet_signTypedData'],
+				events: [],
+			}],
+			accounts: [{
+				namespace: 'starknet',
+				reference: 'SN_MAIN',
+				accountAddress,
+				capabilities: [WalletCapability.SignStarknetTypedData],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		let releasePersistence = () => {}
+		const persistenceDelay = new Promise<void>((resolve) => {
+			releasePersistence = resolve
+		})
+		let releaseSignedPersistence = () => {}
+		const signedPersistenceDelay = new Promise<void>((resolve) => {
+			releaseSignedPersistence = resolve
+		})
+		let selectedAdapter: WalletAdapter | undefined
+		const returnedSignature = ['0x1', '0xabc']
+		const signStarknetTypedData = vi.fn(function(
+			this: WalletAdapter,
+			_walletId: string,
+			_accountAddress: string,
+			_reference: string,
+			_typedData: WalletStarknetTypedData
+		) {
+			expect(this).toBe(selectedAdapter)
+			return Promise.resolve(returnedSignature)
+		})
+		const {
+			adapter,
+			runtime,
+			writeWalletRequest,
+			writeWalletRequestObservation,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			persistWalletRequest: () => persistenceDelay,
+			persistWalletRequestObservation: async (
+				_context,
+				_selector,
+				observation: { status?: string }
+			) => {
+				if (observation.status !== 'signed')
+					return
+				returnedSignature[1] = '0xdead'
+				await signedPersistenceDelay
+			},
+			signStarknetTypedData,
+		})
+
+		await runtime.connect(connection.walletId)
+		selectedAdapter = adapter()
+		const signing = runtime.signStarknetTypedData(
+			connection.connectionKey,
+			starknetTypedData,
+			'0.8'
+		)
+		await vi.waitFor(() => expect(writeWalletRequest).toHaveBeenCalledOnce())
+		starknetTypedData.message.contents = '0x9999'
+		runtime.connections[0].walletId = 'starknet:mutated'
+		runtime.connections[0].connectionKey = 'mutated-session'
+		runtime.connections[0].accounts[0].accountAddress = (
+			'0x0000000000000000000000000000000000000000000000000000000000009999'
+		)
+		runtime.connections[0].accounts[0].reference = 'SN_SEPOLIA'
+		selectedAdapter.signStarknetTypedData = vi.fn(async () => ['0x9'])
+		releasePersistence()
+		await vi.waitFor(() => expect(
+			writeWalletRequestObservation.mock.calls.some(([, , observation]) => (
+				observation?.status === 'signed'
+			))
+		).toBe(true))
+		releaseSignedPersistence()
+
+		await expect(signing).resolves.toEqual({
+			accountAddress,
+			signature: ['0x1', '0xabc'],
+		})
+		expect(signStarknetTypedData).toHaveBeenCalledWith(
+			'eip6963:com.example.wallet',
+			accountAddress,
+			'SN_MAIN',
+			expect.objectContaining({
+				message: {
+					contents: '0x1234',
+				},
+			}),
+			'0.8',
+			'starknet-session'
+		)
+		expect(selectedAdapter.signStarknetTypedData).not.toHaveBeenCalled()
+		const intendedPayload = JSON.stringify({
+			version: 1,
+			method: 'wallet_signTypedData',
+			account: {
+				namespace: 'starknet',
+				reference: 'SN_MAIN',
+				accountAddress,
+			},
+			typedData: {
+				...starknetTypedData,
+				message: {
+					contents: '0x1234',
+				},
+			},
+			apiVersion: '0.8',
+		})
+		const digest = async (value: string) => (
+			`0x${Array.from(new Uint8Array(await globalThis.crypto.subtle.digest(
+				'SHA-256',
+				new TextEncoder().encode(value)
+			)))
+				.map((byte) => byte.toString(16).padStart(2, '0'))
+				.join('')}`
+		)
+		const persistedRequest: MockRow | undefined = writeWalletRequest.mock.calls[0][1]
+		await expect(digest(intendedPayload)).resolves.toBe(
+			persistedRequest?.requestPayloadHash
+		)
+		expect(writeWalletRequest.mock.calls[0][1]).toMatchObject({
+			requestKind: 'typed-data-signature',
+			requestMethod: 'wallet_signTypedData',
+		})
+		const signedObservation: MockRow | undefined = writeWalletRequestObservation.mock.calls.at(-1)?.[2]
+		expect(signedObservation).toMatchObject({
+			status: 'signed',
+		})
+		await expect(digest(JSON.stringify(['0x1', '0xabc']))).resolves.toBe(
+			signedObservation?.signatureHash
+		)
+		expect(signedObservation).not.toHaveProperty('transactionHash')
+	}, 30_000)
+
+	it('records Starknet response-audit failure distinctly from provider rejection', async () => {
+		const typedData = {
+			types: {
+				StarknetDomain: [
+					{ name: 'name', type: 'shortstring' },
+					{ name: 'version', type: 'shortstring' },
+					{ name: 'chainId', type: 'shortstring' },
+					{ name: 'revision', type: 'shortstring' },
+				],
+				Message: [
+					{ name: 'contents', type: 'felt' },
+				],
+			},
+			primaryType: 'Message',
+			domain: {
+				name: 'Blockhead',
+				version: '1',
+				chainId: 'SN_MAIN',
+				revision: '1',
+			},
+			message: {
+				contents: '0x1234',
+			},
+		} satisfies WalletStarknetTypedData
+		const connection = {
+			connectionKey: 'starknet-audit-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.StarknetWalletApi,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [{
+				namespace: 'starknet',
+				reference: 'SN_MAIN',
+				methods: ['wallet_signTypedData'],
+				events: [],
+			}],
+			accounts: [{
+				namespace: 'starknet',
+				reference: 'SN_MAIN',
+				accountAddress: '0x0000000000000000000000000000000000000000000000000000000000001234',
+				capabilities: [WalletCapability.SignStarknetTypedData],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const malformedSignature = ['not-a-felt']
+		const providerDispatch = vi.fn(async () => malformedSignature)
+		let responseAuditFailure: Error | undefined
+		const providerRejection = new Error('User refused')
+		const signStarknetTypedData = vi.fn()
+			.mockImplementationOnce(async () => {
+				const returnedValue = await providerDispatch()
+				expect(returnedValue).toBe(malformedSignature)
+				const { WalletAdapterResponseAuditFailure } = await import('./adapters/types.ts')
+				const auditFailure = new WalletAdapterResponseAuditFailure(
+					'Starknet wallet returned a malformed typed data signature',
+					returnedValue
+				)
+				responseAuditFailure = auditFailure
+				throw auditFailure
+			})
+			.mockRejectedValueOnce(providerRejection)
+		const {
+			runtime,
+			writeWalletRequestObservation,
+			writeWalletRequestSubmittedAt,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			signStarknetTypedData,
+		})
+
+		await runtime.connect(connection.walletId)
+		const caughtResponseAuditFailure = await runtime.signStarknetTypedData(
+			connection.connectionKey,
+			typedData
+		).catch((error: Error) => error)
+		expect(caughtResponseAuditFailure).toBe(responseAuditFailure)
+		expect(providerDispatch).toHaveBeenCalledOnce()
+		expect(writeWalletRequestObservation.mock.calls.at(-1)?.[2]).toMatchObject({
+			status: 'audit-failed',
+			error: 'Wallet Starknet typed data signature response could not be audited',
+		})
+		expect(writeWalletRequestSubmittedAt).not.toHaveBeenCalled()
+
+		await expect(runtime.signStarknetTypedData(
+			connection.connectionKey,
+			typedData
+		)).rejects.toBe(providerRejection)
+		expect(writeWalletRequestObservation.mock.calls.at(-1)?.[2]).toMatchObject({
+			status: 'failed',
+			error: 'Wallet Starknet typed data signing request failed',
+		})
+		expect(writeWalletRequestSubmittedAt).not.toHaveBeenCalled()
+		expect(signStarknetTypedData).toHaveBeenCalledTimes(2)
+	})
 
 	it('switches scope through the selected connected wallet and upserts discoverable scopes', async () => {
 		const connection = {
@@ -690,6 +1206,8 @@ describe('wallet connection runtime normalization', () => {
 			writeWalletRequest,
 			writeWalletRequestObservation,
 			writeWalletRequestSubmittedAt,
+			writeDispatchOccurrenceStart,
+			writeDispatchEvidence,
 		} = await mountMockWalletRuntime({
 			connectionResults: [connection],
 			signMessage: async () => {
@@ -698,18 +1216,25 @@ describe('wallet connection runtime normalization', () => {
 		})
 
 		await runtime.connect(connection.walletId)
-		await expect(runtime.signMessage(connection.connectionKey, 'Reject this challenge')).rejects.toThrow(
+		await expect(runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Reject this challenge', authorityPresentation: { submittedAt: 1 } })).rejects.toThrow(
 			'User rejected the wallet request'
 		)
 
 		expect(writeWalletRequest).toHaveBeenCalledOnce()
+		expect(writeDispatchOccurrenceStart).toHaveBeenCalledOnce()
+		expect(writeDispatchEvidence).toHaveBeenCalledOnce()
+		expect(writeDispatchEvidence.mock.calls[0][2]).toEqual({
+			kind: 'ambiguous',
+			reason: 'response-unreadable',
+			error: 'User rejected the wallet request',
+		})
 		expect(writeWalletRequestSubmittedAt).not.toHaveBeenCalled()
 		expect(writeWalletRequestObservation.mock.calls[1][2]).toMatchObject({
 			status: 'failed',
 			error: 'Wallet signing request failed',
 		})
 		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('signatureHash')
-		expect(JSON.stringify(writeWalletRequest.mock.calls)).not.toContain(
+		expect(JSON.stringify(writeWalletRequest.mock.calls.map(([, request]) => request))).not.toContain(
 			'Reject this challenge'
 		)
 		expect(JSON.stringify(writeWalletRequestObservation.mock.calls)).not.toContain(
@@ -759,9 +1284,124 @@ describe('wallet connection runtime normalization', () => {
 	})
 
 	it('awaits durable request and terminal observations around the provider call', async () => {
-		let persistRequested: () => void = () => {}
-		let persistTerminal: () => void = () => {}
-		let requestedPersistenceStarted = false
+		const events: string[] = []
+		const persistRequested = Promise.withResolvers<void>()
+		const persistTerminal = Promise.withResolvers<void>()
+		const signing = vi.fn(async () => {
+			events.push('provider')
+			return '0xsigned'
+		})
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			writeActionAuthorityRequest,
+			writeDispatchOccurrenceStart,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			persistActionAuthorityRequest: () => {
+				events.push('authority-request')
+			},
+			persistWalletRequest: () => {
+				events.push('wallet-request')
+			},
+			persistWalletRequestObservation: (_context, _selector, observation: { status: string }) => {
+				events.push(`wallet-timestamp:${observation.status}`)
+				if (observation.status === 'requested')
+					return persistRequested.promise
+				return persistTerminal.promise
+			},
+			persistDispatchOccurrenceStart: () => {
+				events.push('occurrence-start')
+			},
+			signMessage: signing,
+		})
+
+		await runtime.connect(connection.walletId)
+		const result = runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Persist in order', authorityPresentation: { submittedAt: 1 } })
+		await vi.waitFor(() => expect(events).toEqual([
+			'authority-request',
+			'wallet-request',
+			'wallet-timestamp:requested',
+		]))
+		expect(signing).not.toHaveBeenCalled()
+		expect(writeActionAuthorityRequest).toHaveBeenCalledOnce()
+		expect(writeDispatchOccurrenceStart).not.toHaveBeenCalled()
+		persistRequested.resolve()
+		await vi.waitFor(() => expect(signing).toHaveBeenCalledOnce())
+		expect(events.slice(0, 5)).toEqual([
+			'authority-request',
+			'wallet-request',
+			'wallet-timestamp:requested',
+			'occurrence-start',
+			'provider',
+		])
+		expect(writeDispatchOccurrenceStart).toHaveBeenCalledOnce()
+		let settled = false
+		void result.finally(() => {
+			settled = true
+		})
+		expect(settled).toBe(false)
+		persistTerminal.resolve()
+		await expect(result).resolves.toMatchObject({
+			signature: '0xsigned',
+		})
+	})
+
+	it.each([
+		[{ submittedAt: -1 }, 'valid authority presentation'],
+		[{ submittedAt: Number.NaN }, 'valid authority presentation'],
+		[{ submittedAt: 22 }, 'valid authority presentation'],
+		[{ submittedAt: 10, validUntil: 9 }, 'valid authority presentation'],
+		[{ submittedAt: 10, validUntil: 10.5 }, 'valid authority presentation'],
+		[{ submittedAt: 10, validUntil: 20 }, 'expired before history'],
+	] as const)('refuses invalid or expired presentation %# before history', async (authorityPresentation, error) => {
+		vi.spyOn(Date, 'now').mockReturnValue(21)
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const { runtime, writeActionAuthorityRequest, writeWalletRequest } = await mountMockWalletRuntime({
+			connectionResults: [connection],
+		})
+
+		await runtime.connect(connection.walletId)
+		await expect(runtime.signMessage({
+			connectionKey: connection.connectionKey,
+			message: 'Never persisted',
+			authorityPresentation,
+		})).rejects.toThrow(error)
+		expect(writeActionAuthorityRequest).not.toHaveBeenCalled()
+		expect(writeWalletRequest).not.toHaveBeenCalled()
+	})
+
+	it('records prepared-without-dispatch when presentation expires after request persistence', async () => {
+		let now = 10
+		vi.spyOn(Date, 'now').mockImplementation(() => now)
 		const signing = vi.fn(async () => '0xsigned')
 		const connection = {
 			connectionKey: 'wallet-session',
@@ -778,34 +1418,492 @@ describe('wallet connection runtime normalization', () => {
 			}],
 			selected: true,
 		} satisfies WalletConnection
-		const { runtime } = await mountMockWalletRuntime({
+		const { runtime, writeActionAuthorityDecision, writeDispatchOccurrenceStart } = await mountMockWalletRuntime({
 			connectionResults: [connection],
-			persistWalletRequestObservation: () => new Promise<void>((resolve) => {
-				if (signing.mock.calls.length === 0) {
-					requestedPersistenceStarted = true
-					persistRequested = resolve
-				}
-				else
-					persistTerminal = resolve
-			}),
+			persistActionAuthorityRequest: () => {
+				now = 21
+			},
 			signMessage: signing,
 		})
 
 		await runtime.connect(connection.walletId)
-		const result = runtime.signMessage(connection.connectionKey, 'Persist in order')
-		await vi.waitFor(() => expect(requestedPersistenceStarted).toBe(true))
+		await expect(runtime.signMessage({
+			connectionKey: connection.connectionKey,
+			message: 'Expires while persisting',
+			authorityPresentation: { submittedAt: 10, validUntil: 20 },
+		})).rejects.toThrow('expired before dispatch')
+		expect(writeActionAuthorityDecision).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.anything(),
+			{ kind: 'prepared-without-dispatch', decidedAt: 21 }
+		)
+		expect(writeDispatchOccurrenceStart).not.toHaveBeenCalled()
 		expect(signing).not.toHaveBeenCalled()
-		persistRequested()
-		await vi.waitFor(() => expect(signing).toHaveBeenCalledOnce())
-		let settled = false
-		void result.finally(() => {
-			settled = true
+	})
+
+	it.each([
+		['connection key', (connection: WalletConnection) => {
+			connection.connectionKey = 'mutated-session'
+		}],
+		['wallet id', (connection: WalletConnection) => {
+			connection.walletId = 'eip6963:mutated-wallet'
+		}],
+		['account namespace', (connection: WalletConnection) => {
+			Object.assign(connection.accounts[0], { namespace: 'solana' })
+			if (connection.activeAccount != null)
+				Object.assign(connection.activeAccount, { namespace: 'solana' })
+		}],
+		['account reference', (connection: WalletConnection) => {
+			Object.assign(connection.accounts[0], { reference: '137' })
+			if (connection.activeAccount != null)
+				Object.assign(connection.activeAccount, { reference: '137' })
+		}],
+		['account address', (connection: WalletConnection) => {
+			const accountAddress = '0x0000000000000000000000000000000000000001'
+			Object.assign(connection.accounts[0], { accountAddress })
+			if (connection.activeAccount != null)
+				Object.assign(connection.activeAccount, { accountAddress })
+		}],
+	] as const)('refuses %s mutation after request persistence and before dispatch', async (_label, mutate) => {
+		const persistRequested = Promise.withResolvers<void>()
+		const signing = vi.fn(async () => '0xsigned')
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			writeActionAuthorityDecision,
+			writeWalletRequestObservation,
+			writeDispatchOccurrenceStart,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			persistWalletRequestObservation: (_context, _selector, observation: { status: string }) => (
+				observation.status === 'requested' ? persistRequested.promise : undefined
+			),
+			signMessage: signing,
 		})
-		expect(settled).toBe(false)
-		persistTerminal()
-		await expect(result).resolves.toMatchObject({
-			signature: '0xsigned',
+
+		await runtime.connect(connection.walletId)
+		const result = runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Mutating authority', authorityPresentation: {
+						submittedAt: 1,
+		} })
+		await vi.waitFor(() => expect(writeWalletRequestObservation).toHaveBeenCalledOnce())
+		mutate(runtime.connections[0])
+		persistRequested.resolve()
+
+		await expect(result).rejects.toThrow('Wallet authority changed before dispatch.')
+		expect(signing).not.toHaveBeenCalled()
+		expect(writeDispatchOccurrenceStart).not.toHaveBeenCalled()
+		expect(writeActionAuthorityDecision).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.anything(),
+			expect.objectContaining({ kind: 'prepared-without-dispatch' })
+		)
+	})
+
+	it('keeps the validated adapter method receiver-bound through persistence awaits', async () => {
+		const persistRequested = Promise.withResolvers<void>()
+		let receiver: WalletAdapter | undefined
+		const signing = vi.fn(function (this: WalletAdapter) {
+			receiver = this
+			return Promise.resolve('0xsigned')
 		})
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			adapter,
+			writeWalletRequestObservation,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			persistWalletRequestObservation: (_context, _selector, observation: { status: string }) => (
+				observation.status === 'requested' ? persistRequested.promise : undefined
+			),
+			signMessage: signing,
+		})
+
+		await runtime.connect(connection.walletId)
+		const result = runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Receiver-sensitive signing', authorityPresentation: {
+						submittedAt: 1,
+		} })
+		await vi.waitFor(() => expect(writeWalletRequestObservation).toHaveBeenCalledOnce())
+		const selectedAdapter = adapter()
+		persistRequested.resolve()
+
+		await expect(result).resolves.toMatchObject({ signature: '0xsigned' })
+		expect(signing).toHaveBeenCalledOnce()
+		expect(receiver).toBe(selectedAdapter)
+	})
+
+	it('rejects delayed adapter method replacement before provider invocation', async () => {
+		const persistRequested = Promise.withResolvers<void>()
+		const signing = vi.fn(async () => '0xsigned')
+		const replacement = vi.fn(async () => '0xreplacement')
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			adapter,
+			writeActionAuthorityDecision,
+			writeDispatchOccurrenceStart,
+			writeWalletRequestObservation,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			persistWalletRequestObservation: (_context, _selector, observation: { status: string }) => (
+				observation.status === 'requested' ? persistRequested.promise : undefined
+			),
+			signMessage: signing,
+		})
+
+		await runtime.connect(connection.walletId)
+		const result = runtime.signMessage({
+			connectionKey: connection.connectionKey,
+			message: 'Reject stale adapter method',
+			authorityPresentation: { submittedAt: 1 },
+		})
+		await vi.waitFor(() => expect(writeWalletRequestObservation).toHaveBeenCalledOnce())
+		adapter().signMessage = replacement
+		persistRequested.resolve()
+
+		await expect(result).rejects.toThrow('Wallet adapter registration changed before dispatch.')
+		expect(signing).not.toHaveBeenCalled()
+		expect(replacement).not.toHaveBeenCalled()
+		expect(writeDispatchOccurrenceStart).not.toHaveBeenCalled()
+		expect(writeActionAuthorityDecision).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.anything(),
+			expect.objectContaining({ kind: 'prepared-without-dispatch' })
+		)
+	})
+
+	it.each([
+		['removal', false],
+		['removal and same-adapter re-registration (ABA)', true],
+	] as const)('rejects delayed adapter registration %s before provider invocation', async (_label, readd) => {
+		const persistRequested = Promise.withResolvers<void>()
+		const signing = vi.fn(async () => '0xsigned')
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			updateAdapterCandidates,
+			writeActionAuthorityDecision,
+			writeDispatchOccurrenceStart,
+			writeWalletRequestObservation,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			persistWalletRequestObservation: (_context, _selector, observation: { status: string }) => (
+				observation.status === 'requested' ? persistRequested.promise : undefined
+			),
+			signMessage: signing,
+		})
+
+		await runtime.connect(connection.walletId)
+		const result = runtime.signMessage({
+			connectionKey: connection.connectionKey,
+			message: 'Reject adapter registration ABA',
+			authorityPresentation: { submittedAt: 1 },
+		})
+		await vi.waitFor(() => expect(writeWalletRequestObservation).toHaveBeenCalledOnce())
+		updateAdapterCandidates([])
+		if (readd)
+			updateAdapterCandidates([{
+				id: connection.walletId,
+				name: 'Example Wallet',
+				icon: '',
+				protocol: WalletProtocol.Eip6963,
+				discoveryKind: WalletDiscoveryKind.InjectedEvent,
+				transportKind: WalletTransportKind.InjectedProvider,
+				capabilities: [WalletCapability.Connect],
+			}])
+		persistRequested.resolve()
+
+		await expect(result).rejects.toThrow('Wallet adapter registration changed before dispatch.')
+		expect(signing).not.toHaveBeenCalled()
+		expect(writeDispatchOccurrenceStart).not.toHaveBeenCalled()
+		expect(writeActionAuthorityDecision).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.anything(),
+			expect.objectContaining({ kind: 'prepared-without-dispatch' })
+		)
+	})
+
+	it('captures occurrence startedAt after delayed authority and wallet history writes', async () => {
+		let now = 10
+		vi.spyOn(Date, 'now').mockImplementation(() => now)
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const { runtime, writeDispatchOccurrenceStart } = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			persistActionAuthorityRequest: () => { now = 11 },
+			persistWalletRequest: () => { now = 12 },
+			persistWalletRequestObservation: (_context, _selector, observation: { status: string }) => {
+				if (observation.status === 'requested') now = 13
+			},
+			signMessage: async () => '0xsigned',
+		})
+
+		await runtime.connect(connection.walletId)
+		await runtime.signMessage({
+			connectionKey: connection.connectionKey,
+			message: 'Delayed history clock',
+			authorityPresentation: { submittedAt: 10 },
+		})
+
+		expect(writeDispatchOccurrenceStart).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({ startedAt: 13 })
+		)
+		expect(writeDispatchOccurrenceStart.mock.calls[0][1]).not.toMatchObject({ startedAt: 10 })
+	})
+
+	it('revalidates authority after occurrence persistence before the provider call', async () => {
+		const occurrenceStarted = Promise.withResolvers<void>()
+		const occurrenceRelease = Promise.withResolvers<void>()
+		const signing = vi.fn(async () => '0xsigned')
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			writeDispatchOccurrenceStart,
+			writeDispatchEvidence,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			persistDispatchOccurrenceStart: async () => {
+				occurrenceStarted.resolve()
+				await occurrenceRelease.promise
+			},
+			signMessage: signing,
+		})
+
+		await runtime.connect(connection.walletId)
+		const result = runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Occurrence revalidation', authorityPresentation: {
+						submittedAt: 1,
+		} })
+		await occurrenceStarted.promise
+		Object.assign(runtime.connections[0].accounts[0], { reference: '137' })
+		if (runtime.connections[0].activeAccount != null)
+			Object.assign(runtime.connections[0].activeAccount, { reference: '137' })
+		occurrenceRelease.resolve()
+
+		await expect(result).rejects.toThrow('Wallet authority changed before dispatch.')
+		expect(writeDispatchOccurrenceStart).toHaveBeenCalledOnce()
+		expect(signing).not.toHaveBeenCalled()
+		expect(writeDispatchEvidence).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.anything(),
+		{
+			kind: 'pre-dispatch-failure',
+			error: 'Wallet authority changed before dispatch.',
+		}
+	)
+	})
+
+	it('records pre-dispatch failure when presentation expires during occurrence persistence', async () => {
+		let now = 10
+		vi.spyOn(Date, 'now').mockImplementation(() => now)
+		const signing = vi.fn(async () => '0xsigned')
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const { runtime, writeDispatchEvidence } = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			persistDispatchOccurrenceStart: () => {
+				now = 21
+			},
+			signMessage: signing,
+		})
+
+		await runtime.connect(connection.walletId)
+		await expect(runtime.signMessage({
+			connectionKey: connection.connectionKey,
+			message: 'Expires after occurrence',
+			authorityPresentation: { submittedAt: 10, validUntil: 20 },
+		})).rejects.toThrow('expired before dispatch')
+		expect(signing).not.toHaveBeenCalled()
+		expect(writeDispatchEvidence).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.anything(),
+		{
+			kind: 'pre-dispatch-failure',
+			error: 'Wallet authority presentation expired before dispatch.',
+		}
+	)
+	})
+
+	it.each([
+		['authority request', { persistActionAuthorityRequest: async () => {
+			throw new Error('authority request persistence failed')
+		} }],
+		['wallet request', { persistWalletRequest: async () => {
+			throw new Error('wallet request persistence failed')
+		} }],
+		['requested timestamp', { persistWalletRequestObservation: async () => {
+			throw new Error('requested timestamp persistence failed')
+		} }],
+	] as const)('leaves provider and occurrence absent when %s persistence fails', async (_label, persistenceFailure) => {
+		const signing = vi.fn(async () => '0xsigned')
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			writeDispatchOccurrenceStart,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			signMessage: signing,
+			...persistenceFailure,
+		})
+
+		await runtime.connect(connection.walletId)
+		await expect(runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Persistence failure', authorityPresentation: {
+						submittedAt: 1,
+		} })).rejects.toThrow(/persistence failed/)
+		expect(signing).not.toHaveBeenCalled()
+		expect(writeDispatchOccurrenceStart).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		'denied',
+		'cancelled',
+		'prepared-without-dispatch',
+	] as const)('refuses a %s authority decision before the occurrence boundary', async (decisionKind) => {
+		const signing = vi.fn(async () => '0xsigned')
+		const connection = {
+			connectionKey: 'wallet-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const {
+			runtime,
+			writeDispatchOccurrenceStart,
+			writeDispatchEvidence,
+			authorityDecisionRows,
+		} = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			authorityDecisionBeforeOccurrence: decisionKind,
+			signMessage: signing,
+		})
+
+		await runtime.connect(connection.walletId)
+		await expect(runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Denied before dispatch', authorityPresentation: {
+						submittedAt: 1,
+		} })).rejects.toThrow('decided without dispatch')
+		expect(authorityDecisionRows).toHaveLength(1)
+		expect(signing).not.toHaveBeenCalled()
+		expect(writeDispatchOccurrenceStart).not.toHaveBeenCalled()
+		expect(writeDispatchEvidence).not.toHaveBeenCalled()
 	})
 
 	it('rejects signing without connected selected capability authority', async () => {
@@ -847,7 +1945,7 @@ describe('wallet connection runtime normalization', () => {
 			},
 		]) {
 			mutateConnection(runtime.connections[0])
-			await expect(runtime.signMessage('wallet-session', 'Unauthorized')).rejects.toThrow()
+			await expect(runtime.signMessage({ connectionKey: 'wallet-session', message: 'Unauthorized', authorityPresentation: { submittedAt: 1 } })).rejects.toThrow()
 		}
 		expect(signing).not.toHaveBeenCalled()
 		expect(writeWalletRequest).not.toHaveBeenCalled()
@@ -882,7 +1980,7 @@ describe('wallet connection runtime normalization', () => {
 		})
 
 		await runtime.connect(connection.walletId)
-		await expect(runtime.signMessage(connection.connectionKey, 'Audit separately')).rejects.toThrow(
+		await expect(runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Audit separately', authorityPresentation: { submittedAt: 1 } })).rejects.toThrow(
 			'Audit digest unavailable'
 		)
 
@@ -926,7 +2024,7 @@ describe('wallet connection runtime normalization', () => {
 		})
 
 		await runtime.connect(connection.walletId)
-		await expect(runtime.signMessage(connection.connectionKey, 'Persist terminal history')).rejects.toThrow(
+		await expect(runtime.signMessage({ connectionKey: connection.connectionKey, message: 'Persist terminal history', authorityPresentation: { submittedAt: 1 } })).rejects.toThrow(
 			'Wallet signature succeeded but audit persistence failed; do not retry as a wallet rejection'
 		)
 
@@ -1635,7 +2733,6 @@ describe('wallet connection runtime normalization', () => {
 					WalletCapability.WatchAccounts,
 					WalletCapability.WatchScopes,
 					WalletCapability.SignMessage,
-					WalletCapability.SignTransaction,
 				],
 			}),
 			expect.objectContaining({
@@ -1818,6 +2915,7 @@ describe('wallet connection runtime normalization', () => {
 					WalletCapability.ListAccounts,
 					WalletCapability.WatchAccounts,
 					WalletCapability.WatchScopes,
+					WalletCapability.SignStarknetTypedData,
 				],
 			}),
 			expect.objectContaining({
@@ -1831,6 +2929,7 @@ describe('wallet connection runtime normalization', () => {
 					WalletCapability.ListAccounts,
 					WalletCapability.WatchAccounts,
 					WalletCapability.WatchScopes,
+					WalletCapability.SignStarknetTypedData,
 				],
 			}),
 		])
@@ -2319,5 +3418,234 @@ describe('wallet connection runtime normalization', () => {
 		])
 
 		runtime.destroy()
+	})
+
+	describe('TON internal-message authority dispatch', () => {
+		const tonRequest = (): WalletTonInternalMessages => ({
+			network: '-239',
+			from: '0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			valid_until: 4_000_000_000,
+			messages: [
+				{
+					address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+					amount: '1000',
+					payload: 'te6ccgEBAQEA',
+					extra_currency: {
+						'2': '7',
+						'1': '3',
+					},
+				},
+			],
+		})
+		const mountTon = (options: Parameters<typeof mountMockWalletRuntime>[0] = {}) => mountMockWalletRuntime({
+			candidateProtocol: WalletProtocol.TonConnect,
+			candidateDiscoveryKind: WalletDiscoveryKind.InjectedGlobal,
+			candidateCapabilities: [
+				WalletCapability.Connect,
+				WalletCapability.SignTransaction,
+			],
+			accountNamespace: 'ton',
+			accountReference: '-239',
+			accountAddress: '0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+			accountCapabilities: [WalletCapability.SignTransaction],
+			persistedProtocol: WalletProtocol.TonConnect,
+			persistedStatus: BlockheadConnectionStatus.Connected,
+			...options,
+		})
+
+		it('persists the protocol envelope, dispatches once, and records the internal BOC hash', async () => {
+			const signTonInternalMessages = vi.fn(async () => 'te6ccgEBAQEB')
+			const {
+				runtime,
+				hydration,
+				writeActionAuthorityRequest,
+				writeDispatchEvidence,
+			} = await mountTon({ signTonInternalMessages })
+			await hydration
+			const result = await runtime.signTonInternalMessages({
+				connectionKey: 'persisted-session',
+				request: tonRequest(),
+				authorityPresentation: { submittedAt: 1 },
+			})
+			expect(result.internalBoc).toBe('te6ccgEBAQEB')
+			expect(signTonInternalMessages).toHaveBeenCalledTimes(1)
+			expect(signTonInternalMessages.mock.calls[0]?.[2]).toEqual(tonRequest())
+			expect(writeActionAuthorityRequest.mock.calls[0]?.[1]).toMatchObject({
+				envelope: {
+					adapterKey: 'ton.internal-message-sign',
+					value: {
+						namespace: 'ton',
+						reference: '-239',
+						method: 'signMessage',
+					},
+				},
+			})
+			expect(writeDispatchEvidence.mock.calls.at(-1)?.[2]).toMatchObject({
+				kind: 'returned',
+				response: {
+					adapterKey: 'ton.internal-message-sign',
+					value: {
+						internalBocHash: expect.stringMatching(/^0x[0-9a-f]{64}$/),
+					},
+				},
+			})
+			runtime.destroy()
+		})
+
+		it('uses the synchronous request snapshot while history persistence is delayed', async () => {
+			const authorityPersistence = Promise.withResolvers<void>()
+			const signTonInternalMessages = vi.fn(async () => 'te6ccgEBAQEB')
+			const {
+				runtime,
+				hydration,
+			} = await mountTon({
+				signTonInternalMessages,
+				persistActionAuthorityRequest: async () => authorityPersistence.promise,
+			})
+			await hydration
+			const request = tonRequest()
+			const pending = runtime.signTonInternalMessages({
+				connectionKey: 'persisted-session',
+				request,
+				authorityPresentation: { submittedAt: 1 },
+			})
+			await Promise.resolve()
+			request.messages[0].amount = '999999'
+			request.messages[0].extra_currency = { '9': '99' }
+			authorityPersistence.resolve()
+			await pending
+			expect(signTonInternalMessages.mock.calls[0]?.[2]).toEqual(tonRequest())
+			runtime.destroy()
+		})
+
+		it('fences adapter-registration ABA before dispatch without a provider call', async () => {
+			const authorityPersistence = Promise.withResolvers<void>()
+			const signTonInternalMessages = vi.fn(async () => 'te6ccgEBAQEB')
+			const {
+				runtime,
+				hydration,
+				updateAdapterCandidates,
+			} = await mountTon({
+				signTonInternalMessages,
+				persistActionAuthorityRequest: async () => authorityPersistence.promise,
+			})
+			await hydration
+			const pending = runtime.signTonInternalMessages({
+				connectionKey: 'persisted-session',
+				request: tonRequest(),
+				authorityPresentation: { submittedAt: 1 },
+			})
+			await Promise.resolve()
+			updateAdapterCandidates([])
+			updateAdapterCandidates([
+				{
+					id: 'eip6963:com.example.wallet',
+					name: 'Example Wallet',
+					icon: '',
+					protocol: WalletProtocol.TonConnect,
+					discoveryKind: WalletDiscoveryKind.InjectedGlobal,
+					transportKind: WalletTransportKind.InjectedProvider,
+					capabilities: [
+						WalletCapability.Connect,
+						WalletCapability.SignTransaction,
+					],
+				},
+			])
+			authorityPersistence.resolve()
+			await expect(pending).rejects.toThrow('adapter registration changed')
+			expect(signTonInternalMessages).not.toHaveBeenCalled()
+			runtime.destroy()
+		})
+
+		it('records provider-declared rejection as definite rejection', async () => {
+			const { WalletAdapterProviderRejection } = await import('$/state/wallets/adapters/types.ts')
+			const rejected = vi.fn(async () => {
+				throw new WalletAdapterProviderRejection('wallet rejected signing')
+			})
+			const rejectedRuntime = await mountTon({ signTonInternalMessages: rejected })
+			await rejectedRuntime.hydration
+			await expect(rejectedRuntime.runtime.signTonInternalMessages({
+				connectionKey: 'persisted-session',
+				request: tonRequest(),
+				authorityPresentation: { submittedAt: 1 },
+			})).rejects.toThrow('wallet rejected signing')
+			expect(rejectedRuntime.writeDispatchEvidence.mock.calls.at(-1)?.[2]).toMatchObject({ kind: 'definite-rejection' })
+			rejectedRuntime.runtime.destroy()
+		})
+
+		it('records transport errors as ambiguous without claiming wallet rejection', async () => {
+			const transportFailure = vi.fn(async () => {
+				throw new Error('bridge disconnected')
+			})
+			const transportRuntime = await mountTon({ signTonInternalMessages: transportFailure })
+			await transportRuntime.hydration
+			await expect(transportRuntime.runtime.signTonInternalMessages({
+				connectionKey: 'persisted-session',
+				request: tonRequest(),
+				authorityPresentation: { submittedAt: 1 },
+			})).rejects.toThrow('bridge disconnected')
+			expect(transportRuntime.writeDispatchEvidence.mock.calls.at(-1)?.[2]).toMatchObject({
+				kind: 'ambiguous',
+				reason: 'response-unreadable',
+			})
+			transportRuntime.runtime.destroy()
+		})
+
+		it('records malformed provider responses as response-audit failure', async () => {
+			const { WalletAdapterResponseAuditFailure: ResponseAuditFailure } = await import('$/state/wallets/adapters/types.ts')
+			const audited = vi.fn(async () => {
+				throw new ResponseAuditFailure('malformed response', {
+					malformed: true,
+				})
+			})
+			const auditedRuntime = await mountTon({ signTonInternalMessages: audited })
+			await auditedRuntime.hydration
+			await expect(auditedRuntime.runtime.signTonInternalMessages({
+				connectionKey: 'persisted-session',
+				request: tonRequest(),
+				authorityPresentation: { submittedAt: 1 },
+			})).rejects.toThrow('malformed response')
+			expect(auditedRuntime.writeDispatchEvidence.mock.calls.at(-1)?.[2]).toMatchObject({ kind: 'response-audit-failure' })
+			auditedRuntime.runtime.destroy()
+		})
+
+		it('does not retry after terminal evidence persistence failure', async () => {
+			const returned = vi.fn(async () => 'te6ccgEBAQEB')
+			const terminalRuntime = await mountTon({
+				signTonInternalMessages: returned,
+				persistWalletRequestSubmittedAt: async () => {
+					throw new Error('history unavailable')
+				},
+			})
+			await terminalRuntime.hydration
+			await expect(terminalRuntime.runtime.signTonInternalMessages({
+				connectionKey: 'persisted-session',
+				request: tonRequest(),
+				authorityPresentation: { submittedAt: 1 },
+			})).rejects.toThrow('do not retry')
+			expect(returned).toHaveBeenCalledTimes(1)
+			expect(terminalRuntime.writeDispatchEvidence.mock.calls.at(-1)?.[2]).toMatchObject({ kind: 'returned' })
+			terminalRuntime.runtime.destroy()
+		})
+
+		it('does not retry when returned dispatch evidence persistence fails', async () => {
+			const returned = vi.fn(async () => 'te6ccgEBAQEB')
+			const writeEvidence = vi.fn(async () => {
+				throw new Error('journal unavailable')
+			})
+			const evidenceRuntime = await mountTon({
+				signTonInternalMessages: returned,
+				persistDispatchEvidence: writeEvidence,
+			})
+			await evidenceRuntime.hydration
+			await expect(evidenceRuntime.runtime.signTonInternalMessages({
+				connectionKey: 'persisted-session',
+				request: tonRequest(),
+				authorityPresentation: { submittedAt: 1 },
+			})).rejects.toThrow('do not retry')
+			expect(returned).toHaveBeenCalledTimes(1)
+			expect(writeEvidence).toHaveBeenCalledTimes(1)
+			evidenceRuntime.runtime.destroy()
+		})
 	})
 })
