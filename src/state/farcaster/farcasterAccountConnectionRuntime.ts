@@ -87,6 +87,7 @@ export const createFarcasterAccountConnectionRuntime = ({
 		throw new Error('Trusted Farcaster app FID must be a positive safe integer')
 
 	const challengeById = new Map<string, FarcasterAccountConnectionChallenge>()
+	const claimedChallengeIds = new Set<string>()
 	const consumedChallengeIds = new Set<string>()
 	const connectionById = new Map<string, FarcasterAccountConnection>()
 
@@ -101,6 +102,19 @@ export const createFarcasterAccountConnectionRuntime = ({
 			throw new Error('Farcaster connection challenge already exists')
 
 		challengeById.set(challenge.challengeId, challenge)
+		return challenge
+	}
+
+	const claimChallengeAttempt = (challenge: FarcasterAccountConnectionChallenge) => {
+		const issuedChallenge = challengeById.get(challenge.challengeId)
+		if (issuedChallenge == null || JSON.stringify(issuedChallenge) !== JSON.stringify(challenge))
+			throw new Error('Farcaster connection challenge mismatch')
+		if (challenge.expiresAt <= now())
+			throw new Error('Farcaster connection challenge expired')
+		if (claimedChallengeIds.has(challenge.challengeId))
+			throw new Error('Farcaster connection challenge attempt already claimed')
+
+		claimedChallengeIds.add(challenge.challengeId)
 		return challenge
 	}
 
@@ -210,6 +224,7 @@ export const createFarcasterAccountConnectionRuntime = ({
 
 	return {
 		issueChallenge,
+		claimChallengeAttempt,
 		consumeChallenge,
 		revalidateConnection,
 		selectConnection,
