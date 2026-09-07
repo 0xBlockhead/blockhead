@@ -22,6 +22,11 @@ export const EvmTopicHash = type(
 	'/^0x[0-9a-f]{64}$/' as type.cast<`0x${string}`>
 )
 
+/** JSON-RPC quantity: `0x` + one or more hex digits (EVM block tags, balances, gas). */
+export const EvmRpcQuantity = type(
+	'/^0x[0-9a-fA-F]+$/' as type.cast<`0x${string}`>
+)
+
 export const lowercaseHexIdentityValue: EntityFieldValueNormalizer = (value) => (
 	String(value).toLowerCase()
 )

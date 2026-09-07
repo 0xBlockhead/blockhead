@@ -2368,6 +2368,8 @@ export const writeLocalBlockheadSessionSimulation = async (
 		createdAt: simulation.createdAt,
 		completedAt: simulation.completedAt,
 		paramsHash: simulation.paramsHash,
+		executionSourceKind: simulation.executionSourceKind,
+		executionSourceVersion: simulation.executionSourceVersion,
 		forkBlockNumber: simulation.forkBlockNumber,
 		forkRpcOrigin: simulation.forkRpcOrigin,
 		actionCount: simulation.actionCount,
@@ -2389,6 +2391,17 @@ export const writeLocalBlockheadSessionSimulation = async (
 			entitySelector,
 			'$session',
 			[sessionEntitySelector]
+		),
+		replaceLocalEntityReferenceFieldRows(
+			context,
+			EntityType.BlockheadSessionSimulation,
+			entitySelector,
+			'$executionNetwork',
+			(simulation.$executionNetwork === undefined ? []
+				: [
+					simulation.$executionNetwork[EntityMetaKey.Selector],
+				]
+			)
 		),
 		replaceLocalEntityReferenceFieldRows(
 			context,
@@ -2523,6 +2536,7 @@ export const writeLocalBlockheadSessionSimulation = async (
 		]),
 		...[
 			'$session',
+			'$executionNetwork',
 			...Object.keys(primitiveFields),
 			'$$calls',
 			'$$logs',

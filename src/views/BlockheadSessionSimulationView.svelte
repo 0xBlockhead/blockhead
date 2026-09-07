@@ -43,6 +43,7 @@
 
 
 	// Components
+	import BlockheadSessionSimulationDownloadView from '$/views/BlockheadSessionSimulationDownloadView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -304,6 +305,10 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<section data-column="gap-2">
+			<BlockheadSessionSimulationDownloadView {selection} />
+		</section>
 	{/snippet}
 
 	{#snippet Details()}

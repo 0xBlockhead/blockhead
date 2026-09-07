@@ -17358,6 +17358,9 @@ export const schema = {
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"completedAt": { label: "completed AT", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"paramsHash": { label: "params hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "Hash32" },
+				"executionSourceKind": { label: "execution source kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"executionSourceVersion": { label: "execution source version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"$executionNetwork": { label: "execution network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 				"forkBlockNumber": { label: "fork block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"forkRpcOrigin": { label: "fork RPC origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"actionCount": { label: "action count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -17372,6 +17375,9 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						imports: [
+							{ from: "$/views/BlockheadSessionSimulationDownloadView.svelte", default: "BlockheadSessionSimulationDownloadView" },
+						],
 						query: {
 							sources: [Source.Local_Internal],
 							fields: ["status", "createdAt", "paramsHash"],
@@ -17382,6 +17388,20 @@ export const schema = {
 							dl: [
 								["$session", "status", { field: "createdAt", format: "timestamp" }, { field: "completedAt", format: "timestamp" }, "paramsHash"],
 								[{ field: "forkBlockNumber", format: "number" }, { field: "actionCount", format: "number" }, { field: "gasUsed", format: "number" }, "resultPayloadHash", "error"],
+							],
+							blocks: [
+								[
+									{
+										kind: _ViewItemKind.Block,
+										id: "simulation-download",
+										Content: {
+											...dedent `
+											<BlockheadSessionSimulationDownloadView {selection} />
+											`,
+											references: ["selection"],
+										},
+									},
+								],
 							],
 						},
 						lists: [
