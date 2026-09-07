@@ -112,6 +112,7 @@ This method is updated to support the new `ExecutionPayloadV4` structure.
   2. `expectedBlobVersionedHashes`: `Array of DATA`, 32 Bytes - Array of expected blob versioned hashes to validate.
   3. `parentBeaconBlockRoot`: `DATA`, 32 Bytes - Root of the parent beacon block.
   4. `executionRequests`: `Array of DATA` - List of execution layer triggered requests.
+* timeout: 6s
 
 #### Response
 
@@ -124,6 +125,8 @@ This method follows the same specification as [`engine_newPayloadV4`](./prague.m
 1. Client software **MUST** return `-38005: Unsupported fork` error if the `timestamp` of the payload does not fall within the time frame of the Amsterdam fork.
 
 2. Client software **MUST** return `-32602: Invalid params` error if the `blockAccessList` field is missing.
+
+3. Client software **MUST** return `{status: INVALID, latestValidHash: null, validationError: errorMessage | null}` if the `blockAccessList` field is not a valid RLP encoding of the block access list as defined in [EIP-7928](https://eips.ethereum.org/EIPS/eip-7928).
 
 ### engine_getPayloadV6
 
