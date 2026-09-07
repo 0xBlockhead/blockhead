@@ -1,7 +1,15 @@
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { SvelteMap } from 'svelte/reactivity'
-import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
+import {
+	WalletAdapterPreDispatchFailure,
+	WalletAdapterResponseAuditFailure,
+	type WalletAdapter,
+	type WalletCandidate,
+	type WalletConnection,
+	type WalletStarknetTypedData,
+} from './types.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type StarknetRequest =
@@ -14,6 +22,13 @@ type StarknetRequest =
 	| {
 		type: 'wallet_requestChainId'
 	}
+	| {
+		type: 'wallet_signTypedData'
+		params: {
+			typed_data: WalletStarknetTypedData
+			api_version?: string
+		}
+	}
 
 type StarknetWindowObject = {
 	id?: string
@@ -21,6 +36,7 @@ type StarknetWindowObject = {
 	icon?: string
 	request(call: Extract<StarknetRequest, { type: 'wallet_requestAccounts' }>): Promise<string[]>
 	request(call: Extract<StarknetRequest, { type: 'wallet_requestChainId' }>): Promise<string>
+	request(call: Extract<StarknetRequest, { type: 'wallet_signTypedData' }>): Promise<JsonValue>
 	on(event: 'accountsChanged', listener: (accounts?: string[]) => void): void
 	on(event: 'networkChanged', listener: (chainId?: string, accounts?: string[]) => void): void
 	off(event: 'accountsChanged', listener: (accounts?: string[]) => void): void
@@ -47,6 +63,7 @@ const starknetConnectionCapabilities = [
 	WalletCapability.ListAccounts,
 	WalletCapability.WatchAccounts,
 	WalletCapability.WatchScopes,
+	WalletCapability.SignStarknetTypedData,
 ] satisfies WalletCapability[]
 
 const starknetPrime = 0x800000000000011000000000000000000000000000000000000000000000001n
@@ -82,6 +99,35 @@ const starknetReference = (chainId: string) => {
 	return reference
 }
 
+const starknetSignature = (returnedValue: JsonValue) => {
+	// oxlint-disable-next-line no-runtime-shape-guards/guards -- Starknet Wallet API output is an untrusted JsonValue wire boundary.
+	if (!Array.isArray(returnedValue))
+		throw new WalletAdapterResponseAuditFailure(
+			'Starknet wallet returned a malformed typed data signature',
+			returnedValue
+		)
+
+	const signature = returnedValue.map((felt) => {
+		// oxlint-disable-next-line no-runtime-shape-guards/guards -- Starknet Wallet API signature items are untrusted JsonValue wire values.
+		if (typeof felt !== 'string' || !/^0x[0-9a-fA-F]{1,64}$/.test(felt))
+			throw new WalletAdapterResponseAuditFailure(
+				'Starknet wallet returned a malformed typed data signature',
+				returnedValue
+			)
+
+		const fieldElement = BigInt(felt)
+		if (fieldElement >= starknetPrime)
+			throw new WalletAdapterResponseAuditFailure(
+				'Starknet wallet returned a malformed typed data signature',
+				returnedValue
+			)
+
+		return `0x${fieldElement.toString(16)}`
+	})
+
+	return signature
+}
+
 const starknetConnection = (
 	walletId: string,
 	state: StarknetConnectionState,
@@ -102,6 +148,7 @@ const starknetConnection = (
 				methods: [
 					'wallet_requestAccounts',
 					'wallet_requestChainId',
+					'wallet_signTypedData',
 				],
 				events: [
 					'accountsChanged',
@@ -216,6 +263,42 @@ export const createStarknetWalletApiAdapter = (): WalletAdapter => {
 			stateByWalletId.set(walletId, state)
 
 			return starknetConnection(walletId, state)
+		},
+		signStarknetTypedData: async (
+			walletId,
+			accountAddress,
+			reference,
+			typedData,
+			apiVersion
+		) => {
+			const wallet = walletByWalletId.get(walletId)
+			const state = stateByWalletId.get(walletId)
+			if (wallet == null || state == null)
+				throw new WalletAdapterPreDispatchFailure('Selected Starknet wallet is not connected')
+
+			let normalizedAccount: string
+			try {
+				normalizedAccount = starknetAccounts([accountAddress])[0]
+			}
+			catch {
+				throw new WalletAdapterPreDispatchFailure('Selected Starknet account is invalid')
+			}
+			if (
+				state.reference !== reference
+				|| typedData.domain.chainId !== reference
+				|| state.accounts[0] !== normalizedAccount
+			)
+				throw new WalletAdapterPreDispatchFailure(
+					'Selected Starknet account or chain does not match the connected wallet'
+				)
+
+			return starknetSignature(await wallet.request({
+				type: 'wallet_signTypedData',
+				params: {
+					typed_data: typedData,
+					...(apiVersion !== undefined && { api_version: apiVersion }),
+				},
+			}))
 		},
 		disconnect: (walletId) => {
 			stateByWalletId.delete(walletId)

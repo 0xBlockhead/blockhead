@@ -330,7 +330,10 @@ const bitcoinConnection = (
 			namespace: 'bip122',
 			reference: bitcoinReference(network),
 			accountAddress: address,
-			capabilities: [...bitcoinConnectionCapabilities],
+			capabilities: bitcoinConnectionCapabilities.filter((capability) => (
+				capability !== WalletCapability.SignTransaction
+				|| state.methods.includes('signPsbt')
+			)),
 		}))
 
 	return buildWalletConnection({
@@ -380,14 +383,13 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 			connectedAt,
 			protocol: WalletProtocol.SatsConnect,
 			methods: method === 'getAddresses' ?
-				['getAddresses', 'signMessage', 'signPsbt']
+				['getAddresses', 'signMessage']
 			:
 				[
 					'wallet_connect',
 					'wallet_getAccount',
 					'wallet_disconnect',
 					'signMessage',
-					'signPsbt',
 				],
 			events: method === 'getAddresses' ? [] : ['accountChange', 'accountDisconnected', 'networkChange'],
 		}
@@ -409,7 +411,7 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 				'requestAccounts',
 				'getChain',
 				'signMessage',
-				'signPsbt',
+				...(provider.signPsbt != null ? ['signPsbt'] as const : []),
 			],
 			events: ['accountsChanged', 'networkChanged'],
 		}
@@ -446,7 +448,13 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 					capabilities: window.XverseProviders.BitcoinProvider == null ?
 						[WalletCapability.Discover]
 					:
-						[WalletCapability.Discover, ...bitcoinConnectionCapabilities, WalletCapability.Disconnect],
+						[
+							WalletCapability.Discover,
+							...bitcoinConnectionCapabilities.filter((capability) => (
+								capability !== WalletCapability.SignTransaction
+							)),
+							WalletCapability.Disconnect,
+						],
 				})
 			}
 			if (window.unisat != null) {
@@ -458,7 +466,15 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 					protocol: WalletProtocol.BitcoinInjected,
 					discoveryKind: WalletDiscoveryKind.InjectedGlobal,
 					transportKind: WalletTransportKind.InjectedSigner,
-					capabilities: [WalletCapability.Discover, ...bitcoinConnectionCapabilities],
+					capabilities: [
+						WalletCapability.Discover,
+						...window.unisat.signPsbt != null ?
+							bitcoinConnectionCapabilities
+						:
+							bitcoinConnectionCapabilities.filter((capability) => (
+								capability !== WalletCapability.SignTransaction
+							)),
+					],
 				})
 			}
 			if (window.magicEden?.bitcoin != null)
@@ -566,7 +582,7 @@ export const createBitcoinInjectedAdapter = (): WalletAdapter => {
 										'requestAccounts',
 										'getChain',
 										'signMessage',
-										'signPsbt',
+										...(provider.provider.signPsbt != null ? ['signPsbt'] as const : []),
 									],
 									events: ['accountsChanged', 'networkChanged'],
 								})

@@ -2,11 +2,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WalletCapability } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { base58 } from '@scure/base'
+import { ed25519 } from '@noble/curves/ed25519.js'
 import { createWalletStandardAdapter } from './walletStandard.ts'
 import type { WalletCandidate, WalletConnection } from './types.ts'
 
 const solanaMainnetReference = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
-const firstSolanaAccount = '11111111111111111111111111111111'
+const signingPrivateKey = new Uint8Array(32).fill(7)
+const firstSolanaAccount = base58.encode(ed25519.getPublicKey(signingPrivateKey))
 const secondSolanaAccount = 'SysvarRent111111111111111111111111111111111'
 const thirdSolanaAccount = 'Vote111111111111111111111111111111111111111'
 
@@ -18,6 +20,7 @@ type StandardAccount = {
 	address: string
 	chains: string[]
 	features: string[]
+	publicKey?: Uint8Array
 }
 
 const account = (
@@ -27,14 +30,15 @@ const account = (
 	address,
 	chains,
 	features: ['solana:signMessage'],
+	...(address === firstSolanaAccount && { publicKey: ed25519.getPublicKey(signingPrivateKey) }),
 })
 
 const wallet = ({
 	name = 'Standard Wallet',
 	connect = vi.fn(async () => ({ accounts: [account()] })),
 	disconnect = vi.fn(async () => {}),
-	signMessage = vi.fn(async () => [{
-		signature: new Uint8Array(64).fill(7),
+	signMessage = vi.fn(async ({ message }: { message: Uint8Array }) => [{
+		signature: ed25519.sign(message, signingPrivateKey),
 	}]),
 	includeSignMessageFeature = false,
 } = {}) => {
@@ -349,8 +353,8 @@ describe('Wallet Standard adapter', () => {
 
 	it('advertises SignMessage and signs via solana:signMessage when the feature exists', async () => {
 		const mounted = mountRegistry()
-		const signMessage = vi.fn(async () => [{
-			signature: new Uint8Array(64).fill(7),
+		const signMessage = vi.fn(async ({ message }: { message: Uint8Array }) => [{
+			signature: ed25519.sign(message, signingPrivateKey),
 		}])
 		const standardWallet = wallet({
 			includeSignMessageFeature: true,
@@ -376,7 +380,10 @@ describe('Wallet Standard adapter', () => {
 			'wallet-standard:Standard Wallet',
 			firstSolanaAccount,
 			'Sign this private challenge'
-		)).resolves.toBe(base58.encode(new Uint8Array(64).fill(7)))
+		)).resolves.toBe(base58.encode(ed25519.sign(
+			new TextEncoder().encode('Sign this private challenge'),
+			signingPrivateKey
+		)))
 
 		expect(signMessage).toHaveBeenCalledWith({
 			account: expect.objectContaining({

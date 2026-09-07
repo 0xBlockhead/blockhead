@@ -3,7 +3,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WalletCapability } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { createStarknetWalletApiAdapter } from './starknetWalletApi.ts'
-import type { WalletCandidate, WalletConnection } from './types.ts'
+import {
+	isWalletAdapterPreDispatchFailure,
+	isWalletAdapterResponseAuditFailure,
+	type WalletAdapter,
+	type WalletCandidate,
+	type WalletConnection,
+	type WalletStarknetTypedData,
+} from './types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const firstAddress = '0x1234'
 const normalizedFirstAddress = '0x0000000000000000000000000000000000000000000000000000000000001234'
@@ -13,18 +21,51 @@ const maximumFieldElement = '0x0800000000000011000000000000000000000000000000000
 const starknetPrime = '0x800000000000011000000000000000000000000000000000000000000000001'
 const mainnetChainId = '0x534e5f4d41494e'
 const sepoliaChainId = '0x534e5f5345504f4c4941'
+const typedData = {
+	types: {
+		StarknetDomain: [
+			{ name: 'name', type: 'shortstring' },
+			{ name: 'version', type: 'shortstring' },
+			{ name: 'chainId', type: 'shortstring' },
+			{ name: 'revision', type: 'shortstring' },
+		],
+		Message: [
+			{ name: 'contents', type: 'felt' },
+		],
+	},
+	primaryType: 'Message',
+	domain: {
+		name: 'Blockhead',
+		version: '1',
+		chainId: 'SN_MAIN',
+		revision: '1',
+	},
+	message: {
+		contents: '0x1234',
+	},
+} satisfies WalletStarknetTypedData
+
+const starknetSigner = (adapter: WalletAdapter) => {
+	if (adapter.signStarknetTypedData == null)
+		throw new Error('Starknet signing hook is unavailable')
+
+	return adapter.signStarknetTypedData
+}
 
 const setup = () => {
 	let accountListener = (_accounts?: string[]) => {}
 	let networkListener = (_chainId?: string, _accounts?: string[]) => {}
 	let accounts = [firstAddress]
 	let chainId = mainnetChainId
+	let signatureResponse: JsonValue = ['0x01', '0xAbC']
 	const wallet = {
 		id: 'argentX',
 		name: 'Argent X wallet',
 		icon: 'data:image/svg+xml,<svg/>',
 		request: vi.fn(async (call: { type: string }) => (
-			call.type === 'wallet_requestAccounts' ? accounts : chainId
+			call.type === 'wallet_requestAccounts' ? accounts
+			: call.type === 'wallet_requestChainId' ? chainId
+			: signatureResponse
 		)),
 		on: (
 			event: string,
@@ -57,6 +98,9 @@ const setup = () => {
 			networkListener(nextChainId, nextAccounts)
 		},
 		remainingListeners: () => Number(accountListener.length > 0) + Number(networkListener.length > 0),
+		signatureResponse: (nextResponse: JsonValue) => {
+			signatureResponse = nextResponse
+		},
 		wallet,
 	}
 }
@@ -98,6 +142,7 @@ describe('Starknet Wallet API adapter', () => {
 					WalletCapability.ListAccounts,
 					WalletCapability.WatchAccounts,
 					WalletCapability.WatchScopes,
+					WalletCapability.SignStarknetTypedData,
 				],
 			}),
 			expect.objectContaining({
@@ -162,6 +207,114 @@ describe('Starknet Wallet API adapter', () => {
 		expect(wallet.request).toHaveBeenNthCalledWith(2, {
 			type: 'wallet_requestChainId',
 		})
+		expect((await adapter.connect('starknet:argentx'))?.scopes[0]?.methods).toContain(
+			'wallet_signTypedData'
+		)
+	})
+
+	it('sends the exact Wallet API typed-data request and normalizes returned signature felts', async () => {
+		const { wallet } = setup()
+		const adapter = createStarknetWalletApiAdapter()
+		adapter.start(() => {})
+		await adapter.connect('starknet:argentx')
+
+		await expect(starknetSigner(adapter)(
+			'starknet:argentx',
+			normalizedFirstAddress,
+			'SN_MAIN',
+			typedData,
+			'0.8'
+		)).resolves.toEqual(['0x1', '0xabc'])
+		expect(wallet.request).toHaveBeenLastCalledWith({
+			type: 'wallet_signTypedData',
+			params: {
+				typed_data: typedData,
+				api_version: '0.8',
+			},
+		})
+	})
+
+	it('refuses mismatched selected account or chain before provider dispatch', async () => {
+		const { wallet } = setup()
+		const adapter = createStarknetWalletApiAdapter()
+		adapter.start(() => {})
+		await adapter.connect('starknet:argentx')
+		const sign = starknetSigner(adapter)
+		const requestCount = wallet.request.mock.calls.length
+
+		for (const {
+			accountAddress,
+			reference,
+			nextTypedData,
+		} of [
+			{
+				accountAddress: normalizedSecondAddress,
+				reference: 'SN_MAIN',
+				nextTypedData: typedData,
+			},
+			{
+				accountAddress: normalizedFirstAddress,
+				reference: 'SN_SEPOLIA',
+				nextTypedData: {
+					...typedData,
+						domain: {
+							...typedData.domain,
+							chainId: 'SN_SEPOLIA',
+						},
+					},
+				},
+				{
+				accountAddress: normalizedFirstAddress,
+				reference: 'SN_MAIN',
+				nextTypedData: {
+					...typedData,
+					domain: {
+						...typedData.domain,
+						chainId: 'SN_SEPOLIA',
+					},
+				},
+			},
+		]) {
+			const error = await sign(
+				'starknet:argentx',
+				accountAddress,
+				reference,
+				nextTypedData
+			).catch((caught: object) => caught)
+			expect(isWalletAdapterPreDispatchFailure(error)).toBe(true)
+		}
+		expect(wallet.request).toHaveBeenCalledTimes(requestCount)
+	})
+
+	it('audits malformed signature responses without replacing provider rejections', async () => {
+		const {
+			signatureResponse,
+			wallet,
+		} = setup()
+		const adapter = createStarknetWalletApiAdapter()
+		adapter.start(() => {})
+		await adapter.connect('starknet:argentx')
+		const sign = starknetSigner(adapter)
+
+		signatureResponse(['not-a-felt'])
+		const responseError = await sign(
+			'starknet:argentx',
+			normalizedFirstAddress,
+			'SN_MAIN',
+			typedData
+		).catch((caught: object) => caught)
+		expect(isWalletAdapterResponseAuditFailure(responseError)).toBe(true)
+		if (isWalletAdapterResponseAuditFailure(responseError))
+			expect(responseError.returnedValue).toEqual(['not-a-felt'])
+
+		const rejection = Object.assign(new Error('User refused'), { code: 113 })
+		wallet.request.mockRejectedValueOnce(rejection)
+		await expect(sign(
+			'starknet:argentx',
+			normalizedFirstAddress,
+			'SN_MAIN',
+			typedData
+		)).rejects.toBe(rejection)
 	})
 
 	it('reconnects silently, tracks both specified events, and removes listeners', async () => {

@@ -1,14 +1,17 @@
 import { Caip2Namespace, Caip2Reference } from '$/constants/Network.ts'
 import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { base58 } from '@scure/base'
 import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { createSolanaSignMessageResponseAudit } from './solanaSignMessageResponse.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type StandardWalletAccount = {
 	readonly address: string
 	readonly chains: readonly string[]
 	readonly features: readonly string[]
+	readonly publicKey?: Uint8Array
 }
 
 type StandardConnectFeature = {
@@ -115,6 +118,7 @@ export type StandardWallet = {
 		readonly 'standard:events'?: StandardEventsFeature
 		readonly 'standard:disconnect'?: StandardDisconnectFeature
 		readonly 'solana:signMessage'?: SolanaSignMessageFeature
+		readonly 'sui:signPersonalMessage'?: SuiSignPersonalMessageFeature
 	}
 }
 
@@ -172,15 +176,23 @@ const accountFeatureCapabilities = (features: readonly string[]) => [
 		[WalletCapability.SignMessage]
 	:
 		[]),
-	...(features.includes('solana:signTransaction') ?
-		[WalletCapability.SignTransaction]
-	:
-		[]),
-	...(features.includes('solana:signAndSendTransaction') ?
-		[WalletCapability.SendTransaction]
-	:
-		[]),
 ] satisfies WalletCapability[]
+
+const solanaAccountHasBoundPublicKey = (
+	account: StandardWalletAccount
+) => {
+	if (!(account.publicKey instanceof Uint8Array) || account.publicKey.byteLength !== 32)
+		return false
+
+	try {
+		const decodedAddress = base58.decode(account.address)
+		return decodedAddress.length === 32
+			&& base58.encode(decodedAddress) === account.address
+			&& decodedAddress.every((byte, index) => byte === account.publicKey?.[index])
+	} catch {
+		return false
+	}
+}
 
 const capabilitiesFromWallet = (wallet: StandardWallet) => [
 	WalletCapability.Discover,
@@ -212,14 +224,9 @@ const capabilitiesFromAccount = (
 ) => [
 	...capabilitiesFromWallet(wallet),
 	...accountFeatureCapabilities(account.features),
-] satisfies WalletCapability[]
-
-const normalizeSolanaSignature = (signature: Uint8Array | string) => (
-	typeof signature === 'string' ?
-		signature
-	:
-		base58.encode(signature)
-)
+].filter((capability) => (
+	capability !== WalletCapability.SignMessage || solanaAccountHasBoundPublicKey(account)
+)) satisfies WalletCapability[]
 
 const walletStandardChain = (chain: string) => (
 	chain === 'solana:mainnet' ?
@@ -294,7 +301,13 @@ const walletConnection = (
 						return normalizedChain != null
 							&& `${normalizedChain.namespace}:${normalizedChain.reference}` === chain
 					}))
-					.flatMap((account) => account.features))],
+					.flatMap((account) => (
+						solanaAccountHasBoundPublicKey(account)
+							&& account.features.includes('solana:signMessage') ?
+							['solana:signMessage']
+						:
+							[]
+					)))],
 				events: eventsFeature(wallet) == null ?
 					[]
 				:
@@ -333,6 +346,8 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 				// Aptos AIP-62 wallets share the Wallet Standard registry events but are owned by aptosAip62.
 				// oxlint-disable-next-line no-runtime-shape-guards/guards -- Callable aptos:connect is the AIP-62 ownership signal.
 				if (typeof wallet.features?.['aptos:connect']?.connect === 'function') continue
+				if (wallet.features?.['sui:signPersonalMessage'] != null && signMessageFeature(wallet) == null)
+					continue
 
 				let walletId = `wallet-standard:${wallet.name}`
 				let duplicateIndex = 2
@@ -423,18 +438,23 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 			const accounts = accountsByWalletId.get(walletId) ?? []
 			const account = accounts.find((candidate) => (
 				normalizeSolanaAccount(candidate.address) === accountAddress
+				&& candidate.chains.includes('solana:mainnet')
+				&& candidate.features.includes('solana:signMessage')
 			))
 			if (account == null)
 				throw new Error(`${wallet.name} is not connected with Solana account ${accountAddress}`)
 
-			const [output] = await solanaSignMessage.signMessage({
-				account,
-				message: new TextEncoder().encode(message),
+			const responseAudit = createSolanaSignMessageResponseAudit({
+				accountAddress: account.address,
+				publicKey: account.publicKey ?? new Uint8Array(),
+				message,
 			})
-			if (output?.signature == null)
-				throw new Error(`${wallet.name} returned an invalid solana:signMessage signature`)
+			const outputs = await solanaSignMessage.signMessage({
+				account,
+				message: responseAudit.messageForProvider(),
+			})
 
-			return normalizeSolanaSignature(output.signature)
+			return responseAudit.audit(outputs)
 		},
 		disconnect: async (walletId) => {
 			const wallet = walletById.get(walletId)
@@ -499,4 +519,12 @@ export const createWalletStandardAdapter = (): WalletAdapter => {
 			}
 		},
 	}
+}
+type SuiSignPersonalMessageFeature = {
+	readonly version: '1.1.0'
+	signPersonalMessage(input: {
+		readonly account: StandardWalletAccount
+		readonly chain?: string
+		readonly message: Uint8Array
+	}): Promise<JsonValue>
 }

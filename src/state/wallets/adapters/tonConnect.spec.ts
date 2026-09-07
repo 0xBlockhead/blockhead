@@ -4,14 +4,26 @@ import { readFile } from 'node:fs/promises'
 
 import { WalletCapability, WalletProtocol } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
+import {
+	WalletAdapterPreDispatchFailure,
+	WalletAdapterResponseAuditFailure,
+} from '$/state/wallets/adapters/types.ts'
 import { createTonConnectAdapter } from './tonConnect.ts'
-import type { WalletCandidate, WalletConnection } from './types.ts'
+import type {
+	WalletCandidate,
+	WalletConnection,
+	WalletTonInternalMessages,
+} from '$/state/wallets/adapters/types.ts'
 
 const address = `0:${'ab'.repeat(32)}`
+const destination = `EQ${'a'.repeat(46)}`
 
 const connectEvent = (
 	network = '-239',
-	accountAddress = address
+	accountAddress = address,
+	signMessageMaxMessages?: number,
+	extraCurrencySupported?: boolean
 ) => ({
 	event: 'connect' as const,
 	payload: {
@@ -22,6 +34,16 @@ const connectEvent = (
 				network,
 			},
 		],
+		...(signMessageMaxMessages != null && {
+			device: {
+				features: [{
+					name: 'SignMessage' as const,
+					maxMessages: signMessageMaxMessages,
+					...(extraCurrencySupported != null && { extraCurrencySupported }),
+					itemTypes: ['ton' as const],
+				}],
+			},
+		}),
 	},
 })
 
@@ -46,7 +68,7 @@ const createBridge = (restored: BridgeEvent) => {
 		bridge: {
 			connect: vi.fn(async (): Promise<BridgeEvent> => connectEvent()),
 			restoreConnection: vi.fn(async () => restored),
-			send: vi.fn(async () => ({})),
+			send: vi.fn(async (): Promise<JsonValue> => ({})),
 			listen: vi.fn((nextListener: typeof listener) => {
 				listener = nextListener
 
@@ -211,6 +233,567 @@ describe('TON Connect injected adapter', () => {
 			],
 		})
 		expect(mock.bridge.connect).not.toHaveBeenCalled()
+	})
+
+	it('negotiates exact-limit requests, increasing IDs, and no broadcast method', async () => {
+		vi.setSystemTime(new Date('2026-09-06T12:00:00Z'))
+		const mock = createBridge(connectEvent('-239', address, 2, true))
+		mock.bridge.send.mockResolvedValueOnce({
+			id: '1',
+			result: {
+				internalBoc: 'te6ccgEBAQEA',
+			},
+		}).mockResolvedValueOnce({
+			id: '2',
+			result: {
+				internalBoc: 'te6ccgEBAQEB',
+			},
+		})
+		vi.stubGlobal('window', {
+			location: { origin: 'https://blockhead.info' },
+			tonkeeper: { tonconnect: mock.bridge },
+		})
+
+		const adapter = createTonConnectAdapter()
+		adapter.start(() => {})
+		const connection = await adapter.connect('ton-connect:tonkeeper')
+		expect(connection?.activeAccount.capabilities).toContain(WalletCapability.SignTransaction)
+		expect(connection?.scopes[0]?.methods).toContain('signMessage')
+
+		await expect(adapter.signTonInternalMessages?.(
+			'ton-connect:tonkeeper',
+			address,
+			{
+				network: '-239',
+				from: address,
+				valid_until: Math.floor(Date.now() / 1_000) + 60,
+				messages: [{
+					address: destination,
+					amount: '1000000',
+					payload: 'dGVzdA==',
+				}],
+			}
+		)).resolves.toBe('te6ccgEBAQEA')
+		await expect(adapter.signTonInternalMessages?.(
+			'ton-connect:tonkeeper',
+			address,
+			{
+				network: '-239',
+				from: address,
+				messages: [
+					{
+						address: destination,
+						amount: '1',
+						extra_currency: { '4294967295': '2' },
+					},
+					{
+						address: destination,
+						amount: '3',
+						stateInit: 'dGVzdA==',
+					},
+				],
+			}
+		)).resolves.toBe('te6ccgEBAQEB')
+
+		expect(mock.bridge.send).toHaveBeenNthCalledWith(1, {
+			method: 'signMessage',
+			params: [JSON.stringify({
+				network: '-239',
+				from: address,
+				valid_until: Math.floor(Date.now() / 1_000) + 60,
+				messages: [{
+					address: destination,
+					amount: '1000000',
+					payload: 'dGVzdA==',
+				}],
+			})],
+			id: '1',
+		})
+		expect(mock.bridge.send).toHaveBeenNthCalledWith(2, {
+			method: 'signMessage',
+			params: [JSON.stringify({
+				network: '-239',
+				from: address,
+				messages: [
+					{
+						address: destination,
+						amount: '1',
+						extra_currency: { '4294967295': '2' },
+					},
+					{
+						address: destination,
+						amount: '3',
+						stateInit: 'dGVzdA==',
+					},
+				],
+			})],
+			id: '2',
+		})
+		expect(mock.bridge.send.mock.calls.map(([request]) => request.method)).toEqual([
+			'signMessage',
+			'signMessage',
+		])
+	})
+
+	it('fails closed before dispatch for absent negotiation and invalid authority or message batches', async () => {
+		vi.setSystemTime(new Date('2026-09-06T12:00:00Z'))
+		const withoutFeature = createBridge(connectEvent())
+		vi.stubGlobal('window', {
+			location: { origin: 'https://blockhead.info' },
+			tonkeeper: { tonconnect: withoutFeature.bridge },
+		})
+		const unavailableAdapter = createTonConnectAdapter()
+		unavailableAdapter.start(() => {})
+		await unavailableAdapter.connect('ton-connect:tonkeeper')
+		await expect(unavailableAdapter.signTonInternalMessages?.(
+			'ton-connect:tonkeeper',
+			address,
+			{
+				network: '-239',
+				from: address,
+				messages: [{
+					address: destination,
+					amount: '1',
+				}],
+			}
+		)).rejects.toBeInstanceOf(WalletAdapterPreDispatchFailure)
+		expect(withoutFeature.bridge.send).not.toHaveBeenCalled()
+
+		const negotiated = createBridge(connectEvent('-239', address, 1))
+		vi.stubGlobal('window', {
+			location: { origin: 'https://blockhead.info' },
+			tonkeeper: { tonconnect: negotiated.bridge },
+		})
+		const adapter = createTonConnectAdapter()
+		adapter.start(() => {})
+		await adapter.connect('ton-connect:tonkeeper')
+		const invalidRequests = [
+			{
+				network: '-3',
+				from: address,
+				messages: [{
+					address: destination,
+					amount: '1',
+				}],
+			},
+			{
+				network: '-239',
+				from: address,
+				valid_until: Math.floor(Date.now() / 1_000),
+				messages: [{
+					address: destination,
+					amount: '1',
+				}],
+			},
+			{
+				network: '-239',
+				from: address,
+				messages: [
+					{
+						address: destination,
+						amount: '1',
+					},
+					{
+						address: destination,
+						amount: '2',
+					},
+				],
+			},
+			{
+				network: '-239',
+				from: address,
+				messages: [{
+					address,
+					amount: '1',
+				}],
+			},
+			{
+				network: '-239',
+				from: address,
+				messages: [{
+					address: destination,
+					amount: '-1',
+				}],
+			},
+			{
+				network: '-239',
+				from: address,
+				messages: [{
+					address: destination,
+					amount: '1',
+					payload: 'not base64',
+				}],
+			},
+			{
+				network: '-239',
+				from: address,
+				messages: [{
+					address: destination,
+					amount: '1',
+					extra_currency: { '1': '1' },
+				}],
+			},
+		] as const
+		for (const request of invalidRequests)
+			await expect(adapter.signTonInternalMessages?.(
+				'ton-connect:tonkeeper',
+				address,
+				request
+			)).rejects.toBeInstanceOf(WalletAdapterPreDispatchFailure)
+		expect(negotiated.bridge.send).not.toHaveBeenCalled()
+
+		const extraCurrency = createBridge(connectEvent('-239', address, 1, true))
+		vi.stubGlobal('window', {
+			location: { origin: 'https://blockhead.info' },
+			tonkeeper: { tonconnect: extraCurrency.bridge },
+		})
+		const extraCurrencyAdapter = createTonConnectAdapter()
+		extraCurrencyAdapter.start(() => {})
+		await extraCurrencyAdapter.connect('ton-connect:tonkeeper')
+		for (const currencyId of [
+			'-1',
+			'4294967296',
+			'01',
+		])
+			await expect(extraCurrencyAdapter.signTonInternalMessages?.(
+				'ton-connect:tonkeeper',
+				address,
+				{
+					network: '-239',
+					from: address,
+					messages: [{
+						address: destination,
+						amount: '1',
+						extra_currency: { [currencyId]: '1' },
+					}],
+				}
+			)).rejects.toBeInstanceOf(WalletAdapterPreDispatchFailure)
+		expect(extraCurrency.bridge.send).not.toHaveBeenCalled()
+	})
+
+	describe('signed internal-message response envelopes', () => {
+		it('preserves a matching exclusive provider rejection', async () => {
+			const mock = createBridge(connectEvent('-239', address, 1))
+			mock.bridge.send.mockResolvedValueOnce({
+				id: '1',
+				error: {
+					code: 4001,
+					message: 'User rejected TON signing',
+				},
+			})
+			vi.stubGlobal('window', {
+				location: { origin: 'https://blockhead.info' },
+				tonkeeper: { tonconnect: mock.bridge },
+			})
+			const adapter = createTonConnectAdapter()
+			adapter.start(() => {})
+			await adapter.connect('ton-connect:tonkeeper')
+
+			await expect(adapter.signTonInternalMessages?.(
+				'ton-connect:tonkeeper',
+				address,
+				{
+					network: '-239',
+					from: address,
+					messages: [{
+						address: destination,
+						amount: '1',
+					}],
+				}
+			)).rejects.toMatchObject({
+				message: 'User rejected TON signing',
+				code: 4001,
+			})
+		})
+
+		it.each([
+			{
+				failure: 'dual result/error envelopes',
+				response: {
+					id: '1',
+					result: { internalBoc: 'te6ccgEBAQEA' },
+					error: {
+						code: 4001,
+						message: 'ambiguous',
+					},
+				},
+			},
+			{
+				failure: 'a valid result with a malformed error',
+				response: {
+					id: '1',
+					result: { internalBoc: 'te6ccgEBAQEA' },
+					error: { malformed: true },
+				},
+			},
+			{
+				failure: 'a valid error with a malformed result',
+				response: {
+					id: '1',
+					error: {
+						code: 4001,
+						message: 'must not escape as provider rejection',
+					},
+					result: { internalBoc: 7 },
+				},
+			},
+			{
+				failure: 'a mismatched result ID',
+				response: {
+					id: '2',
+					result: { internalBoc: 'te6ccgEBAQEA' },
+				},
+			},
+			{
+				failure: 'a mismatched error ID',
+				response: {
+					id: '2',
+					error: {
+						code: 4001,
+						message: 'wrong request',
+					},
+				},
+			},
+			{
+				failure: 'an empty internal BOC',
+				response: {
+					id: '1',
+					result: { internalBoc: '' },
+				},
+			},
+			{
+				failure: 'a malformed internal BOC',
+				response: {
+					id: '1',
+					result: { internalBoc: 'not base64' },
+				},
+			},
+			{
+				failure: 'an envelope with neither result nor error',
+				response: { id: '1' },
+			},
+		])('audits $failure', async ({ response }) => {
+			const mock = createBridge(connectEvent('-239', address, 1))
+			mock.bridge.send.mockResolvedValueOnce(response)
+			vi.stubGlobal('window', {
+				location: { origin: 'https://blockhead.info' },
+				tonkeeper: { tonconnect: mock.bridge },
+			})
+			const adapter = createTonConnectAdapter()
+			adapter.start(() => {})
+			await adapter.connect('ton-connect:tonkeeper')
+
+			await expect(adapter.signTonInternalMessages?.(
+				'ton-connect:tonkeeper',
+				address,
+				{
+					network: '-239',
+					from: address,
+					messages: [{
+						address: destination,
+						amount: '1',
+					}],
+				}
+			)).rejects.toBeInstanceOf(WalletAdapterResponseAuditFailure)
+		})
+	})
+
+	describe('signed internal-message lifecycle and ABA fences', () => {
+		it('retains request bytes and rejects disconnect/connect ABA before a later lifecycle signs', async () => {
+			const response = Promise.withResolvers<{
+				id: string
+				result: { internalBoc: string }
+			}>()
+			const mock = createBridge(connectEvent('-239', address, 1))
+			mock.bridge.send.mockImplementationOnce(() => response.promise)
+			vi.stubGlobal('window', {
+				location: { origin: 'https://blockhead.info' },
+				tonkeeper: { tonconnect: mock.bridge },
+			})
+			const adapter = createTonConnectAdapter()
+			adapter.start(() => {})
+			await adapter.connect('ton-connect:tonkeeper')
+			const unsubscribe = adapter.subscribeConnection('ton-connect:tonkeeper', () => {})
+			const request: WalletTonInternalMessages = {
+				network: '-239',
+				from: address,
+				messages: [{
+					address: destination,
+					amount: '1',
+				}],
+			}
+			const pending = adapter.signTonInternalMessages?.(
+				'ton-connect:tonkeeper',
+				address,
+				request
+			)
+			request.messages[0].amount = '999'
+			mock.emit({
+				event: 'disconnect',
+				payload: {},
+			})
+			mock.emit(connectEvent('-239', address, 1))
+			response.resolve({
+				id: '1',
+				result: { internalBoc: 'te6ccgEBAQEA' },
+			})
+
+			await expect(pending).rejects.toBeInstanceOf(WalletAdapterResponseAuditFailure)
+			expect(mock.bridge.send).toHaveBeenCalledExactlyOnceWith({
+				method: 'signMessage',
+				params: [JSON.stringify({
+					network: '-239',
+					from: address,
+					messages: [{
+						address: destination,
+						amount: '1',
+					}],
+				})],
+				id: '1',
+			})
+
+			mock.bridge.send.mockResolvedValueOnce({
+				id: '2',
+				result: { internalBoc: 'te6ccgEBAQEB' },
+			})
+			await expect(adapter.signTonInternalMessages?.(
+				'ton-connect:tonkeeper',
+				address,
+				{
+					network: '-239',
+					from: address,
+					messages: [{
+						address: destination,
+						amount: '2',
+					}],
+				}
+			)).resolves.toBe('te6ccgEBAQEB')
+			unsubscribe()
+		})
+
+		it.each([
+			{
+				change: 'account replacement',
+				replacement: connectEvent('-239', `-1:${'cd'.repeat(32)}`, 1),
+			},
+			{
+				change: 'network replacement',
+				replacement: connectEvent('-3', address, 1),
+			},
+			{
+				change: 'feature replacement',
+				replacement: connectEvent('-239', address),
+			},
+		])('rejects $change while pending', async ({ replacement }) => {
+			const response = Promise.withResolvers<{
+				id: string
+				result: { internalBoc: string }
+			}>()
+			const mock = createBridge(connectEvent('-239', address, 1))
+			mock.bridge.send.mockImplementationOnce(() => response.promise)
+			vi.stubGlobal('window', {
+				location: { origin: 'https://blockhead.info' },
+				tonkeeper: { tonconnect: mock.bridge },
+			})
+			const adapter = createTonConnectAdapter()
+			adapter.start(() => {})
+			await adapter.connect('ton-connect:tonkeeper')
+			const unsubscribe = adapter.subscribeConnection('ton-connect:tonkeeper', () => {})
+			const pending = adapter.signTonInternalMessages?.(
+				'ton-connect:tonkeeper',
+				address,
+				{
+					network: '-239',
+					from: address,
+					messages: [{
+						address: destination,
+						amount: '1',
+					}],
+				}
+			)
+			mock.emit(replacement)
+			response.resolve({
+				id: '1',
+				result: { internalBoc: 'te6ccgEBAQEA' },
+			})
+
+			await expect(pending).rejects.toBeInstanceOf(WalletAdapterResponseAuditFailure)
+			unsubscribe()
+		})
+
+		it('rejects bridge replacement while pending', async () => {
+			vi.useFakeTimers()
+			const response = Promise.withResolvers<{
+				id: string
+				result: { internalBoc: string }
+			}>()
+			const mock = createBridge(connectEvent('-239', address, 1))
+			const replacement = createBridge(connectEvent('-239', address, 1))
+			mock.bridge.send.mockImplementationOnce(() => response.promise)
+			const injectedWindow = {
+				location: { origin: 'https://blockhead.info' },
+				tonkeeper: { tonconnect: mock.bridge },
+			}
+			vi.stubGlobal('window', injectedWindow)
+			const adapter = createTonConnectAdapter()
+			adapter.start(() => {})
+			await adapter.connect('ton-connect:tonkeeper')
+			const pending = adapter.signTonInternalMessages?.(
+				'ton-connect:tonkeeper',
+				address,
+				{
+					network: '-239',
+					from: address,
+					messages: [{
+						address: destination,
+						amount: '1',
+					}],
+				}
+			)
+			injectedWindow.tonkeeper.tonconnect = replacement.bridge
+			await vi.advanceTimersByTimeAsync(100)
+			response.resolve({
+				id: '1',
+				result: { internalBoc: 'te6ccgEBAQEA' },
+			})
+
+			await expect(pending).rejects.toBeInstanceOf(WalletAdapterResponseAuditFailure)
+		})
+
+		it('rejects completion after adapter stop', async () => {
+			const response = Promise.withResolvers<{
+				id: string
+				result: { internalBoc: string }
+			}>()
+			const mock = createBridge(connectEvent('-239', address, 1))
+			mock.bridge.send.mockImplementationOnce(() => response.promise)
+			vi.stubGlobal('window', {
+				location: { origin: 'https://blockhead.info' },
+				tonkeeper: { tonconnect: mock.bridge },
+			})
+			const adapter = createTonConnectAdapter()
+			const stop = adapter.start(() => {})
+			await adapter.connect('ton-connect:tonkeeper')
+			const pending = adapter.signTonInternalMessages?.(
+				'ton-connect:tonkeeper',
+				address,
+				{
+					network: '-239',
+					from: address,
+					messages: [{
+						address: destination,
+						amount: '1',
+					}],
+				}
+			)
+			stop()
+			response.resolve({
+				id: '1',
+				result: { internalBoc: 'te6ccgEBAQEA' },
+			})
+
+			await expect(pending).rejects.toBeInstanceOf(WalletAdapterResponseAuditFailure)
+		})
 	})
 
 	it('connects with protocol version 2 and the origin manifest when restore has no session', async () => {
