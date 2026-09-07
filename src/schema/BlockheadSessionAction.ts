@@ -3,6 +3,7 @@
 import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -40,6 +41,10 @@ export default entity({
 		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
+	contentRevisionHash: {
+		primitiveType: Hash32,
+		cardinality: EntityFieldCardinality.One,
+	},
 	createdAt: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
@@ -66,6 +71,10 @@ export default entity({
 	},
 	$$walletRequests: {
 		entityType: EntityType.BlockheadWalletRequest,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$authorityRequests: {
+		entityType: EntityType.BlockheadActionAuthorityRequest,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$outcomes: {

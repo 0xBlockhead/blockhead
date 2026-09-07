@@ -35,6 +35,7 @@
 		fields: {
 			indexInSequence: true,
 			actionType: true,
+			contentRevisionHash: true,
 			createdAt: true,
 			updatedAt: true,
 			selectedProtocol: true,
@@ -50,6 +51,7 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
 	import BlockheadIntentInvocationView from '$/views/BlockheadIntentInvocationView.svelte'
 	import BlockheadActionReadinessChecksView from '$/views/BlockheadActionReadinessChecksView.svelte'
@@ -179,6 +181,19 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<div>
+				<dt>content revision hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={blockheadSessionAction}
+					>
+						{#snippet children(entity)}
+							<TruncatedValue value={entity.contentRevisionHash} />
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">

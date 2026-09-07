@@ -330,9 +330,20 @@ type EntityFieldDefinitionFromInput<
 > = (
 	_Field extends EntityFieldDefinitionInputForName<_FieldName> ?
 		EntityFieldTypeFromName<_FieldName> extends infer _FieldType extends EntityFieldType ?
-			& Extract<EntityFieldDefinition, { readonly type: _FieldType }>
-			& Omit<_Field, 'name' | 'type'>
-			& { readonly name: _FieldName }
+			_FieldType extends EntityFieldType.Primitive ?
+				_Field extends { readonly primitiveType: SchemaType<infer _Value> } ?
+					& Extract<EntityFieldDefinition, { readonly type: EntityFieldType.Primitive }>
+					& Omit<_Field, 'name' | 'type' | 'primitiveType'>
+					& {
+						readonly name: _FieldName
+						readonly primitiveType: SchemaType<_Value>
+					}
+				:
+					never
+			:
+				& Extract<EntityFieldDefinition, { readonly type: _FieldType }>
+				& Omit<_Field, 'name' | 'type'>
+				& { readonly name: _FieldName }
 		:
 			never
 	:
@@ -860,7 +871,7 @@ export type RouteEntitySelectorForSelectorName<
 		never
 )
 
-type EntitySelectorFromDefinition<
+export type EntitySelectorFromDefinition<
 	_Schema extends Schema,
 	_EntityDefinition,
 > = (

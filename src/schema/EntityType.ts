@@ -209,6 +209,8 @@ export enum EntityType {
 	BitTorrentTracker = 'BitTorrentTracker',
 	BitTorrentTrackerScrape_Timestamp = 'BitTorrentTrackerScrape_Timestamp',
 	BlockheadAccount = 'BlockheadAccount',
+	BlockheadActionAuthorityRequest = 'BlockheadActionAuthorityRequest',
+	BlockheadActionDispatchOccurrence = 'BlockheadActionDispatchOccurrence',
 	BlockheadActionOutcome = 'BlockheadActionOutcome',
 	BlockheadActionOutcome_Timestamp = 'BlockheadActionOutcome_Timestamp',
 	BlockheadActionReadinessCheck = 'BlockheadActionReadinessCheck',

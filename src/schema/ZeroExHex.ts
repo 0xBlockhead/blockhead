@@ -7,6 +7,11 @@ export const ZeroExHex = type(
 	'/^0x[0-9a-fA-F]*$/' as type.cast<`0x${string}`>
 )
 
+/** Canonical nonnegative JSON-RPC quantity: lowercase hex with no leading zeroes. */
+export const EvmRpcQuantity = type(
+	'/^0x(?:0|[1-9a-f][0-9a-f]*)$/' as type.cast<`0x${string}`>
+)
+
 /** `0x` + 40 hex digits (20-byte EVM account / contract address). */
 export const EvmAddress = type(
 	'/^0x[0-9a-fA-F]{40}$/' as type.cast<`0x${string}`>
