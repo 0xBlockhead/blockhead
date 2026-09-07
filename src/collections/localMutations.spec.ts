@@ -13,7 +13,14 @@ import {
 	WalletProtocol,
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
-import { ActionType } from '$/actions/index.ts'
+import { ActionType, actionTypeDefinitionByActionType } from '$/actions/index.ts'
+import {
+	actionAuthorityRequestEnvelopeHash,
+	authorityRequestEnvelope,
+	authorityDecision,
+	dispatchEvidence,
+	type ActionAuthorityRequestEnvelope,
+} from '$/actions/execution.ts'
 import {
 	localMutationAuthorityKey,
 } from '$/client/$client.svelte.ts'
@@ -24,9 +31,13 @@ import {
 	deleteLocalBlockheadWalletCapabilityGrant,
 	deleteLocalBlockheadWalletCapabilityGrantsForConnection,
 	deleteLocalBlockheadWalletConnection,
+	hashLocalBlockheadSessionActionRevision,
 	type LocalMutationContext,
 	updateLocalBlockheadSessionActionType,
 	writeLocalBlockheadAccount,
+	writeLocalBlockheadActionAuthorityRequest,
+	writeLocalBlockheadActionDispatchEvidence,
+	writeLocalBlockheadActionDispatchOccurrenceStart,
 	writeLocalBlockheadActionOutcome,
 	writeLocalBlockheadActionReadinessChecks,
 	writeLocalBlockheadCashuMintQuote,
@@ -61,6 +72,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { entityDefinitionByType, schema } from '$/schema/index.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import { Source } from '$/sources/Source.ts'
 import { connectedWalletConnection } from '$/state/wallets/walletConnectionState.ts'
 
@@ -413,7 +425,7 @@ describe('local session capability grant mutations', () => {
 				'eip155:1',
 			],
 			issuedAt: 10,
-		} as const
+		}
 
 		await writeLocalBlockheadWalletCapabilityGrant(context, {
 			...grant,
@@ -513,6 +525,9 @@ describe('local mutation authority journal', () => {
 			}
 		}
 		const collectionByAddress = new Map<string, MockCollection>()
+		let heldPersistenceAddress: string | undefined
+		let persistenceStarted: PromiseWithResolvers<void> | undefined
+		let persistenceRelease: Promise<void> | undefined
 		const collectionFor = (address: string): MockCollection => {
 			const existing = collectionByAddress.get(address)
 			if (existing != null)
@@ -528,7 +543,12 @@ describe('local mutation authority journal', () => {
 				},
 				startSyncImmediate: () => {},
 				utils: {
-					waitForPersistence: async () => {},
+					waitForPersistence: async () => {
+						if (address !== heldPersistenceAddress)
+							return
+						persistenceStarted?.resolve()
+						await persistenceRelease
+					},
 					replaceRows: (predicate, nextRows) => {
 						for (let index = rows.length - 1; index >= 0; index--)
 							if (predicate(rows[index]))
@@ -757,7 +777,7 @@ describe('local mutation authority journal', () => {
 			0,
 			1,
 		])
-		await writeLocalBlockheadSessionAction(
+		const createdActionSelector = await writeLocalBlockheadSessionAction(
 			context,
 			sessionSelector,
 			ActionType.Transfer
@@ -810,6 +830,23 @@ describe('local mutation authority journal', () => {
 		)
 		if (actionSelector instanceof arktype.errors)
 			throw actionSelector
+		expect(createdActionSelector).toEqual(actionSelector)
+		const initialRevisionHash = entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+			EntityType.BlockheadSessionAction,
+			[],
+			'contentRevisionHash'
+		)].toArray.find((row) => row[EntityMetaKey.ParentSelectorKey] === actionSelectorKey)?.[EntityMetaKey.Value]
+		expect(initialRevisionHash).toBe(hashLocalBlockheadSessionActionRevision(
+			ActionType.Transfer,
+			actionTypeDefinitionByActionType[ActionType.Transfer].params.assert({})
+		))
+		const bridgeParams = {
+			fromChainId: 1,
+			toChainId: 10,
+			tokenAddress: '0x0000000000000000000000000000000000000000',
+			amount: 2n,
+			slippage: 0.005,
+		}
 		await updateLocalBlockheadSessionActionType(
 			context,
 			actionSelector,
@@ -817,13 +854,7 @@ describe('local mutation authority journal', () => {
 			0,
 			10,
 			ActionType.Bridge,
-			{
-				fromChainId: 1,
-				toChainId: 10,
-				tokenAddress: '0x0000000000000000000000000000000000000000',
-				amount: 2n,
-				slippage: 0.005,
-			}
+			bridgeParams
 		)
 		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toContainEqual(
 			expect.objectContaining({
@@ -859,6 +890,372 @@ describe('local mutation authority journal', () => {
 		)).toThrow()
 		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toHaveLength(4)
 
+		const revisionRow = entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+			EntityType.BlockheadSessionAction,
+			[],
+			'contentRevisionHash'
+		)].toArray.find((row) => row[EntityMetaKey.ParentSelectorKey] === actionSelectorKey)
+		if (revisionRow == null)
+			throw new Error('Expected the authored action revision hash')
+		const contentRevisionHash = Hash32.assert(revisionRow[EntityMetaKey.Value])
+		expect(contentRevisionHash).toBe(hashLocalBlockheadSessionActionRevision(ActionType.Bridge, bridgeParams))
+		expect(contentRevisionHash).not.toBe(initialRevisionHash)
+		const envelope = {
+			adapterKey: 'evm.personal-sign',
+			adapterVersion: '1',
+			value: {
+				chainId: 1,
+				accountAddress: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				message: 'Consent is exact and immutable.',
+			},
+		} satisfies ActionAuthorityRequestEnvelope
+		const authorityRequest = {
+			id: 'authority-request-1',
+			walletConnection: { connectionKey: 'connection-1' },
+			actionRevisionBindings: [{
+				sessionId: actionSelector.sessionId,
+				actionId: actionSelector.actionId,
+				contentRevisionHash,
+			}],
+			sessionActions: [actionSelector],
+			envelope,
+			envelopeHash: actionAuthorityRequestEnvelopeHash(envelope),
+			presentedAt: 20,
+			decision: authorityDecision.assert({
+				kind: 'prepared-without-dispatch',
+				decidedAt: 21,
+			}),
+		}
+		heldPersistenceAddress = `field:${EntityType.BlockheadActionAuthorityRequest}:${entityFieldAddressKey(
+			EntityType.BlockheadActionAuthorityRequest,
+			[],
+			'envelope'
+		)}`
+		persistenceStarted = Promise.withResolvers<void>()
+		const authorityRelease = Promise.withResolvers<void>()
+		persistenceRelease = authorityRelease.promise
+		const authorityWrite = writeLocalBlockheadActionAuthorityRequest(context, authorityRequest)
+		await persistenceStarted.promise
+		envelope.value.message = 'Caller-mutated consent must not persist.'
+		authorityRequest.actionRevisionBindings[0].contentRevisionHash = Hash32.assert(
+			'0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+		)
+		const persistedEnvelope = entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+			EntityType.BlockheadActionAuthorityRequest,
+			[],
+			'envelope'
+		)].toArray[0]?.[EntityMetaKey.Value]
+		expect(persistedEnvelope).toMatchObject({
+			value: {
+				message: 'Consent is exact and immutable.',
+			},
+		})
+		expect(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+			EntityType.BlockheadActionAuthorityRequest,
+			[],
+			'actionRevisionBindings'
+		)].toArray[0]?.[EntityMetaKey.Value]).toMatchObject({ contentRevisionHash })
+		envelope.value.message = 'Consent is exact and immutable.'
+		authorityRequest.actionRevisionBindings[0].contentRevisionHash = contentRevisionHash
+		authorityRelease.resolve()
+		const authoritySelector = await authorityWrite
+		heldPersistenceAddress = undefined
+		persistenceStarted = undefined
+		persistenceRelease = undefined
+		await expect(writeLocalBlockheadActionAuthorityRequest(context, authorityRequest)).resolves.toEqual(
+			authoritySelector
+		)
+		expect(entityCollections[EntityType.BlockheadActionAuthorityRequest].toArray).toHaveLength(1)
+		expect(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+			EntityType.BlockheadActionAuthorityRequest,
+			[],
+			'decision'
+		)].toArray).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.Value]: authorityRequest.decision,
+		}))
+		expect(entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+			EntityType.BlockheadSessionAction,
+			[],
+			'$$authorityRequests'
+		)].toArray).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.ParentSelectorKey]: actionSelectorKey,
+		}))
+
+		const conflictingEnvelope = {
+			...envelope,
+			value: {
+				...envelope.value,
+				message: 'A different consent envelope.',
+			},
+		}
+		const rowsBeforeAuthorityConflict = [...collectionByAddress.values()].reduce(
+			(count, collection) => count + collection.toArray.length,
+			0
+		)
+		await expect(writeLocalBlockheadActionAuthorityRequest(context, {
+			...authorityRequest,
+			envelope: conflictingEnvelope,
+			envelopeHash: actionAuthorityRequestEnvelopeHash(conflictingEnvelope),
+		})).rejects.toThrow('conflicting immutable data')
+		expect([...collectionByAddress.values()].reduce(
+			(count, collection) => count + collection.toArray.length,
+			0
+		)).toBe(rowsBeforeAuthorityConflict)
+
+		const occurrence = {
+			id: 'dispatch-occurrence-1',
+			authorityRequest: authoritySelector,
+			walletConnection: { connectionKey: 'connection-1' },
+			address: {
+				kind: 'wallet-connection',
+				connectionKey: 'connection-1',
+				method: 'personal_sign',
+			},
+			startedAt: 22,
+		}
+		await updateLocalBlockheadSessionActionType(
+			context,
+			actionSelector,
+			sessionSelector,
+			0,
+			10,
+			ActionType.Transfer
+		)
+		await expect(writeLocalBlockheadActionDispatchOccurrenceStart(context, occurrence)).rejects.toThrow(
+			'no longer matches the persisted authored action revision'
+		)
+		expect(entityCollections[EntityType.BlockheadActionDispatchOccurrence].toArray).toHaveLength(0)
+		await updateLocalBlockheadSessionActionType(
+			context,
+			actionSelector,
+			sessionSelector,
+			0,
+			10,
+			ActionType.Bridge,
+			bridgeParams
+		)
+		heldPersistenceAddress = `field:${EntityType.BlockheadActionDispatchOccurrence}:${entityFieldAddressKey(
+			EntityType.BlockheadActionDispatchOccurrence,
+			[],
+			'address'
+		)}`
+		persistenceStarted = Promise.withResolvers<void>()
+		const occurrenceRelease = Promise.withResolvers<void>()
+		persistenceRelease = occurrenceRelease.promise
+		const occurrenceWrite = writeLocalBlockheadActionDispatchOccurrenceStart(context, occurrence)
+		await persistenceStarted.promise
+		occurrence.address.connectionKey = 'caller-mutated-connection'
+		expect(entityFieldCollections[EntityType.BlockheadActionDispatchOccurrence][entityFieldAddressKey(
+			EntityType.BlockheadActionDispatchOccurrence,
+			[],
+			'address'
+		)].toArray[0]?.[EntityMetaKey.Value]).toMatchObject({ connectionKey: 'connection-1' })
+		occurrence.address.connectionKey = 'connection-1'
+		occurrenceRelease.resolve()
+		const occurrenceSelector = await occurrenceWrite
+		heldPersistenceAddress = undefined
+		persistenceStarted = undefined
+		persistenceRelease = undefined
+		await expect(writeLocalBlockheadActionDispatchOccurrenceStart(context, occurrence)).resolves.toEqual(
+			occurrenceSelector
+		)
+		expect(entityCollections[EntityType.BlockheadActionDispatchOccurrence].toArray).toHaveLength(1)
+		await expect(writeLocalBlockheadActionDispatchOccurrenceStart(context, {
+			...occurrence,
+			startedAt: 23,
+		})).rejects.toThrow('conflicting immutable data')
+		expect(entityCollections[EntityType.BlockheadActionDispatchOccurrence].toArray).toHaveLength(1)
+
+		const evidence = {
+			kind: 'returned',
+			response: {
+				adapterKey: 'evm.signature',
+				adapterVersion: '1',
+				value: {
+					signatureHash: Hash32.assert('0x4444444444444444444444444444444444444444444444444444444444444444'),
+				},
+			},
+		} as const
+		heldPersistenceAddress = `field:${EntityType.BlockheadActionDispatchOccurrence}:${entityFieldAddressKey(
+			EntityType.BlockheadActionDispatchOccurrence,
+			[],
+			'evidence'
+		)}`
+		persistenceStarted = Promise.withResolvers<void>()
+		const release = Promise.withResolvers<void>()
+		persistenceRelease = release.promise
+		let evidenceSettled = false
+		const evidenceWrite = writeLocalBlockheadActionDispatchEvidence(
+			context,
+			occurrenceSelector,
+			evidence
+		).then(() => {
+			evidenceSettled = true
+		})
+		await persistenceStarted.promise
+		expect(evidenceSettled).toBe(false)
+		evidence.response.value.signatureHash = Hash32.assert('0x5555555555555555555555555555555555555555555555555555555555555555')
+		expect(entityFieldCollections[EntityType.BlockheadActionDispatchOccurrence][entityFieldAddressKey(
+			EntityType.BlockheadActionDispatchOccurrence,
+			[],
+			'evidence'
+		)].toArray[0]?.[EntityMetaKey.Value]).toMatchObject({
+			response: { value: { signatureHash: '0x4444444444444444444444444444444444444444444444444444444444444444' } },
+		})
+		evidence.response.value.signatureHash = Hash32.assert('0x4444444444444444444444444444444444444444444444444444444444444444')
+		release.resolve()
+		await evidenceWrite
+		heldPersistenceAddress = undefined
+		persistenceStarted = undefined
+		persistenceRelease = undefined
+		await expect(writeLocalBlockheadActionDispatchEvidence(
+			context,
+			occurrenceSelector,
+			evidence
+		)).resolves.toBeUndefined()
+
+		const suiEnvelope = authorityRequestEnvelope.assert({
+			adapterKey: 'wallet.message-sign',
+			adapterVersion: '1',
+			value: {
+				namespace: 'sui',
+				method: 'sui:signPersonalMessage',
+				accountAddress: '0x1234',
+				message: 'Bind this Sui authority exactly.',
+			},
+		})
+		const suiAuthoritySelector = await writeLocalBlockheadActionAuthorityRequest(context, {
+			id: 'authority-request-sui',
+			walletConnection: { connectionKey: 'connection-sui' },
+			actionRevisionBindings: [],
+			sessionActions: [],
+			envelope: suiEnvelope,
+			envelopeHash: actionAuthorityRequestEnvelopeHash(suiEnvelope),
+			presentedAt: 30,
+		})
+		await expect(writeLocalBlockheadActionDispatchOccurrenceStart(context, {
+			id: 'dispatch-occurrence-sui',
+			authorityRequest: suiAuthoritySelector,
+			walletConnection: { connectionKey: 'connection-sui' },
+			address: {
+				kind: 'wallet-connection',
+				connectionKey: 'connection-sui',
+				method: 'sui:signPersonalMessage',
+			},
+			startedAt: 31,
+		})).resolves.toEqual({ id: 'dispatch-occurrence-sui' })
+
+		const tonEnvelope = authorityRequestEnvelope.assert({
+			adapterKey: 'ton.internal-message-sign',
+			adapterVersion: '1',
+			value: {
+				namespace: 'ton',
+				reference: '-239',
+				accountAddress: '0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				method: 'signMessage',
+				network: '-239',
+				from: '0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+				messages: [
+					{
+						address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+						amount: '1000',
+					},
+				],
+			},
+		})
+		const tonAuthoritySelector = await writeLocalBlockheadActionAuthorityRequest(context, {
+			id: 'authority-request-ton-internal-message',
+			walletConnection: { connectionKey: 'connection-ton' },
+			actionRevisionBindings: [],
+			sessionActions: [],
+			envelope: tonEnvelope,
+			envelopeHash: actionAuthorityRequestEnvelopeHash(tonEnvelope),
+			presentedAt: 32,
+		})
+		const tonOccurrenceSelector = await writeLocalBlockheadActionDispatchOccurrenceStart(context, {
+			id: 'dispatch-occurrence-ton-internal-message',
+			authorityRequest: tonAuthoritySelector,
+			walletConnection: { connectionKey: 'connection-ton' },
+			address: {
+				kind: 'wallet-connection',
+				connectionKey: 'connection-ton',
+				method: 'signMessage',
+			},
+			startedAt: 33,
+		})
+		const bitcoinSignatureEvidence = dispatchEvidence.assert({
+			kind: 'returned',
+			response: {
+				adapterKey: 'wallet.signature',
+				adapterVersion: '1',
+				value: {
+					namespace: 'bip122',
+					signatureHash: '0x4444444444444444444444444444444444444444444444444444444444444444',
+				},
+			},
+		})
+		await expect(writeLocalBlockheadActionDispatchEvidence(
+			context,
+			tonOccurrenceSelector,
+			bitcoinSignatureEvidence
+		)).rejects.toThrow('does not match')
+		await expect(writeLocalBlockheadActionDispatchEvidence(context, tonOccurrenceSelector, {
+			kind: 'returned',
+			response: {
+				adapterKey: 'ton.internal-message-sign',
+				adapterVersion: '1',
+				value: {
+					internalBocHash: '0x5555555555555555555555555555555555555555555555555555555555555555',
+				},
+			},
+		})).resolves.toBeUndefined()
+
+		const bitcoinEnvelope = authorityRequestEnvelope.assert({
+			adapterKey: 'wallet.message-sign',
+			adapterVersion: '1',
+			value: {
+				namespace: 'bip122',
+				method: 'signMessage',
+				accountAddress: 'bc1qauthority',
+				message: 'Bind this Bitcoin authority exactly.',
+			},
+		})
+		const bitcoinAuthoritySelector = await writeLocalBlockheadActionAuthorityRequest(context, {
+			id: 'authority-request-bitcoin-message',
+			walletConnection: { connectionKey: 'connection-bitcoin' },
+			actionRevisionBindings: [],
+			sessionActions: [],
+			envelope: bitcoinEnvelope,
+			envelopeHash: actionAuthorityRequestEnvelopeHash(bitcoinEnvelope),
+			presentedAt: 34,
+		})
+		const bitcoinOccurrenceSelector = await writeLocalBlockheadActionDispatchOccurrenceStart(context, {
+			id: 'dispatch-occurrence-bitcoin-message',
+			authorityRequest: bitcoinAuthoritySelector,
+			walletConnection: { connectionKey: 'connection-bitcoin' },
+			address: {
+				kind: 'wallet-connection',
+				connectionKey: 'connection-bitcoin',
+				method: 'signMessage',
+			},
+			startedAt: 35,
+		})
+		await expect(writeLocalBlockheadActionDispatchEvidence(context, bitcoinOccurrenceSelector, {
+			kind: 'returned',
+			response: {
+				adapterKey: 'ton.internal-message-sign',
+				adapterVersion: '1',
+				value: {
+					internalBocHash: '0x6666666666666666666666666666666666666666666666666666666666666666',
+				},
+			},
+		})).rejects.toThrow('does not match')
+		await expect(writeLocalBlockheadActionDispatchEvidence(
+			context,
+			bitcoinOccurrenceSelector,
+			bitcoinSignatureEvidence
+		)).resolves.toBeUndefined()
+
 		deleteLocalBlockheadSession(context, sessionParentSelector, sessionSelector)
 		deleteLocalBlockheadSession(context, sessionParentSelector, secondSessionSelector)
 
@@ -885,6 +1282,7 @@ describe('local mutation authority journal', () => {
 			selectorKey: string
 			authorityKey: string
 			resolution: 'present' | 'resolved' | 'deleted'
+			rowCount: number
 		}[] = []
 		const rowsFor = (address: string) => {
 			const rows = rowsByAddress.get(address) ?? []
@@ -923,11 +1321,12 @@ describe('local mutation authority journal', () => {
 							if (predicate(rows[index]))
 								rows.splice(index, 1)
 						rows.push(...nextRows)
-						events.push({
-							selectorKey,
-							authorityKey,
-							resolution,
-						})
+					events.push({
+						selectorKey,
+						authorityKey,
+						resolution,
+						rowCount: nextRows.length,
+					})
 						return Promise.resolve(onApplied?.()).then(() => {})
 					}
 					if (!queueMutations)
@@ -970,11 +1369,12 @@ describe('local mutation authority journal', () => {
 								rows.splice(index, 1)
 							rows.push(nextRow)
 						}
-						events.push({
-							selectorKey,
-							authorityKey,
-							resolution,
-						})
+					events.push({
+						selectorKey,
+						authorityKey,
+						resolution,
+						rowCount: Array.isArray(row) ? row.length : 1,
+					})
 						return Promise.resolve(onApplied?.()).then(() => {})
 					}
 					if (!queueMutations)
@@ -2454,6 +2854,26 @@ describe('local mutation authority journal', () => {
 				[EntityMetaKey.Value]: 0,
 			}),
 		]))
+		const simulationSelectorKey = stringify(firstSimulationSelector)
+		const simulationCallsAuthorityKey = localMutationAuthorityKey({
+			source: Source.Local_Internal,
+			entityType: EntityType.BlockheadSessionSimulation,
+			selectorKey: simulationSelectorKey,
+			fieldName: '$$calls',
+			fieldAddressKey: entityFieldAddressKey(
+				EntityType.BlockheadSessionSimulation,
+				[],
+				'$$calls'
+			),
+			facetPathKey: stringify([]),
+		})
+		expect(events.filter((event) => (
+			event.selectorKey === simulationSelectorKey
+			&& event.authorityKey === simulationCallsAuthorityKey
+		))).toEqual([expect.objectContaining({
+			resolution: 'resolved',
+			rowCount: 2,
+		})])
 		expect(context.entityFieldCountCollections[EntityType.BlockheadSessionSimulation][entityFieldAddressKey(
 			EntityType.BlockheadSessionSimulation,
 			[],
