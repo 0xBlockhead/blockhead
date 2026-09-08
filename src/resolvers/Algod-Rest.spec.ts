@@ -127,6 +127,10 @@ it('materializes source-clocked application box content and fails closed on stal
 	})
 
 	const rounds = await boxResolver.resolve.ApplicationBoxName.resolve(boxSelector)
+	expect(getApplicationBox).toHaveBeenCalledWith({
+		applicationId: 42n,
+		boxName: 'Ym94',
+	})
 	expect(rounds).toEqual([{
 		[EntityMetaKey.Selector]: {
 			$box: boxSelector,
@@ -146,6 +150,10 @@ it('materializes source-clocked application box content and fails closed on stal
 	})).resolves.toEqual({
 		valueHash: '0xcd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619',
 		deleted: false,
+	})
+	expect(getApplicationBox).toHaveBeenLastCalledWith({
+		applicationId: 42n,
+		boxName: 'Ym94',
 	})
 
 	await expect(boxRoundResolver.resolve.BoxRoundSource.resolve({
