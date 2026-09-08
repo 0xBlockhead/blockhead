@@ -25,6 +25,16 @@ const runtimeSecretCredentials = [
 		undefined,
 	],
 	[
+		'["Cardanoscan_Rest","Global","cardanoscan-api","HttpProxy","RestJson"]',
+		'CARDANOSCAN_API_KEY',
+		{
+			header: {
+				name: 'apiKey',
+			},
+		},
+		undefined,
+	],
+	[
 		'["EigenExplorer_Rest","Global","eigen-explorer-api","HttpProxy","RestJson"]',
 		'EIGEN_EXPLORER_API_TOKEN',
 		{

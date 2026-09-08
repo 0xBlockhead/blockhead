@@ -1662,6 +1662,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CardanoCip30_WalletApi","LocalDevice","cardano-cip30-wallet","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["CardanoDbSync_Postgres","SqlDataset","cardano-db-sync","ServerOnly","Postgres"] | RuntimeSecret | yes | CARDANO_DB_SYNC_DATABASE_URL |
 | ["CardanoNode_LocalStateQuery","Caip2Network","cip34:1-764824073","ServerOnly","CardanoLocalStateQuery"] | LocalSecret | no |  |
+| ["Cardanoscan_Rest","Global","cardanoscan-api","HttpProxy","RestJson"] | RuntimeSecret | no |  |
 | ["CelestiaNode","NetworkSlug","celestia","RemoteQuery","CelestiaNodeJsonRpc"] | PublicConfig | yes | PUBLIC_CELESTIA_NODE_RPC_URL |
 | ["Cohere_Rest","Global","cohere-api","RemoteQuery","RestJson"] | RuntimeSecret | no | COHERE_API_KEY |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | PublicConfig | yes | PUBLIC_COINGECKO_DEMO_API_KEY |

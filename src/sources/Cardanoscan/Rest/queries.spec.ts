@@ -6,8 +6,13 @@ import {
 	vi,
 } from 'vitest'
 
+import sourceServerCredentialsById from '$/sources/$sourceServerCredentials.server.ts'
 import bindings from '$/sources/Cardanoscan/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import {
+	sourceBindingId,
+	SourceCredentialScope,
+} from '$/sources/SourceBinding.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -55,12 +60,23 @@ const validTransaction = {
 	status: true,
 }
 
-describe('Cardanoscan public REST transport', () => {
+describe('Cardanoscan authenticated REST transport', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
 
-	it('uses the exact binding-owned public endpoint', async () => {
+	it('uses the exact runtime-secret-gated binding endpoint', async () => {
+		expect(binding.credentials).toEqual([{
+			scope: SourceCredentialScope.RuntimeSecret,
+		}])
+		expect(sourceServerCredentialsById.get(sourceBindingId(binding))).toEqual({
+			envKey: 'CARDANOSCAN_API_KEY',
+			injection: {
+				header: {
+					name: 'apiKey',
+				},
+			},
+		})
 		sourceGetJson.mockResolvedValueOnce(validBlock)
 
 		await expect(getLatestBlock()).resolves.toMatchObject({

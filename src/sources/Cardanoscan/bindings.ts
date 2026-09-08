@@ -3,6 +3,7 @@ import {
 	ApiFamily,
 	genericReadOperationGroups,
 	indexSourceBindings,
+	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
 	SourceTargetKind,
@@ -27,6 +28,10 @@ export default indexSourceBindings([
 		apiFamily: ApiFamily.RestJson,
 		operationGroups: genericReadOperationGroups,
 		delivery: SourceDelivery.HttpProxy,
-		credentials: [],
+		credentials: [
+			{
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
 	},
 ])

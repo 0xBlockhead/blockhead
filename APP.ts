@@ -101256,7 +101256,17 @@ export const app = {
 						SourceOperationGroup.GenericRead,
 					],
 					delivery: SourceDelivery.HttpProxy,
-					credentials: [],
+					credentials: [
+						{
+							scope: SourceCredentialScope.RuntimeSecret,
+							envKey: "CARDANOSCAN_API_KEY",
+							injection: {
+								header: {
+									name: "apiKey",
+								},
+							},
+						},
+					],
 				},
 			},
 			{
