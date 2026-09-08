@@ -1246,6 +1246,27 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(ipfs)/[namespace]/captures/[target]/[timestampMs]/[source]': {
+		routeId: '/(explore)/(ipfs)/[namespace=ipfsNamespace]/captures/[target=stringSegment]/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'IpfsResource_Timestamp.ResourceTimestampMsSource',
+				probeAtomPrefixes: ['/[namespace]/captures/[target]/[timestampMs]/[source]:IpfsResource_Timestamp.ResourceTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'namespace', 'target']]]],
+			},
+		],
+	},
+	'/(explore)/(ipfs)/[namespace]/captures/[target]/[timestampMs]/[source]/path/[...contentPath]': {
+		routeId: '/(explore)/(ipfs)/[namespace=ipfsNamespace]/captures/[target=stringSegment]/[timestampMs=nonNegativeInteger]/[source=stringSegment]/path/[...contentPath=stringSegment]',
+		mappings: [
+			{
+				id: 'IpfsResource_Timestamp.ResourceTimestampMsSource',
+				probeCaseId: 'path',
+				probeAtomPrefixes: ['/[namespace]/captures/[target]/[timestampMs]/[source]:IpfsResource_Timestamp.ResourceTimestampMsSource', '/[namespace]/captures/[target]/[timestampMs]/[source]/path/[...contentPath]:IpfsResource_Timestamp.ResourceTimestampMsSource.path'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'namespace', 'target']], [1, '1', ['contentPath']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
 		mappings: [

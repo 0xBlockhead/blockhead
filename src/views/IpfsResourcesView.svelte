@@ -30,8 +30,6 @@
 			...{
 				fields: {
 					canonicalUri: true,
-					contentType: true,
-					displayType: true,
 				},
 			},
 		})
@@ -64,10 +62,6 @@
 		>
 			{#snippet Title()}
 				{ipfsResource.canonicalUri || 'IPFS resource'}
-			{/snippet}
-
-			{#snippet Value()}
-				{[(ipfsResource.contentType ?? ''), ipfsResource.displayType].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

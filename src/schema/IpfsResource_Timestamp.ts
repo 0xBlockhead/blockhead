@@ -4,69 +4,73 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
-import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
-	entityType: EntityType.IpfsResource,
+	entityType: EntityType.IpfsResource_Timestamp,
 	labels: {
-		singular: 'IPFS resource',
-		plural: 'IPFS resources',
+		singular: 'IPFS resource capture',
+		plural: 'IPFS resource captures',
 	},
 })({
-	namespace: {
-		primitiveType: type('"ipfs" | "ipns"'),
+	$resource: {
+		entityType: EntityType.IpfsResource,
 		cardinality: EntityFieldCardinality.One,
 	},
-	target: {
+	timestampMs: {
+		primitiveType: type('number.integer >= 0'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	contentPath: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.One,
-	},
-	canonicalUri: {
+	gatewayOrigin: {
 		primitiveType: UrlString,
 		cardinality: EntityFieldCardinality.One,
 	},
-	cidVersion: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+	gatewayUrl: {
+		primitiveType: UrlString,
+		cardinality: EntityFieldCardinality.One,
 	},
-	cidMultibase: {
+	fileName: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	cidMulticodecCode: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	cidMultihashCode: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	cidMultihashDigestHex: {
+	extension: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	isCidSubdomainSafe: {
+	contentType: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	contentLength: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	displayType: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	isContentTypeInferred: {
 		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	text: {
+		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$$timestamps: {
-		entityType: EntityType.IpfsResource_Timestamp,
-		cardinality: EntityFieldCardinality.Many,
-		defaultSources: [
-			Source.Ipfs_Rest,
-		],
+	$media: {
+		entityType: EntityType.Media,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({
 	selectors: {
-		ResourceAddress: [
-			'namespace',
-			'target',
-			'contentPath',
+		ResourceTimestampMsSource: [
+			'$resource',
+			'timestampMs',
+			'source',
 		],
 	},
 })

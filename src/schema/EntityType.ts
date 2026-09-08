@@ -683,6 +683,7 @@ export enum EntityType {
 	IcpSubnetCanisterRange_Timestamp = 'IcpSubnetCanisterRange_Timestamp',
 	IpfsProtocol = 'IpfsProtocol',
 	IpfsResource = 'IpfsResource',
+	IpfsResource_Timestamp = 'IpfsResource_Timestamp',
 	IssuerAction = 'IssuerAction',
 	IssuerPower = 'IssuerPower',
 	KaspaAcceptedTransaction = 'KaspaAcceptedTransaction',

@@ -1382,6 +1382,7 @@ export enum EntityType {
 	IcpSubnetCanisterRange_Timestamp = "IcpSubnetCanisterRange_Timestamp",
 	IpfsProtocol = "IpfsProtocol",
 	IpfsResource = "IpfsResource",
+	IpfsResource_Timestamp = "IpfsResource_Timestamp",
 	IssuerAction = "IssuerAction",
 	IssuerPower = "IssuerPower",
 	KaspaAcceptedTransaction = "KaspaAcceptedTransaction",
@@ -41576,6 +41577,48 @@ export const schema = {
 				"target": { label: "Target", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"contentPath": { label: "Content path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "routeContentPath" },
 				"canonicalUri": { label: "Canonical URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
+				"cidVersion": { label: "CID version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"cidMultibase": { label: "CID multibase", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"cidMulticodecCode": { label: "CID multicodec code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"cidMultihashCode": { label: "CID multihash code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"cidMultihashDigestHex": { label: "CID multihash digest hex", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"isCidSubdomainSafe": { label: "CID subdomain safe", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"$$timestamps": { label: "Captures", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.IpfsResource_Timestamp, defaultSources: [Source.Ipfs_Rest] },
+			})({
+				selectors: {
+					"ResourceAddress": ["namespace", "target", "contentPath"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Ipfs_Rest],
+							fields: ["canonicalUri"],
+							openFields: ["cidVersion", "cidMultibase", "cidMulticodecCode", "cidMultihashCode", "cidMultihashDigestHex", "isCidSubdomainSafe"],
+						},
+						summary: { title: [{ field: "canonicalUri", format: "truncated" }] },
+						content: {
+							dl: [
+								["namespace", { field: "target", format: "truncated" }, "contentPath", { field: "canonicalUri", format: "url" }],
+								["cidVersion", "cidMultibase", "cidMulticodecCode", "cidMultihashCode", "cidMultihashDigestHex", "isCidSubdomainSafe"],
+							],
+						},
+						latest: [{ field: "$$timestamps", label: "Latest capture", query: { sources: [Source.Ipfs_Rest], limit: 1 }, fields: ["timestampMs", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred", "text", "$media"], sort: "timestampMs", direction: "desc", view: "IpfsResource_TimestampView" }],
+						lists: [{ field: "$$timestamps", component: "IpfsResource_TimestampsView", emptyText: "No captures yet." }],
+					},
+					plural: { component: "IpfsResourcesView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.IpfsResource_Timestamp,
+				labels: {
+					singular: "IPFS resource capture",
+					plural: "IPFS resource captures",
+				},
+			})({
+				"$resource": { label: "Resource", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.IpfsResource },
+				"timestampMs": { label: "Captured", description: "Local completion time after the HTTP response body was read and parsed; not a provider event time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"gatewayOrigin": { label: "Gateway origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"gatewayUrl": { label: "Gateway URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"fileName": { label: "File name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -41586,15 +41629,9 @@ export const schema = {
 				"isContentTypeInferred": { label: "Content type inferred", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
 				"text": { label: "Text", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$media": { label: "Media", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
-				"cidVersion": { label: "CID version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"cidMultibase": { label: "CID multibase", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"cidMulticodecCode": { label: "CID multicodec code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"cidMultihashCode": { label: "CID multihash code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"cidMultihashDigestHex": { label: "CID multihash digest hex", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"isCidSubdomainSafe": { label: "CID subdomain safe", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 			})({
 				selectors: {
-					"ResourceAddress": ["namespace", "target", "contentPath"],
+					"ResourceTimestampMsSource": ["$resource", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
@@ -41608,25 +41645,43 @@ export const schema = {
 						],
 						query: {
 							sources: [Source.Ipfs_Rest],
-							fields: ["canonicalUri", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],
-							openFields: ["text", "cidVersion", "cidMultibase", "cidMulticodecCode", "cidMultihashCode", "cidMultihashDigestHex", "isCidSubdomainSafe"],
+							fields: ["gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],
+							openFields: ["text"],
 						},
 						summary: {
-							title: [{ field: "canonicalUri", format: "truncated" }],
+							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: [{ field: "contentType" }, { field: "displayType" }],
 						},
 						closed: [
-							{ field: "canonicalUri", format: "truncated" },
+							"source",
 							"displayType",
 							"contentType",
 						],
 						content: {
 							dl: [
 								[
-									"namespace",
-									{ field: "target", format: "truncated" },
-									"contentPath",
-									{ field: "canonicalUri", format: "url" },
+									{
+										kind: _ViewItemKind.Block,
+										id: "capturedResourceIdentity",
+										Content: dedent `
+												<div>
+													<dt>Namespace</dt>
+													<dd>{selection.entitySelector.$resource.namespace}</dd>
+												</div>
+
+												<div>
+													<dt>Target</dt>
+													<dd>{selection.entitySelector.$resource.target}</dd>
+												</div>
+
+												<div>
+													<dt>Content path</dt>
+													<dd>{selection.entitySelector.$resource.contentPath}</dd>
+												</div>
+										`,
+									},
+									{ field: "timestampMs", format: "timestamp" },
+									"source",
 									{ field: "gatewayUrl", format: "url" },
 								],
 								[
@@ -41639,19 +41694,11 @@ export const schema = {
 									"isContentTypeInferred",
 									"$media",
 								],
-								[
-									{ field: "cidVersion", format: "number" },
-									"cidMultibase",
-									{ field: "cidMulticodecCode", format: "number" },
-									{ field: "cidMultihashCode", format: "number" },
-									{ field: "cidMultihashDigestHex", format: "truncated" },
-									"isCidSubdomainSafe",
-								],
 							],
 							body: { field: "text", format: "longText" },
 						},
 					},
-					plural: { component: "IpfsResourcesView",
+					plural: { component: "IpfsResource_TimestampsView",
 					},
 				},
 			}),
@@ -74562,6 +74609,55 @@ export const routes = defineRoutes(schema)({
 						},
 						"[namespace]": {
 							children: {
+								"captures": {
+									children: {
+										"[target]": {
+											params: { "target": ["string"] },
+											children: {
+												"[timestampMs]": {
+													children: {
+														"[source]": {
+															selectors: {
+																[EntityType.IpfsResource_Timestamp]: {
+																	"ResourceTimestampMsSource": {
+																		params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																		derivations: {
+																			"$resource": { kind: "object", fields: [
+																				{ name: "namespace", value: { kind: "param", name: "namespace" } },
+																				{ name: "target", value: { kind: "param", name: "target" } },
+																				{ name: "contentPath", value: { kind: "literal", value: "" } },
+																			] },
+																		},
+																		page: {},
+																	},
+																},
+															},
+															children: {
+																"path": {
+																	children: {
+																		"[...contentPath]": {
+																			params: { "contentPath": ["string"] },
+																			selectorVariant: {
+																				derivations: {
+																					"$resource": { kind: "object", fields: [
+																						{ name: "namespace", value: { kind: "param", name: "namespace" } },
+																						{ name: "target", value: { kind: "param", name: "target" } },
+																						{ name: "contentPath", value: { kind: "param", name: "contentPath" } },
+																					] },
+																				},
+																				href: { conditions: [{ field: "$resource.contentPath", notEquals: "" }] },
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
 								"[target]": {
 									selectors: {
 										[EntityType.IpfsResource]: {

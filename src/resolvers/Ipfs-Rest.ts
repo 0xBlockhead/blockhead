@@ -22,6 +22,13 @@ const ipfsAccessTimestampWriter = defineObservationTimeWriter({
 	provenance: 'LocalRefresh',
 })
 
+const ipfsResourceTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.IpfsResource_Timestamp,
+	selectorName: 'ResourceTimestampMsSource',
+	source: Source.Ipfs_Rest,
+	provenance: 'HttpResponse',
+})
+
 export default {
 	source: Source.Ipfs_Rest,
 
@@ -37,6 +44,14 @@ export default {
 							target: target,
 							contentPath: contentPath,
 						})
+						// The source has finished reading and parsing the successful response.
+						const timestampMs = Date.now()
+						const canonicalTarget = (
+							browseResult.namespace === 'ipfs' ?
+								canonicalIpfsCidString(browseResult.target) ?? browseResult.target
+							:
+								browseResult.target
+						)
 						const decodedCid = (
 							browseResult.namespace === 'ipfs' ?
 								decodeIpfsCid(browseResult.target)
@@ -78,27 +93,35 @@ export default {
 
 						return {
 							namespace: browseResult.namespace,
-							target: (
-								browseResult.namespace === 'ipfs' ?
-									canonicalIpfsCidString(browseResult.target) ?? browseResult.target
-								:
-									browseResult.target
-							),
+							target: canonicalTarget,
 							contentPath: browseResult.contentPath,
 							canonicalUri: ipfsResourceCanonicalUri({
 								namespace: browseResult.namespace,
 								target: browseResult.target,
 								contentPath: browseResult.contentPath,
 							}),
-							gatewayOrigin: browseResult.gatewayOrigin,
-							gatewayUrl: browseResult.gatewayUrl,
-							fileName: browseResult.fileName,
-							extension: browseResult.extension,
-							...(browseResult.contentType != null && { contentType: browseResult.contentType }),
-							...(browseResult.contentLength != null && { contentLength: browseResult.contentLength }),
-							displayType: browseResult.displayType,
-							isContentTypeInferred: browseResult.isContentTypeInferred,
-							...(browseResult.text != null && { text: browseResult.text }),
+							$$timestamps: [
+								ipfsResourceTimestampWriter.write({
+									$resource: {
+										namespace: browseResult.namespace,
+										target: canonicalTarget,
+										contentPath: browseResult.contentPath,
+									},
+									timestampMs,
+									source: Source.Ipfs_Rest,
+								}, {
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'gatewayOrigin')]: browseResult.gatewayOrigin,
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'gatewayUrl')]: browseResult.gatewayUrl,
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'fileName')]: browseResult.fileName,
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'extension')]: browseResult.extension,
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'contentType')]: browseResult.contentType,
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'contentLength')]: browseResult.contentLength,
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'displayType')]: browseResult.displayType,
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'isContentTypeInferred')]: browseResult.isContentTypeInferred,
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'text')]: browseResult.text,
+									[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], '$media')]: mediaEntity,
+								}),
+							],
 							...(decodedCid != null && {
 								cidVersion: decodedCid.version,
 								cidMultibase: decodedCid.multibase,
@@ -107,7 +130,6 @@ export default {
 								cidMultihashDigestHex: decodedCid.multihashDigestHex,
 								isCidSubdomainSafe: decodedCid.isSubdomainSafe,
 							}),
-							...(mediaEntity != null && { $media: mediaEntity }),
 						}
 					},
 				}
@@ -117,22 +139,15 @@ export default {
 				target: (snapshot) => snapshot.target,
 				contentPath: (snapshot) => snapshot.contentPath,
 				canonicalUri: (snapshot) => snapshot.canonicalUri,
-				gatewayOrigin: (snapshot) => snapshot.gatewayOrigin,
-				gatewayUrl: (snapshot) => snapshot.gatewayUrl,
-				fileName: (snapshot) => snapshot.fileName,
-				extension: (snapshot) => snapshot.extension,
-				contentType: (snapshot) => snapshot.contentType,
-				contentLength: (snapshot) => snapshot.contentLength,
-				displayType: (snapshot) => snapshot.displayType,
-				isContentTypeInferred: (snapshot) => snapshot.isContentTypeInferred,
-				text: (snapshot) => snapshot.text,
+				$$timestamps: {
+					select: (snapshot) => snapshot.$$timestamps,
+				},
 				cidVersion: (snapshot) => snapshot.cidVersion,
 				cidMultibase: (snapshot) => snapshot.cidMultibase,
 				cidMulticodecCode: (snapshot) => snapshot.cidMulticodecCode,
 				cidMultihashCode: (snapshot) => snapshot.cidMultihashCode,
 				cidMultihashDigestHex: (snapshot) => snapshot.cidMultihashDigestHex,
 				isCidSubdomainSafe: (snapshot) => snapshot.isCidSubdomainSafe,
-				$media: (snapshot) => snapshot.$media,
 			}),
 
 		defineResolver({
