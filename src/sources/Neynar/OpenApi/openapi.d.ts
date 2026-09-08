@@ -749,26 +749,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v2/farcaster/feed/for_you/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * For you
-         * @description Fetch a personalized For You feed for a user
-         */
-        get: operations["fetch-feed-for-you"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v2/farcaster/feed/parent_urls/": {
         parameters: {
             query?: never;
@@ -801,26 +781,6 @@ export interface paths {
          * @description Fetch feed based on a topic slug.
          */
         get: operations["fetch-feed-by-topic"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v2/farcaster/feed/trending/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Trending feeds
-         * @description Fetch trending casts or on the global feed or channels feeds. 7d time window available for channel feeds only.
-         */
-        get: operations["fetch-trending-feed"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1266,7 +1226,8 @@ export interface paths {
         };
         /**
          * Fetch authorization url
-         * @description Fetch authorization url (Fetched authorized url useful for SIWN login operation)
+         * @deprecated
+         * @description Fetch authorization url (Fetched authorized url useful for SIWN login operation) DEPRECATED: Sign In With Neynar is being retired. Use Neynar-managed signers instead: https://docs.neynar.com/docs/integrate-managed-signers
          */
         get: operations["fetch-authorization-url"];
         put?: never;
@@ -2478,7 +2439,7 @@ export interface paths {
         put?: never;
         /**
          * Create a miniapp generator deployment
-         * @description Creates and deploys an instance of the miniapp generator for a user. Requires authentication via API key in the request header. Note: Studio CU is tracked based on LLM token usage, not per API call.
+         * @description Creates and deploys an instance of the miniapp generator for a user. Requires authentication via API key in the request header. Note: app creation is disabled as Neynar Studio is being discontinued; this endpoint now returns 403. Note: Studio CU is tracked based on LLM token usage, not per API call.
          */
         post: operations["create-deployment"];
         /**
@@ -2752,7 +2713,7 @@ export interface paths {
         };
         /**
          * Export deployment source code as ZIP
-         * @description Downloads the generated miniapp source code as a binary ZIP archive (Content-Type: application/zip). Requires a paid Studio subscription (GROWTH, STUDIO_PLUS, STUDIO_MAX, or INTERNAL). The deployment must be running. The 200 response body is a raw binary stream, not JSON.
+         * @description Downloads the generated miniapp source code as a binary ZIP archive (Content-Type: application/zip). Requires a paid Studio subscription (GROWTH, STUDIO_PLUS, STUDIO_MAX, or INTERNAL). If the deployment is running, the ZIP reflects the live working tree; otherwise it is served from the deployment's GitHub backup (last published state). The 200 response body is a raw binary stream, not JSON.
          */
         get: operations["export-zip"];
         put?: never;
@@ -4291,10 +4252,10 @@ export interface components {
         };
         /**
          * Network
-         * @description A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum"
+         * @description A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum", "robinhood"
          * @enum {string}
          */
-        Network: "ethereum" | "optimism" | "base" | "arbitrum";
+        Network: "ethereum" | "optimism" | "base" | "arbitrum" | "robinhood";
         /**
          * NextCursor
          * @description Returns next cursor
@@ -7300,9 +7261,8 @@ export interface operations {
                  * @description Choices are:
                  *     - `desc_chron` - All casts sorted by time in a descending order (default)
                  *     - `chron` - All casts sorted by time in ascending order
-                 *     - `algorithmic` - Casts sorted by engagement and time
                  */
-                sort_type?: "desc_chron" | "chron" | "algorithmic";
+                sort_type?: "desc_chron" | "chron";
                 /** @description Fid of the user whose casts you want to search */
                 author_fid?: number;
                 /** @description Providing this will return search results that respects this user's mutes and blocks and includes `viewer_context`. */
@@ -8061,8 +8021,8 @@ export interface operations {
             query?: {
                 /** @description Defaults to following (requires FID or address). If set to filter (requires filter_type) */
                 feed_type?: "following" | "filter";
-                /** @description Used when feed_type=filter. Options include fids (requires fids), parent_url (requires parent_url), channel_id (requires channel_id), embed_url (requires embed_url), embed_types (requires embed_types), or global_trending. */
-                filter_type?: "fids" | "parent_url" | "channel_id" | "embed_url" | "embed_types" | "global_trending";
+                /** @description Used when feed_type=filter. Options include fids (requires fids), parent_url (requires parent_url), channel_id (requires channel_id), embed_url (requires embed_url), or embed_types (requires embed_types). */
+                filter_type?: "fids" | "parent_url" | "channel_id" | "embed_url" | "embed_types";
                 /** @description (Optional) FID of user whose feed you want to create. By default, the API expects this field, except if you pass a filter_type */
                 fid?: number;
                 /** @description Used when filter_type=FIDs . Create a feed based on a list of FIDs. Max array size is 100. Requires feed_type and filter_type. */
@@ -8209,49 +8169,6 @@ export interface operations {
             };
         };
     };
-    "fetch-feed-for-you": {
-        parameters: {
-            query: {
-                /** @description FID of user whose feed you want to create */
-                fid: number;
-                /** @description Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`. */
-                viewer_fid?: number;
-                /** @description The provider of the For You feed. */
-                provider?: "neynar";
-                /** @description Number of results to fetch */
-                limit?: number;
-                /** @description Pagination cursor. */
-                cursor?: string;
-            };
-            header?: {
-                /** @description Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details. */
-                "x-neynar-experimental"?: components["parameters"]["NeynarExperimentalHeader"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FeedResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ZodError"] | components["schemas"]["ErrorRes"];
-                };
-            };
-        };
-    };
     "fetch-feed-by-parent-urls": {
         parameters: {
             query: {
@@ -8331,71 +8248,6 @@ export interface operations {
             };
             /** @description Bad Request */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRes"];
-                };
-            };
-            /** @description Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorRes"];
-                };
-            };
-        };
-    };
-    "fetch-trending-feed": {
-        parameters: {
-            query?: {
-                /** @description Number of results to fetch */
-                limit?: number;
-                /** @description Pagination cursor */
-                cursor?: string;
-                /** @description Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`. */
-                viewer_fid?: number;
-                /** @description Time window for trending casts (7d window for channel feeds only) */
-                time_window?: "1h" | "6h" | "12h" | "24h" | "7d";
-                /** @description Channel ID to filter trending casts. Less active channels might have no casts in the time window selected. Provide either `channel_id` or `parent_url`, not both. */
-                channel_id?: string;
-                /** @description Parent URL to filter trending casts. Less active channels might have no casts in the time window selected. Provide either `channel_id` or `parent_url`, not both. */
-                parent_url?: string;
-                /** @description The provider of the trending casts feed. */
-                provider?: "neynar";
-            };
-            header?: {
-                /** @description Enables experimental features including filtering based on the Neynar score. See [docs](https://neynar.notion.site/Experimental-Features-1d2655195a8b80eb98b4d4ae7b76ae4a) for more details. */
-                "x-neynar-experimental"?: components["parameters"]["NeynarExperimentalHeader"];
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FeedResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ZodError"] | components["schemas"]["ErrorRes"];
-                };
-            };
-            /** @description Resource not found */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9309,7 +9161,8 @@ export interface operations {
     "fetch-fungible-trades": {
         parameters: {
             query: {
-                network: "base";
+                /** @description A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum", "robinhood" */
+                network: "ethereum" | "optimism" | "base" | "arbitrum" | "robinhood";
                 /** @description Contract address */
                 address: string;
                 /** @description Time window for trades e.g. "1h", "6h", "12h", "24h", "7d" */
@@ -9384,7 +9237,8 @@ export interface operations {
     "fetch-trending-fungibles": {
         parameters: {
             query: {
-                network: "base";
+                /** @description A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum", "robinhood" */
+                network: "ethereum" | "optimism" | "base" | "arbitrum" | "robinhood";
                 /** @description Time window for trending calculations e.g. "1h", "6h", "12h", "24h", "7d" */
                 time_window?: "1h" | "6h" | "12h" | "24h" | "7d";
             };
@@ -9526,6 +9380,15 @@ export interface operations {
             };
             /** @description Unauthorized */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRes"];
+                };
+            };
+            /** @description Gone */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -12414,7 +12277,7 @@ export interface operations {
     "get-wallet-balances": {
         parameters: {
             query: {
-                /** @description Comma-separated list of networks to query. Each value must be a valid network (ethereum, optimism, base, arbitrum). */
+                /** @description Comma-separated list of networks to query. Each value must be a valid network (ethereum, optimism, base, arbitrum, robinhood). */
                 networks: string;
                 /** @description Wallet address */
                 address: string;
@@ -12509,8 +12372,8 @@ export interface operations {
     "get-token-metadata": {
         parameters: {
             query: {
-                /** @description A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum" */
-                network: "ethereum" | "optimism" | "base" | "arbitrum";
+                /** @description A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum", "robinhood" */
+                network: "ethereum" | "optimism" | "base" | "arbitrum" | "robinhood";
                 /** @description Token contract address */
                 address: string;
             };
@@ -12656,7 +12519,7 @@ export interface operations {
     "batch-get-token-metadata": {
         parameters: {
             query: {
-                /** @description Comma-separated list of blockchain networks. Each value must be a valid network (ethereum, optimism, base, arbitrum). */
+                /** @description Comma-separated list of blockchain networks. Each value must be a valid network (ethereum, optimism, base, arbitrum, robinhood). */
                 networks: string;
                 /** @description Comma-separated list of token contract addresses corresponding to each network */
                 addresses: string;
@@ -13388,6 +13251,17 @@ export interface operations {
             };
             /** @description Bad Request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
