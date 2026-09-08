@@ -217,4 +217,34 @@ describe('WebEVM local node semantic contract', () => {
 
 		expect(await Promise.all([one, two])).toHaveLength(2)
 	})
+
+	it('binds captured operation identity to the native pre-state and reset identity', async () => {
+		const local = await createWebEvmLocalNode(config())
+		try {
+			const operation = {
+				kind: 'sendRawTransaction',
+				rawTransaction,
+			} as const
+			const before = await local.captureOperation(operation)
+
+			await local.sendRawTransaction(rawTransaction)
+
+			const after = await local.captureOperation(operation)
+			expect(after.stateRoot).not.toBe(before.stateRoot)
+			expect(after.paramsHash).not.toBe(before.paramsHash)
+			expect(after.head).not.toEqual(before.head)
+
+			const reset = await local.reset()
+			try {
+				const replayBasis = await reset.captureOperation(operation)
+				expect(replayBasis).toEqual(before)
+			}
+			finally {
+				await reset.dispose()
+			}
+		}
+		finally {
+			await local.dispose()
+		}
+	})
 })
