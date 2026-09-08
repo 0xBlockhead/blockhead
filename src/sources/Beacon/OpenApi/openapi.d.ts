@@ -514,17 +514,15 @@ export interface paths {
          *     successfully broadcast but failed integration. The broadcast behaviour may be adjusted via
          *     the `broadcast_validation` query parameter.
          *
-         *     The request body can be either form, distinguished by the `Eth-Execution-Payload-Blinded`
+         *     The request body can be either form, distinguished by the `Eth-Blob-Data-Included`
          *     header:
-         *     - A `SignedExecutionPayloadEnvelopeContents` object (header `false`) containing the signed
+         *     - A `SignedExecutionPayloadEnvelopeContents` object (header `true`) containing the signed
          *       envelope along with blobs and KZG proofs. This is used in stateless operation (multi-BN
          *       setups, distributed validators, failover) where the receiving beacon node does not have
          *       the blobs cached.
-         *     - A `SignedBlindedExecutionPayloadEnvelope` object (header `true`) containing the signed
-         *       blinded envelope (transactions omitted). This is used in stateful operation where the
-         *       beacon node already has the full envelope and blobs cached from block production. The
-         *       beacon node reconstructs the full envelope from its cache before broadcasting; the
-         *       signature is valid over both forms by construction.
+         *     - A `SignedExecutionPayloadEnvelope` object (header `false`) containing only the signed
+         *       envelope. This is used in stateful operation where the beacon node has the blobs and
+         *       KZG proofs cached from block production and attaches them before broadcasting.
          */
         post: operations["publishExecutionPayloadEnvelope"];
         delete?: never;
@@ -1480,26 +1478,42 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        get?: never;
+        put?: never;
         /**
          * Produce a new block, without signature.
-         * @description Requests a beacon node to produce a valid block, which can then be signed by a validator.
+         * @description Requests a beacon node to produce a valid block, which the validator then signs.
          *
-         *     Post-Gloas, proposers submit execution payload bids rather than full execution payloads,
-         *     so there is no longer a concept of blinded or unblinded blocks. Builders release the
-         *     payload later. This endpoint is specific to the post-Gloas forks and is not backwards compatible
-         *     with previous forks.
+         *     The beacon node always builds a local payload and MAY consider a p2p bid, so a block is returned
+         *     even when no builder bid is available. The validator client supplies a `BuilderConfig` in the
+         *     request body: a list of `BuilderEntry` objects in its `builders` field, one per bid request,
+         *     plus a top-level `min_bid` and `builder_boost_factor` that apply to p2p bids. Each entry
+         *     requests a bid from its `url`, and the entry applies to the bid that request returns; an empty
+         *     `builder_pubkeys` list accepts any builder, and a bid MUST NOT be accepted unless signed by
+         *     one of a non-empty list.
          *
-         *     When self-building (local execution payload), the response will include the full block contents
-         *     including the beacon block, execution payload envelope, blobs, and KZG proofs.
-         *     When using an external builder bid, only the `BeaconBlock` is returned as the beacon node
-         *     does not have access to the builder's execution payload.
+         *     A bid's total payment counts its `execution_payment` at most at the `max_execution_payment`
+         *     that applies to it; payment above that cap adds nothing to the bid's chances, though the
+         *     proposer still receives it if the builder honors the bid. A builder bid, over the builder API
+         *     or p2p, is rejected if its total payment falls below the `min_bid` that applies to it. Every
+         *     surviving bid is then weighted by the `builder_boost_factor` that applies to it, and the
+         *     highest weighted value competes with the local build's value weighted by `100`. The local
+         *     build wins a tie.
          *
-         *     The `Eth-Execution-Payload-Included` header and `execution_payload_included` response field
-         *     indicate which response type was returned.
+         *     The response carries the full block contents only when the beacon node self-built the block and
+         *     `include_payload` is `true`; in every other case, including any builder bid win, it carries
+         *     only the `BeaconBlock`.
+         *
+         *     Every block is published via `POST /eth/v2/beacon/blocks`. A self-built block carries
+         *     `BUILDER_INDEX_SELF_BUILD` as its `builder_index`, and the validator client publishes its
+         *     execution payload envelope via `POST /eth/v1/beacon/execution_payload_envelopes`. When a
+         *     builder bid won, the winning builder releases the envelope instead, and the validator client
+         *     echoes `Eth-Builder-Url` if one was returned.
+         *
+         *     This endpoint is specific to the post-Gloas forks and is not backwards compatible with previous
+         *     forks.
          */
-        get: operations["produceBlockV4"];
-        put?: never;
-        post?: never;
+        post: operations["produceBlockV4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1535,7 +1549,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/eth/v1/validator/payload_attestation_data/{slot}": {
+    "/eth/v1/validator/payload_attestation_data": {
         parameters: {
             query?: never;
             header?: never;
@@ -1874,6 +1888,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/eth/v1/validator/builder_preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit builder preferences
+         * @description Submits per-builder preferences for one or more proposers. The request body is a flat list of
+         *     `BuilderPreferencesEntry` objects, each naming the proposer in `proposer_pubkey`; the beacon
+         *     node submits each to the builder-API `submitBuilderPreferences` endpoint at the entry's `url`.
+         *     Applicable from the Gloas fork onwards.
+         *
+         *     Notes:
+         *     - Each entry targets one builder `url`, to which the beacon node makes one submission.
+         *     - Entries are identified by `proposer_pubkey`, so several proposers MAY submit to the same `url`.
+         *     - The beacon node routes each entry by its `url` and submits to that builder's
+         *       `submitBuilderPreferences` for the entry's `proposer_pubkey`, forwarding the `auth` and
+         *       `max_execution_payment`.
+         *     - Validators MAY submit in the epoch prior to proposing (from `state.proposer_lookahead`), so
+         *       builders hold the preferences before the bid request arrives.
+         */
+        post: operations["submitBuilderPreferences"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/eth/v1/validator/liveness/{epoch}": {
         parameters: {
             query?: never;
@@ -1923,14 +1969,10 @@ export interface paths {
         };
         /**
          * Get execution payload envelope
-         * @description Retrieves the cached execution payload envelope for the current proposer's slot as a
-         *     `BlindedExecutionPayloadEnvelope` (the `payload` field is replaced by `payload_root`, the
-         *     hash tree root of the full execution payload). The hash tree root of
-         *     `BlindedExecutionPayloadEnvelope` matches the hash tree root of the corresponding full
-         *     `ExecutionPayloadEnvelope`, so a signature produced over the blinded form is valid
-         *     against the full envelope.
+         * @description Retrieves the cached execution payload envelope for the current proposer's slot, to be
+         *     signed and published via `publishExecutionPayloadEnvelope`.
          *
-         *     The beacon node only caches the envelope for the current slot's self-built payload.
+         *     The beacon node only caches the envelope for the current slot's locally built payload.
          *     Requests for older slots or slots where no envelope has been cached will return a 404
          *     error. This endpoint does not fetch payloads from the execution layer.
          *
@@ -2326,8 +2368,6 @@ export interface components {
         "Gloas.ExecutionPayloadEnvelope": components["schemas"]["ExecutionPayloadEnvelope"];
         "Gloas.SignedExecutionPayloadEnvelope": components["schemas"]["SignedExecutionPayloadEnvelope"];
         "Gloas.SignedExecutionPayloadEnvelopeContents": components["schemas"]["SignedExecutionPayloadEnvelopeContents"];
-        "Gloas.BlindedExecutionPayloadEnvelope": components["schemas"]["BlindedExecutionPayloadEnvelope"];
-        "Gloas.SignedBlindedExecutionPayloadEnvelope": components["schemas"]["SignedBlindedExecutionPayloadEnvelope"];
         "Gloas.PayloadAttestationData": components["schemas"]["PayloadAttestationData"];
         "Gloas.PayloadAttestation": components["schemas"]["PayloadAttestation"];
         "Gloas.PayloadAttestationMessage": components["schemas"]["PayloadAttestationMessage"];
@@ -2337,6 +2377,11 @@ export interface components {
         "Fulu.SignedBlockContents": components["schemas"]["SignedBlockContents"];
         "Fulu.DataColumnSidecars": components["schemas"]["Fulu-DataColumnSidecars"];
         "Gloas.DataColumnSidecars": components["schemas"]["DataColumnSidecars"];
+        "Gloas.BuilderRequestAuth": components["schemas"]["BuilderRequestAuth"];
+        "Gloas.SignedBuilderRequestAuth": components["schemas"]["SignedBuilderRequestAuth"];
+        "Gloas.BuilderEntry": components["schemas"]["BuilderEntry"];
+        "Gloas.BuilderConfig": components["schemas"]["BuilderConfig"];
+        "Gloas.BuilderPreferencesEntry": components["schemas"]["BuilderPreferencesEntry"];
         /** @description fork choice node attributes */
         Node: {
             /** @description The slot to which this block corresponds. */
@@ -3133,37 +3178,6 @@ export interface components {
             blobs: components["schemas"]["Blobs"];
         };
         /**
-         * @description Blinded form of `ExecutionPayloadEnvelope` used in the stateful publishing flow. The
-         *     `payload` field is replaced with `payload_root`, the hash tree root of the full
-         *     execution payload. By construction `hash_tree_root(BlindedExecutionPayloadEnvelope) ==
-         *     hash_tree_root(ExecutionPayloadEnvelope)` when `payload_root` equals
-         *     `hash_tree_root(payload)`, so a validator signature over the blinded envelope is also
-         *     valid over the full envelope. Used when the beacon node has already cached the full
-         *     envelope and blobs from block production, avoiding the bandwidth cost of re-uploading
-         *     transactions and blobs in the publish request.
-         */
-        BlindedExecutionPayloadEnvelope: {
-            /** @description Hash tree root of the full `Gloas.ExecutionPayload` */
-            payload_root: components["schemas"]["Root"];
-            execution_requests: components["schemas"]["ExecutionRequests"];
-            /** @description Index of the builder that created this execution payload */
-            builder_index: components["schemas"]["Uint64"];
-            /** @description Root of the beacon block for this payload */
-            beacon_block_root: components["schemas"]["Root"];
-            /** @description Root of the parent beacon block */
-            parent_beacon_block_root: components["schemas"]["Root"];
-        };
-        /**
-         * @description Signed form of `BlindedExecutionPayloadEnvelope`. The signature is produced over the
-         *     hash tree root of the message, which by construction matches the hash tree root of the
-         *     corresponding full `ExecutionPayloadEnvelope`.
-         */
-        SignedBlindedExecutionPayloadEnvelope: {
-            message: components["schemas"]["BlindedExecutionPayloadEnvelope"];
-            /** @description BLS signature of the blinded execution payload envelope */
-            signature: components["schemas"]["Signature"];
-        };
-        /**
          * Format: hex
          * @description A data column is `FIELD_ELEMENTS_PER_CELL * size_of(BLSFieldElement) = 64 * 32 = 2048` bytes (`DATA`) representing a Cell as defined in Fulu
          */
@@ -3771,6 +3785,85 @@ export interface components {
             kzg_proofs: components["schemas"]["Deneb-KZGProofs"];
             blobs: components["schemas"]["Blobs"];
         };
+        /** @description The [`BuilderRequestAuth`](https://github.com/ethereum/builder-specs/blob/main/specs/gloas/validator.md#builderrequestauth) object from the Builder API Gloas spec. */
+        BuilderRequestAuth: {
+            /**
+             * Format: hex
+             * @description Opaque authentication data unique to the builder, agreed upon out of band. The meaning of
+             *     the up to `MAX_BUILDER_AUTH_DATA_SIZE` (4096) bytes is left to the two parties; the builder checks the
+             *     exact bytes when it verifies. When no value has been agreed out of band, implementations
+             *     SHOULD default to the UTF-8 bytes of the builder's own advertised URL, exactly as
+             *     advertised, so proposers with no prior relationship can construct an identical `data`
+             *     deterministically. A zero-length `data` is invalid.
+             * @example 0x1234567890abcdef
+             */
+            data: string;
+            slot: components["schemas"]["Uint64"] & unknown;
+        };
+        /** @description The [`SignedBuilderRequestAuth`](https://github.com/ethereum/builder-specs/blob/main/specs/gloas/validator.md#signedbuilderrequestauth) object from the Builder API Gloas spec. */
+        SignedBuilderRequestAuth: {
+            message: components["schemas"]["BuilderRequestAuth"];
+            signature: components["schemas"]["Signature"];
+        };
+        /**
+         * @description A per-builder input the validator client supplies on a block-production request.
+         *
+         *     Each entry is a bid request sent to its `url`, authenticated by its `auth`, which the
+         *     builder requires on every request. No two entries may share both their `url` and their
+         *     `auth`'s `data`, and one request is made per entry, so several MAY share a `url` with
+         *     different `data`.
+         *
+         *     `auth` is the `SignedBuilderRequestAuth` object from the Builder API Gloas spec.
+         *
+         *     A `BuilderEntry` never reaches a builder, so it has no Builder API definition. Its SSZ
+         *     container and constants are:
+         *
+         *         MAX_BUILDER_ENTRIES = 64
+         *         MAX_BUILDER_URL_SIZE = 2048
+         *         MAX_BUILDER_PUBKEYS = 64
+         *
+         *         class BuilderEntry(Container):
+         *             url: ByteList[MAX_BUILDER_URL_SIZE]  # UTF-8 bytes of `url`, exactly as in JSON
+         *             auth: SignedBuilderRequestAuth
+         *             builder_pubkeys: List[BLSPubkey, MAX_BUILDER_PUBKEYS]
+         *             max_execution_payment: Gwei
+         *             min_bid: Gwei
+         *             builder_boost_factor: uint64
+         *
+         *     In either encoding, a zero-length `url` is invalid.
+         */
+        BuilderEntry: {
+            /**
+             * Format: uri
+             * @description Where this entry's bid request is sent.
+             * @example https://builder.example.com
+             */
+            url: string;
+            auth: components["schemas"]["SignedBuilderRequestAuth"] & unknown;
+            /** @description The builder BLS public keys this entry accepts bids from. Empty accepts any builder; otherwise a bid not signed by one of them MUST NOT be accepted. */
+            builder_pubkeys: (components["schemas"]["Pubkey"] & unknown)[];
+            max_execution_payment: components["schemas"]["Uint64"] & unknown;
+            min_bid: components["schemas"]["Uint64"] & unknown;
+            builder_boost_factor: components["schemas"]["Uint64"] & unknown;
+        };
+        /**
+         * @description The resolved per-key builder config the validator client sends on a block-production request.
+         *     Entries arrive fully resolved, so a requested bid is governed by its own `BuilderEntry`; the
+         *     top-level `min_bid` and `builder_boost_factor` apply to bids received over p2p.
+         *
+         *     Its SSZ container is:
+         *
+         *         class BuilderConfig(Container):
+         *             min_bid: Gwei
+         *             builder_boost_factor: uint64
+         *             builders: List[BuilderEntry, MAX_BUILDER_ENTRIES]
+         */
+        BuilderConfig: {
+            min_bid: components["schemas"]["Uint64"] & unknown;
+            builder_boost_factor: components["schemas"]["Uint64"] & unknown;
+            /** @description The builders to request bids from, one `BuilderEntry` each. Empty means request none, so only p2p bids are considered. */
+            builders: components["schemas"]["BuilderEntry"][];
+        };
         /**
          * @description Block contents for self-building, including the execution payload envelope
          *     and blobs. This enables stateless failover to another beacon node for publishing,
@@ -3867,6 +3960,37 @@ export interface components {
         SignedProposerPreferences: {
             message: components["schemas"]["ProposerPreferences"];
             signature: components["schemas"]["Signature"];
+        };
+        /**
+         * @description A per-builder preference the validator client asks the beacon node to submit ahead of the bid
+         *     request, one entry per builder per proposer. A single submission batches these across the
+         *     validator client's proposers, so each entry names the proposer it belongs to in
+         *     `proposer_pubkey`. It is a dedicated type, distinct from the block-production `BuilderEntry`.
+         *
+         *     The entry pairs the beacon node's routing with the payload the builder receives, so like
+         *     `BuilderEntry` it has no Builder API definition. Its SSZ container uses that type's constants
+         *     and the `SignedBuilderRequestAuth` object from the Builder API Gloas spec:
+         *
+         *         class BuilderPreferencesEntry(Container):
+         *             proposer_pubkey: BLSPubkey  # the proposer these preferences belong to
+         *             url: ByteList[MAX_BUILDER_URL_SIZE]  # UTF-8 bytes of `url`, exactly as in JSON
+         *             auth: SignedBuilderRequestAuth
+         *             max_execution_payment: Gwei
+         *
+         *     In either encoding, a zero-length `url` is invalid.
+         */
+        BuilderPreferencesEntry: {
+            /** @description The BLS public key of the proposer these preferences apply to. */
+            proposer_pubkey: components["schemas"]["Pubkey"];
+            /**
+             * Format: uri
+             * @description The URL this entry's preferences are submitted to. Multiple entries MAY share a `url`; the beacon node makes one submission per entry.
+             * @example https://builder.example.com
+             */
+            url: string;
+            /** @description Authenticates this submission to the builder. The beacon node MUST forward `message` and `signature` byte-for-byte unchanged. */
+            auth: components["schemas"]["SignedBuilderRequestAuth"];
+            max_execution_payment: components["schemas"]["Uint64"] & unknown;
         };
     };
     responses: {
@@ -4071,12 +4195,7 @@ export interface components {
          *     more effectively.
          */
         "Eth-Consensus-Version": components["schemas"]["ConsensusVersion"];
-        /**
-         * @description Indicates whether the execution payload (or envelope) is in blinded form. Sent in
-         *     responses so clients can deserialize returned JSON or SSZ data to the correct object,
-         *     and sent in requests on endpoints that accept either blinded or full forms so the
-         *     server can select the correct request schema.
-         */
+        /** @description Required in response so client can deserialize returned json or ssz data to the correct object. */
         "Eth-Execution-Payload-Blinded": boolean;
         /**
          * @description Execution payload value in Wei. Required in response so client can determine relative value
@@ -5448,6 +5567,21 @@ export interface operations {
             header: {
                 /** @description The active consensus version to which the block being submitted belongs. */
                 "Eth-Consensus-Version": components["schemas"]["ConsensusVersion"];
+                /**
+                 * @description The `url` of the winning builder, as returned by `POST /eth/v4/validator/blocks/{slot}`.
+                 *     When that endpoint returns this header the validator client MUST echo it here, so the beacon
+                 *     node can forward the signed block to the same builder and the builder can release the
+                 *     payload without waiting for gossip. The echo is what lets a beacon node that did not serve
+                 *     the block-production request still forward it. Omitted for a self-built block or a block won
+                 *     by a p2p bid.
+                 *
+                 *     The URL is untrusted input and a server-side request forgery (SSRF) risk: the beacon
+                 *     node issues only the builder-API `submitSignedBeaconBlock` request to it, over http(s),
+                 *     and MUST NOT follow redirects. Deployments serving callers beyond their own validator
+                 *     clients SHOULD also reject URLs that resolve to private address space, since a caller
+                 *     can otherwise use the forwarded request to reach internal endpoints.
+                 */
+                "Eth-Builder-Url"?: string;
             };
             path?: never;
             cookie?: never;
@@ -5566,22 +5700,21 @@ export interface operations {
                 /** @description The active consensus version to which the execution payload envelope being submitted belongs. */
                 "Eth-Consensus-Version": components["schemas"]["ConsensusVersion"];
                 /**
-                 * @description Indicates which body schema is submitted (see the
-                 *     [`Eth-Execution-Payload-Blinded`](#/components/headers/Eth-Execution-Payload-Blinded)
-                 *     header). When `false`, the body is a `SignedExecutionPayloadEnvelopeContents` (full
-                 *     envelope plus blobs and KZG proofs, stateless flow). When `true`, the body is a
-                 *     `SignedBlindedExecutionPayloadEnvelope` (blinded envelope only, stateful flow; the
-                 *     beacon node must have cached the full envelope and blobs from block production).
+                 * @description Indicates which body schema is submitted. When `true`, the body is a
+                 *     `SignedExecutionPayloadEnvelopeContents` (signed envelope plus blobs and KZG proofs,
+                 *     stateless flow). When `false`, the body is a `SignedExecutionPayloadEnvelope`
+                 *     (signed envelope only, stateful flow; the beacon node must have cached the blobs
+                 *     and KZG proofs from block production).
                  */
-                "Eth-Execution-Payload-Blinded": boolean;
+                "Eth-Blob-Data-Included": boolean;
             };
             path?: never;
             cookie?: never;
         };
-        /** @description The `SignedExecutionPayloadEnvelopeContents` or `SignedBlindedExecutionPayloadEnvelope` object to be broadcast, selected via the `Eth-Execution-Payload-Blinded` header. */
+        /** @description The `SignedExecutionPayloadEnvelopeContents` or `SignedExecutionPayloadEnvelope` object to be broadcast, selected via the `Eth-Blob-Data-Included` header. */
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SignedExecutionPayloadEnvelopeContents"] | components["schemas"]["SignedBlindedExecutionPayloadEnvelope"];
+                "application/json": components["schemas"]["SignedExecutionPayloadEnvelopeContents"] | components["schemas"]["SignedExecutionPayloadEnvelope"];
                 "application/octet-stream": unknown;
             };
         };
@@ -5601,9 +5734,9 @@ export interface operations {
                 content?: never;
             };
             /**
-             * @description The signed envelope object is invalid, broadcast validation failed, or a blinded
-             *     envelope was submitted but the beacon node has no cached full envelope to reconstruct
-             *     from (e.g. because block production happened on a different beacon node).
+             * @description The signed envelope object is invalid, broadcast validation failed, or an envelope
+             *     without blob data was submitted but the beacon node has no cached blobs and KZG
+             *     proofs to attach (e.g. because block production happened on a different beacon node).
              */
             400: {
                 headers: {
@@ -5621,6 +5754,7 @@ export interface operations {
             };
             415: components["responses"]["UnsupportedMediaType"];
             500: components["responses"]["InternalError"];
+            503: components["responses"]["CurrentlySyncing"];
         };
     };
     getSignedExecutionPayloadEnvelope: {
@@ -7739,7 +7873,7 @@ export interface operations {
                  * @description Controls whether the execution payload envelope and blobs are included in the response
                  *     when self-building (using local execution payload).
                  *
-                 *     When `true` (default), the response includes the full block contents: beacon block,
+                 *     When `true`, the response includes the full block contents: beacon block,
                  *     execution payload envelope, blobs, and KZG proofs. This enables stateless operation
                  *     where the validator client can use multiple beacon nodes (multi-BN setups, distributed validators, failover).
                  *
@@ -7749,59 +7883,55 @@ export interface operations {
                  *     bandwidth but requires the validator client to publish via the same beacon node that
                  *     produced the block (stateful operation).
                  *
-                 *     This parameter only affects self-building scenarios. When using an external builder's bid,
-                 *     only the beacon block is returned regardless of this parameter (the beacon node does not
-                 *     have access to the builder's execution payload).
+                 *     This parameter affects the self-built case only. When a builder bid wins, the beacon node
+                 *     does not hold that payload, so it returns only the beacon block regardless of this
+                 *     parameter.
                  */
-                include_payload?: boolean;
-                /**
-                 * @description Percentage multiplier to apply to the builder's bid value when choosing between a
-                 *     builder bid and payload from the paired execution node. This parameter is only relevant
-                 *     if the beacon node has at least one viable builder `ExecutionPayloadBid` available and
-                 *     receives a valid response from the paired execution node. When these preconditions are
-                 *     met, the server MUST act as follows:
-                 *
-                 *     * if `exec_node_payload_value >= builder_boost_factor * (builder_payload_value // 100)`
-                 *       for the highest builder bid known to the beacon node, then return a block committing
-                 *       to the local execution node payload (with the payload itself included if
-                 *       `include_payload` is set to true).
-                 *     * otherwise, return a block committing to the builder bid (without execution payload,
-                 *       as it is not yet available).
-                 *
-                 *     Servers must support the following values of the boost factor which encode common
-                 *     preferences:
-                 *
-                 *     * `builder_boost_factor=0`: prefer the local execution node payload unless an error makes
-                 *       it unviable.
-                 *     * `builder_boost_factor=100`: profit maximization mode; choose whichever payload pays
-                 *       more.
-                 *     * `builder_boost_factor=2**64 - 1`: prefer the builder bid unless an error or beacon node
-                 *       health check makes it unviable.
-                 *
-                 *     Servers should use saturating arithmetic or another technique to ensure that large values
-                 *     of the `builder_boost_factor` do not trigger overflows or errors. If this parameter is
-                 *     provided and no builder bid is available, the beacon node MUST respond with a block
-                 *     committing to the local execution node payload, which the caller can choose to reject if
-                 *     it wishes. If the value is provided but out of range for a 64-bit unsigned integer, then
-                 *     an error response with status code 400 MUST be returned.
-                 */
-                builder_boost_factor?: components["schemas"]["Uint64"];
+                include_payload: boolean;
             };
-            header?: never;
+            header: {
+                /** @description The active consensus version to which the request belongs. */
+                "Eth-Consensus-Version": components["schemas"]["ConsensusVersion"];
+            };
             path: {
                 /** @description The slot for which the block should be proposed. */
                 slot: components["schemas"]["Uint64"];
             };
             cookie?: never;
         };
-        requestBody?: never;
+        /**
+         * @description A `BuilderConfig` for this request: the builder entries to solicit bids from, plus the
+         *     top-level `min_bid` and `builder_boost_factor` that apply to p2p bids.
+         *     Each entry's `auth.message.slot` is the `slot` this request is for;
+         *     the builder rejects a mismatch, so an entry naming a different slot is one the beacon node
+         *     does not use for a bid request. A missing body, or one that cannot be decoded, is invalid and
+         *     MUST fail with a 400. Every other failure is per entry: an entry the beacon node rejects, or
+         *     whose builder does not answer, yields no bid and MUST NOT fail the request, so one bad entry
+         *     never costs the proposer its slot. A local-preferred build is requested with an empty
+         *     `builders` list and a `builder_boost_factor` of `0`, which prefers the local payload unless
+         *     an error makes it unviable.
+         */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderConfig"];
+                "application/octet-stream": unknown;
+            };
+        };
         responses: {
             /** @description Success response */
             200: {
                 headers: {
                     "Eth-Consensus-Version": components["headers"]["Eth-Consensus-Version"];
                     "Eth-Consensus-Block-Value": components["headers"]["headers-Eth-Consensus-Block-Value"];
+                    "Eth-Execution-Payload-Value": components["headers"]["headers-Eth-Execution-Payload-Value"];
                     "Eth-Execution-Payload-Included": components["headers"]["Eth-Execution-Payload-Included"];
+                    /**
+                     * @description The `url` of a winning builder when the bid was retrieved via the builder-API.
+                     *     The validator client MUST echo this value in the `Eth-Builder-Url` request header when
+                     *     publishing the signed block, so the beacon node can forward the block to the same builder
+                     *     via `submitSignedBeaconBlock`. Absent for a self-built block or a bid won over p2p.
+                     */
+                    "Eth-Builder-Url"?: string;
                     [name: string]: unknown;
                 };
                 content: {
@@ -7817,10 +7947,16 @@ export interface operations {
                          */
                         consensus_block_value: string;
                         /**
+                         * @description Execution payload value in Wei. The value of the local execution payload when
+                         *     self-building, or the total value of the builder bid when committing to one.
+                         * @example 12345
+                         */
+                        execution_payload_value: string;
+                        /**
                          * @description Indicates whether the execution payload envelope is included in the response.
-                         *     When `true`, the `data` field contains the full
-                         *     execution payload envelope, blobs, and KZG proofs. When `false`, the `data`
-                         *     field contains only a `BeaconBlock`.
+                         *     When `true`, the `data` field contains a `BlockContents` object with the
+                         *     beacon block, execution payload envelope, KZG proofs, and blobs. When `false`,
+                         *     the `data` field contains only a `BeaconBlock`.
                          * @example false
                          */
                         execution_payload_included: boolean;
@@ -7839,6 +7975,7 @@ export interface operations {
                 };
             };
             406: components["responses"]["NotAcceptable"];
+            415: components["responses"]["UnsupportedMediaType"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["CurrentlySyncing"];
         };
@@ -7883,12 +8020,12 @@ export interface operations {
     };
     producePayloadAttestationData: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 /** @description The slot for which payload attestation data should be created. */
                 slot: components["schemas"]["Uint64"];
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -7910,6 +8047,13 @@ export interface operations {
                     };
                     "application/octet-stream": unknown;
                 };
+            };
+            /** @description No block has been seen for the requested slot. Used to signal validator to not cast any payload attestation. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             400: components["responses"]["InvalidRequest"];
             406: components["responses"]["NotAcceptable"];
@@ -8270,6 +8414,48 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    submitBuilderPreferences: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The active consensus version to which the submitted builder preferences belong. */
+                "Eth-Consensus-Version": components["schemas"]["ConsensusVersion"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Array of `BuilderPreferencesEntry` objects to submit, one per builder per proposer. */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuilderPreferencesEntry"][];
+                "application/octet-stream": unknown;
+            };
+        };
+        responses: {
+            /** @description Every entry was submitted and its builder accepted it */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /**
+             * @description One or more entries failed; the others were still submitted. Each failure is reported by the
+             *     entry's index via `IndexedErrorMessage`, proxying the builder's error for that entry.
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexedErrorMessage"];
+                };
+            };
+            415: components["responses"]["UnsupportedMediaType"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["CurrentlySyncing"];
+        };
+    };
     getLiveness: {
         parameters: {
             query?: never;
@@ -8413,7 +8599,7 @@ export interface operations {
                          * @enum {string}
                          */
                         version: "gloas";
-                        data: components["schemas"]["BlindedExecutionPayloadEnvelope"];
+                        data: components["schemas"]["ExecutionPayloadEnvelope"];
                     };
                     "application/octet-stream": unknown;
                 };
@@ -8433,7 +8619,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorMessage"];
                 };
             };
-            /** @description No cached execution payload envelope available for the requested slot. The beacon node only caches the envelope for the current proposer's self-built payload. */
+            /** @description No cached execution payload envelope available for the requested slot. The beacon node only caches the envelope for the current slot's locally built payload. */
             404: {
                 headers: {
                     [name: string]: unknown;
