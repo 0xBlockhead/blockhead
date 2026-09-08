@@ -126,7 +126,7 @@ describe('L2Beat resolver', () => {
 				[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'sourceUpdatedAt')]: 1_785_830_400_000,
 			},
 		}])
-		expect(rollupResolver.projections.$$timestamps.resolveCount(rollup)).toBe(1)
+		expect(rollupResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 
 		const relationshipResolver = l2Beat.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network

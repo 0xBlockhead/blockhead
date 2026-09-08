@@ -491,7 +491,6 @@ export default {
 			decimals: (balance) => balance.decimals,
 			$$timestamps: {
 				select: (balance) => balance.$$timestamps,
-				resolveCount: (balance) => balance.$$timestamps.length,
 			},
 		}),
 

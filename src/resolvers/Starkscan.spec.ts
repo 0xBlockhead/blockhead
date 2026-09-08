@@ -708,7 +708,7 @@ describe('Starkscan block transaction and class resolvers', () => {
 			},
 		}])
 		expect(transactionResolver.projections.$$events.resolveCount(snapshot)).toBe(1)
-		expect(transactionResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(transactionResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	})
 
 	it('projects class identity and paginated instances', async () => {

@@ -128,7 +128,7 @@ describe('Dexscreener liquidity pool observation clock', () => {
 				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'transport')]: 'Dexscreener OpenAPI',
 			},
 		}])
-		expect(resolver.projections.$$timestamps.resolveCount?.(snapshot)).toBe(1)
+		expect(resolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		expect(getLatestPairs).toHaveBeenCalledWith({
 			chainId: 'ethereum',
 			pairId: '0x1111111111111111111111111111111111111111',
