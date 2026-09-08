@@ -26,10 +26,8 @@ test('runs the declarative Petra compatibility matrix', async ({
 	page,
 }) => {
 	const extension = extensions.find(({ kind }) => kind === 'petra')
-	if (!extension) {
-		test.skip(true, 'Petra artifact was not loaded')
-		return
-	}
+	if (!extension)
+		throw new Error('Declared Petra wallet journey requires its artifact to be loaded')
 
 	const scenarios = petraWalletMatrixScenarios(extension.manifest.version)
 	const {

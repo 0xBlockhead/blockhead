@@ -37,10 +37,7 @@ test('creates and switches ephemeral UniSat accounts through Blockhead', async (
 }, testInfo) => {
 	const extension = extensions.find(({ kind }) => kind === 'unisat')
 	if (!extension)
-		test.skip(true, 'UniSat artifact was not loaded')
-
-	if (!extension)
-		return
+		throw new Error('Declared UniSat wallet journey requires its artifact to be loaded')
 
 	const walletPage = await unisatDriver.open(context, extension)
 	let password = createEphemeralWalletSecret('Us!')

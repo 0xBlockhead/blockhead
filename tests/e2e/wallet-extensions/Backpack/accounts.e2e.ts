@@ -27,10 +27,7 @@ test('proves Backpack Wallet Standard lifecycle and capabilities', async ({
 }, testInfo) => {
 	const backpack = extensions.find(({ kind }) => kind === 'backpack')
 	if (backpack == null)
-		test.skip(true, 'Backpack artifact was not loaded')
-
-	if (backpack == null)
-		return
+		throw new Error('Declared Backpack wallet journey requires its artifact to be loaded')
 
 	let password = createEphemeralWalletSecret('Bp!')
 	const backpackPage = await backpackDriver.open(context, backpack)
