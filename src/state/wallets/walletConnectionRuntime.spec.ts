@@ -2620,7 +2620,7 @@ describe('wallet connection runtime normalization', () => {
 							get: async () => [
 								{
 									address: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
-									genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182d',
+									genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
 								},
 							],
 							subscribe: (callback: typeof updateAccounts) => {
@@ -2664,7 +2664,7 @@ describe('wallet connection runtime normalization', () => {
 		updateAccounts([
 			{
 				address: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
-				genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182d',
+				genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
 			},
 			{
 				address: 'unsupported',
@@ -3158,6 +3158,58 @@ describe('wallet connection runtime normalization', () => {
 		runtime.destroy()
 		expect(cleanup).toHaveBeenCalledOnce()
 	}, 15_000)
+
+	it('fences a delayed connect when the adapter registration epoch is replaced', async () => {
+		const pending = Promise.withResolvers<WalletConnection>()
+		let publishCandidates = (_candidates: WalletCandidate[]) => {}
+		const candidate = {
+			id: 'lifecycle-test',
+			name: 'Lifecycle test',
+			icon: '',
+			protocol: WalletProtocol.Eip6963,
+			discoveryKind: WalletDiscoveryKind.InjectedEvent,
+			transportKind: WalletTransportKind.InjectedProvider,
+			capabilities: [WalletCapability.Connect],
+		} satisfies WalletCandidate
+		const connection = {
+			connectionKey: 'lifecycle-test:session',
+			walletId: candidate.id,
+			status: BlockheadConnectionStatus.Connected,
+			protocol: candidate.protocol,
+			transportKind: candidate.transportKind,
+			scopes: [],
+			accounts: [],
+			selected: false,
+		} satisfies WalletConnection
+		const subscribeConnection = vi.fn(() => () => {})
+		const adapter = {
+			id: 'lifecycle-test-adapter',
+			start: (updateCandidates: (candidates: WalletCandidate[]) => void) => {
+				publishCandidates = updateCandidates
+				updateCandidates([candidate])
+				return () => {}
+			},
+			connect: vi.fn(() => pending.promise),
+			disconnect: vi.fn(),
+			subscribeConnection,
+		} satisfies WalletAdapter
+		const { runtime } = await mountMockWalletRuntime({ candidateAvailable: false })
+		runtime.registerAdapter(adapter)
+		const connecting = runtime.connect(candidate.id)
+		await Promise.resolve()
+		publishCandidates([])
+		pending.resolve(connection)
+		await connecting
+
+		expect(subscribeConnection).not.toHaveBeenCalled()
+		expect(runtime.connections).not.toContainEqual(
+			expect.objectContaining({
+				walletId: candidate.id,
+				status: BlockheadConnectionStatus.Connected,
+			})
+		)
+		runtime.destroy()
+	})
 
 	it('does not subscribe persisted disconnected connections', async () => {
 		const {

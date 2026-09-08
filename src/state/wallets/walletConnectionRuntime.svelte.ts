@@ -596,6 +596,14 @@ const createWalletRuntimeState = (
 	const connect = async (walletId: string) => {
 		const adapter = adapterByWalletId.get(walletId)
 		if (adapter == null) return
+		const adapterRegistrationEpoch = adapterRegistrationEpochByWalletId.get(walletId)
+		if (adapterRegistrationEpoch === undefined)
+			return
+
+		const isCurrentAdapterRegistration = () => (
+			adapterByWalletId.get(walletId) === adapter
+			&& adapterRegistrationEpochByWalletId.get(walletId) === adapterRegistrationEpoch
+		)
 		if (connections.some((connection) => (
 			connection.walletId === walletId
 			&& connection.status === BlockheadConnectionStatus.Connecting
@@ -615,8 +623,19 @@ const createWalletRuntimeState = (
 
 		try {
 			const connection = await adapter.connect(walletId)
+			if (
+				connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt
+				|| !isCurrentAdapterRegistration()
+			)
+				return
+
 			await connectingPersistence
-			if (connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt) return
+			if (
+				connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt
+				|| !isCurrentAdapterRegistration()
+			)
+				return
+
 			if (connection == null) {
 				await upsertConnection(buildWalletConnection({
 					walletId,
@@ -631,37 +650,50 @@ const createWalletRuntimeState = (
 			}
 
 			const connectionKey = walletConnectionKey(connection)
-			connectionAttemptByConnectionKey.delete(walletId)
 			cleanupByConnectionKey.get(connectionKey)?.()
-			cleanupByConnectionKey.set(
-				connectionKey,
-				adapter.subscribeConnection(
-					walletId,
-					(nextConnection) => {
-						const previous = connections.find((candidate) => (
-							walletConnectionKey(candidate) === connectionKey
-						))
-						void upsertConnection(
-							preserveWalletConnectionSelection(
-								previous,
-								buildWalletConnection({
-									...nextConnection,
-									connectionKey,
-								})
-							)
+			const cleanup = adapter.subscribeConnection(
+				walletId,
+				(nextConnection) => {
+					const previous = connections.find((candidate) => (
+						walletConnectionKey(candidate) === connectionKey
+					))
+					void upsertConnection(
+						preserveWalletConnectionSelection(
+							previous,
+							buildWalletConnection({
+								...nextConnection,
+								connectionKey,
+							})
 						)
-					},
-					connectionKey
-				)
+					)
+				},
+				connectionKey
 			)
+			if (
+				connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt
+				|| !isCurrentAdapterRegistration()
+			) {
+				cleanup()
+				return
+			}
+			cleanupByConnectionKey.set(connectionKey, cleanup)
+			connectionAttemptByConnectionKey.delete(walletId)
 			await upsertConnection(buildWalletConnection({
 				...connection,
 				connectionKey,
 			}), walletId)
+			if (!isCurrentAdapterRegistration())
+				return
+
 		}
 		catch (error) {
 			await connectingPersistence
-			if (connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt) return
+			if (
+				connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt
+				|| !isCurrentAdapterRegistration()
+			)
+				return
+
 			await upsertConnection(buildWalletConnection({
 				walletId,
 				status: BlockheadConnectionStatus.Error,
@@ -685,11 +717,22 @@ const createWalletRuntimeState = (
 
 		runtimeMutatedConnectionKeys.add(connectionKey)
 		const { walletId } = connection
+		const adapter = adapterByWalletId.get(walletId)
+		const adapterRegistrationEpoch = adapterRegistrationEpochByWalletId.get(walletId)
+		const isCurrentAdapterRegistration = () => adapter == null || (
+			adapterRegistrationEpoch !== undefined
+			&& adapterByWalletId.get(walletId) === adapter
+			&& adapterRegistrationEpochByWalletId.get(walletId) === adapterRegistrationEpoch
+		)
 		connectionAttemptByConnectionKey.set(
 			connectionKey,
 			(connectionAttemptByConnectionKey.get(connectionKey) ?? 0) + 1
-		)
-		await adapterByWalletId.get(walletId)?.disconnect(walletId, connectionKey)
+			)
+			await adapter?.disconnect(walletId, connectionKey)
+			if (!isCurrentAdapterRegistration())
+				return
+
+
 		cleanupByConnectionKey.get(connectionKey)?.()
 		cleanupByConnectionKey.delete(connectionKey)
 		const disconnected = disconnectWalletConnection(connection)
@@ -715,6 +758,13 @@ const createWalletRuntimeState = (
 		if (connection == null) return
 
 		runtimeMutatedConnectionKeys.add(connectionKey)
+		const adapter = adapterByWalletId.get(connection.walletId)
+		const adapterRegistrationEpoch = adapterRegistrationEpochByWalletId.get(connection.walletId)
+		const isCurrentAdapterRegistration = () => adapter == null || (
+			adapterRegistrationEpoch !== undefined
+			&& adapterByWalletId.get(connection.walletId) === adapter
+			&& adapterRegistrationEpochByWalletId.get(connection.walletId) === adapterRegistrationEpoch
+		)
 		connectionAttemptByConnectionKey.set(
 			connectionKey,
 			(connectionAttemptByConnectionKey.get(connectionKey) ?? 0) + 1
@@ -722,9 +772,12 @@ const createWalletRuntimeState = (
 		cleanupByConnectionKey.get(connectionKey)?.()
 		cleanupByConnectionKey.delete(connectionKey)
 		try {
-			await adapterByWalletId.get(connection.walletId)?.disconnect(connection.walletId, connectionKey)
+			await adapter?.disconnect(connection.walletId, connectionKey)
 		}
 		catch {}
+		if (!isCurrentAdapterRegistration())
+			return
+
 		await deleteLocalBlockheadWalletConnection(context, connectionKey)
 		connections = connections.filter((candidate) => (
 			walletConnectionKey(candidate) !== connectionKey
