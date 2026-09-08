@@ -2576,23 +2576,25 @@ const parentProbeEntitySelectorOverridesByTypeAndName = defineParentProbeEntityS
 		},
 	},
 	[EntityType.MevRelay_Timestamp]: {
-		RelayTimestampMsSource: {
+		RelayTimestampMsSourceSampleLimit: {
 			$relay: {
 				$network: mainnet,
 				host: 'relay.ultrasound.money',
 			},
 			timestampMs: 0,
 			source: Source.MevRelay_Rest,
+			sampleLimit: 16,
 		},
 	},
 	[EntityType.MevBuilder_Timestamp]: {
-		BuilderTimestampMsSource: {
+		BuilderTimestampMsSourceSampleLimit: {
 			$builder: {
 				$network: mainnet,
 				builderPubkey: `0x${'0'.repeat(96)}`,
 			},
 			timestampMs: 0,
 			source: Source.MevRelay_Rest,
+			sampleLimit: 200,
 		},
 	},
 	[EntityType.MoneroNetwork_Timestamp]: {

@@ -57,6 +57,27 @@ describe('resolver snapshot probes', () => {
 		})
 	})
 
+	test('addresses MEV timestamp probes by sampling identity', async () => {
+		await expect(resolveProbeEntitySelector(
+			EntityType.MevRelay_Timestamp,
+			'RelayTimestampMsSourceSampleLimit',
+			Source.MevRelay_Rest
+		)).resolves.toMatchObject({
+			timestampMs: 0,
+			source: Source.MevRelay_Rest,
+			sampleLimit: 16,
+		})
+		await expect(resolveProbeEntitySelector(
+			EntityType.MevBuilder_Timestamp,
+			'BuilderTimestampMsSourceSampleLimit',
+			Source.MevRelay_Rest
+		)).resolves.toMatchObject({
+			timestampMs: 0,
+			source: Source.MevRelay_Rest,
+			sampleLimit: 200,
+		})
+	})
+
 	test('creates one coordinate for every exact supported selector', () => {
 		const firstResolver = {
 			resolve: {

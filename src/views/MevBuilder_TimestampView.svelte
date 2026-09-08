@@ -171,27 +171,12 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							sampleLimit: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const sampleLimit = entity.sampleLimit}
-					{#if sampleLimit != null}
-						<div>
-							<dt>Sample limit</dt>
-							<dd>
-								{sampleLimit}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Sample limit</dt>
+				<dd>
+					{selection.entitySelector.sampleLimit}
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 </EntityView>

@@ -41,15 +41,16 @@ export default entity({
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	sampleLimit: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({
 	selectors: {
-		RelayTimestampMsSource: [
+		RelayTimestampMsSourceSampleLimit: [
 			'$relay',
 			'timestampMs',
 			'source',
+			'sampleLimit',
 		],
 	},
 })

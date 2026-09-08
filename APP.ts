@@ -45291,11 +45291,11 @@ export const schema = {
 					label: "Sample limit",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
+					valueType: "NonNegativeInteger",
 				},
 			})({
 				selectors: {
-					"BuilderTimestampMsSource": ["$builder", "timestampMs", "source"],
+					"BuilderTimestampMsSourceSampleLimit": ["$builder", "timestampMs", "source", "sampleLimit"],
 				},
 				views: {
 					plural: { component: "MevBuilder_TimestampsView",
@@ -45580,11 +45580,11 @@ export const schema = {
 					label: "Sample limit",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "number",
+					valueType: "NonNegativeInteger",
 				},
 			})({
 				selectors: {
-					"RelayTimestampMsSource": ["$relay", "timestampMs", "source"],
+					"RelayTimestampMsSourceSampleLimit": ["$relay", "timestampMs", "source", "sampleLimit"],
 				},
 				views: {
 					plural: { component: "MevRelay_TimestampsView",
@@ -79740,10 +79740,10 @@ export const routes = defineRoutes(schema)({
 																	children: {
 																		"[timestampMs]": {
 																			children: {
-																				"[source]": {
+																				"[source]-[sampleLimit]": {
 																					selectors: {
 																						[EntityType.MevRelay_Timestamp]: {
-																							"RelayTimestampMsSource": {
+																							"RelayTimestampMsSourceSampleLimit": {
 																								projection: {
 																									entityType: EntityType.Network,
 																									facetPath: ["Evm"]
@@ -79754,6 +79754,9 @@ export const routes = defineRoutes(schema)({
 																									],
 																									"source": [
 																										"source"
+																									],
+																									"sampleLimit": [
+																										"sampleLimit"
 																									]
 																								},
 																								page: false
@@ -79888,10 +79891,10 @@ export const routes = defineRoutes(schema)({
 																	children: {
 																		"[timestampMs]": {
 																			children: {
-																				"[source]": {
+																				"[source]-[sampleLimit]": {
 																					selectors: {
 																						[EntityType.MevBuilder_Timestamp]: {
-																							"BuilderTimestampMsSource": {
+																							"BuilderTimestampMsSourceSampleLimit": {
 																								projection: {
 																									entityType: EntityType.Network,
 																									facetPath: ["Evm"]
@@ -79902,6 +79905,9 @@ export const routes = defineRoutes(schema)({
 																									],
 																									"source": [
 																										"source"
+																									],
+																									"sampleLimit": [
+																										"sampleLimit"
 																									]
 																								},
 																								page: false
