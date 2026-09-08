@@ -138,6 +138,7 @@ export const prepareEvmSwap = async ({
 	simulationId?: string
 	timestampMs?: number
 }): Promise<EvmSwapPreparation> => {
+	const preparationTimestampMs = timestampMs ?? Date.now()
 	if (session.lockedAt == null)
 		throw new Error('Session must be locked before swap preparation.')
 	if (
@@ -259,7 +260,7 @@ export const prepareEvmSwap = async ({
 		providerProtocol: sourceQuote.providerProtocol,
 		intentType: ActionType.Swap,
 		userInteropAddress: normalizedFromAddress,
-		requestedAt: timestampMs,
+		requestedAt: preparationTimestampMs,
 		requestPayloadHash: quoteRequestHash,
 		requestSummary: {
 			chainId: params.chainId,
@@ -271,7 +272,7 @@ export const prepareEvmSwap = async ({
 	} satisfies EvmSwapPreparation['quote']
 	const quoteObservation = {
 		$quote: { [EntityMetaKey.Selector]: { id: quote.id } },
-		timestampMs,
+		timestampMs: preparationTimestampMs,
 		source: quoteSource.source,
 		quoteId: sourceQuote.id,
 		validUntil: sourceQuote.validUntil,
@@ -305,8 +306,8 @@ export const prepareEvmSwap = async ({
 		id: simulationId,
 		$session: { [EntityMetaKey.Selector]: { id: session.id } },
 		status: 'succeeded',
-		createdAt: timestampMs,
-		completedAt: timestampMs,
+		createdAt: preparationTimestampMs,
+		completedAt: preparationTimestampMs,
 		paramsHash,
 		forkBlockNumber: blockNumber,
 		forkRpcOrigin: UrlString.assert(simulationTransport.origin),
