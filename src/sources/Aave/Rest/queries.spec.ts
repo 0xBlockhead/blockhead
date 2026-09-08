@@ -1,4 +1,5 @@
 import {
+	afterEach,
 	beforeEach,
 	describe,
 	expect,
@@ -19,6 +20,7 @@ vi.mock('$/sources/_shared/wire/Graphql/client.ts', async (importOriginal) => ({
 const {
 	getAccountPositions,
 	getMarket,
+	getUserMarketState,
 	listMarkets,
 } = await import('$/sources/Aave/Rest/queries.ts')
 
@@ -122,6 +124,134 @@ const accountBorrow = {
 	debt: { amount: { value: '2.5' }, usd: '5000' },
 	apy: { value: '0.05' },
 } as const
+
+describe('Aave user market state', () => {
+	const request = {
+		binding,
+		chainId: 1,
+		poolAddress: ethereumMarket.address,
+		account,
+	}
+	const state = {
+		healthFactor: '1.2345',
+		currentLiquidationThreshold: { value: '0.85' },
+		ltv: { value: '0.75' },
+		totalCollateralBase: '6000.0',
+		totalDebtBase: '2000.0',
+		availableBorrowsBase: '1500.0',
+		netAPY: { value: '-0.025' },
+	}
+
+	beforeEach(() => {
+		graphql.mockReset()
+	})
+	afterEach(() => {
+		vi.restoreAllMocks()
+	})
+
+	it('reads all market metrics and timestamps the completed response', async () => {
+		const response = Promise.withResolvers<{ userMarketState: typeof state }>()
+		const clock = vi.spyOn(Date, 'now').mockReturnValue(1000)
+		graphql.mockReturnValueOnce(response.promise)
+		const pending = getUserMarketState(request)
+		expect(clock).not.toHaveBeenCalled()
+		clock.mockReturnValue(2000)
+		response.resolve({ userMarketState: state })
+		await expect(pending).resolves.toEqual({
+			healthFactor: '1.2345',
+			currentLiquidationThreshold: '0.85',
+			ltv: '0.75',
+			totalCollateralBase: '6000.0',
+			totalDebtBase: '2000.0',
+			availableBorrowsBase: '1500.0',
+			netApy: '-0.025',
+			observedAtMs: 2000,
+		})
+		expect(graphql).toHaveBeenCalledExactlyOnceWith({
+			binding,
+			query: expect.stringContaining('userMarketState(request: $request)'),
+			variables: {
+				request: {
+					chainId: 1,
+					market: ethereumMarket.address.toLowerCase(),
+					user: account.toLowerCase(),
+				},
+			},
+		})
+		for (const field of Object.keys(state))
+			expect(graphql.mock.calls[0][0].query).toContain(field)
+	})
+
+	it('preserves null health for a supply-only account and zero quantities', async () => {
+		vi.spyOn(Date, 'now').mockReturnValue(3000)
+		graphql.mockResolvedValueOnce({
+			userMarketState: {
+				...state,
+				healthFactor: null,
+				totalDebtBase: '0',
+				availableBorrowsBase: '0',
+				netAPY: { value: '0' },
+			},
+		})
+		await expect(getUserMarketState(request)).resolves.toMatchObject({
+			healthFactor: null,
+			totalCollateralBase: '6000.0',
+			totalDebtBase: '0',
+			availableBorrowsBase: '0',
+			netApy: '0',
+			observedAtMs: 3000,
+		})
+	})
+
+	it.each([
+		{ label: 'missing data', response: undefined, error: 'missing data' },
+		{ label: 'missing operation', response: {}, error: 'invalid user market state response envelope' },
+		{ label: 'null operation', response: { userMarketState: null }, error: 'invalid user market state response envelope' },
+		{ label: 'nonstring health', response: { userMarketState: { ...state, healthFactor: 1.2 } }, error: 'invalid user market state response envelope' },
+		...Object.keys(state).flatMap((field) => [
+			{
+				label: `missing ${field}`,
+				response: { userMarketState: Object.fromEntries(Object.entries(state).filter(([key]) => key !== field)) },
+				error: 'invalid user market state response envelope',
+			},
+			...(field === 'healthFactor' ? [] : [{
+				label: `null ${field}`,
+				response: { userMarketState: { ...state, [field]: null } },
+				error: 'invalid user market state response envelope',
+			}]),
+		]),
+		...Object.keys(state).map((field) => ({
+			label: `invalid decimal ${field}`,
+			response: { userMarketState: { ...state, [field]: field === 'netAPY' || field === 'ltv' || field === 'currentLiquidationThreshold' ? { value: 'NaN' } : 'NaN' } },
+			error: `invalid user market state ${field}`,
+		})),
+		{ label: 'negative health', response: { userMarketState: { ...state, healthFactor: '-1' } }, error: 'invalid user market state healthFactor' },
+		{ label: 'missing percent value', response: { userMarketState: { ...state, ltv: {} } }, error: 'invalid user market state response envelope' },
+	])('rejects $label without recording a completion clock', async ({ response, error }) => {
+		const clock = vi.spyOn(Date, 'now')
+		graphql.mockResolvedValueOnce(response)
+		await expect(getUserMarketState(request)).rejects.toThrow(error)
+		expect(clock).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		{ chainId: 999999 },
+		{ chainId: 1.5 },
+		{ poolAddress: 'invalid' },
+		{ account: 'invalid' },
+	])('rejects invalid scope before transport: %j', async (invalid) => {
+		await expect(getUserMarketState({ ...request, ...invalid })).rejects.toThrow(Source.Aave_Rest)
+		expect(graphql).not.toHaveBeenCalled()
+	})
+
+	it('propagates transport failure without recording an observation', async () => {
+		const clock = vi.spyOn(Date, 'now')
+		const error = new Error('Aave_Rest GraphQL: upstream unavailable')
+		graphql.mockRejectedValueOnce(error)
+		await expect(getUserMarketState(request)).rejects.toBe(error)
+		expect(clock).not.toHaveBeenCalled()
+	})
+})
 
 describe('Aave market list/detail operations', () => {
 	beforeEach(() => {

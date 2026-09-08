@@ -47,6 +47,7 @@
 	import EvmNftsView from '$/views/EvmNftsView.svelte'
 	import EvmActorCoinAllowancesView from '$/views/EvmActorCoinAllowancesView.svelte'
 	import EvmNetworkAccount_TimestampsView from '$/views/EvmNetworkAccount_TimestampsView.svelte'
+	import AaveAccountMarketsView from '$/views/AaveAccountMarketsView.svelte'
 	import AaveReservePositionsView from '$/views/AaveReservePositionsView.svelte'
 	import CompoundPositionsView from '$/views/CompoundPositionsView.svelte'
 	import EulerEvkVaultPositionsView from '$/views/EulerEvkVaultPositionsView.svelte'
@@ -332,6 +333,10 @@
 			sections={
 				[
 					{
+						id: 'evm-network-account-aave-markets',
+						label: 'Aave market health',
+					},
+					{
 						id: 'evm-network-account-aave-reserve-positions',
 						label: 'Aave',
 					},
@@ -372,6 +377,24 @@
 				<header data-row-item="flexible" data-row="wrap gap-4">
 					<HeadingComponent>DeFi positions</HeadingComponent>
 				</header>
+			{/snippet}
+
+			{#snippet SectionEvmNetworkAccountAaveMarkets({ id, label })}
+				<AaveAccountMarketsView
+					selection={
+						selection
+						.$$aaveAccountMarkets({
+							sources: [
+								Source.Aave_Rest,
+							],
+							limit: 32,
+						})
+					}
+					collapsible={false}
+					title={label}
+					emptyText='No Aave account markets.'
+					id={`${id}-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionEvmNetworkAccountAaveReservePositions({ id, label })}

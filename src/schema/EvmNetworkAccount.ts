@@ -78,6 +78,13 @@ export default entity({
 		entityType: EntityType.EvmActorCoinAllowance,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$aaveAccountMarkets: {
+		entityType: EntityType.AaveAccountMarket,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Aave_Rest,
+		],
+	},
 	$$aaveReservePositions: {
 		entityType: EntityType.AaveReservePosition,
 		cardinality: EntityFieldCardinality.Many,

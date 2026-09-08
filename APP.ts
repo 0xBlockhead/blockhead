@@ -742,6 +742,8 @@ export enum EntityType {
 	A2aTask = "A2aTask",
 	A2aTask_Timestamp = "A2aTask_Timestamp",
 	A2aTaskEvent = "A2aTaskEvent",
+	AaveAccountMarket = "AaveAccountMarket",
+	AaveAccountMarket_Timestamp = "AaveAccountMarket_Timestamp",
 	AaveMarket = "AaveMarket",
 	AaveReserve = "AaveReserve",
 	AaveReservePosition = "AaveReservePosition",
@@ -5122,6 +5124,66 @@ export const schema = {
 						content: { dl: [["$task", "sequence", "eventKind", { field: "timestampMs", format: "timestamp" }, "state", "final", "$artifact"]] },
 					},
 					plural: { component: "A2aTaskEventsView", title: "A2A task events", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.AaveAccountMarket,
+				labels: {
+					singular: "Aave account market",
+					plural: "Aave account markets",
+				},
+				description: "One EVM account's provider-observed state within an Aave V3 market.",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"$market": { label: "Market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AaveMarket },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveAccountMarket_Timestamp, defaultSources: [Source.Aave_Rest] },
+			})({
+				selectors: {
+					"AccountMarket": ["$account", "$market"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Aave_Rest] },
+						summary: { title: ["$market"], HeadingAfter: ["$account"] },
+						closed: ["$account", "$market"],
+						content: { dl: [["$account", "$market"]] },
+						lists: [{ field: "$$timestamps", component: "AaveAccountMarket_TimestampsView", label: "Market state observations", emptyText: "No Aave account market observations." }],
+					},
+					plural: { component: "AaveAccountMarketsView", title: "Aave account markets" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.AaveAccountMarket_Timestamp,
+				labels: {
+					singular: "Aave account market observation",
+					plural: "Aave account market observations",
+				},
+				description: "A provider-observed Aave account health, liquidation, LTV, collateral/debt bases, and net APY at the completed response time.",
+			})({
+				"$accountMarket": { label: "Account market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AaveAccountMarket },
+				"timestampMs": { label: "Timestamp", description: "The completed provider response time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"healthFactor": { label: "Health factor", description: "The nullable account health factor reported by Aave for this market.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"currentLiquidationThreshold": { label: "Liquidation threshold", description: "The account's current liquidation threshold for this market at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"ltv": { label: "LTV", description: "The account's current loan-to-value for this market at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"totalCollateralBase": { label: "Total collateral", description: "The account's total collateral in the market price feed's base currency at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"totalDebtBase": { label: "Total debt", description: "The account's total debt in the market price feed's base currency at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"availableBorrowsBase": { label: "Available borrows", description: "The account's remaining borrow capacity in the market price feed's base currency at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"netApy": { label: "Net APY", description: "The account's net APY across positions in this market, at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "DecimalString", defaultSources: [Source.Aave_Rest] },
+			})({
+				selectors: {
+					"AccountMarketTimestampMsSource": ["$accountMarket", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Aave_Rest], openFields: ["healthFactor", "currentLiquidationThreshold", "ltv", "totalCollateralBase", "totalDebtBase", "availableBorrowsBase", "netApy"] },
+						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["healthFactor", "ltv", "totalCollateralBase", "totalDebtBase"] },
+						closed: ["$accountMarket", { field: "timestampMs", format: "timestamp" }, "source"],
+						content: { dl: [["$accountMarket", { field: "timestampMs", format: "timestamp" }, "source", "healthFactor", "currentLiquidationThreshold", "ltv", "totalCollateralBase", "totalDebtBase", "availableBorrowsBase", "netApy"]] },
+					},
+					plural: { component: "AaveAccountMarket_TimestampsView", title: "Aave account market observations" },
 				},
 			}),
 
@@ -29816,6 +29878,7 @@ export const schema = {
 				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest, Source.GoldRushFoundational_Rest] },
 				"$$nfts": { label: "NFTs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft, defaultSources: [Source.OpenSea_Rest] },
 				"$$erc20TokenAllowances": { label: "erc20 token allowances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmActorCoinAllowance },
+				"$$aaveAccountMarkets": { label: "Aave account markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveAccountMarket, defaultSources: [Source.Aave_Rest] },
 				"$$aaveReservePositions": { label: "Aave reserve positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveReservePosition, defaultSources: [Source.Aave_Rest] },
 				"$$compoundPositions": { label: "Compound positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CompoundPosition, defaultSources: [Source.Compound_Rest] },
 				"$$eulerEvkVaultPositions": { label: "Euler EVK vault positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EulerEvkVaultPosition, defaultSources: [Source.Euler_Rest] },
@@ -29877,6 +29940,7 @@ export const schema = {
 								label: "DeFi positions",
 								className: "network-view-collapsible-defi-positions",
 								sections: [
+									{ id: "evm-network-account-aave-markets", field: "$$aaveAccountMarkets", List: "AaveAccountMarketsView", label: "Aave market health", emptyText: "No Aave account markets.", selection: { sources: [Source.Aave_Rest], limit: 32 } },
 									{ id: "evm-network-account-aave-reserve-positions", field: "$$aaveReservePositions", List: "AaveReservePositionsView", label: "Aave", emptyText: "No Aave reserve positions.", selection: { sources: [Source.Aave_Rest], limit: 32 } },
 									{ id: "evm-network-account-compound-positions", field: "$$compoundPositions", List: "CompoundPositionsView", label: "Compound", emptyText: "No Compound positions.", selection: { sources: [Source.Compound_Rest], limit: 32 } },
 									{ id: "evm-network-account-euler-evk-vault-positions", field: "$$eulerEvkVaultPositions", List: "EulerEvkVaultPositionsView", label: "Euler", emptyText: "No Euler vault positions.", selection: { sources: [Source.Euler_Rest], limit: 32 } },
@@ -76206,7 +76270,48 @@ export const routes = defineRoutes(schema)({
 																"aave-market": {
 																	children: {
 																		"[poolAddress]": {
+																			selectors: {
+																				[EntityType.AaveAccountMarket]: {
+																					"AccountMarket": {
+																						when: { path: ["namespace"], is: "Evm" },
+																						projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																						derivations: {
+																							"$market": {
+																								kind: "selector",
+																								entity: EntityType.AaveMarket,
+																								selector: "NetworkPoolAddress",
+																								params: [
+																									{ field: "$network", value: { kind: "property", value: { kind: "field", name: "$account" }, property: "$network" } },
+																									{ field: "poolAddress", param: "poolAddress" },
+																								],
+																							},
+																						},
+																						page: {},
+																					},
+																				},
+																			},
 																			children: {
+																				"observations": {
+																					children: {
+																						"[timestampMs]": {
+																							params: { "timestampMs": ["NonNegativeInteger"] },
+																							children: {
+																								"[source]": {
+																									params: { "source": ["string"] },
+																									selectors: {
+																										[EntityType.AaveAccountMarket_Timestamp]: {
+																											"AccountMarketTimestampMsSource": {
+																												params: {},
+																												derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
+																												page: {},
+																											},
+																										},
+																									},
+																								},
+																							},
+																						},
+																					},
+																				},
 																				"reserve": {
 																					children: {
 																						"[underlyingTokenAddress]": {

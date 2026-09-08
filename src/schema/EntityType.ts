@@ -41,6 +41,8 @@ export enum EntityType {
 	A2aTask = 'A2aTask',
 	A2aTask_Timestamp = 'A2aTask_Timestamp',
 	A2aTaskEvent = 'A2aTaskEvent',
+	AaveAccountMarket = 'AaveAccountMarket',
+	AaveAccountMarket_Timestamp = 'AaveAccountMarket_Timestamp',
 	AaveMarket = 'AaveMarket',
 	AaveReserve = 'AaveReserve',
 	AaveReservePosition = 'AaveReservePosition',

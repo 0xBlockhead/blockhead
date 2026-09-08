@@ -217,7 +217,7 @@ test('derives writer evidence only from a typed writer used to emit an observati
 test('re-derives the complete observation-time writer denominator without blessing unknown clocks', () => {
 	const rows = compiledApp.observationTimeAccountability
 
-	assert.equal(rows.length, 352)
+	assert.equal(rows.length, 353)
 	assert.deepEqual(compiledApp.observationTimeWriterManifest.map((writer) => ({ ...writer })), [
 		{
 			entityType: '_GlobalActivityPubNetwork_Timestamp',
@@ -236,6 +236,12 @@ test('re-derives the complete observation-time writer denominator without blessi
 			selectorName: 'HubTimestampMsSource',
 			source: 'Swarm_Rest',
 			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: 'AaveAccountMarket_Timestamp',
+			selectorName: 'AccountMarketTimestampMsSource',
+			source: 'Aave_Rest',
+			provenance: 'HttpResponse',
 		},
 		{
 			entityType: 'ActivityPubActor_Timestamp',
@@ -291,6 +297,7 @@ test('re-derives the complete observation-time writer denominator without blessi
 		['_GlobalActivityPubNetwork_Timestamp', 'HubTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['_GlobalIpfsAccess_Timestamp', 'HubTimestampMsSource', 'Ipfs_Rest', ObservationTimeProvenance.LocalRefresh],
 		['_GlobalSwarmAccess_Timestamp', 'HubTimestampMsSource', 'Swarm_Rest', ObservationTimeProvenance.LocalRefresh],
+		['AaveAccountMarket_Timestamp', 'AccountMarketTimestampMsSource', 'Aave_Rest', ObservationTimeProvenance.HttpResponse],
 		['ActivityPubActor_Timestamp', 'ActivityPubActorTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['ActivityPubInstance_Timestamp', 'InstanceTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['ActivityPubNote_Timestamp', 'ActivityPubNoteTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],

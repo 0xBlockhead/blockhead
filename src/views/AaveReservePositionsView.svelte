@@ -46,7 +46,7 @@
 			entitySelector={aaveReservePositionSelector}
 			href={
 				resolve(
-					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/aave-market/[poolAddress=evmAddress]/reserve/[underlyingTokenAddress=evmAddress]',
+					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/aave-market/[poolAddress=evmAddress]/(aaveAccountMarket)/reserve/[underlyingTokenAddress=evmAddress]',
 					{
 						network: (
 							'caip2' in account.$network ?

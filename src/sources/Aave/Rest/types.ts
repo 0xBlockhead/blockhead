@@ -164,6 +164,20 @@ export type AaveAccountPositionsData = {
 	userBorrows: AaveUserBorrowPositionWire[]
 }
 
+export type AaveUserMarketStateData = {
+	userMarketState: {
+		/** Null when the account has no borrow, including supply-only accounts. */
+		healthFactor: string | null
+		currentLiquidationThreshold: { value: string }
+		ltv: { value: string }
+		/** Amounts in the base currency used by the market's price feed. */
+		totalCollateralBase: string
+		totalDebtBase: string
+		availableBorrowsBase: string
+		netAPY: { value: string }
+	}
+}
+
 export type AaveAccountSupplyPosition = {
 	protocol: 'Aave V3'
 	kind: 'supply'
@@ -203,6 +217,16 @@ export type AaveAccountPosition =
 
 const aaveAmountEnvelope = arktype({
 	value: 'string',
+})
+
+export const aaveUserMarketStateEnvelope = arktype({
+	healthFactor: arktype('string').or(arktype.null),
+	currentLiquidationThreshold: aaveAmountEnvelope,
+	ltv: aaveAmountEnvelope,
+	totalCollateralBase: 'string',
+	totalDebtBase: 'string',
+	availableBorrowsBase: 'string',
+	netAPY: aaveAmountEnvelope,
 })
 
 const aaveTokenAmountEnvelope = arktype({

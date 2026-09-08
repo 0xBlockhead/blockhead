@@ -1404,8 +1404,32 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/aave-market/[poolAddress]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/aave-market/[poolAddress=evmAddress]',
+		mappings: [
+			{
+				id: 'AaveAccountMarket.AccountMarket',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]/aave-market/[poolAddress]:AaveAccountMarket.AccountMarket'],
+				probeCases: [[[0, '1', ['poolAddress', 'accountId', 'network']]]],
+				projectionPath: [
+					'Evm',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/aave-market/[poolAddress]/observations/[timestampMs]/[source]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/aave-market/[poolAddress=evmAddress]/(aaveAccountMarket)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
+		mappings: [
+			{
+				id: 'AaveAccountMarket_Timestamp.AccountMarketTimestampMsSource',
+				probeAtomPrefixes: ['/network/[network]/account/[accountId]/aave-market/[poolAddress]/observations/[timestampMs]/[source]:AaveAccountMarket_Timestamp.AccountMarketTimestampMsSource'],
+				probeCases: [[[0, '1', ['timestampMs', 'source', 'poolAddress', 'accountId', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(accounts)/account/[accountId]/aave-market/[poolAddress]/reserve/[underlyingTokenAddress]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/aave-market/[poolAddress=evmAddress]/reserve/[underlyingTokenAddress=evmAddress]',
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/aave-market/[poolAddress=evmAddress]/(aaveAccountMarket)/reserve/[underlyingTokenAddress=evmAddress]',
 		mappings: [
 			{
 				id: 'AaveReservePosition.AccountPoolAddressUnderlyingTokenAddress',
