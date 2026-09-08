@@ -96,10 +96,11 @@ describe('WalletConnect application consumer', () => {
 			''
 		)).toThrow('requires an exact session topic')
 
-		expect(consumer.approvePairing(
+		const approval = consumer.approvePairing(
 			attempt.walletConnectUri,
 			'approved-session-topic'
-		)).toMatchObject({
+		)
+		expect(approval).toMatchObject({
 			completedBy: 'walletconnect-relay',
 			receipt: {
 				kind: 'pairing',
@@ -107,6 +108,13 @@ describe('WalletConnect application consumer', () => {
 				outcome: 'approved',
 			},
 		})
+		expect(consumer.approvePairing(
+			attempt.walletConnectUri,
+			'approved-session-topic'
+		)).toBe(approval)
+		expect(() => consumer.rejectPairing(
+			attempt.walletConnectUri
+		)).toThrow('conflicts with the terminal settlement')
 		expect(consumer.current()).toMatchObject({ state: 'returned' })
 	})
 
@@ -148,21 +156,48 @@ describe('WalletConnect application consumer', () => {
 				'Wallet relay receipt does not match the open attempt'
 			)
 
-		expect(consumer.settle(receipt)).toMatchObject({
+		const approval = consumer.settle(receipt)
+		expect(approval).toMatchObject({
 			completedBy: 'walletconnect-relay',
 		})
-		expect(consumer.settle({
+		expect(consumer.settle(receipt)).toBe(approval)
+		expect(() => consumer.settle({
 			...receipt,
 			outcome: 'rejected',
-		})).toMatchObject({
+		})).toThrow('conflicts with the terminal settlement')
+
+		const retryCorrelation = {
+			kind: 'request',
+			attemptId: 'retry-attempt',
+			authorityRequestId: 'retry-authority-request',
+			envelopeHash: 'retry-envelope-hash',
+			sessionTopic: 'retry-session-topic',
+			requestId: 'retry-request-id',
+		} as const
+		await consumer.open({
+			walletConnectUri: 'wc:retry-request-pairing@2',
+			correlation: retryCorrelation,
+		})
+		expect(() => consumer.settle(receipt)).toThrow(
+			'Wallet relay receipt does not match the open attempt'
+		)
+		const rejection = consumer.settle({
+			...retryCorrelation,
+			outcome: 'rejected',
+		})
+		expect(rejection).toMatchObject({
 			completedBy: 'walletconnect-relay',
 			receipt: {
 				kind: 'request',
-				sessionTopic: 'session-topic',
-				requestId: 'request-id',
+				sessionTopic: 'retry-session-topic',
+				requestId: 'retry-request-id',
 				outcome: 'rejected',
 			},
 		})
+		expect(consumer.settle({
+			...retryCorrelation,
+			outcome: 'rejected',
+		})).toBe(rejection)
 	})
 
 	it('fences a superseded pairing before accepting the current relay approval', async () => {
@@ -175,6 +210,14 @@ describe('WalletConnect application consumer', () => {
 			first.walletConnectUri,
 			'first-session'
 		)).toThrow('stale or superseded')
+		expect(() => consumer.rejectPairing(
+			first.walletConnectUri
+		)).toThrow('stale or superseded')
+		expect(() => consumer.settle({
+			...first.correlation,
+			sessionTopic: 'first-session',
+			outcome: 'approved',
+		})).toThrow('does not match the open attempt')
 		expect(consumer.approvePairing(
 			second.walletConnectUri,
 			'second-session'
@@ -186,10 +229,11 @@ describe('WalletConnect application consumer', () => {
 	})
 
 	it('settles an exact pairing rejection without session or request fields', async () => {
-		const { consumer } = await startConsumer()
+		const { consumer, controlled } = await startConsumer()
 		const attempt = await openPairing(consumer)
 
-		expect(consumer.rejectPairing(attempt.walletConnectUri)).toMatchObject({
+		const settlement = consumer.rejectPairing(attempt.walletConnectUri)
+		expect(settlement).toMatchObject({
 			completedBy: 'walletconnect-relay',
 			receipt: {
 				kind: 'pairing',
@@ -219,6 +263,13 @@ describe('WalletConnect application consumer', () => {
 			rejectionWithRequestId,
 		])
 			expect(() => consumer.settle(fabricated)).toThrow('does not match')
+
+		controlled.openUrls([blockheadWalletReturnUrl])
+		expect(consumer.rejectPairing(attempt.walletConnectUri)).toBe(settlement)
+		expect(() => consumer.approvePairing(
+			attempt.walletConnectUri,
+			'late-approved-session'
+		)).toThrow('conflicts with the terminal settlement')
 	})
 
 	it('exposes no send or broadcast operation', async () => {
@@ -232,6 +283,12 @@ describe('WalletConnect application consumer', () => {
 	it('fences app callbacks and relay results after destroy', async () => {
 		const { consumer, controlled } = await startConsumer()
 		const attempt = await openPairing(consumer)
+		const settlement = consumer.rejectPairing(attempt.walletConnectUri)
+		expect(settlement).toMatchObject({
+			receipt: {
+				outcome: 'rejected',
+			},
+		})
 		consumer.destroy()
 
 		controlled.openUrls([blockheadWalletReturnUrl])

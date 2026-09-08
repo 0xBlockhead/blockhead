@@ -50,6 +50,34 @@ const walletConnectUriHash = async (walletConnectUri: string) => (
 	))].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`
 )
 
+const sameWalletLinkRelayReceipt = (
+	left: WalletLinkRelayReceipt,
+	right: WalletLinkRelayReceipt
+) => {
+	if (
+		left.attemptId !== right.attemptId
+		|| left.authorityRequestId !== right.authorityRequestId
+		|| left.envelopeHash !== right.envelopeHash
+		|| left.kind !== right.kind
+		|| left.outcome !== right.outcome
+	) return false
+
+	if (left.kind === 'request' && right.kind === 'request')
+		return (
+			left.sessionTopic === right.sessionTopic
+			&& left.requestId === right.requestId
+		)
+	if (
+		left.kind === 'pairing'
+		&& right.kind === 'pairing'
+		&& left.outcome === 'approved'
+		&& right.outcome === 'approved'
+	)
+		return left.sessionTopic === right.sessionTopic
+
+	return left.kind === 'pairing' && right.kind === 'pairing'
+}
+
 export const createWalletConnectPairingCorrelation = async (
 	walletConnectUri: string
 ): Promise<WalletConnectPairingCorrelation> => {
@@ -73,6 +101,7 @@ export const createWalletConnectApplicationConsumer = ({
 		host,
 	})
 	let destroyed = false
+	let terminalSettlement: WalletLinkSettlement | undefined
 
 	const requireActive = () => {
 		if (destroyed)
@@ -105,10 +134,24 @@ export const createWalletConnectApplicationConsumer = ({
 		correlation: WalletLinkCorrelation
 	}) => {
 		requireActive()
+		terminalSettlement = undefined
 		return walletLink.open({
 			walletConnectUri,
 			correlation,
 		})
+	}
+
+	const settle = (receipt: WalletLinkRelayReceipt) => {
+		requireActive()
+		const settlement = walletLink.settle(receipt)
+		if (terminalSettlement == null) {
+			terminalSettlement = settlement
+			return settlement
+		}
+		if (sameWalletLinkRelayReceipt(terminalSettlement.receipt, receipt))
+			return terminalSettlement
+
+		throw new Error('WalletConnect relay result conflicts with the terminal settlement')
 	}
 
 	return {
@@ -128,7 +171,7 @@ export const createWalletConnectApplicationConsumer = ({
 			const attempt = activePairing(walletConnectUri)
 			if (attempt == null) return undefined
 
-			return walletLink.settle({
+			return settle({
 				...attempt.correlation,
 				sessionTopic,
 				outcome: 'approved',
@@ -138,15 +181,12 @@ export const createWalletConnectApplicationConsumer = ({
 			const attempt = activePairing(walletConnectUri)
 			if (attempt == null) return undefined
 
-			return walletLink.settle({
+			return settle({
 				...attempt.correlation,
 				outcome: 'rejected',
 			})
 		},
-		settle: (receipt) => {
-			requireActive()
-			return walletLink.settle(receipt)
-		},
+		settle,
 		destroy: () => {
 			if (destroyed) return
 
