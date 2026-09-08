@@ -194,7 +194,7 @@ describe('Wormholescan BridgeTransfer resolvers', () => {
 				},
 			},
 		])
-		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(2)
+		expect(resolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	})
 
 	it('looks up an operation by source transaction hash selector', async () => {

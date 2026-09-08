@@ -165,7 +165,7 @@ describe('LayerZeroScan BridgeTransfer resolvers', () => {
 				source: Source.LayerZeroScan_Rest,
 			},
 		}])
-		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(resolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	})
 
 	it('does not claim transaction-log-index resolution without a Scan log-index identity', () => {

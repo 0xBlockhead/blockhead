@@ -196,7 +196,7 @@ describe('Axelarscan BridgeTransfer resolvers', () => {
 				source: Source.Axelarscan_Rest,
 			},
 		}])
-		expect(bridgeTransferResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(bridgeTransferResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	})
 
 	it('resolves SourceTxSourceLogIndex and BridgeTransfer_Timestamp observations', async () => {

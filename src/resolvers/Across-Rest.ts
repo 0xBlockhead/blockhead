@@ -443,7 +443,6 @@ export default {
 			exclusiveRelayer: (transfer) => transfer.exclusiveRelayer,
 			$$timestamps: {
 				select: (transfer) => transfer.$$timestamps,
-				resolveCount: (transfer) => transfer.$$timestamps.length,
 			},
 		}),
 
