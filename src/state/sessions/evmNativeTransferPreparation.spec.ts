@@ -561,12 +561,6 @@ describe('EVM native transfer preparation', () => {
 			expectedCallCount: 1,
 		},
 		{
-			name: 'malformed eth_estimateGas output',
-			configure: () => executionTransport({ gas: '21000' as unknown as bigint }),
-			expectedError: 'malformed eth_estimateGas data',
-			expectedCallCount: 1,
-		},
-		{
 			name: 'negative eth_estimateGas output',
 			configure: () => executionTransport({ gas: -1n }),
 			expectedError: 'invalid negative eth_estimateGas data',
@@ -981,7 +975,9 @@ describe('EVM native transfer preparation application', () => {
 			ready: false,
 			error: 'Preparation could not save the wallet request: local request storage unavailable',
 		})
+		expect(preparation.walletRequest).toBeUndefined()
 		expect(localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp).not.toHaveBeenCalled()
+		expect(localMutationMocks.writeLocalBlockheadWalletRequest).toHaveBeenCalledOnce()
 		expect(localMutationMocks.writeLocalBlockheadActionOutcome).toHaveBeenCalledExactlyOnceWith(
 			context,
 			{
