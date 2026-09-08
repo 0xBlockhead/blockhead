@@ -14,6 +14,40 @@ export default indexSourceBindings([
 	{
 		source: Source.AtprotoSync_Xrpc,
 		target: {
+			kind: SourceTargetKind.Global,
+			key: 'atproto-plc-directory',
+		},
+		endpoints: [{
+			endpointKind: SourceEndpointKind.HttpUrl,
+			locator: 'https://plc.directory',
+			corsEnabled: false,
+		}],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: genericReadOperationGroups,
+		delivery: SourceDelivery.RemoteQuery,
+		credentials: [],
+	},
+	{
+		source: Source.AtprotoSync_Xrpc,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'atproto-did-web',
+		},
+		endpoints: [{
+			endpointKind: SourceEndpointKind.HttpUrl,
+			locator: 'https://{did-web-host}',
+			corsEnabled: false,
+		}],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: genericReadOperationGroups,
+		delivery: SourceDelivery.RemoteQuery,
+		credentials: [],
+	},
+	{
+		source: Source.AtprotoSync_Xrpc,
+		target: {
 			kind: SourceTargetKind.Feed,
 			key: 'atproto-sync',
 		},

@@ -3,58 +3,36 @@ import {
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import {
-	defaultAtprotoSyncRelayOrigin,
-	getBlocks,
-	getLatestCommit,
-	getRepoStatus,
-} from '$/sources/AtprotoSync/Xrpc/queries.ts'
 import { Source } from '$/sources/Source.ts'
-import { projectAtprotoRepoCommitBlock } from '$/sources/AtprotoSync/Xrpc/commit.ts'
 
-const getAtprotoLatestCommit = async (did: string) => (
-	typeof window === 'undefined' ?
-		await getLatestCommit({
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
-			did,
-		})
-	:
-		await import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoLatestCommitRemote }) => getAtprotoLatestCommitRemote({
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
-			did,
-		}))
-)
+const getAtprotoCurrentPdsOrigin = async (did: string, signal?: AbortSignal) => {
+	const input = signal == null ? { did } : { did, signal }
+	if (typeof window === 'undefined')
+		return import('$/sources/AtprotoSync/Xrpc/identity.ts').then(({ getCurrentPdsOrigin }) => getCurrentPdsOrigin(input))
 
-const getAtprotoRepoStatus = async (did: string) => (
-	typeof window === 'undefined' ?
-		await getRepoStatus({
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
-			did,
-		})
-	:
-		await import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoRepoStatusRemote }) => getAtprotoRepoStatusRemote({
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
-			did,
-		}))
-)
+	return import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoCurrentPdsOriginRemote }) => getAtprotoCurrentPdsOriginRemote({ did }))
+}
 
 const getAtprotoCommitBlock = async (
 	did: string,
-	commitCid: string
-) => (
-	typeof window === 'undefined' ?
-		await getBlocks({
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+	commitCid: string,
+	signal?: AbortSignal
+) => {
+	const serviceOrigin = await getAtprotoCurrentPdsOrigin(did, signal)
+	if (typeof window === 'undefined')
+		return import('$/sources/AtprotoSync/Xrpc/queries.ts').then(({ getBlocks }) => getBlocks({
+			serviceOrigin,
 			did,
 			cids: [commitCid],
-		})
-	:
-		await import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoBlocksRemote }) => getAtprotoBlocksRemote({
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
-			did,
-			cids: [commitCid],
+			...(signal != null && { signal }),
 		}))
-)
+
+	return import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoBlocksRemote }) => getAtprotoBlocksRemote({
+		serviceOrigin,
+		did,
+		cids: [commitCid],
+	}))
+}
 
 const projectLatestCommit = async ({
 	repoDid,
@@ -65,10 +43,21 @@ const projectLatestCommit = async ({
 	rev?: string
 	commitCid?: string
 }) => {
-	const [latest, status] = await Promise.all([
-		getAtprotoLatestCommit(repoDid),
-		getAtprotoRepoStatus(repoDid),
-	])
+	const { projectAtprotoRepoCommitBlock } = await import('$/sources/AtprotoSync/Xrpc/commit.ts')
+	const { defaultAtprotoSyncRelayOrigin, getLatestCommit, getRepoStatus } = await import('$/sources/AtprotoSync/Xrpc/queries.ts')
+	const input = {
+		serviceOrigin: defaultAtprotoSyncRelayOrigin,
+		did: repoDid,
+	}
+	const [latest, status] = await (
+		typeof window === 'undefined' ?
+			Promise.all([getLatestCommit(input), getRepoStatus(input)])
+		:
+			import('$/sources/AtprotoSync/Xrpc/queries.remote.ts').then(({ getAtprotoLatestCommitRemote, getAtprotoRepoStatusRemote }) => Promise.all([
+				getAtprotoLatestCommitRemote(input),
+				getAtprotoRepoStatusRemote(input),
+			]))
+	)
 
 	if (status.did !== repoDid)
 		throw new Error(`AtprotoSync_Xrpc: getRepoStatus did ${status.did} does not match ${repoDid}`)
@@ -113,6 +102,7 @@ const projectCommitByCid = async ({
 	repoDid: string
 	commitCid: string
 }) => {
+	const { projectAtprotoRepoCommitBlock } = await import('$/sources/AtprotoSync/Xrpc/commit.ts')
 	const commitBlock = await projectAtprotoRepoCommitBlock({
 		car: await getAtprotoCommitBlock(repoDid, commitCid),
 		repoDid,
@@ -124,7 +114,6 @@ const projectCommitByCid = async ({
 		source: Source.AtprotoSync_Xrpc,
 		commitCid,
 		...commitBlock,
-		relayHost: new URL(defaultAtprotoSyncRelayOrigin).host,
 	}
 }
 
@@ -192,7 +181,6 @@ export default {
 			source: (commit) => commit.source,
 			commitCid: (commit) => commit.commitCid,
 			dataCid: (commit) => commit.dataCid,
-			relayHost: (commit) => commit.relayHost,
 			carByteLength: (commit) => commit.carByteLength,
 		}),
 	].map((resolver) => ({

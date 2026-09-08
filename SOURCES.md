@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-256 providers register 288 sources and 514 bindings.
+256 providers register 288 sources and 516 bindings.
 
 ## Providers
 
@@ -581,6 +581,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | AtprotoBsky | Atproto_Xrpc | Global | bsky-public-appview | Xrpc | XrpcLexicon | GenericRead | HttpProxy |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteQuery","AtprotoSync"] | AtprotoSync | AtprotoSync_Xrpc | Feed | atproto-sync | Xrpc | AtprotoSync | GenericRead | RemoteQuery |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteLive","AtprotoSync"] | AtprotoSync | AtprotoSync_Xrpc | Feed | atproto-sync | Xrpc | AtprotoSync | GenericSubscribe | RemoteLive |
+| ["AtprotoSync_Xrpc","Global","atproto-plc-directory","RemoteQuery","RestJson"] | AtprotoSync | AtprotoSync_Xrpc | Global | atproto-plc-directory | HttpRest | RestJson | GenericRead | RemoteQuery |
+| ["AtprotoSync_Xrpc","Global","atproto-did-web","RemoteQuery","RestJson"] | AtprotoSync | AtprotoSync_Xrpc | Global | atproto-did-web | HttpRest | RestJson | GenericRead | RemoteQuery |
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | Avail | Avail | NetworkSlug | avail | JsonRpc2 | SubstrateJsonRpc | GenericRead | RemoteQuery |
 | ["AvalancheInfo_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | AvalancheInfo | AvalancheInfo_JsonRpc | NetworkSlug | avalanche-p-chain | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
 | ["AvalanchePlatformVm_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | AvalanchePlatformVm | AvalanchePlatformVm_JsonRpc | NetworkSlug | avalanche-p-chain | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
@@ -1101,6 +1103,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://public.api.bsky.app | https://public.api.bsky.app | false |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteQuery","AtprotoSync"] | HttpUrl | https://{pds-host} | https://{pds-host} | false |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteLive","AtprotoSync"] | WebSocketUrl | wss://{pds-host}/xrpc/com.atproto.sync.subscribeRepos |  |  |
+| ["AtprotoSync_Xrpc","Global","atproto-plc-directory","RemoteQuery","RestJson"] | HttpUrl | https://plc.directory | https://plc.directory | false |
+| ["AtprotoSync_Xrpc","Global","atproto-did-web","RemoteQuery","RestJson"] | HttpUrl | https://{did-web-host} | https://{did-web-host} | false |
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | HttpUrl | env:PUBLIC_AVAIL_RPC_URL |  | false |
 | ["AvalancheInfo_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | HttpUrl | https://api.avax.network/ext/info | https://api.avax.network | false |
 | ["AvalanchePlatformVm_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | HttpUrl | https://api.avax.network/ext/bc/P | https://api.avax.network | false |

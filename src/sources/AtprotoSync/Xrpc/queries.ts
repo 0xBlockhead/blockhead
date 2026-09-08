@@ -5,9 +5,9 @@ import {
 	sourceBindingId,
 	SourceDelivery,
 	SourceOperationGroup,
+	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 import { sourceFetch } from '$/sources/_runtime/http.ts'
-import { sourceLive } from '$/sources/_runtime/live.remote.ts'
 import {
 	parseGetHostStatusResponse,
 	parseGetLatestCommitResponse,
@@ -25,6 +25,7 @@ export const defaultAtprotoSyncRelayOrigin = 'https://bsky.network'
 
 const remoteQueryBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
 	binding.delivery === SourceDelivery.RemoteQuery
+	&& binding.wireProtocol === WireProtocol.Xrpc
 ))
 
 if (remoteQueryBinding == null)
@@ -38,7 +39,7 @@ if (remoteLiveBinding == null)
 	throw new Error('AtprotoSync_Xrpc: RemoteLive binding is missing')
 
 
-const validatedServiceOrigin = (serviceOrigin: string) => {
+export const validateAtprotoServiceOrigin = (serviceOrigin: string) => {
 	const url = new URL(serviceOrigin)
 	const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, '')
 	const ipv4 = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/)?.slice(1).map(Number)
@@ -48,14 +49,14 @@ const validatedServiceOrigin = (serviceOrigin: string) => {
 		|| url.origin !== serviceOrigin
 		|| url.username !== ''
 		|| url.password !== ''
+		|| hostname === 'localhost'
+		|| hostname.endsWith('.localhost')
+		|| hostname.endsWith('.local')
 		|| hostname === 'metadata.google.internal'
 		|| hostname === 'metadata.aws.internal'
 		|| hostname === '::'
 		|| hostname === '::1'
-		|| hostname.startsWith('fc')
-		|| hostname.startsWith('fd')
-		|| /^fe[89ab]/.test(hostname)
-		|| hostname.startsWith('ff')
+		|| (hostname.includes(':') && /^(?:f[cd]|fe[89ab]|ff)/.test(hostname))
 		|| hostname.startsWith('::ffff:')
 		|| (
 			ipv4 != null
@@ -88,7 +89,7 @@ const resolvedRemoteQueryBinding = ({
 	if (typeof window !== 'undefined')
 		throw new Error('AtprotoSync_Xrpc: RemoteQuery must run through a SvelteKit query')
 
-	const validatedOrigin = validatedServiceOrigin(serviceOrigin)
+	const validatedOrigin = validateAtprotoServiceOrigin(serviceOrigin)
 	const resolveEndpoint = (endpoint: typeof binding.endpoints[number]) => ({
 		...endpoint,
 		locator: validatedOrigin,
@@ -388,12 +389,13 @@ export const subscribeRepos = async function* ({
 	)
 		throw new Error('AtprotoSync_Xrpc: subscribeRepos cursor must be a non-negative safe integer')
 
+	const { sourceLive } = await import('$/sources/_runtime/live.remote.ts')
 	const frames = sourceLive({
 		bindingId: sourceBindingId(remoteLiveBinding),
 		source: remoteLiveBinding.source,
 		targetKey: remoteLiveBinding.target.key,
 		operationGroup: SourceOperationGroup.GenericSubscribe,
-		serviceOrigin: validatedServiceOrigin(serviceOrigin),
+		serviceOrigin: validateAtprotoServiceOrigin(serviceOrigin),
 		...(cursor != null && {
 			cursor,
 		}),
