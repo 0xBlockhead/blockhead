@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { blockheadWalletReturnUrl } from './tauriWalletLink.ts'
+import {
+	blockheadWalletReturnUrl,
+	type WalletLinkRelayReceipt,
+} from './tauriWalletLink.ts'
 import {
 	createWalletConnectApplicationConsumer,
 	type WalletConnectApplicationConsumer,
@@ -88,6 +91,10 @@ describe('WalletConnect application consumer', () => {
 			state: 'returned',
 		})
 		expect(consumer.current()).not.toHaveProperty('outcome')
+		expect(() => consumer.approvePairing(
+			attempt.walletConnectUri,
+			''
+		)).toThrow('requires an exact session topic')
 
 		expect(consumer.approvePairing(
 			attempt.walletConnectUri,
@@ -95,13 +102,15 @@ describe('WalletConnect application consumer', () => {
 		)).toMatchObject({
 			completedBy: 'walletconnect-relay',
 			receipt: {
+				kind: 'pairing',
 				sessionTopic: 'approved-session-topic',
 				outcome: 'approved',
 			},
 		})
+		expect(consumer.current()).toMatchObject({ state: 'returned' })
 	})
 
-	it('rejects mismatched request topics, IDs, and envelope hashes', async () => {
+	it('settles request approval and rejection while rejecting every mismatched correlation field', async () => {
 		const { consumer } = await startConsumer()
 		const correlation = {
 			kind: 'request',
@@ -116,18 +125,24 @@ describe('WalletConnect application consumer', () => {
 			correlation,
 		})
 		const receipt = {
+			kind: 'request',
 			attemptId: correlation.attemptId,
 			authorityRequestId: correlation.authorityRequestId,
 			envelopeHash: correlation.envelopeHash,
 			sessionTopic: correlation.sessionTopic,
 			requestId: correlation.requestId,
 			outcome: 'approved',
-		} as const
+		} satisfies WalletLinkRelayReceipt
+		const kindMismatch = { ...receipt }
+		Object.defineProperty(kindMismatch, 'kind', { value: 'pairing' })
 
 		for (const mismatch of [
+			{ ...receipt, attemptId: 'stale-attempt' },
+			{ ...receipt, authorityRequestId: 'stale-authority-request' },
 			{ ...receipt, sessionTopic: 'stale-topic' },
 			{ ...receipt, requestId: 'stale-request' },
 			{ ...receipt, envelopeHash: 'stale-envelope' },
+			kindMismatch,
 		])
 			expect(() => consumer.settle(mismatch)).toThrow(
 				'Wallet relay receipt does not match the open attempt'
@@ -135,6 +150,18 @@ describe('WalletConnect application consumer', () => {
 
 		expect(consumer.settle(receipt)).toMatchObject({
 			completedBy: 'walletconnect-relay',
+		})
+		expect(consumer.settle({
+			...receipt,
+			outcome: 'rejected',
+		})).toMatchObject({
+			completedBy: 'walletconnect-relay',
+			receipt: {
+				kind: 'request',
+				sessionTopic: 'session-topic',
+				requestId: 'request-id',
+				outcome: 'rejected',
+			},
 		})
 	})
 
@@ -158,18 +185,40 @@ describe('WalletConnect application consumer', () => {
 		})
 	})
 
-	it('cancels an exact relay rejection without fabricating a settlement', async () => {
+	it('settles an exact pairing rejection without session or request fields', async () => {
 		const { consumer } = await startConsumer()
 		const attempt = await openPairing(consumer)
 
 		expect(consumer.rejectPairing(attempt.walletConnectUri)).toMatchObject({
-			state: 'cancelled',
+			completedBy: 'walletconnect-relay',
+			receipt: {
+				kind: 'pairing',
+				attemptId: attempt.correlation.attemptId,
+				authorityRequestId: attempt.correlation.authorityRequestId,
+				envelopeHash: attempt.correlation.envelopeHash,
+				outcome: 'rejected',
+			},
 		})
-		expect(() => consumer.settle({
+		const rejection = {
 			...attempt.correlation,
-			sessionTopic: '',
 			outcome: 'rejected',
-		})).toThrow('requires an exact session topic')
+		} satisfies WalletLinkRelayReceipt
+		expect(rejection).not.toHaveProperty('sessionTopic')
+		expect(rejection).not.toHaveProperty('requestId')
+
+		const rejectionWithTopic = { ...rejection }
+		const rejectionWithRequestId = { ...rejection }
+		Object.defineProperty(rejectionWithTopic, 'sessionTopic', {
+			value: 'fabricated-session-topic',
+		})
+		Object.defineProperty(rejectionWithRequestId, 'requestId', {
+			value: 'fabricated-request-id',
+		})
+		for (const fabricated of [
+			rejectionWithTopic,
+			rejectionWithRequestId,
+		])
+			expect(() => consumer.settle(fabricated)).toThrow('does not match')
 	})
 
 	it('exposes no send or broadcast operation', async () => {
@@ -193,6 +242,9 @@ describe('WalletConnect application consumer', () => {
 		expect(() => consumer.approvePairing(
 			attempt.walletConnectUri,
 			'late-session'
+		)).toThrow('consumer is inactive')
+		expect(() => consumer.rejectPairing(
+			attempt.walletConnectUri
 		)).toThrow('consumer is inactive')
 		expect(() => consumer.settle({
 			...attempt.correlation,

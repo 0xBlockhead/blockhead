@@ -24,7 +24,7 @@ export type WalletConnectApplicationConsumer = Readonly<{
 		walletConnectUri: string,
 		sessionTopic: string
 	): WalletLinkSettlement | undefined
-	rejectPairing(walletConnectUri: string): WalletLinkAttempt | undefined
+	rejectPairing(walletConnectUri: string): WalletLinkSettlement | undefined
 	settle(receipt: WalletLinkRelayReceipt): WalletLinkSettlement
 	destroy(): void
 	current(): WalletLinkAttempt | undefined
@@ -138,12 +138,13 @@ export const createWalletConnectApplicationConsumer = ({
 			const attempt = activePairing(walletConnectUri)
 			if (attempt == null) return undefined
 
-			return walletLink.cancel()
+			return walletLink.settle({
+				...attempt.correlation,
+				outcome: 'rejected',
+			})
 		},
 		settle: (receipt) => {
 			requireActive()
-			if (!receipt.sessionTopic.length)
-				throw new Error('WalletConnect relay result requires an exact session topic')
 			return walletLink.settle(receipt)
 		},
 		destroy: () => {
