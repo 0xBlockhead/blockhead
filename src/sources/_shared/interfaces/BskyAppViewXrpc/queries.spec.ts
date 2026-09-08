@@ -349,6 +349,82 @@ it('accepts recursive getPostThread viewPost / notFound / blocked nodes', async 
 	})
 })
 
+it('parses gallery and nested record embeds through the recursive wire union', async () => {
+	const gallery = {
+		$type: 'app.bsky.embed.gallery#view',
+		items: [{
+			$type: 'app.bsky.embed.gallery#viewImage',
+			thumbnail: 'https://cdn.example/thumb.jpg',
+			fullsize: 'https://cdn.example/full.jpg',
+			alt: 'gallery image',
+			aspectRatio: {
+				width: 4,
+				height: 3,
+			},
+		}],
+	}
+	const nestedRecord = {
+		$type: 'app.bsky.embed.record#view',
+		record: {
+			$type: 'app.bsky.embed.record#viewRecord',
+			uri: 'at://did:plc:quoted/app.bsky.feed.post/3quoted',
+			cid: 'bafyquoted',
+			author: {
+				did: 'did:plc:quoted',
+				handle: 'quoted.test',
+			},
+			value: { text: 'quoted' },
+			indexedAt: '2025-02-03T04:05:06.000Z',
+			embeds: [gallery],
+		},
+	}
+	sourceGetJson.mockResolvedValueOnce({
+		posts: [{
+			uri: 'at://did:plc:fixture/app.bsky.feed.post/3fixture',
+			cid: 'bafyfixture',
+			indexedAt: '2025-02-03T04:05:06.000Z',
+			author: {
+				did: 'did:plc:fixture',
+				handle: 'fixture.test',
+			},
+			record: {
+				text: 'fixture',
+				createdAt: '2025-02-03T04:05:06.000Z',
+			},
+			embed: nestedRecord,
+		}],
+	})
+
+	await expect(getPosts(['at://did:plc:fixture/app.bsky.feed.post/3fixture']))
+		.resolves.toMatchObject({ posts: [{ embed: nestedRecord }] })
+})
+
+it('rejects an embed whose discriminant does not match its payload', async () => {
+	sourceGetJson.mockResolvedValueOnce({
+		posts: [{
+			uri: 'at://did:plc:fixture/app.bsky.feed.post/3mismatch',
+			cid: 'bafymismatch',
+			indexedAt: '2025-02-03T04:05:06.000Z',
+			author: {
+				did: 'did:plc:fixture',
+				handle: 'fixture.test',
+			},
+			record: {
+				text: 'fixture',
+				createdAt: '2025-02-03T04:05:06.000Z',
+			},
+			embed: {
+				$type: 'app.bsky.embed.images#view',
+				cid: 'bafymismatch',
+				playlist: 'https://cdn.example/video.m3u8',
+			},
+		}],
+	})
+
+	await expect(getPosts(['at://did:plc:fixture/app.bsky.feed.post/3mismatch']))
+		.rejects.toThrow('BskyAppView_Xrpc: invalid posts response envelope')
+})
+
 it('accepts zero engagement counts on posts and searchActors handles', async () => {
 	sourceGetJson.mockResolvedValueOnce({
 		posts: [{
