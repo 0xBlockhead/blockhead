@@ -2611,7 +2611,7 @@ test('validates facet fields through the canonical facet traversal', () => {
 test('rejects declarative artifacts that are not resolved string fields', () => {
 	const invalidArtifactApp = structuredClone(app)
 	const ipfsResource = invalidArtifactApp.schema.entities.find((entity) => (
-		entity.entityType === EntityType.IpfsResource
+		entity.entityType === EntityType.IpfsResource_Timestamp
 	))
 	assert.ok(ipfsResource?.views.singular?.artifacts)
 	Object.defineProperty(ipfsResource.views.singular.artifacts[0], 'field', {
@@ -2621,7 +2621,7 @@ test('rejects declarative artifacts that are not resolved string fields', () => 
 
 	assert.throws(
 		() => compileApp(invalidArtifactApp),
-		/IpfsResource artifact field \$media must be primitive/
+		/IpfsResource_Timestamp artifact field \$media must be primitive/
 	)
 })
 
@@ -6995,6 +6995,7 @@ test('compiles selector-owned IPFS and Swarm path variants without duplicate map
 		renderGeneratedFile(generatedFile),
 	]))
 	const ipfsResourceView = renderedFileByPath.get('src/views/IpfsResourceView.svelte')
+	const ipfsCaptureView = renderedFileByPath.get('src/views/IpfsResource_TimestampView.svelte')
 	const arweaveResourceTimestampView = renderedFileByPath.get('src/views/ArweaveResource_TimestampView.svelte')
 	const swarmResourceView = renderedFileByPath.get('src/views/SwarmResourceView.svelte')
 	const ipfsBasePath = 'src/routes/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]'
@@ -7025,9 +7026,9 @@ test('compiles selector-owned IPFS and Swarm path variants without duplicate map
 	assert.doesNotMatch(ipfsResourceView ?? '', /contentPath !== ''/)
 	assert.doesNotMatch(swarmResourceView ?? '', /contentPath !== ''/)
 	assert.doesNotMatch(ipfsResourceView ?? '', /resolve\(`/)
-	assert.match(ipfsResourceView ?? '', /href=\{`data:text\/plain;charset=utf-8,\$\{encodeURIComponent\(artifactContent\)\}`\}/)
-	assert.match(ipfsResourceView ?? '', /download='ipfs-resource\.txt'/)
-	assert.match(ipfsResourceView ?? '', />\s*Download resolved text\s*<\/a>/)
+	assert.match(ipfsCaptureView ?? '', /href=\{`data:text\/plain;charset=utf-8,\$\{encodeURIComponent\(artifactContent\)\}`\}/)
+	assert.match(ipfsCaptureView ?? '', /download='ipfs-resource\.txt'/)
+	assert.match(ipfsCaptureView ?? '', />\s*Download resolved text\s*<\/a>/)
 	assert.match(arweaveResourceTimestampView ?? '', /download='arweave-resource\.txt'/)
 	assert.match(swarmResourceView ?? '', /href=\{`data:text\/plain;charset=utf-8,\$\{encodeURIComponent\(artifactContent\)\}`\}/)
 	assert.match(swarmResourceView ?? '', /download='swarm-resource\.txt'/)
