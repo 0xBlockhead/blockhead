@@ -19,10 +19,11 @@ const eventTopic = (signature: string) => (
 	EvmTopicHash.assert(Hash.keccak256(Hex.fromString(signature)))
 )
 
-export const erc20TransferTopic = eventTopic('Transfer(address,address,uint256)')
-export const erc20ApprovalTopic = eventTopic('Approval(address,address,uint256)')
+export const transferEventTopic = eventTopic('Transfer(address,address,uint256)')
+export const approvalEventTopic = eventTopic('Approval(address,address,uint256)')
 
 export type EvmLocalSimulationLog = {
+	readonly callPath: string
 	readonly logIndex: number
 	readonly address: `0x${string}`
 	readonly topics: readonly `0x${string}`[]
@@ -51,24 +52,26 @@ export type EvmLocalSimulationEffect = (
 	| {
 		readonly kind: 'native-value'
 		readonly callPath: string
-		readonly fromAddress?: `0x${string}`
-		readonly toAddress?: `0x${string}`
+		readonly fromAddress: `0x${string}`
+		readonly toAddress: `0x${string}`
 		readonly value: bigint
 		readonly committed: boolean
 	}
 	| {
-		readonly kind: 'erc20-transfer'
+		readonly kind: 'transfer-event'
+		readonly callPath: string
 		readonly logIndex: number
-		readonly tokenAddress: `0x${string}`
+		readonly contractAddress: `0x${string}`
 		readonly fromAddress: `0x${string}`
 		readonly toAddress: `0x${string}`
 		readonly amount: bigint
 		readonly committed: boolean
 	}
 	| {
-		readonly kind: 'erc20-approval'
+		readonly kind: 'approval-event'
+		readonly callPath: string
 		readonly logIndex: number
-		readonly tokenAddress: `0x${string}`
+		readonly contractAddress: `0x${string}`
 		readonly ownerAddress: `0x${string}`
 		readonly spenderAddress: `0x${string}`
 		readonly amount: bigint
@@ -145,13 +148,19 @@ const nativeEffects = (
 	classifications: readonly EvmLocalSimulationOperationClassification[]
 ): EvmLocalSimulationEffect[] => (
 	operations.flatMap((operation, index) => {
-		if (!nativeValueCallTypes.has(operation.callType) || operation.value == null || operation.value === 0n)
+		if (
+			!nativeValueCallTypes.has(operation.callType)
+			|| operation.fromAddress == null
+			|| operation.toAddress == null
+			|| operation.value == null
+			|| operation.value === 0n
+		)
 			return []
 		return [{
 			kind: 'native-value' as const,
 			callPath: operation.callPath,
-			...(operation.fromAddress == null ? {} : { fromAddress: operation.fromAddress }),
-			...(operation.toAddress == null ? {} : { toAddress: operation.toAddress }),
+			fromAddress: operation.fromAddress,
+			toAddress: operation.toAddress,
 			value: operation.value,
 			committed: classifications[index]?.stateCommitted === true,
 		}]
@@ -164,36 +173,38 @@ const tokenEffect = (
 ): EvmLocalSimulationEffect | undefined => {
 	const topics = log.topics.map((topic) => EvmTopicHash.assert(topic.toLowerCase()))
 	const data = ZeroExHex.assert(log.data.toLowerCase())
-	const tokenAddress = EvmAddress.assert(log.address.toLowerCase())
+	const contractAddress = EvmAddress.assert(log.address.toLowerCase())
 	if (topics.length !== 3)
 		return undefined
 	const amount = uint256FromWord(data)
 	if (amount == null)
 		return undefined
-	if (topics[0] === erc20TransferTopic) {
+	if (topics[0] === transferEventTopic) {
 		const fromAddress = addressFromIndexedTopic(topics[1])
 		const toAddress = addressFromIndexedTopic(topics[2])
 		if (fromAddress == null || toAddress == null)
 			return undefined
 		return {
-			kind: 'erc20-transfer',
+			kind: 'transfer-event',
+			callPath: log.callPath,
 			logIndex: log.logIndex,
-			tokenAddress,
+			contractAddress,
 			fromAddress,
 			toAddress,
 			amount,
 			committed,
 		}
 	}
-	if (topics[0] === erc20ApprovalTopic) {
+	if (topics[0] === approvalEventTopic) {
 		const ownerAddress = addressFromIndexedTopic(topics[1])
 		const spenderAddress = addressFromIndexedTopic(topics[2])
 		if (ownerAddress == null || spenderAddress == null)
 			return undefined
 		return {
-			kind: 'erc20-approval',
+			kind: 'approval-event',
+			callPath: log.callPath,
 			logIndex: log.logIndex,
-			tokenAddress,
+			contractAddress,
 			ownerAddress,
 			spenderAddress,
 			amount,
@@ -208,7 +219,9 @@ export const evmLocalSimulationEffects = (
 	logs: readonly EvmLocalSimulationLog[] = []
 ): EvmLocalSimulationEffects => {
 	const classifications = classifyOperations(operations.operations)
-	const logsCommitted = classifications[0]?.stateCommitted === true
+	const classificationsByPath = new Map(classifications.map((classification) => (
+		[classification.callPath, classification]
+	)))
 	return {
 		source: operations.source,
 		chainId: operations.chainId,
@@ -218,7 +231,10 @@ export const evmLocalSimulationEffects = (
 		effects: [
 			...nativeEffects(operations.operations, classifications),
 			...logs.flatMap((log) => {
-				const effect = tokenEffect(log, logsCommitted)
+				const classification = classificationsByPath.get(log.callPath)
+				if (classification == null)
+					throw new Error(`Simulation log call path is not in the operation graph: ${log.callPath}`)
+				const effect = tokenEffect(log, classification.stateCommitted)
 				return effect == null ? [] : [effect]
 			}),
 		],

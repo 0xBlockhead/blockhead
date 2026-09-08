@@ -5,9 +5,9 @@ import {
 	type EvmLocalSimulationCallTrace,
 } from './evmLocalSimulationInternalOperations.ts'
 import {
-	erc20ApprovalTopic,
-	erc20TransferTopic,
+	approvalEventTopic,
 	evmLocalSimulationEffects,
+	transferEventTopic,
 } from './evmLocalSimulationEffects.ts'
 
 
@@ -178,34 +178,57 @@ describe('local EVM simulation effects', () => {
 		}])
 	})
 
-	it('decodes canonical ERC-20 Transfer and Approval without naming the token or filling decodedEventName', () => {
+	it('does not report native value when either observed endpoint is absent', () => {
+		const result = evmLocalSimulationEffects(evmLocalSimulationInternalOperations({
+			...nestedTrace,
+			root: {
+				...nestedTrace.root,
+				fromAddress: undefined,
+				calls: [{
+					callType: 'CALL',
+					fromAddress: address('22'),
+					value: 5n,
+					outcome: { kind: 'returned' },
+					calls: [],
+				}],
+			},
+		}))
+
+		expect(result.effects.filter((effect) => effect.kind === 'native-value')).toEqual([])
+	})
+
+	it('decodes canonical Transfer and Approval event shapes without inferring a token standard', () => {
 		const result = evmLocalSimulationEffects(
 			evmLocalSimulationInternalOperations(nestedTrace),
 			[{
+				callPath: '0',
 				logIndex: 0,
 				address: address('aa'),
-				topics: [erc20TransferTopic, topicAddress('11'), topicAddress('22')],
+				topics: [transferEventTopic, topicAddress('11'), topicAddress('22')],
 				data: amountWord(99n),
 			}, {
+				callPath: '0',
 				logIndex: 1,
 				address: address('aa'),
-				topics: [erc20ApprovalTopic, topicAddress('11'), topicAddress('44')],
+				topics: [approvalEventTopic, topicAddress('11'), topicAddress('44')],
 				data: amountWord(5n),
 			}]
 		)
 
 		expect(result.effects.filter((effect) => effect.kind !== 'native-value')).toEqual([{
-			kind: 'erc20-transfer',
+			kind: 'transfer-event',
+			callPath: '0',
 			logIndex: 0,
-			tokenAddress: address('aa'),
+			contractAddress: address('aa'),
 			fromAddress: address('11'),
 			toAddress: address('22'),
 			amount: 99n,
 			committed: true,
 		}, {
-			kind: 'erc20-approval',
+			kind: 'approval-event',
+			callPath: '0',
 			logIndex: 1,
-			tokenAddress: address('aa'),
+			contractAddress: address('aa'),
 			ownerAddress: address('11'),
 			spenderAddress: address('44'),
 			amount: 5n,
@@ -217,20 +240,23 @@ describe('local EVM simulation effects', () => {
 		const result = evmLocalSimulationEffects(
 			evmLocalSimulationInternalOperations(nestedTrace),
 			[{
+				callPath: '0',
 				logIndex: 0,
 				address: address('aa'),
-				topics: [erc20TransferTopic, topicAddress('11'), topicAddress('22'), amountWord(1n)],
+				topics: [transferEventTopic, topicAddress('11'), topicAddress('22'), amountWord(1n)],
 				data: '0x',
 			}, {
+				callPath: '0',
 				logIndex: 1,
 				address: address('aa'),
 				topics: [
-					erc20TransferTopic,
+					transferEventTopic,
 					`0x${'ff'.repeat(12)}${'11'.repeat(20)}`,
 					topicAddress('22'),
 				],
 				data: amountWord(1n),
 			}, {
+				callPath: '0',
 				logIndex: 2,
 				address: address('aa'),
 				topics: [`0x${'ab'.repeat(32)}`],
@@ -241,20 +267,35 @@ describe('local EVM simulation effects', () => {
 		expect(result.effects.filter((effect) => effect.kind !== 'native-value')).toEqual([])
 	})
 
-	it('marks token logs uncommitted when the root call reverted', () => {
+	it('derives log commitment from its emitting call rather than the root', () => {
 		const result = evmLocalSimulationEffects(
-			evmLocalSimulationInternalOperations(rootRevertTrace),
+			evmLocalSimulationInternalOperations(nestedTrace),
 			[{
+				callPath: '0.1.0',
 				logIndex: 0,
 				address: address('aa'),
-				topics: [erc20TransferTopic, topicAddress('11'), topicAddress('22')],
+				topics: [transferEventTopic, topicAddress('11'), topicAddress('22')],
 				data: amountWord(1n),
 			}]
 		)
 
-		expect(result.effects.find((effect) => effect.kind === 'erc20-transfer')).toMatchObject({
+		expect(result.effects.find((effect) => effect.kind === 'transfer-event')).toMatchObject({
+			callPath: '0.1.0',
 			committed: false,
 			amount: 1n,
 		})
+	})
+
+	it('rejects a log whose emitting call is absent from the observed operation graph', () => {
+		expect(() => evmLocalSimulationEffects(
+			evmLocalSimulationInternalOperations(nestedTrace),
+			[{
+				callPath: '0.9',
+				logIndex: 0,
+				address: address('aa'),
+				topics: [transferEventTopic, topicAddress('11'), topicAddress('22')],
+				data: amountWord(1n),
+			}]
+		)).toThrow('Simulation log call path is not in the operation graph: 0.9')
 	})
 })
