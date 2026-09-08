@@ -605,7 +605,7 @@ describe('WalletConnect v2 adapter', () => {
 		rejectedAdapter.start((candidates) => rejectedCandidates.push(candidates))
 		const rejectedConnection = rejectedAdapter.connect('walletconnect-v2')
 		await vi.waitFor(() => expect(displayUri).toHaveBeenCalledTimes(1))
-		expect(rejectedCandidates.at(-1)?.at(0).connectionUri).toBe('wc:proposal@2')
+		expect(rejectedCandidates.at(-1)?.at(0)?.connectionUri).toBe('wc:proposal@2')
 		const rejection = new Error('User rejected WalletConnect proposal')
 		rejected.reject(rejection)
 		await expect(rejectedConnection).rejects.toBe(rejection)
@@ -842,7 +842,7 @@ describe('WalletConnect v2 adapter', () => {
 		const stopVisible = visibleAdapter.start((candidates) => visibleCandidates.push(candidates))
 		const visibleConnection = visibleAdapter.connect('walletconnect-v2')
 		await vi.waitFor(() => expect(
-			visibleCandidates.at(-1)?.at(0).connectionUri
+			visibleCandidates.at(-1)?.at(0)?.connectionUri
 		).toBe('wc:proposal@2'))
 		stopVisible()
 		expect(visibleCandidates.at(-1)?.at(0)).not.toHaveProperty('connectionUri')
@@ -851,10 +851,10 @@ describe('WalletConnect v2 adapter', () => {
 			'WalletConnect connection request was superseded'
 		)
 
-		const proposal = Promise.withResolvers<Awaited<
-			ReturnType<WalletConnectV2Client['connect']>
-		>>()
 		const mock = createClient()
+		const proposal = Promise.withResolvers<Awaited<
+			ReturnType<typeof mock.client.connect>
+		>>()
 		mock.client.connect.mockImplementationOnce(() => proposal.promise)
 		const displayUri = vi.fn()
 		const adapter = createWalletConnectV2Adapter({

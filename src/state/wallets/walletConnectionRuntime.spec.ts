@@ -335,16 +335,16 @@ const mountMockWalletRuntime = async ({
 						if (selectedError)
 							return Promise.reject(selectedError)
 
-						return Promise.resolve(persistedConnection?.selected)
+						return Promise.resolve(persistedConnection.selected)
 					},
 				},
 				$wallet: Promise.resolve({
 					[EntityMetaKey.Selector]: {
-						id: persistedConnection?.walletId ?? walletId,
+						id: persistedConnection.walletId,
 					},
 				}),
 				$$accounts: () => Promise.resolve({
-					values: persistedConnection?.accounts.map((persistedAccount) => ({
+					values: persistedConnection.accounts.map((persistedAccount) => ({
 						[EntityMetaKey.Selector]: {
 							caip10: {
 								namespace: persistedAccount.namespace,
@@ -352,22 +352,17 @@ const mountMockWalletRuntime = async ({
 								accountAddress: persistedAccount.accountAddress,
 							},
 						},
-					})) ?? [],
+					})),
 				}),
-				$activeAccount: Promise.resolve(
-					persistedConnection?.activeAccount == null ?
-						undefined
-					:
-						{
-							[EntityMetaKey.Selector]: {
-								caip10: {
-									namespace: persistedConnection.activeAccount.namespace,
-									reference: persistedConnection.activeAccount.reference,
-									accountAddress: persistedConnection.activeAccount.accountAddress,
-								},
-							},
-						}
-				),
+				$activeAccount: Promise.resolve({
+					[EntityMetaKey.Selector]: {
+						caip10: {
+							namespace: persistedConnection.activeAccount.namespace,
+							reference: persistedConnection.activeAccount.reference,
+							accountAddress: persistedConnection.activeAccount.accountAddress,
+						},
+					},
+				}),
 			}
 		)
 	}
@@ -421,9 +416,9 @@ const mountMockWalletRuntime = async ({
 								})
 						),
 					}),
-				}
-			:
-				selectionFor(selector?.connectionKey ?? persistedRows[0]?.connectionKey ?? 'persisted-session')
+					}
+				:
+					selectionFor(selector.connectionKey ?? persistedRows[0].connectionKey)
 		),
 	}, {
 		...(tauriWalletLinkHost != null && { tauriWalletLinkHost }),
@@ -937,7 +932,7 @@ describe('wallet connection runtime normalization', () => {
 		releasePersistence()
 		await vi.waitFor(() => expect(
 			writeWalletRequestObservation.mock.calls.some(([, , observation]) => (
-				observation?.status === 'signed'
+				observation.status === 'signed'
 			))
 		).toBe(true))
 		releaseSignedPersistence()
