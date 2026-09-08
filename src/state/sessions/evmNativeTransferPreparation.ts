@@ -195,7 +195,7 @@ export const prepareEvmNativeTransfer = async ({
 				action.actionParams ?? {}
 			)
 			transferParams = validatedTransferParams
-			if (!Number.isSafeInteger(validatedTransferParams.chainId))
+			if (!Number.isSafeInteger(validatedTransferParams.chainId) || validatedTransferParams.chainId <= 0)
 				nativeParamsError = 'Transfer chain ID must be a positive safe integer.'
 			else if (validatedTransferParams.tokenAddress.toLowerCase() !== zeroAddress)
 				nativeParamsError = 'Only native EVM transfers are supported by this preparation path.'
@@ -611,6 +611,8 @@ export const prepareEvmNativeTransfer = async ({
 		gasResult.reason instanceof Error ? gasResult.reason.message : String(gasResult.reason)
 	) : typeof gasResult.value !== 'bigint' ?
 		'EVM execution transport returned malformed eth_estimateGas data.'
+	: gasResult.value < 0n ?
+		'EVM execution transport returned invalid negative eth_estimateGas data.'
 	: undefined
 	const gasValue = gasResult.status === 'fulfilled' && gasError == null ? gasResult.value : undefined
 	const simulationError = [

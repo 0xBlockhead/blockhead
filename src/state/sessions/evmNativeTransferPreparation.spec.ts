@@ -234,6 +234,20 @@ describe('EVM native transfer preparation', () => {
 			expectedCheck: 'native-transfer-params',
 		},
 		{
+			name: 'non-positive EIP-155 chain ID',
+			session: { id: 'session-1', lockedAt: 1 },
+			actions: [transferAction({
+				actionParams: {
+					fromActor: fromAddress,
+					toActor: toAddress,
+					chainId: 0,
+					tokenAddress: zeroAddress,
+					amount: 2n,
+				},
+			})],
+			expectedCheck: 'native-transfer-params',
+		},
+		{
 			name: 'ERC-20 token',
 			session: { id: 'session-1', lockedAt: 1 },
 			actions: [transferAction({
@@ -550,6 +564,12 @@ describe('EVM native transfer preparation', () => {
 			name: 'malformed eth_estimateGas output',
 			configure: () => executionTransport({ gas: '21000' as unknown as bigint }),
 			expectedError: 'malformed eth_estimateGas data',
+			expectedCallCount: 1,
+		},
+		{
+			name: 'negative eth_estimateGas output',
+			configure: () => executionTransport({ gas: -1n }),
+			expectedError: 'invalid negative eth_estimateGas data',
 			expectedCallCount: 1,
 		},
 	])('returns $name as simulation evidence instead of throwing', async ({
