@@ -515,8 +515,94 @@ describe('Balancer account pool balances operation', () => {
 })
 
 describe('Balancer veBAL and voting gauge operations', () => {
+	const votingPool = {
+		id: weightedV2PoolId,
+		address: '0x3de27efa2f1aa663ae5d458857e731c129069f29',
+		chain: 'MAINNET',
+		type: 'WEIGHTED',
+		symbol: 'pool',
+		protocolVersion: 2,
+		gauge: {
+			address: '0xc13a3315806f097cee00e39c4285f5bf250dd8a4',
+			isKilled: false,
+		},
+		tokens: [{
+			address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+			symbol: 'wstETH',
+		}],
+	}
+
 	beforeEach(() => {
 		graphql.mockReset()
+	})
+
+	it.each([
+		{
+			chain: 'FUTURE_CHAIN',
+			protocolVersion: 2,
+		},
+		{
+			chain: 'MAINNET',
+			protocolVersion: 4,
+		},
+	])('omits unsupported voting rows $chain/$protocolVersion without losing supported rows', async (unsupported) => {
+		graphql.mockResolvedValueOnce({
+			veBalGetVotingList: [
+				{
+					...votingPool,
+					...unsupported,
+				},
+				votingPool,
+			],
+		})
+		const gauges = await listVotingGauges({ binding })
+		expect(gauges).toHaveLength(1)
+		expect(gauges[0]).toMatchObject({
+			chainId: 1,
+			protocolVersion: 2,
+		})
+		graphql.mockResolvedValueOnce({
+			veBalGetVotingList: [{
+				...votingPool,
+				...unsupported,
+			}],
+		})
+		await expect(listVotingGauges({ binding })).resolves.toEqual([])
+	})
+
+	it.each([
+		{ address: 'invalid' },
+		{ tokens: [] },
+	])('still rejects malformed supported voting rows: %j', async (malformed) => {
+		graphql.mockResolvedValueOnce({
+			veBalGetVotingList: [
+				{
+					...votingPool,
+					protocolVersion: 4,
+				},
+				{
+					...votingPool,
+					...malformed,
+				},
+			],
+		})
+		await expect(listVotingGauges({ binding })).rejects.toThrow()
+	})
+
+	it('validates unsupported row envelopes and retained duplicate identities', async () => {
+		graphql.mockResolvedValueOnce({
+			veBalGetVotingList: [{
+				...votingPool,
+				chain: 'FUTURE_CHAIN',
+				gauge: null,
+			}],
+		})
+		await expect(listVotingGauges({ binding })).rejects.toThrow('invalid voting list response envelope')
+		graphql.mockResolvedValueOnce({ veBalGetVotingList: [
+			votingPool,
+			votingPool,
+		] })
+		await expect(listVotingGauges({ binding })).rejects.toThrow('duplicate gauges')
 	})
 
 	it('lists voting gauges with pool token metadata', async () => {

@@ -179,13 +179,6 @@ const chainIdByGqlChain = Object.fromEntries(
 	])
 )
 
-const assertGqlChainId = (gqlChain: string) => {
-	const chainId = chainIdByGqlChain[gqlChain]
-	if (chainId == null)
-		throw new Error(`${Source.Balancer_Rest}: unsupported GqlChain ${gqlChain}`)
-	return chainId
-}
-
 const assertPoolWire = (
 	wire: BalancerPoolWire,
 	expected: {
@@ -586,14 +579,15 @@ export const listVotingGauges = async ({
 		throw new Error(`${Source.Balancer_Rest}: voting list response veBalGetVotingList is missing`)
 	assertEnvelope(balancerVotingListEnvelope, data.veBalGetVotingList, 'voting list')
 
-	const gauges = data.veBalGetVotingList.map((wire): BalancerVotingGauge => {
-		const chainId = assertGqlChainId(wire.chain)
-		if (wire.protocolVersion !== 2 && wire.protocolVersion !== 3)
-			throw new Error(`${Source.Balancer_Rest}: unsupported voting pool protocolVersion ${String(wire.protocolVersion)}`)
+	const gauges = data.veBalGetVotingList.flatMap((wire): BalancerVotingGauge[] => {
+		const chainId = chainIdByGqlChain[wire.chain]
+		if (chainId == null || (wire.protocolVersion !== 2 && wire.protocolVersion !== 3))
+			return []
+
 		if (wire.tokens.length < 1)
 			throw new Error(`${Source.Balancer_Rest}: voting pool missing tokens`)
 
-		return {
+		return [{
 			poolId: assertPoolId(wire.id),
 			poolAddress: assertAddress(wire.address, 'voting pool address'),
 			chainId,
@@ -612,7 +606,7 @@ export const listVotingGauges = async ({
 					logoURI: token.logoURI,
 				}),
 			})),
-		}
+		}]
 	})
 	if (new Set(gauges.map((gauge) => `${gauge.chainId}:${gauge.gaugeAddress}`)).size !== gauges.length)
 		throw new Error(`${Source.Balancer_Rest}: voting list response contains duplicate gauges`)
