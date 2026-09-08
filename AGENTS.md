@@ -4,7 +4,7 @@
 
 - Keep replies concise and describe intent instead of pasting machine-oriented payloads.
 - Preserve unrelated working changes. Never use Git rollback commands to correct an edit in a dirty worktree.
-- Put agent worktrees beneath `~/Developer/blockhead-2026-agent/` in the established harness subtree, never a system temporary directory.
+- Put new worktrees beneath `~/Developer/blockhead-2026-worktrees/`; leave active legacy checkouts in place until their owner reaches the migration boundary defined by `compose-stack-candidates`. Never use a system temporary directory.
 - Use `apply_patch` for edits. Prefer `mv` followed by an edit for file moves.
 - For shell commands, write home paths with `~` and escape `$` and other expansion-sensitive symbols.
 - Do not place rewrite programs containing template literals, `$`, backticks, globs, or replacement strings in inline shell or `node -e` commands. Use `apply_patch` or a temporary script.
@@ -17,7 +17,7 @@
 - Development server: `pnpm run dev`.
 - Lint: `pnpm run lint`.
 - Type and application checks: `pnpm run check`.
-- Unit tests: `pnpm run test:unit -- --run`.
+- Unit tests: `pnpm run test:unit --run`.
 - Full verification without E2E: `pnpm run verify`.
 - Playwright E2E: `pnpm run test:e2e`.
 - Use `node --import tsx`, never plain `tsx`.
@@ -43,6 +43,9 @@ Read the nearest nested `AGENTS.md` before editing its subtree. Load a matching 
 - Writing, reviewing, consolidating, or improving automated tests: `test-methodology`.
 - Explicit code, test, fixture, schema, or instruction reduction while preserving behavior and fault detection: `reduce`.
 - Persistent delivery programs optimizing accepted product progress across a mutable work denominator: `orchestrate-program`.
+- Selecting or revising agent models, effort levels or escalation based on intelligence per cost: global `select-model-frontier`; routine dispatch consumes its dated policy without repeating market research.
+- Every node in an explicitly delegated orchestration tree, including successors and execution leaves: read `~/.agents/skills/orchestrate-tree/SKILL.md` and include its absolute path in every child assignment. It owns recursive workstream delegation, context/model budgets, and shared-resource placement.
+- Cross-stack candidate topology, reusable integration joins, and composition-worktree lifecycle: `compose-stack-candidates`.
 - TypeScript logic or types: `typescript-development`.
 - Any `.svelte` or `.svelte.ts` edit: `svelte-development`.
 - Schema identity, selectors, references, observations, or cardinality: `schema-entity-modeling`.
