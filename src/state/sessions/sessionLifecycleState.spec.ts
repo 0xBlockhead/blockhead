@@ -4,6 +4,7 @@ import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
 import type {
 	SessionCapabilityGrant,
 	SessionLifecycle,
+	SessionSimulationObservation,
 } from './sessionLifecycleState.ts'
 import {
 	applySessionCapabilityGrantUpdate,
@@ -330,5 +331,21 @@ describe('sessionSimulation observation', () => {
 			simulationWithoutPreparedRequest: true,
 			simulationWithoutSend: true,
 		})
+	})
+
+	it('fences unknown simulation status and malformed prep/send observations', () => {
+		const unknownSimulation = sessionSimulationObservation({
+			id: 'sim-unknown',
+			sessionId: 'session-1',
+			status: 'unknown' as SessionSimulationObservation['status'],
+			createdAt: 40,
+			paramsHash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+		})
+		expect(unknownSimulation).not.toHaveProperty('completedAt')
+		expect(isCompletedSessionSimulation(unknownSimulation)).toBe(false)
+		expect(isSessionSimulationWithoutPreparedRequest(unknownSimulation, null)).toBe(true)
+		expect(isSessionSimulationWithoutSend({
+			evmTransactionIds: 'not-an-array' as unknown as readonly string[],
+		})).toBe(true)
 	})
 })
