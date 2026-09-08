@@ -341,7 +341,7 @@ export const getAccount = async ({
 	level?: bigint | number
 }) => {
 	assertNonemptyAddress(address, 'account')
-	return assertEnvelope(
+	const account = assertEnvelope(
 		'account',
 		tzktAccount,
 		await sourceGetJson<unknown>(
@@ -354,6 +354,9 @@ export const getAccount = async ({
 			)}`
 		)
 	)
+	if (account.address !== address)
+		throw new Error('TzKT account response does not match the subject')
+	return account
 }
 
 const assertAccountPage = (
