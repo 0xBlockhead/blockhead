@@ -1115,11 +1115,11 @@ describe('local mutation authority journal', () => {
 				entityDefinitionByType[EntityType.BlockheadActionAuthorityRequest],
 				retargetedAuthoritySelector
 			),
-			[EntityMetaKey.Value]: [{
+			[EntityMetaKey.Value]: {
 				sessionId: actionSelector.sessionId,
 				actionId: actionSelector.actionId,
 				contentRevisionHash: transferRevisionHash,
-			}],
+			},
 		}))
 		await expect(writeLocalBlockheadActionDispatchOccurrenceStart(context, occurrence)).rejects.toThrow(
 			'no longer matches the persisted authored action revision'
