@@ -90,6 +90,11 @@ import {
 	createWalletConnectV2Adapter,
 	walletConnectV2ClientFromSignClient,
 } from './adapters/walletConnectV2.ts'
+import {
+	createWalletConnectApplicationConsumer,
+	type WalletConnectApplicationConsumer,
+} from './walletConnectApplicationConsumer.ts'
+import type { TauriWalletLinkHost } from './tauriWalletLink.ts'
 import { browser } from '$app/environment'
 import { env } from '$env/dynamic/public'
 
@@ -99,6 +104,7 @@ type WalletRuntime = {
 	registerAdapter(adapter: WalletAdapter): void
 	connect(walletId: string): Promise<void>
 	reconnect(walletId: string): Promise<void>
+	openWalletConnectApplication(walletConnectUri: string): Promise<void>
 	signMessage(input: WalletMessageSignInput): Promise<{
 		accountAddress: string
 		signature: string
@@ -230,7 +236,14 @@ const sameWalletAccountAuthority = (
 })
 
 const createWalletRuntimeState = (
-	context: LocalMutationContext & Pick<ClientContext<typeof schema>, 'select'>
+	context: LocalMutationContext & Pick<ClientContext<typeof schema>, 'select'>,
+	{
+		onDestroy,
+		openWalletConnectApplication,
+	}: {
+		onDestroy?: () => void
+		openWalletConnectApplication(walletConnectUri: string): Promise<void>
+	}
 ): WalletRuntime => {
 	const cleanupByConnectionKey = new SvelteMap<string, () => void>()
 	const connectionAttemptByConnectionKey = new SvelteMap<string, number>()
@@ -1736,6 +1749,7 @@ const createWalletRuntimeState = (
 		registerAdapter,
 		connect,
 		reconnect: connect,
+		openWalletConnectApplication,
 		signMessage,
 		signTonInternalMessages,
 		signTypedData,
@@ -1759,6 +1773,7 @@ const createWalletRuntimeState = (
 			registeredAdapterIds.clear()
 			runtimeMutatedConnectionKeys.clear()
 			candidatesByAdapterId.clear()
+			onDestroy?.()
 			walletRuntime = null
 		},
 	}
@@ -1766,12 +1781,36 @@ const createWalletRuntimeState = (
 
 let walletRuntime = $state<WalletRuntime | null>(null)
 
+export type WalletConnectionRuntimeOptions = Readonly<{
+	tauriWalletLinkHost?: TauriWalletLinkHost
+}>
+
 export const mountWalletConnectionRuntime = (
-	context: LocalMutationContext & Pick<ClientContext<typeof schema>, 'select'>
+	context: LocalMutationContext & Pick<ClientContext<typeof schema>, 'select'>,
+	options: WalletConnectionRuntimeOptions = {}
 ) => {
 	if (walletRuntime != null) return walletRuntime
 
-	walletRuntime = createWalletRuntimeState(context)
+	const applicationConsumer: WalletConnectApplicationConsumer | undefined = (
+		options.tauriWalletLinkHost == null ?
+			undefined
+		:
+			createWalletConnectApplicationConsumer({
+				host: options.tauriWalletLinkHost,
+			})
+	)
+	walletRuntime = createWalletRuntimeState(context, {
+		onDestroy: () => applicationConsumer?.destroy(),
+		openWalletConnectApplication: async (walletConnectUri) => {
+			if (applicationConsumer == null) {
+				globalThis.location.assign(walletConnectUri)
+				return
+			}
+
+			await applicationConsumer.start()
+			await applicationConsumer.openPairing(walletConnectUri)
+		},
+	})
 	const mountedWalletRuntime = walletRuntime
 	const walletConnectProjectId = env.PUBLIC_WALLETCONNECT2_PROJECT_ID?.trim()
 	const walletConnectRelayUrl = env.PUBLIC_WALLETCONNECT2_RELAY_URL?.trim()
@@ -1802,6 +1841,7 @@ export const mountWalletConnectionRuntime = (
 				}
 
 				mountedWalletRuntime.registerAdapter(createWalletConnectV2Adapter({
+					applicationConsumer,
 					client: walletConnectV2ClientFromSignClient(signClient),
 					requestedScopes: [
 						{

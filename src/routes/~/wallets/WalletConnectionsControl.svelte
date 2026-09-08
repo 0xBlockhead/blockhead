@@ -48,6 +48,9 @@
 	let walletControlStatus = $state(
 		''
 	)
+	let walletControlFailure = $state<{
+		error: Error
+	}>()
 
 
 	// Components
@@ -79,6 +82,10 @@
 	</output>
 
 	<output aria-live="polite">{walletControlStatus}</output>
+	<Boundary
+		failure={walletControlFailure}
+		boundaryKey="Wallet application open"
+	/>
 </article>
 
 {#if walletRuntime}
@@ -135,7 +142,22 @@
 					<p>
 						<button
 							type="button"
-							onclick={() => globalThis.location.assign(candidate.connectionUri)}
+							onclick={async () => {
+								walletControlFailure = undefined
+								walletControlStatus = 'Opening wallet application.'
+								try {
+									await walletRuntime.openWalletConnectApplication(
+										candidate.connectionUri
+									)
+									walletControlStatus = 'Wallet application opened.'
+								}
+								catch (error) {
+									walletControlStatus = ''
+									walletControlFailure = {
+										error: normalizeBoundaryError(error),
+									}
+								}
+							}}
 						>
 							Open {candidate.name} to continue
 						</button>

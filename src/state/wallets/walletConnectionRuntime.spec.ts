@@ -31,6 +31,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { entityDefinitionByType, schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type { TauriWalletLinkHost } from './tauriWalletLink.ts'
 
 type MockRow = Record<string, string | number | boolean | object | readonly object[] | undefined>
 
@@ -64,6 +65,7 @@ const mountMockWalletRuntime = async ({
 	signStarknetTypedData = vi.fn(async () => ['0x1', '0x2']),
 	signTypedData = vi.fn(async () => '0xtyped'),
 	switchScope,
+	tauriWalletLinkHost,
 }: {
 	candidateAvailable?: boolean
 	disconnectDuringHydration?: 'resolve' | 'reject'
@@ -127,6 +129,7 @@ const mountMockWalletRuntime = async ({
 		},
 		connectionKey?: string
 	) => Promise<WalletConnection | undefined>
+	tauriWalletLinkHost?: TauriWalletLinkHost
 }) => {
 	let adapter: WalletAdapter | undefined
 	let updateAdapterCandidates: ((candidates: WalletCandidate[]) => void) | undefined
@@ -422,6 +425,8 @@ const mountMockWalletRuntime = async ({
 			:
 				selectionFor(selector?.connectionKey ?? persistedRows[0]?.connectionKey ?? 'persisted-session')
 		),
+	}, {
+		...(tauriWalletLinkHost != null && { tauriWalletLinkHost }),
 	})
 
 	return {
@@ -3174,6 +3179,39 @@ describe('wallet connection runtime normalization', () => {
 			}),
 		]))
 		expect(subscribeConnection).not.toHaveBeenCalled()
+
+		runtime.destroy()
+	})
+
+	it('opens WalletConnect through the MetaMask Tauri consumer only when a host is supplied', async () => {
+		const openUrl = vi.fn(async () => {})
+		const stopOpenUrls = vi.fn()
+		const { runtime } = await mountMockWalletRuntime({
+			tauriWalletLinkHost: {
+				openUrl,
+				getCurrent: async () => null,
+				onOpenUrl: async () => stopOpenUrls,
+			},
+		})
+
+		await runtime.openWalletConnectApplication(
+			'wc:runtime-topic@2?relay-protocol=irn&symKey=secret'
+		)
+		expect(openUrl).toHaveBeenCalledWith(
+			'metamask://wc?uri=wc%3Aruntime-topic%402%3Frelay-protocol%3Dirn%26symKey%3Dsecret'
+		)
+
+		runtime.destroy()
+		expect(stopOpenUrls).toHaveBeenCalledOnce()
+	})
+
+	it('keeps the explicit browser open path when no Tauri host is supplied', async () => {
+		const assign = vi.fn()
+		vi.stubGlobal('location', { assign })
+		const { runtime } = await mountMockWalletRuntime({})
+
+		await runtime.openWalletConnectApplication('wc:browser-topic@2')
+		expect(assign).toHaveBeenCalledWith('wc:browser-topic@2')
 
 		runtime.destroy()
 	})
