@@ -1,5 +1,6 @@
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver } from '$/resolvers/defineResolver.ts'
+import { errorDisplayMessage } from '$/lib/errors.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
 import {
 	EntityMetaKey,
@@ -32,7 +33,25 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 					FeedUrl: {
 						resolve: async ({ feedUrl: feedUrlSelector }, context) => {
 							const feedUrl = normalizeRssFeedUrl(feedUrlSelector)
-							const feed = await loadFeed(feedUrl)
+							let feed: ParsedRssFeed
+							try {
+								feed = await loadFeed(feedUrl)
+							} catch (error) {
+								return {
+									feedUrl,
+									$$timestamps: [{
+										[EntityMetaKey.Selector]: {
+											$feed: { feedUrl },
+											timestampMs: Date.now(),
+											source,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'reachable')]: false,
+											[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'error')]: errorDisplayMessage(error),
+										},
+									}],
+								}
+							}
 							const timestampMs = Date.now()
 							const itemIdentityKeys = new Set<string>()
 							return {
@@ -160,7 +179,27 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 							itemIdentity,
 						}) => {
 							const feedUrl = normalizeRssFeedUrl($feed.feedUrl)
-							const feedItem = (await loadFeed(feedUrl)).items.find((candidate) => {
+							let feed: ParsedRssFeed
+							try {
+								feed = await loadFeed(feedUrl)
+							} catch (error) {
+								return {
+									itemIdentityKind,
+									itemIdentity,
+									$$timestamps: [{
+										[EntityMetaKey.Selector]: {
+											$item: { $feed: { feedUrl }, itemIdentityKind, itemIdentity },
+											timestampMs: Date.now(),
+											source,
+										},
+										[EntityMetaKey.Fields]: {
+											[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: false,
+											[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'error')]: errorDisplayMessage(error),
+										},
+									}],
+								}
+							}
+							const feedItem = feed.items.find((candidate) => {
 								const identity = rssItemIdentityFromParts(candidate.guid, candidate.link)
 								return (
 									identity?.itemIdentityKind === itemIdentityKind

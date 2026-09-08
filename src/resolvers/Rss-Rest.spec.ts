@@ -157,3 +157,43 @@ it('does not replay the current feed read at an arbitrary observation timestamp'
 		|| entityType === EntityType.RssItem_Timestamp
 	))).toBe(false)
 })
+
+it('preserves unreachable feed evidence when the source read fails', async () => {
+	vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_001)
+	getFeed.mockRejectedValueOnce(new Error('feed unavailable'))
+	const feedResolver = rss.resolvers.find(({ entityType }) => entityType === EntityType.RssFeed)
+	if (feedResolver == null || !('FeedUrl' in feedResolver.resolve))
+		throw new Error('Rss_Rest feed resolver is missing')
+
+	const snapshot = await feedResolver.resolve.FeedUrl.resolve({
+		feedUrl: 'https://hnrss.org/frontpage',
+	}, resolverContext)
+
+	expect(snapshot.$$timestamps).toEqual([expect.objectContaining({
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'reachable')]: false,
+			[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'error')]: 'feed unavailable',
+		},
+	})])
+})
+
+it('preserves unreachable item evidence when the source read fails', async () => {
+	vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_002)
+	getFeed.mockRejectedValueOnce(new Error('item read unavailable'))
+	const itemResolver = rss.resolvers.find(({ entityType }) => entityType === EntityType.RssItem)
+	if (itemResolver == null || !('FeedIdentity' in itemResolver.resolve))
+		throw new Error('Rss_Rest item resolver is missing')
+
+	const snapshot = await itemResolver.resolve.FeedIdentity.resolve({
+		$feed: { feedUrl: 'https://hnrss.org/frontpage' },
+		itemIdentityKind: 'Guid',
+		itemIdentity: 'item-1',
+	}, resolverContext)
+
+	expect(snapshot.$$timestamps).toEqual([expect.objectContaining({
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: false,
+			[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'error')]: 'item read unavailable',
+		},
+	})])
+})
