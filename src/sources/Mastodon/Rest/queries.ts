@@ -432,12 +432,13 @@ export const listInstanceModeratedDomains = async (
 	)
 	const seenDigests = new Set<string>()
 	const seenDomains = new Set<string>()
-	return domainBlocks.map((domainBlock) => {
+	return domainBlocks.flatMap((domainBlock): MastodonApiV1DomainBlock[] => {
 		const digest = domainBlock.digest.toLowerCase()
 		const domain = canonicalActivityPubHost('moderated domain', domainBlock.domain)
 		const severity = domainBlock.severity.trim().toLowerCase()
 		if (severity !== 'silence' && severity !== 'suspend')
-			throw new Error(`Mastodon_Rest: instance domain block has an unknown severity: ${domainBlock.severity}`)
+			return []
+
 		if (seenDigests.has(digest))
 			throw new Error(`Mastodon_Rest: instance domain block response contains a duplicate digest: ${digest}`)
 		if (seenDomains.has(domain))
@@ -445,12 +446,12 @@ export const listInstanceModeratedDomains = async (
 		seenDigests.add(digest)
 		seenDomains.add(domain)
 		const comment = domainBlock.comment?.trim()
-		return {
+		return [{
 			domain,
 			digest,
 			severity,
 			...(comment != null && comment !== '' && { comment }),
-		}
+		}]
 	})
 }
 
