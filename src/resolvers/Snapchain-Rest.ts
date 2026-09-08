@@ -845,7 +845,6 @@ export default {
 		})({
 			$$timestamps: {
 				select: (timestamps) => timestamps,
-				resolveCount: (timestamps) => timestamps.length,
 			},
 		}),
 
@@ -922,7 +921,6 @@ export default {
 		})({
 			$$timestamps: {
 				select: (timestamps) => timestamps,
-				resolveCount: (timestamps) => timestamps.length,
 			},
 		}),
 
