@@ -1,12 +1,14 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -27,7 +29,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{

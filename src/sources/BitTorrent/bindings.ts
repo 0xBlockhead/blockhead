@@ -1,7 +1,8 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -9,19 +10,6 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const bitTorrentEndpoints = [
-	{
-		endpointKind: SourceEndpointKind.TcpAddress,
-		locator: '{peer-host}:{port}',
-	},
-] as const
-const bitTorrentRepositoryMetadataOperationGroups = [
-	SourceOperationGroup.RepositoryMetadata,
-] as const
-const bitTorrentAnnounceOperationGroups = [
-	SourceOperationGroup.BitTorrentAnnounce,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -38,7 +26,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Bencode,
 		apiFamily: ApiFamily.BitTorrentClient,
-		operationGroups: bitTorrentRepositoryMetadataOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.RepositoryMetadata,
+		],
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [],
 	},
@@ -57,7 +47,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.RawHttp,
 		apiFamily: ApiFamily.BitTorrentTracker,
-		operationGroups: bitTorrentAnnounceOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.BitTorrentAnnounce,
+		],
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -75,7 +67,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Bencode,
 		apiFamily: ApiFamily.BitTorrentTracker,
-		operationGroups: bitTorrentAnnounceOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.BitTorrentAnnounce,
+		],
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 	},
@@ -88,19 +82,7 @@ export default indexSourceBindings([
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.UdpAddress,
-				locator: 'udp://router.bittorrent.com:6881',
-			},
-			{
-				endpointKind: SourceEndpointKind.UdpAddress,
-				locator: 'udp://router.utorrent.com:6881',
-			},
-			{
-				endpointKind: SourceEndpointKind.UdpAddress,
-				locator: 'udp://dht.transmissionbt.com:6881',
-			},
-			{
-				endpointKind: SourceEndpointKind.UdpAddress,
-				locator: 'udp://dht.libtorrent.org:25401',
+				locator: 'udp://{bootstrap-node}:{port}',
 			},
 		],
 		wireProtocol: WireProtocol.Bencode,
@@ -117,10 +99,17 @@ export default indexSourceBindings([
 			kind: SourceTargetKind.TorrentSwarm,
 			key: 'metadata-exchange',
 		},
-		endpoints: bitTorrentEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.TcpAddress,
+				locator: '{peer-host}:{port}',
+			},
+		],
 		wireProtocol: WireProtocol.Bencode,
 		apiFamily: ApiFamily.BitTorrentClient,
-		operationGroups: bitTorrentRepositoryMetadataOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.RepositoryMetadata,
+		],
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 	},
@@ -130,10 +119,17 @@ export default indexSourceBindings([
 			kind: SourceTargetKind.TorrentSwarm,
 			key: 'peer-wire',
 		},
-		endpoints: bitTorrentEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.TcpAddress,
+				locator: '{peer-host}:{port}',
+			},
+		],
 		wireProtocol: WireProtocol.Bencode,
 		apiFamily: ApiFamily.BitTorrentClient,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 	},

@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -9,22 +11,6 @@ import {
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
-const caipsEndpoints = [
-	{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://api.github.com',
-		corsEnabled: true,
-	},
-	{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://raw.githubusercontent.com',
-		corsEnabled: true,
-	},
-] as const
-const caipsGithubRepositoryContentsOperationGroups = [
-	SourceOperationGroup.GithubRepositoryContents,
-] as const
-
 export default indexSourceBindings([
 	{
 		source: Source.CaipNamespaces_Github,
@@ -32,10 +18,23 @@ export default indexSourceBindings([
 			kind: SourceTargetKind.GitRepository,
 			key: 'ChainAgnostic/namespaces@main:namespaces',
 		},
-		endpoints: caipsEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.GithubContentsApi,
-		operationGroups: caipsGithubRepositoryContentsOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GithubRepositoryContents,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
@@ -45,10 +44,23 @@ export default indexSourceBindings([
 			kind: SourceTargetKind.GitRepository,
 			key: 'ChainAgnostic/CAIPs@main:CAIPs',
 		},
-		endpoints: caipsEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.GithubContentsApi,
-		operationGroups: caipsGithubRepositoryContentsOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GithubRepositoryContents,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},

@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -5,8 +7,8 @@ import {
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
-	walletReadAndSignOperationGroups,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
@@ -25,7 +27,10 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.WalletProvider,
 		apiFamily: ApiFamily.WalletApi,
-		operationGroups: walletReadAndSignOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.WalletAccountRead,
+			SourceOperationGroup.WalletSign,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{

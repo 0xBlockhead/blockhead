@@ -1,12 +1,14 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -28,13 +30,15 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
 				env: arktype({
-					'PUBLIC_BITHOMP_API_KEY': 'string > 0',
+					PUBLIC_BITHOMP_API_KEY: 'string > 0',
 				}),
 			},
 		],

@@ -1,11 +1,13 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -25,7 +27,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Grpc,
 		apiFamily: ApiFamily.GrpcService,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 		artifacts: [

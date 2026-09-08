@@ -1,11 +1,13 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -27,13 +29,15 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
 				env: arktype({
-					'PUBLIC_BLOCKCHAIR_API_KEY': 'string',
+					PUBLIC_BLOCKCHAIR_API_KEY: 'string',
 				}),
 			},
 		],

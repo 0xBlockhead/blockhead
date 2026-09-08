@@ -1,7 +1,8 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
@@ -59,7 +60,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 		artifacts: [
@@ -84,7 +87,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.JsonRpcApi,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{
@@ -113,7 +118,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 		artifacts: [

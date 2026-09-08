@@ -1,8 +1,9 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
 	indexSourceBindings,
-	mapSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -11,120 +12,222 @@ import {
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
-const nostrRelayNip11HttpBindingAxes = {
-	source: Source.NostrRelay_Nip11_Http,
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.NostrRelay,
-	operationGroups: [
-		SourceOperationGroup.NostrRelayRead,
-	],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [],
-	artifacts: [
-		{
-			kind: SourceArtifactKind.HandwrittenTypes,
-			path: 'src/sources/NostrRelay/Http/types.ts',
-		},
-	],
-} as const
-
-const nostrRelayWebSocketBindingAxes = {
-	source: Source.NostrRelay_WebSocket,
-	wireProtocol: WireProtocol.WebSocketMessages,
-	apiFamily: ApiFamily.NostrRelay,
-	operationGroups: [
-		SourceOperationGroup.GenericSubscribe,
-		SourceOperationGroup.NostrRelayPublish,
-		SourceOperationGroup.NostrRelayRead,
-	],
-	delivery: SourceDelivery.RemoteLive,
-	credentials: [],
-	artifacts: [
-		{
-			kind: SourceArtifactKind.HandwrittenTypes,
-			path: 'src/sources/NostrRelay/WebSocket/types.ts',
-		},
-	],
-} as const
-
 export default indexSourceBindings([
-	...mapSourceBindings(
-		[
+	{
+		source: Source.NostrRelay_Nip11_Http,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'wss://nos.lol',
+		},
+		endpoints: [
 			{
-				key: 'wss://nos.lol',
+				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://nos.lol',
+				corsEnabled: false,
 			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.NostrRelay,
+		operationGroups: [
+			SourceOperationGroup.NostrRelayRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
 			{
-				key: 'wss://relay.damus.io',
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/NostrRelay/Http/types.ts',
+			},
+		],
+	},
+	{
+		source: Source.NostrRelay_Nip11_Http,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'wss://relay.damus.io',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://relay.damus.io',
+				corsEnabled: false,
 			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.NostrRelay,
+		operationGroups: [
+			SourceOperationGroup.NostrRelayRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
 			{
-				key: 'wss://relay.nostr.band',
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/NostrRelay/Http/types.ts',
+			},
+		],
+	},
+	{
+		source: Source.NostrRelay_Nip11_Http,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'wss://relay.nostr.band',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://relay.nostr.band',
+				corsEnabled: false,
 			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.NostrRelay,
+		operationGroups: [
+			SourceOperationGroup.NostrRelayRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
 			{
-				key: 'wss://relay.primal.net',
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/NostrRelay/Http/types.ts',
+			},
+		],
+	},
+	{
+		source: Source.NostrRelay_Nip11_Http,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'wss://relay.primal.net',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://relay.primal.net',
+				corsEnabled: false,
 			},
-		] as const,
-		({
-			key,
-			locator,
-		}) => ({
-			...nostrRelayNip11HttpBindingAxes,
-			target: {
-				kind: SourceTargetKind.Feed,
-				key,
-			},
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.HttpUrl,
-					locator,
-					corsEnabled: false,
-				},
-			],
-		})
-	),
-	...mapSourceBindings(
-		[
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.NostrRelay,
+		operationGroups: [
+			SourceOperationGroup.NostrRelayRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
 			{
-				key: 'wss://nos.lol',
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/NostrRelay/Http/types.ts',
+			},
+		],
+	},
+	{
+		source: Source.NostrRelay_WebSocket,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'wss://nos.lol',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
 				locator: 'wss://nos.lol',
 			},
+		],
+		wireProtocol: WireProtocol.WebSocketMessages,
+		apiFamily: ApiFamily.NostrRelay,
+		operationGroups: [
+			SourceOperationGroup.GenericSubscribe,
+			SourceOperationGroup.NostrRelayRead,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
 			{
-				key: 'wss://relay.damus.io',
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/NostrRelay/WebSocket/types.ts',
+			},
+		],
+	},
+	{
+		source: Source.NostrRelay_WebSocket,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'wss://relay.damus.io',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
 				locator: 'wss://relay.damus.io',
 			},
+		],
+		wireProtocol: WireProtocol.WebSocketMessages,
+		apiFamily: ApiFamily.NostrRelay,
+		operationGroups: [
+			SourceOperationGroup.GenericSubscribe,
+			SourceOperationGroup.NostrRelayRead,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
 			{
-				key: 'wss://relay.nostr.band',
-				locator: 'wss://relay.nostr.band',
-				operationGroups: [
-					...nostrRelayWebSocketBindingAxes.operationGroups,
-					SourceOperationGroup.NostrSearch,
-				],
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/NostrRelay/WebSocket/types.ts',
 			},
+		],
+	},
+	{
+		source: Source.NostrRelay_WebSocket,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'wss://relay.nostr.band',
+		},
+		endpoints: [
 			{
-				key: 'wss://relay.primal.net',
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://relay.nostr.band',
+			},
+		],
+		wireProtocol: WireProtocol.WebSocketMessages,
+		apiFamily: ApiFamily.NostrRelay,
+		operationGroups: [
+			SourceOperationGroup.GenericSubscribe,
+			SourceOperationGroup.NostrRelayRead,
+			SourceOperationGroup.NostrSearch,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/NostrRelay/WebSocket/types.ts',
+			},
+		],
+	},
+	{
+		source: Source.NostrRelay_WebSocket,
+		target: {
+			kind: SourceTargetKind.Feed,
+			key: 'wss://relay.primal.net',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
 				locator: 'wss://relay.primal.net',
 			},
-		] as const,
-		({
-			key,
-			locator,
-			...bindingOverrides
-		}) => ({
-			...nostrRelayWebSocketBindingAxes,
-			...bindingOverrides,
-			target: {
-				kind: SourceTargetKind.Feed,
-				key,
+		],
+		wireProtocol: WireProtocol.WebSocketMessages,
+		apiFamily: ApiFamily.NostrRelay,
+		operationGroups: [
+			SourceOperationGroup.GenericSubscribe,
+			SourceOperationGroup.NostrRelayRead,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/NostrRelay/WebSocket/types.ts',
 			},
-			endpoints: [
-				{
-					endpointKind: SourceEndpointKind.WebSocketUrl,
-					locator,
-				},
-			],
-		})
-	),
-] as const)
+		],
+	},
+])

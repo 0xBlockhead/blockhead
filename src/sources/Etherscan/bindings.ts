@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -38,7 +40,7 @@ export default indexSourceBindings([
 			{
 				scope: SourceCredentialScope.PublicConfig,
 				env: arktype({
-					'PUBLIC_ETHERSCAN_API_KEY': 'string',
+					PUBLIC_ETHERSCAN_API_KEY: 'string',
 				}),
 			},
 		],

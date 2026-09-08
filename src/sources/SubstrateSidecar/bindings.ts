@@ -1,33 +1,20 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
-const substrateSidecarRestBindingAxes = {
-	source: Source.SubstrateSidecar_Rest,
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: genericReadOperationGroups,
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [],
-	artifacts: [
-		{
-			kind: SourceArtifactKind.HandwrittenTypes,
-			path: 'src/sources/SubstrateSidecar/Rest/types.ts',
-		},
-	],
-} as const
-
 export default indexSourceBindings([
 	{
-		...substrateSidecarRestBindingAxes,
+		source: Source.SubstrateSidecar_Rest,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
 			key: 'polkadot',
@@ -39,9 +26,22 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/SubstrateSidecar/Rest/types.ts',
+			},
+		],
 	},
 	{
-		...substrateSidecarRestBindingAxes,
+		source: Source.SubstrateSidecar_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'polkadot-asset-hub-public-sidecar',
@@ -51,6 +51,19 @@ export default indexSourceBindings([
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://polkadot-asset-hub-public-sidecar.parity-chains.parity.io',
 				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/SubstrateSidecar/Rest/types.ts',
 			},
 		],
 	},

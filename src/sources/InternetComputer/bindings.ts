@@ -1,13 +1,14 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
-	walletReadAndSignOperationGroups,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
@@ -26,7 +27,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Canister,
 		apiFamily: ApiFamily.IcCanister,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -44,7 +47,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Canister,
 		apiFamily: ApiFamily.IcCanister,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -63,7 +68,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.RawHttp,
 		apiFamily: ApiFamily.CertifiedHttpGateway,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -82,7 +89,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RosettaApi,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -100,7 +109,10 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.WalletProvider,
 		apiFamily: ApiFamily.WalletApi,
-		operationGroups: walletReadAndSignOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.WalletAccountRead,
+			SourceOperationGroup.WalletSign,
+		],
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{

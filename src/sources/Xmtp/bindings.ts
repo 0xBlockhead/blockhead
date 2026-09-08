@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -9,11 +11,6 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const xmtpGenericReadGenericSubscribeOperationGroups = [
-	SourceOperationGroup.GenericRead,
-	SourceOperationGroup.GenericSubscribe,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -30,7 +27,10 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.XmtpClientApi,
-		operationGroups: xmtpGenericReadGenericSubscribeOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+			SourceOperationGroup.GenericSubscribe,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{
@@ -52,7 +52,10 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.XmtpClientApi,
-		operationGroups: xmtpGenericReadGenericSubscribeOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+			SourceOperationGroup.GenericSubscribe,
+		],
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [
 			{

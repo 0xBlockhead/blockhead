@@ -1,21 +1,17 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const tonCenterCredentials = [
-	{
-		scope: SourceCredentialScope.RuntimeSecret,
-	},
-] as const
 
 export default indexSourceBindings([
 	{
@@ -33,9 +29,15 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: tonCenterCredentials,
+		credentials: [
+			{
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GenerationManifest,
@@ -69,9 +71,15 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: tonCenterCredentials,
+		credentials: [
+			{
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
 	},
 	{
 		source: Source.TonCenter,
@@ -88,7 +96,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.TonCenterV3Api,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 		artifacts: [

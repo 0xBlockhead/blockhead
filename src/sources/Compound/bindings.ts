@@ -1,7 +1,8 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
@@ -10,27 +11,6 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const compoundRestBindingAxes = {
-	source: Source.Compound_Rest,
-	wireProtocol: WireProtocol.JsonRpc2,
-	apiFamily: ApiFamily.EvmExecutionJsonRpc,
-	operationGroups: [
-		SourceOperationGroup.EvmRpcCore,
-	],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [],
-	artifacts: [
-		{
-			kind: SourceArtifactKind.GenerationManifest,
-			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-		},
-		{
-			kind: SourceArtifactKind.OpenRpcSpec,
-			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-		},
-	],
-} as const
 
 export default indexSourceBindings([
 	{
@@ -48,7 +28,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 		artifacts: [
@@ -60,7 +42,7 @@ export default indexSourceBindings([
 		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1',
@@ -72,9 +54,26 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '10',
@@ -86,9 +85,26 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '130',
@@ -100,9 +116,26 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '137',
@@ -114,9 +147,26 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '2020',
@@ -128,9 +178,26 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '5000',
@@ -142,9 +209,26 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '8453',
@@ -156,9 +240,26 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '42161',
@@ -170,9 +271,26 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '59144',
@@ -184,9 +302,26 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...compoundRestBindingAxes,
+		source: Source.Compound_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '534352',
@@ -196,6 +331,23 @@ export default indexSourceBindings([
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://rpc.scroll.io',
 				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
 			},
 		],
 	},

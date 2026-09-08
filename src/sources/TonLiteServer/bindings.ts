@@ -1,10 +1,12 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -24,7 +26,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Adnl,
 		apiFamily: ApiFamily.TonLiteServerAdnl,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [],
 	},

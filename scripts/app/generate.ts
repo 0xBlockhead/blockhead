@@ -6397,6 +6397,7 @@ const generateFiles = (compiledApp: CompiledAppFacts): GeneratedFile[] => {
 				],
 			}
 		),
+		...generateSourceBindingFiles(compiledApp),
 		generateSourceProvidersFile(sourceProviderNames),
 		generateSourceServerCredentialsFile(indexes.sourceBindings),
 		...generateSourceSelectionFiles(sourceSelections),
@@ -7444,6 +7445,79 @@ export function mergeSourceBindingIndexes(
 }`),
 		],
 	}
+)
+
+const emitSourceBindingValue = (
+	source: string,
+	binding: SourceBinding
+) => {
+	const emitCredential = (credential: SourceBinding['credentials'][number]) => emitObject([
+		['scope', enumAccess('SourceCredentialScope', credential.scope)],
+		...('env' in credential && credential.env != null ? [['env', 'arktype(' + emitObject(credential.env.keys.map((key) => [key.name, emitTypeScript(key.type)])) + ')'] as const] : []),
+		...('keys' in credential && credential.keys != null ? [['keys', emitArray(credential.keys.map(emitTypeScript))] as const] : []),
+	])
+
+	const emitEndpoint = (endpoint: SourceBinding['endpoints'][number]) => emitObject([
+		['endpointKind', enumAccess('SourceEndpointKind', endpoint.endpointKind)],
+		['locator', emitTypeScript(endpoint.locator)],
+		...(endpoint.corsEnabled == null ? [] : [['corsEnabled', String(endpoint.corsEnabled)] as const]),
+	])
+
+	const emitArtifact = (artifact: NonNullable<SourceBinding['artifacts']>[number]) => emitObject([
+		['kind', enumAccess('SourceArtifactKind', artifact.kind)],
+		['path', emitTypeScript(artifact.path)],
+		...(artifact.generated == null ? [] : [['generated', 'true'] as const]),
+		...('officialUrl' in artifact && artifact.officialUrl != null ? [['officialUrl', emitTypeScript(artifact.officialUrl)] as const] : []),
+		...('referenceUrl' in artifact && artifact.referenceUrl != null ? [['referenceUrl', emitTypeScript(artifact.referenceUrl)] as const] : []),
+	])
+
+	return emitObject([
+		['source', enumAccess('Source', source)],
+		['target', emitObject([
+			['kind', enumAccess('SourceTargetKind', binding.target.kind)],
+			['key', emitTypeScript(binding.target.key)],
+		])],
+		['endpoints', emitArray(binding.endpoints.map(emitEndpoint))],
+		['wireProtocol', enumAccess('WireProtocol', binding.wireProtocol)],
+		['apiFamily', enumAccess('ApiFamily', binding.apiFamily)],
+		['operationGroups', emitArray(binding.operationGroups.map((operationGroup) => enumAccess('SourceOperationGroup', operationGroup)))],
+		['delivery', enumAccess('SourceDelivery', binding.delivery)],
+		['credentials', emitArray(binding.credentials.map(emitCredential))],
+		...(binding.artifacts == null ? [] : [['artifacts', emitArray(binding.artifacts.map(emitArtifact))] as const]),
+	])
+}
+
+const generateSourceBindingFiles = (compiledApp: CompiledAppFacts) => (
+	[...Map.groupBy(compiledApp.sourceBindings, ({ source }) => compiledApp.sourceDefinitionById[source].provider)]
+		.toSorted(([left], [right]) => left.localeCompare(right, 'en'))
+		.map(([provider, bindings]) => tsFile(
+			`src/sources/${provider}/bindings.ts`,
+			{
+				imports: [
+					{ from: '$/sources/Source.ts', names: ['Source'] },
+					...(bindings.some(({ binding }) => binding.credentials.some((credential) => 'env' in credential && credential.env != null)) ? [
+						{ from: 'arktype', names: ['type as arktype'] },
+					] : []),
+					{
+						from: '$/sources/SourceBinding.ts',
+						names: [
+							'ApiFamily',
+							'indexSourceBindings',
+							'SourceDelivery',
+							'SourceEndpointKind',
+							'SourceOperationGroup',
+							'SourceTargetKind',
+							'WireProtocol',
+							...(bindings.some(({ binding }) => binding.credentials.length > 0) ? ['SourceCredentialScope'] : []),
+							...(bindings.some(({ binding }) => binding.artifacts != null) ? ['SourceArtifactKind'] : []),
+						],
+					},
+				],
+				body: [
+					`export default indexSourceBindings(${emitArray(bindings.map(({ source, binding }) => emitSourceBindingValue(source, binding)))})`,
+				],
+			}
+		))
 )
 
 const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => tsFile(
