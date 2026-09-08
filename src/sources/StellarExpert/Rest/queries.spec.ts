@@ -140,6 +140,50 @@ describe('StellarExpert OpenAPI operations', () => {
 		)
 	})
 
+	it('accepts numeric and RFC3339 timestamp inputs for sequence lookup', async () => {
+		for (const timestamp of [ledger.timestamp, String(ledger.timestamp), '2022-08-29T13:51:18.500Z', '2022-08-29t13:51:18.500z']) {
+			getJson.mockResolvedValueOnce(ledger)
+			await expect(getSequenceFromTimestamp({
+				network: 'public',
+				timestamp,
+			})).resolves.toEqual(ledger)
+		}
+	})
+
+	it('rejects invalid or future ledger timestamps for sequence lookup', async () => {
+		await expect(getSequenceFromTimestamp({
+			network: 'public',
+			timestamp: -1,
+		})).rejects.toThrow('invalid timestamp')
+		await expect(getSequenceFromTimestamp({
+			network: 'public',
+			timestamp: 'not-a-timestamp',
+		})).rejects.toThrow('invalid timestamp')
+		await expect(getSequenceFromTimestamp({
+			network: 'public',
+			timestamp: 1.5,
+		})).rejects.toThrow('invalid timestamp')
+		await expect(getSequenceFromTimestamp({
+			network: 'public',
+			timestamp: '2022-02-30T00:00:00Z',
+		})).rejects.toThrow('invalid timestamp')
+		await expect(getSequenceFromTimestamp({
+			network: 'public',
+			timestamp: Number.MAX_SAFE_INTEGER + 1,
+		})).rejects.toThrow('invalid timestamp')
+		expect(getJson).not.toHaveBeenCalled()
+
+		getJson.mockResolvedValueOnce({
+			...ledger,
+			timestamp: ledger.timestamp + 1,
+			date: '2022-08-29T13:51:19.000Z',
+		})
+		await expect(getSequenceFromTimestamp({
+			network: 'public',
+			timestamp: ledger.timestamp,
+		})).rejects.toThrow('ledger timestamp is after the requested timestamp')
+	})
+
 	it('queries a ledger close timestamp by exact sequence', async () => {
 		getJson.mockResolvedValue(ledger)
 
