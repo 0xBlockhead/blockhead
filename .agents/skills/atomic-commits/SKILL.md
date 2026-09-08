@@ -9,7 +9,7 @@ Do not commit without explicit user authorization. Preserve every existing worki
 
 1. Snapshot `git status --short`, the staged diff, and the unstaged diff. Do not stage or stash the entire tree as a way to make that snapshot: it mutates the user's index and can capture unrelated or ignored artifacts.
 2. List every intended diff hunk and group hunks by one behavior or feature, not by file or directory. Record the exact paths and, when a file mixes groups, the exact hunks owned by each group.
-3. Order groups by dependency.
+3. Order groups by dependency, including package/lock, local modules and canonical/generated closure. Validate each intermediate commit against its declared prerequisites in isolation; a matching final tree does not prove a usable series. Include a deletion only when it belongs to the same behavioral change.
 4. Write a temporary Markdown plan with one checkbox and commit message per group.
 5. Use messages shaped as `<Feature or area>: <present-tense verb phrase>`.
 6. For each group, run applicable checks, stage only its exact paths or hunks, inspect `git diff --cached --check`, `git diff --cached`, and `git status --short`, then commit and mark its checkbox complete. Never use `git add .`, `git add -A`, or a whole-tree stash in a dirty worktree.
