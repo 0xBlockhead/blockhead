@@ -1247,9 +1247,9 @@ export interface components {
                     format?: string;
                     /** @enum {string} */
                     type: "mosaic_photo";
-                    url: string;
-                    width: number;
-                    height: number;
+                    url?: string;
+                    width?: number;
+                    height?: number;
                     formats: {
                         webp: string;
                         jpeg: string;
@@ -1267,9 +1267,9 @@ export interface components {
                     format?: string;
                     /** @enum {string} */
                     type: "mosaic_photo";
-                    url: string;
-                    width: number;
-                    height: number;
+                    url?: string;
+                    width?: number;
+                    height?: number;
                     formats: {
                         webp: string;
                         jpeg: string;
