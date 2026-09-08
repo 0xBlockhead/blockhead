@@ -148,74 +148,139 @@ describe('WebEVM local node semantic contract', () => {
 
 	it('proves receiver mutation, replay rejection, reset, and shared disposal', async () => {
 		const local = await createWebEvmLocalNode(config())
-		const before = local.stateRoot
-		const senderBalanceBefore = EvmRpcQuantity.assert(await local.node.request({
-			method: 'eth_getBalance',
-			params: [
-				sender,
-				'latest',
-			],
-		}))
-		const recipientBalanceBefore = EvmRpcQuantity.assert(await local.node.request({
-			method: 'eth_getBalance',
-			params: [
-				recipient,
-				'latest',
-			],
-		}))
-		const receipt = await local.sendRawTransaction(rawTransaction)
+		let reset: typeof local | undefined
+		try {
+			const before = local.stateRoot
+			const senderBalanceBefore = EvmRpcQuantity.assert(await local.node.request({
+				method: 'eth_getBalance',
+				params: [
+					sender,
+					'latest',
+				],
+			}))
+			const recipientBalanceBefore = EvmRpcQuantity.assert(await local.node.request({
+				method: 'eth_getBalance',
+				params: [
+					recipient,
+					'latest',
+				],
+			}))
+			const receipt = await local.sendRawTransaction(rawTransaction)
 
-		expect(receipt.status).toBe(ZeroExHex.assert('0x1'))
-		const senderBalanceAfter = EvmRpcQuantity.assert(await local.node.request({
-			method: 'eth_getBalance',
-			params: [
-				sender,
-				'latest',
-			],
-		}))
-		const recipientBalanceAfter = EvmRpcQuantity.assert(await local.node.request({
-			method: 'eth_getBalance',
-			params: [
-				recipient,
-				'latest',
-			],
-		}))
-		expect(BigInt(recipientBalanceAfter) - BigInt(recipientBalanceBefore)).toBe(10n ** 15n)
-		expect(BigInt(senderBalanceBefore) - BigInt(senderBalanceAfter)).toBe(
-			10n ** 15n + BigInt(receipt.gasUsed)
-		)
+			expect(receipt.status).toBe(ZeroExHex.assert('0x1'))
+			const senderBalanceAfter = EvmRpcQuantity.assert(await local.node.request({
+				method: 'eth_getBalance',
+				params: [
+					sender,
+					'latest',
+				],
+			}))
+			const recipientBalanceAfter = EvmRpcQuantity.assert(await local.node.request({
+				method: 'eth_getBalance',
+				params: [
+					recipient,
+					'latest',
+				],
+			}))
+			expect(BigInt(recipientBalanceAfter) - BigInt(recipientBalanceBefore)).toBe(10n ** 15n)
+			expect(BigInt(senderBalanceBefore) - BigInt(senderBalanceAfter)).toBe(
+				10n ** 15n + BigInt(receipt.gasUsed)
+			)
 
-		const changed = await local.node.getStateRoot()
+			const changed = await local.node.getStateRoot()
 
-		expect(changed).not.toBe(before)
+			expect(changed).not.toBe(before)
+			const failedReplayBasis = await local.captureOperation({
+				kind: 'sendRawTransaction',
+				rawTransaction,
+			})
 
-		await expect(local.sendRawTransaction(rawTransaction)).rejects.toBeDefined()
-		expect(await local.node.getStateRoot()).toBe(changed)
+			await expect(local.sendRawTransaction(rawTransaction)).rejects.toMatchObject({
+				code: -32000,
+				message: expect.stringContaining('nonce too low'),
+			})
+			expect(await local.node.getStateRoot()).toBe(changed)
+			expect(await local.captureOperation({
+				kind: 'sendRawTransaction',
+				rawTransaction,
+			})).toEqual(failedReplayBasis)
 
-		const reset = await local.reset()
+			reset = await local.reset()
 
-		expect(reset.stateRoot).toBe(before)
-		expect(reset.nodeConfigHash).toBe(local.nodeConfigHash)
-		expect(await reset.node.request({
-			method: 'eth_getBalance',
-			params: [
-				sender,
-				'latest',
-			],
-		})).toBe(senderBalanceBefore)
-		expect(await reset.node.request({
-			method: 'eth_getBalance',
-			params: [
-				recipient,
-				'latest',
-			],
-		})).toBe(recipientBalanceBefore)
-		expect(await local.node.getStateRoot()).toBe(changed)
+			expect(reset.stateRoot).toBe(before)
+			expect(reset.nodeConfigHash).toBe(local.nodeConfigHash)
+			expect(await reset.node.request({
+				method: 'eth_getBalance',
+				params: [
+					sender,
+					'latest',
+				],
+			})).toBe(senderBalanceBefore)
+			expect(await reset.node.request({
+				method: 'eth_getBalance',
+				params: [
+					recipient,
+					'latest',
+				],
+			})).toBe(recipientBalanceBefore)
+			expect(await reset.node.request({
+				method: 'eth_getTransactionCount',
+				params: [sender, 'latest'],
+			})).toBe('0x0')
+			expect(await local.node.getStateRoot()).toBe(changed)
 
-		const one = reset.dispose()
-		const two = reset.dispose()
+			const one = reset.dispose()
+			const two = reset.dispose()
 
-		expect(await Promise.all([one, two])).toHaveLength(2)
+			expect(await Promise.all([one, two])).toHaveLength(2)
+		}
+		finally {
+			await reset?.dispose()
+			await local.dispose()
+		}
+	})
+
+	it('does not commit native value when the EVM call reverts', async () => {
+		const revertTarget = ZeroExHex.assert('0x0000000000000000000000000000000000000010')
+		const local = await createWebEvmLocalNode({
+			...config(),
+			initialState: {
+				...config().initialState,
+				[revertTarget]: { code: '0x60006000fd' },
+			},
+		})
+		try {
+			const senderBefore = await local.node.request({
+				method: 'eth_getBalance',
+				params: [sender, 'latest'],
+			})
+			const recipientBefore = await local.node.request({
+				method: 'eth_getBalance',
+				params: [revertTarget, 'latest'],
+			})
+			const rootBefore = await local.currentStateRoot()
+
+			await expect(local.node.request({
+				method: 'eth_call',
+				params: [{ from: sender, to: revertTarget, value: '0x1' }, 'latest'],
+			})).rejects.toMatchObject({
+				code: 3,
+				message: expect.stringContaining('execution reverted'),
+			})
+
+			expect(await local.node.request({
+				method: 'eth_getBalance',
+				params: [sender, 'latest'],
+			})).toBe(senderBefore)
+			expect(await local.node.request({
+				method: 'eth_getBalance',
+				params: [revertTarget, 'latest'],
+			})).toBe(recipientBefore)
+			expect(await local.currentStateRoot()).toBe(rootBefore)
+		}
+		finally {
+			await local.dispose()
+		}
 	})
 
 	it('binds captured operation identity to the native pre-state and reset identity', async () => {
