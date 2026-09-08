@@ -11,6 +11,7 @@ Encode decisions the agent would otherwise get wrong, not domain knowledge it al
 
 1. Read [references/architecture.md](references/architecture.md) and [references/coverage.md](references/coverage.md). Inspect nearby instructions, skills, and the real tasks, corrections, failures, or artifacts that justify the change.
 2. Choose the narrowest reliable owner. Keep standing or path rules in `AGENTS.md`, mechanically enforceable rules in code or tests, and repeatable task procedure here. Do not create a skill if those owners suffice.
+   Distinguish a missing decision from failure to follow an already explicit rule. For the latter, repair the execution, ownership, context-delivery or enforcement boundary and retain a causal evaluation case; repeated prose is not a fix. Verify who caused an interruption or missing input before assigning the failure to an executor.
 3. Write the description as a classifier: capability, concrete triggers, and only exclusions that prevent plausible false activation. Do not summarize the body.
 4. Express each retained decision as a standalone condition, behavior, and boundary. Revise its canonical passage when feedback changes the contract; keep the incident in evaluation evidence. Remove sentences whose absence changes no decision.
 5. Prefer one coherent skill over fragments that normally co-activate. Split only when triggers and loaded detail are independently useful.
