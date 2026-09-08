@@ -51,6 +51,11 @@ export const createRadicleCliRuntimeAdapter = (
 
 	return {
 		read: command => new Promise<string>((resolve, reject) => {
+			if (options.signal?.aborted) {
+				reject(new Error('RadicleCli_Local: rad command cancelled'))
+				return
+			}
+
 			let child: ChildProcess
 			try {
 				child = spawn(executable, command.args, { detached: process.platform !== 'win32', stdio: ['ignore', 'pipe', 'pipe'] })

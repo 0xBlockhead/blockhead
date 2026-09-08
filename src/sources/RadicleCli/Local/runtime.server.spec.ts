@@ -1,8 +1,14 @@
 import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { spawn } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+
+vi.mock('node:child_process', async importOriginal => {
+	const actual = await importOriginal<typeof import('node:child_process')>()
+	return { ...actual, spawn: vi.fn(actual.spawn) }
+})
 
 import { readRadicleRepository } from '$/sources/RadicleCli/Local/read.ts'
 import { createRadicleCliRuntimeAdapter } from '$/sources/RadicleCli/Local/runtime.server.ts'
@@ -75,6 +81,18 @@ esac
 	it('sanitizes missing executable errors', async () => {
 		await expect(createRadicleCliRuntimeAdapter({ executable: '/definitely/missing' }).read(inspectRepositoryPayload(repositoryId)))
 			.rejects.toThrow('unable to start rad executable')
+	})
+
+	it('rejects pre-aborted reads without spawning the executable', async () => {
+		const controller = new AbortController()
+		const spawnSpy = vi.mocked(spawn)
+		spawnSpy.mockClear()
+		controller.abort()
+
+		await expect(createRadicleCliRuntimeAdapter({ executable, signal: controller.signal })
+			.read({ command: 'rad', args: ['success'] }))
+			.rejects.toThrow('command cancelled')
+		expect(spawnSpy).not.toHaveBeenCalled()
 	})
 
 	it('bounds stderr on nonzero exit', async () => {
