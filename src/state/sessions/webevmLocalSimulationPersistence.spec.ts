@@ -283,6 +283,7 @@ describe('webEvmSimulationInput', () => {
 		}))
 
 		expect(result.simulation.forkBlockNumber).toBeUndefined()
+		expect(result.simulation.executionSourceKind).toBe('webevm-local')
 
 		const providedHash = '0x2222222222222222222222222222222222222222222222222222222222222222'
 		const withProvenance = webEvmSimulationInput({

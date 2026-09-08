@@ -171,6 +171,7 @@ export const webEvmSimulationInput = (
 		createdAt: base.createdAt,
 		completedAt: base.completedAt,
 		paramsHash: Hash32.assert(base.paramsHash),
+		executionSourceKind: 'webevm-local',
 		actionCount: 1,
 		...(base.forkBlockNumber != null && { forkBlockNumber: base.forkBlockNumber }),
 	}
