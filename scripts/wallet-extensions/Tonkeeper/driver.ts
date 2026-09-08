@@ -8,10 +8,14 @@ import type {
 	WalletMatrixScenario,
 } from '../WalletCompatibilityMatrix.ts'
 import {
-	acquireExtensionPage,
 	openExtensionPage,
 	type LoadedWalletExtension,
 } from '../WalletExtensionHarness.ts'
+import {
+	captureWalletExtensionSurfaceCheckpoint,
+	type WalletExtensionSurfaceCheckpoint,
+	waitForWalletExtensionPhase,
+} from '../WalletExtensionRequestCheckpoint.ts'
 
 
 const tonkeeperBlockedDetail = (lifecycleEdgeCase: string) => (
@@ -43,6 +47,81 @@ export const isTonkeeperIndexPageUrl = (
 	&& url.includes('/index.html')
 )
 
+export const isTonkeeperConnectionRequestSurface = ({
+	buttonNames,
+	extensionId,
+	headingNames,
+	url,
+}: {
+	buttonNames: readonly string[]
+	extensionId: string
+	headingNames: readonly string[]
+	url: string
+}) => {
+	if (!isTonkeeperIndexPageUrl(url, extensionId))
+		return false
+
+	const legacyConnect = buttonNames.some((name) => /^connect wallet$/i.test(name.trim()))
+		&& headingNames.some((name) => /connect/i.test(name))
+	const ownsCurrentConnect = headingNames.some((name) => /^so,? let(?:'|’)s check$/i.test(name.trim()))
+	const currentConnect = ownsCurrentConnect
+		&& buttonNames.some((name) => /^cancel$/i.test(name.trim()))
+		&& buttonNames.some((name) => /^continue$/i.test(name.trim()))
+	const currentPasswordUnlock = ownsCurrentConnect
+		&& headingNames.some((name) => /^enter password$/i.test(name.trim()))
+		&& buttonNames.some((name) => /^cancel$/i.test(name.trim()))
+		&& buttonNames.some((name) => /^confirm$/i.test(name.trim()))
+	return legacyConnect || currentConnect || currentPasswordUnlock
+}
+
+export const tonkeeperConnectionRequestSurfaceIndex = ({
+	checkpoint,
+	extensionId,
+}: {
+	checkpoint: WalletExtensionSurfaceCheckpoint
+	extensionId: string
+}) => checkpoint.extensionPages.findIndex(({ buttonNames, extensionUrl, headingNames }) => (
+	isTonkeeperConnectionRequestSurface({
+		buttonNames,
+		extensionId,
+		headingNames,
+		url: extensionUrl,
+	})
+))
+
+const waitForTonkeeperConnectionRequest = async (
+	context: BrowserContext,
+	extension: LoadedWalletExtension,
+	previousPages: Set<Page>
+) => waitForWalletExtensionPhase({
+	capture: async () => {
+		const extensionPages = context.pages().filter((page) => (
+			page.url().startsWith(`chrome-extension://${extension.id}/`)
+		)).sort((left, right) => (
+			Number(previousPages.has(left)) - Number(previousPages.has(right))
+		))
+		const checkpoint = await captureWalletExtensionSurfaceCheckpoint(extensionPages)
+		const requestIndex = tonkeeperConnectionRequestSurfaceIndex({
+			checkpoint,
+			extensionId: extension.id,
+		})
+		return {
+			checkpoint,
+			ownedSurface: extensionPages[requestIndex] ?? null,
+		}
+	},
+	onCheckpoint: (checkpoint) => {
+		process.stderr.write(`${JSON.stringify({
+			checkpoint,
+			phase: 'Tonkeeper connection authority',
+		})}\n`)
+	},
+	phase: 'Tonkeeper connection authority',
+}).then(async (page) => {
+	await page.waitForLoadState('domcontentloaded')
+	return page
+})
+
 const createWallet = async (
 	page: Page,
 	name: string,
@@ -67,7 +146,7 @@ const createWallet = async (
 
 	const recoveryWords = await page.locator('span').evaluateAll((spans) => (
 		spans.flatMap((span) => {
-			const match = span.textContent?.match(/^\s*(\d+)\.\s+([a-z]+)\s*$/)
+			const match = span.textContent.match(/^\s*(\d+)\.\s+([a-z]+)\s*$/)
 			return match ?
 				[[
 					Number(match[1]),
@@ -169,41 +248,32 @@ export const tonkeeperDriver = {
 		context: BrowserContext,
 		extension: LoadedWalletExtension,
 		previousPages: Set<Page>
-	) => {
-		const existing = context.pages().find((page) => (
-			!previousPages.has(page)
-			&& isTonkeeperIndexPageUrl(page.url(), extension.id)
-		))
-		if (existing)
-			return Promise.resolve(existing)
-
-		return context.waitForEvent('page', {
-			predicate: (page) => (
-				!previousPages.has(page)
-				&& isTonkeeperIndexPageUrl(page.url(), extension.id)
-			),
-			timeout: 60_000,
-		}).catch(() => (
-			acquireExtensionPage(context, extension, {
-				previousPages,
-				timeoutMs: 60_000,
-			})
-		))
-	},
+	) => waitForTonkeeperConnectionRequest(context, extension, previousPages),
 	approveConnection: async (page: Page, password: string) => {
-		const connectButton = page.getByRole('button', {
+		const passwordInput = page.locator('#unlock-password')
+		if (await passwordInput.isVisible()) {
+			await passwordInput.fill(password)
+			await page.getByRole('button', {
+				name: 'Confirm',
+			}).click()
+			await passwordInput.waitFor({ state: 'hidden' })
+		}
+
+		const legacyConnectButton = page.getByRole('button', {
 			name: 'Connect wallet',
 		})
-		if (!await connectButton.waitFor({
-			timeout: 15_000,
-		}).then(
-			() => true,
-			() => false
-		))
-			return false
+		const currentConnectButton = page.getByRole('button', {
+			name: 'Continue',
+		})
+		const connectButton = await legacyConnectButton.isVisible() ?
+			legacyConnectButton
+			:
+			currentConnectButton
+		await connectButton.waitFor({ state: 'visible' })
+		if (!await connectButton.isVisible())
+			throw new Error('Tonkeeper connection authority surface disappeared before its decision')
 
 		await connectButton.click()
-		const passwordInput = page.locator('#react-portal-modal-container').getByRole('textbox')
 		if (await passwordInput.isVisible()) {
 			await passwordInput.fill(password)
 			await page.getByRole('button', {
