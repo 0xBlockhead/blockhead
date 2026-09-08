@@ -1654,6 +1654,12 @@ export const deleteLocalBlockheadWalletCapabilityGrantsForConnection = async (
 	)
 }
 
+export class StaleSessionActionRevisionError extends Error {
+	constructor() {
+		super('Session action edit is stale: expected content revision does not match the persisted authored action revision.')
+	}
+}
+
 export const updateLocalBlockheadSessionActionType = async (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
@@ -1661,9 +1667,20 @@ export const updateLocalBlockheadSessionActionType = async (
 	indexInSequence: number,
 	createdAt: number,
 	actionType: ActionType,
-	actionParams: object = {}
+	actionParams: object = {},
+	expectedContentRevisionHash?: typeof Hash32.infer
 ) => {
 	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams)
+	if (expectedContentRevisionHash !== undefined) {
+		const currentContentRevisionHash = localPrimitiveFieldValue(
+			context,
+			EntityType.BlockheadSessionAction,
+			entitySelector,
+			'contentRevisionHash'
+		)
+		if (currentContentRevisionHash !== expectedContentRevisionHash)
+			throw new StaleSessionActionRevisionError()
+	}
 	writeLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
 	const relationshipApplication = writeLocalEntityReferenceField(
 		context,

@@ -2,6 +2,7 @@ import { ActionType } from '$/actions/index.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 
 
 type TransferDraftFields = {
@@ -46,6 +47,7 @@ type SessionActionDraftEditIdentity = {
 	selector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
 	indexInSequence: number
 	createdAt: number
+	expectedContentRevisionHash?: typeof Hash32.infer
 }
 
 export type SessionActionDraft =
@@ -193,6 +195,9 @@ export const retargetSessionActionDraft = (
 			selector: draft.selector,
 			indexInSequence: draft.indexInSequence,
 			createdAt: draft.createdAt,
+			...(draft.expectedContentRevisionHash === undefined ? {} : {
+				expectedContentRevisionHash: draft.expectedContentRevisionHash,
+			}),
 		}
 
 	return {

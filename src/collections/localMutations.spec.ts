@@ -854,7 +854,8 @@ describe('local mutation authority journal', () => {
 			0,
 			10,
 			ActionType.Bridge,
-			bridgeParams
+			bridgeParams,
+			initialRevisionHash
 		)
 		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toContainEqual(
 			expect.objectContaining({
@@ -900,6 +901,41 @@ describe('local mutation authority journal', () => {
 		const contentRevisionHash = Hash32.assert(revisionRow[EntityMetaKey.Value])
 		expect(contentRevisionHash).toBe(hashLocalBlockheadSessionActionRevision(ActionType.Bridge, bridgeParams))
 		expect(contentRevisionHash).not.toBe(initialRevisionHash)
+		const actionRowsBeforeStaleEdit = structuredClone(entityCollections[EntityType.BlockheadSessionAction].toArray)
+		const actionFieldNames = [
+			'$session',
+			'indexInSequence',
+			'actionType',
+			'actionParams',
+			'contentRevisionHash',
+			'createdAt',
+			'updatedAt',
+		] as const
+		const actionFieldRowsBeforeStaleEdit = Object.fromEntries(actionFieldNames.map((fieldName) => [
+			fieldName,
+			structuredClone(entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+				EntityType.BlockheadSessionAction,
+				[],
+				fieldName
+			)].toArray),
+		]))
+		await expect(updateLocalBlockheadSessionActionType(
+			context,
+			actionSelector,
+			sessionSelector,
+			0,
+			10,
+			ActionType.Transfer,
+			{},
+			initialRevisionHash
+		)).rejects.toThrow('Session action edit is stale')
+		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toEqual(actionRowsBeforeStaleEdit)
+		for (const fieldName of actionFieldNames)
+			expect(entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+				EntityType.BlockheadSessionAction,
+				[],
+				fieldName
+			)].toArray).toEqual(actionFieldRowsBeforeStaleEdit[fieldName])
 		const envelope = {
 			adapterKey: 'evm.personal-sign',
 			adapterVersion: '1',
@@ -965,6 +1001,23 @@ describe('local mutation authority journal', () => {
 		await expect(writeLocalBlockheadActionAuthorityRequest(context, authorityRequest)).resolves.toEqual(
 			authoritySelector
 		)
+		const authorityHistoryBeforeActionEdit = {
+			envelope: structuredClone(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+				EntityType.BlockheadActionAuthorityRequest,
+				[],
+				'envelope'
+			)].toArray),
+			envelopeHash: structuredClone(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+				EntityType.BlockheadActionAuthorityRequest,
+				[],
+				'envelopeHash'
+			)].toArray),
+			actionRevisionBindings: structuredClone(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+				EntityType.BlockheadActionAuthorityRequest,
+				[],
+				'actionRevisionBindings'
+			)].toArray),
+		}
 		expect(entityCollections[EntityType.BlockheadActionAuthorityRequest].toArray).toHaveLength(1)
 		expect(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
 			EntityType.BlockheadActionAuthorityRequest,
@@ -1019,8 +1072,55 @@ describe('local mutation authority journal', () => {
 			sessionSelector,
 			0,
 			10,
-			ActionType.Transfer
+			ActionType.Transfer,
+			{},
+			contentRevisionHash
 		)
+		expect(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+			EntityType.BlockheadActionAuthorityRequest,
+			[],
+			'envelope'
+		)].toArray).toEqual(authorityHistoryBeforeActionEdit.envelope)
+		expect(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+			EntityType.BlockheadActionAuthorityRequest,
+			[],
+			'envelopeHash'
+		)].toArray).toEqual(authorityHistoryBeforeActionEdit.envelopeHash)
+		expect(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+			EntityType.BlockheadActionAuthorityRequest,
+			[],
+			'actionRevisionBindings'
+		)].toArray).toEqual(authorityHistoryBeforeActionEdit.actionRevisionBindings)
+		const transferRevisionHash = hashLocalBlockheadSessionActionRevision(
+			ActionType.Transfer,
+			actionTypeDefinitionByActionType[ActionType.Transfer].params.assert({})
+		)
+		const retargetedAuthoritySelector = await writeLocalBlockheadActionAuthorityRequest(context, {
+			...authorityRequest,
+			id: 'authority-request-2',
+			actionRevisionBindings: [{
+				sessionId: actionSelector.sessionId,
+				actionId: actionSelector.actionId,
+				contentRevisionHash: transferRevisionHash,
+			}],
+			decision: undefined,
+		})
+		expect(entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(
+			EntityType.BlockheadActionAuthorityRequest,
+			[],
+			'actionRevisionBindings'
+		)].toArray).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.ParentSelectorKey]: entitySelectorKey(
+				schema,
+				entityDefinitionByType[EntityType.BlockheadActionAuthorityRequest],
+				retargetedAuthoritySelector
+			),
+			[EntityMetaKey.Value]: [{
+				sessionId: actionSelector.sessionId,
+				actionId: actionSelector.actionId,
+				contentRevisionHash: transferRevisionHash,
+			}],
+		}))
 		await expect(writeLocalBlockheadActionDispatchOccurrenceStart(context, occurrence)).rejects.toThrow(
 			'no longer matches the persisted authored action revision'
 		)
@@ -1032,7 +1132,8 @@ describe('local mutation authority journal', () => {
 			0,
 			10,
 			ActionType.Bridge,
-			bridgeParams
+			bridgeParams,
+			transferRevisionHash
 		)
 		heldPersistenceAddress = `field:${EntityType.BlockheadActionDispatchOccurrence}:${entityFieldAddressKey(
 			EntityType.BlockheadActionDispatchOccurrence,

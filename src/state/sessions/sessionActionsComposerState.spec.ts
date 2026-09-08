@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { ActionType } from '$/actions/index.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import {
 	beginSessionComposerPreparation,
 	blockSessionComposerPreparation,
@@ -68,6 +69,7 @@ describe('sessionActionsComposerState', () => {
 	})
 
 	it('retargets action type while preserving edit identity and clearing mismatched fields', () => {
+		const expectedContentRevisionHash = Hash32.assert(`0x${'11'.repeat(32)}`)
 		const draft = retargetSessionActionDraft(
 			editSessionActionDraft(
 				{
@@ -87,6 +89,7 @@ describe('sessionActionsComposerState', () => {
 					},
 					indexInSequence: 2,
 					createdAt: 99,
+					expectedContentRevisionHash,
 				}
 			),
 			ActionType.Bridge
@@ -107,6 +110,7 @@ describe('sessionActionsComposerState', () => {
 			},
 			indexInSequence: 2,
 			createdAt: 99,
+			expectedContentRevisionHash,
 		})
 	})
 

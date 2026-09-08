@@ -94,6 +94,7 @@
 		deleteLocalBlockheadSession,
 		deleteLocalBlockheadSessionAction,
 		deleteLocalBlockheadSessionLockedAt,
+		StaleSessionActionRevisionError,
 		updateLocalBlockheadSessionActionType,
 		writeLocalBlockheadSessionAction,
 		writeLocalBlockheadSessionLockedAt,
@@ -139,6 +140,7 @@
 				actionParams: true,
 				indexInSequence: true,
 				createdAt: true,
+				contentRevisionHash: true,
 			},
 		})
 	)
@@ -165,6 +167,7 @@
 				activeDraft.createdAt,
 				activeDraft.actionType,
 				actionParams,
+				activeDraft.expectedContentRevisionHash,
 			)
 			notice = {
 				status: 'info',
@@ -196,11 +199,19 @@
 			}
 			return
 		}
+		if (resolvedAction.contentRevisionHash == null) {
+			notice = {
+				status: 'error',
+				message: 'Draft content revision is not available.',
+			}
+			return
+		}
 		const nextActionType = arktype.enumerated(...Object.values(ActionType)).assert(resolvedAction.actionType)
 		const identity = {
 			selector: resolvedAction[EntityMetaKey.Selector],
 			indexInSequence: resolvedAction.indexInSequence,
 			createdAt: resolvedAction.createdAt,
+			expectedContentRevisionHash: resolvedAction.contentRevisionHash,
 		}
 		if (nextActionType === ActionType.Transfer) {
 			const actionParams = actionTypeDefinitionByActionType[nextActionType].params.assert(resolvedAction.actionParams ?? {})
@@ -283,10 +294,13 @@
 					amount: BigInt(draft.fields.amount),
 					slippage: Number(draft.fields.slippage),
 				}))
-		} catch {
+		} catch (error) {
 			notice = {
 				status: 'error',
-				message: 'Draft values are invalid. Correct them before saving.',
+				message: error instanceof StaleSessionActionRevisionError ?
+					'Action changed; reload before saving.'
+				:
+					'Draft values are invalid. Correct them before saving.',
 			}
 		}
 	}
