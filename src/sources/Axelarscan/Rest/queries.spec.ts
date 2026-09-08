@@ -393,6 +393,24 @@ describe('Axelarscan GMP queries', () => {
 		})).rejects.toThrow()
 	})
 
+	it('rejects mixed unsupported pages instead of shortening the raw offset window', async () => {
+		getJson.mockResolvedValueOnce({
+			...response([
+				message,
+				{
+					...message,
+					status: 'future',
+				},
+			]),
+			total: 10,
+		})
+		await expect(getGmpMessages({
+			size: 2,
+			from: 4,
+		})).rejects.toThrow('unknown message status')
+		expect(getJson).toHaveBeenCalledTimes(1)
+	})
+
 	it('looks up only messages belonging to the requested transaction', async () => {
 		await getGmpMessages({
 			transactionHash: executionTransactionHash,
