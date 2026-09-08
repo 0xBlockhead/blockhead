@@ -51,6 +51,7 @@ import { createCardanoCip30Adapter } from './adapters/cardanoCip30.ts'
 import { createCosmosOfflineSignerAdapter } from './adapters/cosmosOfflineSigner.ts'
 import { createEip6963Adapter } from './adapters/eip6963.ts'
 import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWeb3.ts'
+import { createXrplXamanAdapter } from './adapters/xrplXaman.ts'
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
 import { createTonConnectAdapter } from './adapters/tonConnect.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
@@ -65,6 +66,7 @@ import {
 	type WalletTonInternalMessages,
 	type WalletStarknetTypedData,
 	type WalletTypedData,
+	type WalletXrplTransactionRequest,
 } from './adapters/types.ts'
 import {
 	applyWalletConnectionSelection,
@@ -114,6 +116,10 @@ type WalletRuntime = {
 		internalBoc: string
 	}>
 	signTypedData(connectionKey: string, typedData: WalletTypedData): Promise<{
+		accountAddress: string
+		signature: string
+	}>
+	signXrplTransaction(connectionKey: string, request: WalletXrplTransactionRequest): Promise<{
 		accountAddress: string
 		signature: string
 	}>
@@ -447,6 +453,7 @@ const createWalletRuntimeState = (
 	registerAdapter(createTronInjectedAdapter())
 	registerAdapter(createStarknetWalletApiAdapter())
 	registerAdapter(createPolkadotInjectedWeb3Adapter())
+	registerAdapter(createXrplXamanAdapter())
 
 	void context.select(
 		EntityType._Global,
@@ -1585,6 +1592,23 @@ const createWalletRuntimeState = (
 		}
 	}
 
+	const signXrplTransaction = async (
+		connectionKey: string,
+		request: WalletXrplTransactionRequest
+	) => {
+		const selection = resolveWalletPrepSelection(connections)
+		if (!selection.ready)
+			throw new Error(selection.error)
+		if (selection.connectionKey !== connectionKey || selection.account.namespace !== 'xrpl')
+			throw new Error('XRPL signing request does not match the selected wallet connection')
+		const { account, connection } = selection
+		if (!account.capabilities.includes(WalletCapability.SignTransaction))
+			throw new Error('Selected wallet account does not authorize XRPL transaction signing')
+		if (request.Account !== account.accountAddress)
+			throw new Error('XRPL transaction account does not match the selected wallet account')
+		throw new Error('Durable XRPL authority dispatch is not implemented')
+	}
+
 	const signStarknetTypedData = async (
 		connectionKey: string,
 		typedData: WalletStarknetTypedData,
@@ -1812,6 +1836,7 @@ const createWalletRuntimeState = (
 		signMessage,
 		signTonInternalMessages,
 		signTypedData,
+		signXrplTransaction,
 		signStarknetTypedData,
 		switchScope,
 		rejectPreparedTransactionRequest,

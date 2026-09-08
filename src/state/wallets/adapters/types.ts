@@ -8,6 +8,7 @@ import {
 } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type { Xumm } from 'xumm'
 
 
 export type WalletCandidate = {
@@ -208,6 +209,11 @@ export type WalletTypedData = {
 	message: Record<string, string | number | boolean | Record<string, string | number | boolean>>
 }
 
+export type WalletXrplTransactionRequest = Extract<
+	Parameters<NonNullable<Xumm['payload']>['createAndSubscribe']>[0],
+	{ txjson: object }
+>['txjson'] & { Account: string }
+
 export type WalletStarknetTypedData = {
 	types: Record<string, {
 		name: string
@@ -327,6 +333,12 @@ export type WalletAdapter = {
 		walletId: string,
 		accountAddress: string,
 		request: WalletTonInternalMessages,
+		connectionKey?: string
+	): Promise<string>
+	signXrplTransaction?(
+		walletId: string,
+		accountAddress: string,
+		request: WalletXrplTransactionRequest,
 		connectionKey?: string
 	): Promise<string>
 	switchScope?(

@@ -126,7 +126,8 @@
 		"multiformats": "^14.0.5",
 		"ox": "1.7.2",
 		"satteri": "^0.10.5",
-		"weakmap.prototype.getorinsertcomputed": "^1.0.0"
+		"weakmap.prototype.getorinsertcomputed": "^1.0.0",
+		"xumm": "1.8.1"
 	},
 	"workspaces": [
 		"."

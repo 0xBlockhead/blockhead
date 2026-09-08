@@ -13,6 +13,7 @@ export enum WalletProtocol {
 	CardanoCip30 = 'cardano-cip30',
 	CosmosOfflineSigner = 'cosmos-offline-signer',
 	PolkadotInjectedWeb3 = 'polkadot-injected-web3',
+	XrplXaman = 'xrpl-xaman',
 	WalletConnectV2 = 'walletconnect-v2',
 	TonConnect = 'ton-connect',
 	NearWalletSelector = 'near-wallet-selector',
@@ -118,6 +119,7 @@ export const walletProtocols = [
 	{ protocol: WalletProtocol.CardanoCip30, label: 'Cardano CIP-30' },
 	{ protocol: WalletProtocol.CosmosOfflineSigner, label: 'Cosmos OfflineSigner' },
 	{ protocol: WalletProtocol.PolkadotInjectedWeb3, label: 'Polkadot injectedWeb3' },
+	{ protocol: WalletProtocol.XrplXaman, label: 'XRPL Xaman' },
 	{ protocol: WalletProtocol.WalletConnectV2, label: 'WalletConnect v2' },
 	{ protocol: WalletProtocol.TonConnect, label: 'TON Connect' },
 	{ protocol: WalletProtocol.NearWalletSelector, label: 'NEAR Wallet Selector' },
@@ -130,6 +132,26 @@ export const walletProtocols = [
 ] as const
 
 export const walletConnectionMethods = [
+	{
+		id: 'xrpl-xaman',
+		label: 'Xaman XRPL signer',
+		protocol: WalletProtocol.XrplXaman,
+		discoveryKind: WalletDiscoveryKind.InjectedGlobal,
+		transportKind: WalletTransportKind.HttpBridge,
+		formFactors: [WalletFormFactor.MobileWallet],
+		networkNamespaces: [NetworkNamespace.Xrpl],
+		caipNamespaces: ['xrpl'],
+		capabilities: [
+			WalletCapability.Discover,
+			WalletCapability.Connect,
+			WalletCapability.Reconnect,
+			WalletCapability.Disconnect,
+			WalletCapability.ListAccounts,
+			WalletCapability.SignTransaction,
+		],
+		implementationStatus: WalletImplementationStatus.Implemented,
+		dependencyPolicy: 'minimal-required',
+	},
 	{
 		id: 'eip6963',
 		label: 'EIP-6963 injected EVM wallet',

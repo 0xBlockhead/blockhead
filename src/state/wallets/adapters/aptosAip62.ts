@@ -143,7 +143,7 @@ const normalizeAptosSignature = (signature: string | string[]) => {
 		:
 			signature[0]
 	)
-	if (value == null || value.length === 0)
+	if (value.length === 0)
 		throw new Error('Aptos AIP-62 wallet returned an invalid aptos:signMessage signature')
 
 	return value
@@ -228,6 +228,7 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 
 				walletIdByWallet.set(wallet, walletId)
 				walletById.set(walletId, wallet)
+				nextEpoch(lifecycleEpochByWalletId, walletId)
 				registered.push({
 					wallet,
 					walletId,
@@ -423,7 +424,6 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 					if (
 						!subscribed
 						|| version !== updateVersion
-						|| network == null
 						|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
 					)
 						return
@@ -454,7 +454,7 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 				updateVersion++
 				networkByWalletId.set(walletId, network)
 				const account = accountByWalletId.get(walletId)
-				if (!subscribed || account == null)
+				if (account == null)
 					return
 
 				updateConnection(aptosConnection(
@@ -479,9 +479,7 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 						if (response.status === 'Rejected') {
 							const network = networkByWalletId.get(walletId) ?? await features['aptos:network']?.network()
 							if (
-								network == null
-								|| !subscribed
-								|| version !== updateVersion
+								version !== updateVersion
 								|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
 							)
 								return
@@ -497,9 +495,7 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 
 						const network = await features['aptos:network']?.network()
 						if (
-							!subscribed
-							|| version !== updateVersion
-							|| network == null
+							version !== updateVersion
 							|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
 						)
 							return

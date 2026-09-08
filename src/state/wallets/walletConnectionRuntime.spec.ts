@@ -18,6 +18,7 @@ import type {
 	WalletConnection,
 	WalletTonInternalMessages,
 	WalletStarknetTypedData,
+	WalletXrplTransactionRequest,
 } from '$/state/wallets/adapters/types.ts'
 import {
 	WalletCapability,
@@ -54,6 +55,7 @@ const mountMockWalletRuntime = async ({
 	persistedWalletId = 'eip6963:com.example.wallet',
 	candidateProtocol = WalletProtocol.Eip6963,
 	candidateDiscoveryKind = WalletDiscoveryKind.InjectedEvent,
+	candidateTransportKind = WalletTransportKind.InjectedProvider,
 	candidateCapabilities = [WalletCapability.Connect],
 	accountNamespace = 'eip155',
 	accountReference = '1',
@@ -64,6 +66,7 @@ const mountMockWalletRuntime = async ({
 	signTonInternalMessages = vi.fn(async () => 'te6ccgEBAQEA'),
 	signStarknetTypedData = vi.fn(async () => ['0x1', '0x2']),
 	signTypedData = vi.fn(async () => '0xtyped'),
+	signXrplTransaction = vi.fn(async () => 'signed-xrpl'),
 	switchScope,
 	tauriWalletLinkHost,
 }: {
@@ -100,6 +103,7 @@ const mountMockWalletRuntime = async ({
 	persistedWalletId?: string
 	candidateProtocol?: WalletProtocol
 	candidateDiscoveryKind?: WalletDiscoveryKind
+	candidateTransportKind?: WalletTransportKind
 	candidateCapabilities?: WalletCapability[]
 	accountNamespace?: string
 	accountReference?: string
@@ -121,6 +125,7 @@ const mountMockWalletRuntime = async ({
 		accountAddress: string,
 		typedData: object
 	) => Promise<string>
+	signXrplTransaction?: (walletId: string, accountAddress: string, request: WalletXrplTransactionRequest, connectionKey?: string) => Promise<string>
 	switchScope?: (
 		walletId: string,
 		scope: {
@@ -264,7 +269,7 @@ const mountMockWalletRuntime = async ({
 								icon: '',
 								protocol: candidateProtocol,
 								discoveryKind: candidateDiscoveryKind,
-								transportKind: WalletTransportKind.InjectedProvider,
+								transportKind: candidateTransportKind,
 								capabilities: candidateCapabilities,
 							},
 						]
@@ -285,6 +290,7 @@ const mountMockWalletRuntime = async ({
 			signTonInternalMessages,
 			signStarknetTypedData,
 			signTypedData,
+			signXrplTransaction,
 			...(switchScope != null && { switchScope }),
 			disconnect,
 			subscribeConnection,
@@ -3731,6 +3737,35 @@ describe('wallet connection runtime normalization', () => {
 			expect(returned).toHaveBeenCalledTimes(1)
 			expect(writeEvidence).toHaveBeenCalledTimes(1)
 			evidenceRuntime.runtime.destroy()
+		})
+
+		it('refuses XRPL signing before adapter dispatch without durable authority', async () => {
+			const signXrplTransaction = vi.fn(async () => 'signed-xrpl')
+			const mounted = await mountMockWalletRuntime({
+				candidateProtocol: WalletProtocol.XrplXaman,
+				candidateDiscoveryKind: WalletDiscoveryKind.InjectedGlobal,
+				candidateTransportKind: WalletTransportKind.HttpBridge,
+				candidateCapabilities: [WalletCapability.Connect, WalletCapability.SignTransaction],
+				accountNamespace: 'xrpl',
+				accountReference: '0',
+				accountAddress: 'rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH',
+				accountCapabilities: [WalletCapability.SignTransaction],
+				persistedProtocol: WalletProtocol.XrplXaman,
+				persistedStatus: BlockheadConnectionStatus.Connected,
+				persistedTransportKind: WalletTransportKind.HttpBridge,
+				persistedWalletId: 'xrpl:xaman',
+				signXrplTransaction,
+			})
+			await mounted.hydration
+			expect(mounted.runtime.connections).toEqual(expect.arrayContaining([
+				expect.objectContaining({ connectionKey: 'persisted-session', status: BlockheadConnectionStatus.Connected }),
+			]))
+			await expect(mounted.runtime.signXrplTransaction('persisted-session', {
+				TransactionType: 'Payment',
+				Account: 'rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH',
+			})).rejects.toThrow('Durable XRPL authority dispatch is not implemented')
+			expect(signXrplTransaction).not.toHaveBeenCalled()
+			mounted.runtime.destroy()
 		})
 	})
 })
