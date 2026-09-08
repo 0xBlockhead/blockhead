@@ -51,6 +51,53 @@ const cases = [
 	},
 ] as const
 
+const sourceFixturesFor = (entityType: EntityType) => {
+	if (entityType === EntityType.EvmSelector)
+		return {
+			fixtures: [
+				{
+					hex: '0xa9059cbb',
+					entries: [{ text_signature: 'transfer(address,uint256)' }],
+					expected: ['transfer(address,uint256)'],
+				},
+				{
+					hex: '0x095ea7b3',
+					entries: [{ text_signature: 'approve(address,uint256)' }],
+					expected: ['approve(address,uint256)'],
+				},
+			],
+		} as const
+	if (entityType === EntityType.EvmTopic)
+		return {
+			fixtures: [
+				{
+					hex: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+					entries: [{ text_signature: 'Transfer(address,address,uint256)' }],
+					expected: ['Transfer(address,address,uint256)'],
+				},
+				{
+					hex: '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925',
+					entries: [{ text_signature: 'Approval(address,address,uint256)' }],
+					expected: ['Approval(address,address,uint256)'],
+				},
+			],
+		} as const
+	return {
+		fixtures: [
+			{
+				hex: '0x8e4a23d6',
+				entries: [{ text_signature: 'Unauthorized(address)' }],
+				expected: ['Unauthorized(address)'],
+			},
+			{
+				hex: '0x4e487b71',
+				entries: [{ text_signature: 'Panic(uint256)' }],
+				expected: ['Panic(uint256)'],
+			},
+		],
+	} as const
+}
+
 const resolverFor = (entityType: EntityType) => {
 	const resolver = catalog.resolvers.find((candidate) => candidate.entityType === entityType)
 	if (resolver == null)
@@ -64,6 +111,23 @@ beforeEach(() => {
 })
 
 describe('FourByteDirectory signature claims', () => {
+	it.each(cases)('maps two source-faithful fixtures to the many-valued $entityType field', async ({
+		entityType,
+		query,
+	}) => {
+		const { fixtures } = sourceFixturesFor(entityType)
+		for (const fixture of fixtures) {
+			query.mockResolvedValueOnce(fixture.entries)
+			await expect(resolverFor(entityType).resolve.Hex.resolve({
+				hex: fixture.hex,
+			})).resolves.toEqual({
+				signatures: fixture.expected,
+			})
+		}
+		expect(query).toHaveBeenNthCalledWith(1, { hex: fixtures[0].hex })
+		expect(query).toHaveBeenNthCalledWith(2, { hex: fixtures[1].hex })
+	})
+
 	it.each(cases)('deduplicates $entityType claims while preserving distinct signatures and order', async ({
 		entityType,
 		hex,
