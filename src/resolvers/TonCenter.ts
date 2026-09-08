@@ -701,7 +701,6 @@ export const createTonCenterV3Resolvers = () => ({
 			Ton: {
 				$$timestamps: {
 					select: (timestamp) => [timestamp],
-					resolveCount: () => 1,
 				},
 			},
 		}),

@@ -690,6 +690,7 @@ describe('TonCenter v3 network resolver', () => {
 		if (typeof timestampsProjection === 'function')
 			throw new Error('TON Center v3 spec missing timestamp selection')
 		const [timestamp] = timestampsProjection.select(snapshot)
+		expect(timestampsProjection).not.toHaveProperty('resolveCount')
 		expect(timestamp[EntityMetaKey.Selector]).toEqual({
 			$network: network,
 			timestampMs: 1_700_000_001_000,
@@ -700,6 +701,21 @@ describe('TonCenter v3 network resolver', () => {
 			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'latestBlockUtimeMs')]: 1_700_000_001_000,
 		})
 		expect(sourceQueries.getTonCenterV3MasterchainInfo).toHaveBeenCalledTimes(1)
+		sourceQueries.getTonCenterV3MasterchainInfo.mockResolvedValueOnce({
+			first,
+			last: { ...last, seqno: 44, gen_utime: '1700000002' },
+		})
+		const nextSnapshot = await timestampsResolver.resolve.Caip2.resolve(network, context)
+		const [nextTimestamp] = timestampsProjection.select(nextSnapshot)
+		expect(nextTimestamp[EntityMetaKey.Selector]).toEqual({
+			$network: network,
+			timestampMs: 1_700_000_002_000,
+			source: Source.TonCenter,
+		})
+		expect(nextTimestamp[EntityMetaKey.Fields]).toMatchObject({
+			[entityFieldAddressKey(EntityType.TonNetwork_Timestamp, [], 'masterchainSeqno')]: 44n,
+		})
+		expect(timestampsProjection.select(snapshot)).toEqual([timestamp])
 
 		sourceQueries.getTonCenterV3BlockByWorkchainShardPrefixSeqno.mockResolvedValueOnce(last)
 		await expect(blockResolver.resolve.NetworkWorkchainShardPrefixSeqno.resolve({

@@ -565,7 +565,6 @@ export default {
 		})({
 				$$timestamps: {
 					select: (timestamps) => timestamps,
-					resolveCount: (timestamps) => timestamps.length,
 				},
 			}),
 
@@ -599,7 +598,6 @@ export default {
 				Monero: {
 					$$timestamps: {
 						select: (timestamps) => timestamps,
-						resolveCount: (timestamps) => timestamps.length,
 					},
 				},
 			}),

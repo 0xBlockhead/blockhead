@@ -315,7 +315,7 @@ describe('Monero daemon tip / ring / stealth leftovers', () => {
 				},
 			},
 		])
-		expect(moneroNetworkTimestampsResolver.projections.$$timestamps.resolveCount(timestamps)).toBe(1)
+		expect(moneroNetworkTimestampsResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		expect(getInfo).toHaveBeenCalledOnce()
 		expect(moneroDaemonRpc.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.MoneroNetwork_Timestamp
