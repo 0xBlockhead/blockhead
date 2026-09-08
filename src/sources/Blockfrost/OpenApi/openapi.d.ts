@@ -5637,6 +5637,18 @@ export interface paths {
                      *     not the page listing itself. By default, we return oldest first, newest last.
                      */
                     order?: "asc" | "desc";
+                    /**
+                     * @description The block number and optionally also index from which (inclusive) to start search for results, concatenated using colon.
+                     *     Has to be lower than or equal to `to` parameter.
+                     * @example 8929261
+                     */
+                    from?: string;
+                    /**
+                     * @description The block number and optionally also index where (inclusive) to end the search for results, concatenated using colon.
+                     *     Has to be higher than or equal to `from` parameter.
+                     * @example 9999269:10
+                     */
+                    to?: string;
                 };
                 header?: never;
                 path: {
@@ -5718,6 +5730,79 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["asset_addresses"];
+                    };
+                };
+                400: components["responses"]["400"];
+                403: components["responses"]["403"];
+                404: components["responses"]["404"];
+                418: components["responses"]["418"];
+                429: components["responses"]["429"];
+                500: components["responses"]["500"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assets/{asset}/utxos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Asset UTXOs
+         * @description List of unspent UTxOs containing the specified native asset.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description The number of results displayed on one page. */
+                    count?: number;
+                    /** @description The page number for listing the results. */
+                    page?: number;
+                    /**
+                     * @description The ordering of items from the point of view of the blockchain,
+                     *     not the page listing itself. By default, we return oldest first, newest last.
+                     */
+                    order?: "asc" | "desc";
+                    /**
+                     * @description The block height from which (inclusive) to start search for results.
+                     *     Has to be lower than or equal to `to` parameter.
+                     * @example 8929261
+                     */
+                    from?: string;
+                    /**
+                     * @description The block height where (inclusive) to end the search for results.
+                     *     Has to be higher than or equal to `from` parameter.
+                     * @example 9999269
+                     */
+                    to?: string;
+                };
+                header?: never;
+                path: {
+                    /**
+                     * @description Concatenation of the policy_id and hex-encoded asset_name
+                     * @example 750900e4999ebe0d58f19b634768ba25e525aaf12403bfe8fe130501424f4f4b
+                     */
+                    asset: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Return the UTXOs containing the specified asset */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["asset_utxo_content"];
                     };
                 };
                 400: components["responses"]["400"];
@@ -8238,18 +8323,28 @@ export interface components {
         /**
          * @example [
          *       {
+         *         "tx_hash": "144a086c58a7b7324fba98be44a9c1560f78970ec777ede701d097936591aa4b",
+         *         "cert_index": 0,
+         *         "voter_role": "drep",
+         *         "voter": "drep1mvdu8slennngja7w4un6knwezufra70887zuxpprd64jxfveahn",
+         *         "vote": "no",
+         *         "counted": false
+         *       },
+         *       {
          *         "tx_hash": "b302de601defdf11a5261ed31a263804dac4a582a888c998ce24dec5",
          *         "cert_index": 2,
          *         "voter_role": "drep",
          *         "voter": "drep1mvdu8slennngja7w4un6knwezufra70887zuxpprd64jxfveahn",
-         *         "vote": "yes"
+         *         "vote": "yes",
+         *         "counted": true
          *       },
          *       {
          *         "tx_hash": "b302de601defdf11a5261ed31a263804dac4a582a888c998ce24dec5",
          *         "cert_index": 3,
          *         "voter_role": "constitutional_committee",
-         *         "voter": "53a42debdc7ffd90085ab7fd9800b63e6d1c9ac481ba6eb7b6a844e4",
-         *         "vote": "abstain"
+         *         "voter": "cc_hot1q0wzkpcxzzfs4mf4yk6yx7d075vqtyx2tnxsr256he6gnwq6yfy5w",
+         *         "vote": "abstain",
+         *         "counted": true
          *       }
          *     ]
          */
@@ -8263,13 +8358,15 @@ export interface components {
              * @enum {string}
              */
             voter_role: "constitutional_committee" | "drep" | "spo";
-            /** @description The actual voter. */
+            /** @description The actual voter. CIP-129 Bech32 identifier: `drep1...`, `pool1...` or `cc_hot1...`. */
             voter: string;
             /**
              * @description The Vote. Can be one of yes, no, abstain.
              * @enum {string}
              */
             vote: "yes" | "no" | "abstain";
+            /** @description Whether the vote counts toward the proposal's tally. Only the voter's latest vote counts, and a DRep vote stops counting if the DRep deregisters while the proposal is still live. */
+            counted: boolean;
         }[];
         /**
          * @example {
@@ -9400,7 +9497,7 @@ export interface components {
              * @example spend
              * @enum {string}
              */
-            purpose: "spend" | "mint" | "cert" | "reward";
+            purpose: "spend" | "mint" | "cert" | "reward" | "vote" | "propose";
             /**
              * @description Script hash
              * @example ec26b89af41bef0f7585353831cb5da42b5b37185e0c8a526143b824
@@ -10157,7 +10254,7 @@ export interface components {
                  * @example spend
                  * @enum {string}
                  */
-                purpose: "spend" | "mint" | "cert" | "reward";
+                purpose: "spend" | "mint" | "cert" | "reward" | "vote" | "propose";
                 /**
                  * @description The budget in Memory to run a script
                  * @example 1700
@@ -11341,6 +11438,78 @@ export interface components {
         /**
          * @example [
          *       {
+         *         "address": "addr1qxfdlum57a0083mnth9y583jvdcv5a9nwj5lzv9v34t9tl7wmz90ahznykuhr4ykwvfrge8yc63c6lpf7345yd5h59nq885d05",
+         *         "tx_hash": "47abf925faa462fe7ddbf906e65b4f8a27da52c3638ec4ee4fffb2298096aced",
+         *         "output_index": 0,
+         *         "amount": [
+         *           {
+         *             "unit": "lovelace",
+         *             "quantity": "1444443"
+         *           },
+         *           {
+         *             "unit": "750900e4999ebe0d58f19b634768ba25e525aaf12403bfe8fe130501424f4f4b",
+         *             "quantity": "1000"
+         *           }
+         *         ],
+         *         "block": "8dadf03917c51b36c7580a49162224f71845a5492976e0449319da6e8eea243e",
+         *         "block_height": 5804427,
+         *         "block_time": 1622754311,
+         *         "data_hash": null,
+         *         "inline_datum": null,
+         *         "inline_datum_json": null,
+         *         "reference_script_hash": null
+         *       }
+         *     ]
+         */
+        asset_utxo_content: {
+            /**
+             * @description Bech32 encoded address holding the UTxO
+             * @example addr1qxfdlum57a0083mnth9y583jvdcv5a9nwj5lzv9v34t9tl7wmz90ahznykuhr4ykwvfrge8yc63c6lpf7345yd5h59nq885d05
+             */
+            address: string;
+            /** @description Transaction hash of the UTXO */
+            tx_hash: string;
+            /** @description UTXO index in the transaction */
+            output_index: number;
+            amount: {
+                /**
+                 * Format: Lovelace or concatenation of asset policy_id and hex-encoded asset_name
+                 * @description The unit of the value
+                 */
+                unit: string;
+                /** @description The quantity of the unit */
+                quantity: string;
+            }[];
+            /** @description Block hash of the UTXO */
+            block: string;
+            /**
+             * @description Block number of the UTXO
+             * @example 5804427
+             */
+            block_height: number;
+            /**
+             * @description UNIX time of the block
+             * @example 1622754311
+             */
+            block_time: number;
+            /** @description The hash of the transaction output datum */
+            data_hash: string | null;
+            /**
+             * @description CBOR encoded inline datum
+             * @example 19a6aa
+             */
+            inline_datum: string | null;
+            /** @description JSON representation of the inline datum */
+            inline_datum_json: Record<string, never> | null;
+            /**
+             * @description The hash of the reference script of the output
+             * @example 13a3efd825703a352a8f71f4e2758d08c28c564e8dfcce9f77776ad1
+             */
+            reference_script_hash: string | null;
+        }[];
+        /**
+         * @example [
+         *       {
          *         "asset": "b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a76e7574636f696e",
          *         "quantity": "1"
          *       },
@@ -11448,7 +11617,7 @@ export interface components {
              * @example spend
              * @enum {string}
              */
-            purpose: "spend" | "mint" | "cert" | "reward";
+            purpose: "spend" | "mint" | "cert" | "reward" | "vote" | "propose";
             /**
              * @description Datum hash of the redeemer
              * @example 923918e403bf43c34b4ef6b48eb2ee04babed17320d8d1b9ff9ad086e86f44ec
