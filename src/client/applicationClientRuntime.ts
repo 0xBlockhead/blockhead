@@ -16,9 +16,7 @@ import {
 	indexSourceProviders,
 	type SourcePublicEnv,
 } from '$/sources/$sources.ts'
-import {
-	sourceProviders,
-} from '$/sources/index.ts'
+import sourceProviders from '$/sources/$sourceProviders.ts'
 import type { Source } from '$/sources/Source.ts'
 
 export type ApplicationClient = ClientContext<typeof schema, Source>
