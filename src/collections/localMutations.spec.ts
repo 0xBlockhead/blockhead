@@ -1122,9 +1122,23 @@ describe('local mutation authority journal', () => {
 			},
 		}))
 		await expect(writeLocalBlockheadActionDispatchOccurrenceStart(context, occurrence)).rejects.toThrow(
-			'no longer matches the persisted authored action revision'
+			'cannot start after an authority decision has been persisted'
 		)
 		expect(entityCollections[EntityType.BlockheadActionDispatchOccurrence].toArray).toHaveLength(0)
+		const staleAuthoritySelector = await writeLocalBlockheadActionAuthorityRequest(context, {
+			...authorityRequest,
+			id: 'authority-request-stale-revision',
+			actionRevisionBindings: [{
+				sessionId: actionSelector.sessionId,
+				actionId: actionSelector.actionId,
+				contentRevisionHash: transferRevisionHash,
+			}],
+			decision: undefined,
+		})
+		const bridgeRevisionHash = hashLocalBlockheadSessionActionRevision(
+			ActionType.Bridge,
+			bridgeParams
+		)
 		await updateLocalBlockheadSessionActionType(
 			context,
 			actionSelector,
@@ -1135,6 +1149,23 @@ describe('local mutation authority journal', () => {
 			bridgeParams,
 			transferRevisionHash
 		)
+		await expect(writeLocalBlockheadActionDispatchOccurrenceStart(context, {
+			...occurrence,
+			authorityRequest: staleAuthoritySelector,
+		})).rejects.toThrow(
+			'no longer matches the persisted authored action revision'
+		)
+		await updateLocalBlockheadSessionActionType(
+			context,
+			actionSelector,
+			sessionSelector,
+			0,
+			10,
+			ActionType.Transfer,
+			{},
+			bridgeRevisionHash
+		)
+		occurrence.authorityRequest = retargetedAuthoritySelector
 		heldPersistenceAddress = `field:${EntityType.BlockheadActionDispatchOccurrence}:${entityFieldAddressKey(
 			EntityType.BlockheadActionDispatchOccurrence,
 			[],

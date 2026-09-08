@@ -3873,7 +3873,7 @@ const localReferenceValueKey = (
 	entityType: EntityType,
 	selector: object,
 	fieldName: string
-) => localReferenceValueKeys(context, entityType, selector, fieldName)[0]
+) => localReferenceValueKeys(context, entityType, selector, fieldName).at(0)
 
 const localAuthorityEnvelopeForOccurrence = (
 	context: LocalMutationContext,
@@ -4023,6 +4023,9 @@ export const writeLocalBlockheadActionDispatchOccurrenceStart = async (
 		address: dispatchAddress.assert(structuredClone(inputOccurrence.address)),
 	} satisfies LocalBlockheadActionDispatchOccurrence
 	if (occurrence.authorityRequest !== undefined) {
+		const persistedDecision = localPrimitiveFieldValue(context, EntityType.BlockheadActionAuthorityRequest, occurrence.authorityRequest, 'decision')
+		if (persistedDecision !== undefined)
+			throw new Error('Dispatch occurrence cannot start after an authority decision has been persisted.')
 		const persistedEnvelope = localPrimitiveFieldValue(context, EntityType.BlockheadActionAuthorityRequest, occurrence.authorityRequest, 'envelope')
 		if (persistedEnvelope === undefined)
 			throw new Error('Dispatch occurrence authority request must exist before dispatch.')
