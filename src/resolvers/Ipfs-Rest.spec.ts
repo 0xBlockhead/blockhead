@@ -146,6 +146,72 @@ describe('IPFS response captures', () => {
 	})
 })
 
+describe('IPFS gateway endpoint content classes', () => {
+	beforeEach(() => vi.clearAllMocks())
+	afterEach(() => vi.restoreAllMocks())
+
+	it.each([
+		{ endpointIndex: 0, media: false },
+		{ endpointIndex: 0, media: true },
+		{ endpointIndex: 1, media: false },
+		{ endpointIndex: 1, media: true },
+	])('captures endpoint $endpointIndex with media=$media', async ({ endpointIndex, media }) => {
+		vi.spyOn(Date, 'now').mockReturnValue(6000)
+		const text = 'endpoint text'
+		const contentType = media ? 'image/png' : 'text/plain'
+		const contentLength = media ? 3 : new TextEncoder().encode(text).byteLength
+		if (endpointIndex === 1)
+			sourceFetch.mockRejectedValueOnce(new Error('first gateway unavailable'))
+
+		sourceFetch.mockResolvedValueOnce(new Response(media ? new Uint8Array([1, 2, 3]) : text, {
+			status: 200,
+			headers: {
+				'content-type': contentType,
+				'content-length': String(contentLength),
+			},
+		}))
+		const snapshot = await resolveResource(resource)
+		const capture = snapshot.$$timestamps[0]
+		const fields = capture[EntityMetaKey.Fields]
+		const timestampType = EntityType.IpfsResource_Timestamp
+		const gatewayUrl = `${binding.endpoints[endpointIndex].locator}/ipfs/${ipfsGatewaySampleCid}/readme.txt`
+		expect(capture[EntityMetaKey.Selector]).toEqual({
+			$resource: { ...resource, target: canonicalIpfsCidString(resource.target) },
+			timestampMs: 6000,
+			source: Source.Ipfs_Rest,
+		})
+		expect(fields).toMatchObject({
+			[entityFieldAddressKey(timestampType, [], 'gatewayOrigin')]: new URL(gatewayUrl).origin,
+			[entityFieldAddressKey(timestampType, [], 'gatewayUrl')]: gatewayUrl,
+			[entityFieldAddressKey(timestampType, [], 'fileName')]: 'readme.txt',
+			[entityFieldAddressKey(timestampType, [], 'extension')]: undefined,
+			[entityFieldAddressKey(timestampType, [], 'contentType')]: contentType,
+			[entityFieldAddressKey(timestampType, [], 'contentLength')]: contentLength,
+			[entityFieldAddressKey(timestampType, [], 'displayType')]: media ? 'image' : 'text',
+			[entityFieldAddressKey(timestampType, [], 'isContentTypeInferred')]: false,
+		})
+		if (media) {
+			expect(fields[entityFieldAddressKey(timestampType, [], 'text')]).toBeUndefined()
+			expect(fields[entityFieldAddressKey(timestampType, [], '$media')]).toMatchObject({
+				$original: {
+					[EntityMetaKey.Selector]: { url: gatewayUrl },
+					mimeType: contentType,
+					size: contentLength,
+				},
+			})
+		} else {
+			expect(fields[entityFieldAddressKey(timestampType, [], 'text')]).toBe(text)
+			expect(fields[entityFieldAddressKey(timestampType, [], '$media')]).toBeUndefined()
+		}
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual(
+			endpointIndex === 0 ? [gatewayUrl] : [
+				`${binding.endpoints[0].locator}/ipfs/${ipfsGatewaySampleCid}/readme.txt`,
+				gatewayUrl,
+			]
+		)
+	})
+})
+
 describe('Ipfs access hub + timestamp resolvers', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
