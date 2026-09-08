@@ -110,6 +110,28 @@ describe('sessionActionsComposerState', () => {
 		})
 	})
 
+	it('retargets every supported action type with only the Transfer-to-Bridge carryover', () => {
+		const transfer = createSessionActionDraft(emptyDraftFieldsForActionType(ActionType.Transfer))
+		const swap = retargetSessionActionDraft(transfer, ActionType.Swap)
+		const bridge = retargetSessionActionDraft(transfer, ActionType.Bridge)
+		expect(swap).toEqual({
+			mode: 'create',
+			actionType: ActionType.Swap,
+			fields: { chainId: '', tokenIn: '', tokenOut: '', amount: '', slippage: '0.005' },
+		})
+		expect(bridge).toEqual({
+			mode: 'create',
+			actionType: ActionType.Bridge,
+			fields: { fromChainId: '', toChainId: '', tokenAddress: '', amount: '', slippage: '0.005' },
+		})
+	})
+
+	it('rejects unknown runtime action types before creating a draft', () => {
+		expect(() => emptyDraftFieldsForActionType('Unknown' as ActionType)).toThrow(
+			'Unsupported session action type: Unknown'
+		)
+	})
+
 	it('makes preparing exclusive of wallet-request and message payloads', () => {
 		const notice = beginSessionComposerPreparation()
 		expect(notice).toEqual({ status: 'preparing' })
@@ -136,6 +158,9 @@ describe('sessionActionsComposerState', () => {
 			readinessCheckIds: ['wallet-account'],
 		})
 		expect(sessionComposerWalletRequestId(withRequest)).toBe('evm-native-transfer:s:a:h')
+		expect(() => completeSessionComposerPreparation('   ')).toThrow(
+			'Cannot complete preparation with an empty wallet request ID.'
+		)
 	})
 
 	it('keeps blocked and failed preparation distinct from prepared success', () => {
@@ -200,6 +225,20 @@ describe('sessionActionsComposerState', () => {
 				id: 'evm-native-transfer:s:a:h',
 			},
 		}))).toBe('EVM native transfer preparation succeeded and saved a wallet request.')
+	})
+
+	it('fences malformed wallet and readiness IDs while preserving outcome exclusivity', () => {
+		const malformed = finishSessionComposerPreparation({
+			ready: true,
+			walletRequest: { id: '   ' },
+			readiness: [{ checkId: ' wallet-account ' }, { checkId: '   ' }],
+		})
+		expect(malformed).toEqual(failSessionComposerPreparation(
+			'Preparation finished without creating a wallet request.',
+			['wallet-account']
+		))
+		expect(sessionComposerWalletRequestId(malformed)).toBeUndefined()
+		expect(sessionComposerReadinessCheckIds(malformed)).toEqual(['wallet-account'])
 	})
 
 })

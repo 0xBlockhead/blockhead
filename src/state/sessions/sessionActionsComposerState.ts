@@ -154,6 +154,8 @@ export const emptyDraftFieldsForActionType = (
 				actionType,
 				fields: emptyBridgeDraftFields(),
 			}
+		default:
+			throw new Error(`Unsupported session action type: ${String(actionType)}`)
 	}
 }
 
@@ -251,8 +253,10 @@ export const beginSessionComposerPreparation = (): Extract<SessionComposerNotice
 export const completeSessionComposerPreparation = (
 	walletRequestId: string | undefined,
 	readinessCheckIds: readonly SessionComposerReadinessCheckId[] = []
-): Extract<SessionComposerNotice, { status: 'prepared' | 'preparedWithWalletRequest' }> => (
-	walletRequestId == null ?
+): Extract<SessionComposerNotice, { status: 'prepared' | 'preparedWithWalletRequest' }> => {
+	if (walletRequestId != null && walletRequestId.trim() === '')
+		throw new Error('Cannot complete preparation with an empty wallet request ID.')
+	return walletRequestId == null ?
 		{
 			status: 'prepared',
 			message: 'EVM native transfer preparation succeeded.',
@@ -265,7 +269,7 @@ export const completeSessionComposerPreparation = (
 			walletRequestId,
 			readinessCheckIds,
 		}
-)
+}
 
 export const blockSessionComposerPreparation = (
 	error: string,
@@ -299,7 +303,8 @@ export const finishSessionComposerPreparation = (
 ): Exclude<SessionComposerNotice, { status: 'idle' | 'info' | 'error' | 'preparing' }> => {
 	const readinessCheckIds = (
 		preparation.readiness
-			?.map(({ checkId }) => checkId)
+			?.map(({ checkId }) => typeof checkId === 'string' ? checkId.trim() : '')
+			.filter((checkId) => checkId !== '')
 		?? []
 	)
 	return (
@@ -308,7 +313,7 @@ export const finishSessionComposerPreparation = (
 				preparation.error ?? 'Unknown preparation failure.',
 				readinessCheckIds
 			)
-		: preparation.walletRequest?.id == null || preparation.walletRequest.id === '' ?
+		: preparation.walletRequest?.id == null || preparation.walletRequest.id.trim() === '' ?
 			failSessionComposerPreparation(
 				'Preparation finished without creating a wallet request.',
 				readinessCheckIds
