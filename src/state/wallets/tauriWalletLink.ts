@@ -39,14 +39,33 @@ export type WalletLinkAttempt = Readonly<{
 	returnedAt?: number
 }>
 
-export type WalletLinkRelayReceipt = Readonly<{
+type WalletLinkRelayReceiptCorrelation = Readonly<{
 	attemptId: string
 	authorityRequestId: string
 	envelopeHash: string
-	sessionTopic: string
-	requestId?: string
-	outcome: 'approved' | 'rejected'
 }>
+
+export type WalletLinkRelayReceipt = WalletLinkRelayReceiptCorrelation & (
+	| Readonly<{
+		kind: 'pairing'
+		requestId?: undefined
+	}> & (
+		| Readonly<{
+			outcome: 'approved'
+			sessionTopic: string
+		}>
+		| Readonly<{
+			outcome: 'rejected'
+			sessionTopic?: undefined
+		}>
+	)
+	| Readonly<{
+		kind: 'request'
+		sessionTopic: string
+		requestId: string
+		outcome: 'approved' | 'rejected'
+	}>
+)
 
 export type WalletLinkSettlement = Readonly<{
 	attempt: WalletLinkAttempt
@@ -187,12 +206,28 @@ export const settleTauriWalletLink = (
 		receipt.attemptId !== attempt.correlation.attemptId
 		|| receipt.authorityRequestId !== attempt.correlation.authorityRequestId
 		|| receipt.envelopeHash !== attempt.correlation.envelopeHash
+		|| receipt.kind !== attempt.correlation.kind
+	)
+		throw new Error('Wallet relay receipt does not match the open attempt')
+
+	if (receipt.kind === 'request') {
+		if (
+			attempt.correlation.kind !== 'request'
+			|| receipt.sessionTopic !== attempt.correlation.sessionTopic
+			|| receipt.requestId !== attempt.correlation.requestId
+		)
+			throw new Error('Wallet relay receipt does not match the open attempt')
+	}
+	else if (
+		attempt.correlation.kind !== 'pairing'
+		|| Object.hasOwn(receipt, 'requestId')
 		|| (
-			attempt.correlation.kind === 'request'
-			&& (
-				receipt.sessionTopic !== attempt.correlation.sessionTopic
-				|| receipt.requestId !== attempt.correlation.requestId
-			)
+			receipt.outcome === 'approved'
+			&& !receipt.sessionTopic.length
+		)
+		|| (
+			receipt.outcome === 'rejected'
+			&& Object.hasOwn(receipt, 'sessionTopic')
 		)
 	)
 		throw new Error('Wallet relay receipt does not match the open attempt')
