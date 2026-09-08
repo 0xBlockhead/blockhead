@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Ipfs/bindings.ts'
-import { ipfsGatewaySampleCid } from '$/sources/Ipfs/Rest/constants.ts'
+import {
+	ipfsDocsIpnsName,
+	ipfsGatewaySampleCid,
+} from '$/sources/Ipfs/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.fn()
@@ -133,6 +136,55 @@ describe('IPFS gateway binding transport', () => {
 			text: 'recovered',
 		})
 		expect(sourceFetch).toHaveBeenCalledTimes(2)
+	})
+
+	it('refreshes an IPNS browse through the binding on every invocation', async () => {
+		sourceFetch
+			.mockRejectedValueOnce(new Error('offline'))
+			.mockResolvedValueOnce(new Response('current-1', {
+				status: 200,
+				headers: {
+					'content-type': 'text/plain',
+				},
+			}))
+			.mockRejectedValueOnce(new Error('offline'))
+			.mockResolvedValueOnce(new Response('current-2', {
+				status: 200,
+				headers: {
+					'content-type': 'text/plain',
+				},
+			}))
+
+		const request = {
+			namespace: 'ipns' as const,
+			target: `/${ipfsDocsIpnsName}/`,
+		}
+		const firstBrowse = await fetchBrowseResult(request)
+		const secondBrowse = await fetchBrowseResult(request)
+
+		expect(firstBrowse).toMatchObject({
+			namespace: 'ipns',
+			target: ipfsDocsIpnsName,
+			gatewayOrigin: new URL(binding.endpoints[1].locator).origin,
+			gatewayUrl: `${binding.endpoints[1].locator}/ipns/${ipfsDocsIpnsName}`,
+			text: 'current-1',
+		})
+		expect(secondBrowse).toMatchObject({
+			namespace: 'ipns',
+			target: ipfsDocsIpnsName,
+			gatewayOrigin: new URL(binding.endpoints[1].locator).origin,
+			gatewayUrl: `${binding.endpoints[1].locator}/ipns/${ipfsDocsIpnsName}`,
+			text: 'current-2',
+		})
+		expect(sourceFetch).toHaveBeenCalledTimes(4)
+		expect(sourceFetch.mock.calls.map(([, url]) => url)).toEqual([
+			`${binding.endpoints[0].locator}/ipns/${ipfsDocsIpnsName}`,
+			`${binding.endpoints[1].locator}/ipns/${ipfsDocsIpnsName}`,
+			`${binding.endpoints[0].locator}/ipns/${ipfsDocsIpnsName}`,
+			`${binding.endpoints[1].locator}/ipns/${ipfsDocsIpnsName}`,
+		])
+		for (const [calledBinding] of sourceFetch.mock.calls)
+			expect(calledBinding).toBe(binding)
 	})
 
 	it('reports declared gateway reachability without inventing endpoints', async () => {
