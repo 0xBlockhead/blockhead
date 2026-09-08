@@ -546,6 +546,12 @@ describe('EVM native transfer preparation', () => {
 			expectedError: 'eth_estimateGas: insufficient funds',
 			expectedCallCount: 1,
 		},
+		{
+			name: 'malformed eth_estimateGas output',
+			configure: () => executionTransport({ gas: '21000' as unknown as bigint }),
+			expectedError: 'malformed eth_estimateGas data',
+			expectedCallCount: 1,
+		},
 	])('returns $name as simulation evidence instead of throwing', async ({
 		configure,
 		expectedError,
@@ -579,6 +585,7 @@ describe('EVM native transfer preparation', () => {
 			expect(configured.getCall).toHaveBeenCalledTimes(expectedCallCount)
 			expect(configured.estimateGas).toHaveBeenCalledTimes(expectedCallCount)
 		}
+		expect(localMutationMocks.writeLocalBlockheadWalletRequest).not.toHaveBeenCalled()
 	})
 
 	it('keeps same-timestamp retry hashes stable while attempt IDs stay unique and edits stale prior evidence', async () => {

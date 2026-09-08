@@ -609,7 +609,10 @@ export const prepareEvmNativeTransfer = async ({
 	: callOutputError
 	const gasError = gasResult.status === 'rejected' ? (
 		gasResult.reason instanceof Error ? gasResult.reason.message : String(gasResult.reason)
-	) : undefined
+	) : typeof gasResult.value !== 'bigint' ?
+		'EVM execution transport returned malformed eth_estimateGas data.'
+	: undefined
+	const gasValue = gasResult.status === 'fulfilled' && gasError == null ? gasResult.value : undefined
 	const simulationError = [
 		...(callError == null ? [] : [`eth_call: ${callError}`]),
 		...(gasError == null ? [] : [`eth_estimateGas: ${gasError}`]),
@@ -628,12 +631,12 @@ export const prepareEvmNativeTransfer = async ({
 		...(callOutput != null && {
 			outputDataHash: Hash.sha256(callOutput),
 		}),
-		...(gasResult.status === 'fulfilled' && { gasUsed: gasResult.value }),
+		...(gasValue != null && { gasUsed: gasValue }),
 		...(callError == null && { reverted: false }),
 		...(simulationError != null && { error: simulationError }),
 	} satisfies BlockheadSessionSimulationCallPayload
 
-	if (callError != null || gasResult.status === 'rejected')
+	if (callError != null || gasValue == null)
 		return {
 			ready: false,
 			error: simulationError,
@@ -651,7 +654,7 @@ export const prepareEvmNativeTransfer = async ({
 				forkBlockNumber,
 				forkRpcOrigin,
 				actionCount: 1,
-				...(gasResult.status === 'fulfilled' && { gasUsed: gasResult.value }),
+				...(gasValue != null && { gasUsed: gasValue }),
 				error: simulationError,
 			},
 			simulationCall: simulationCallPayload,
@@ -659,7 +662,7 @@ export const prepareEvmNativeTransfer = async ({
 
 	const resultPayloadHash = sha256Text(JSON.stringify([
 		callOutput,
-		gasResult.value.toString(),
+		gasValue?.toString(),
 		forkBlockNumber.toString(),
 		forkRpcOrigin,
 	]))
@@ -679,7 +682,7 @@ export const prepareEvmNativeTransfer = async ({
 			forkBlockNumber,
 			forkRpcOrigin,
 			actionCount: 1,
-			gasUsed: gasResult.value,
+			gasUsed: gasValue,
 			resultPayloadHash,
 		},
 		simulationCall: simulationCallPayload,
