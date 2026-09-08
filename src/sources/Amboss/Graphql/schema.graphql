@@ -288,7 +288,7 @@ type ChannelFeeSeries {
 
 type ChannelInfo {
   channel_info: NodeChannelInfo!
-  channel_list(order: OrderChannelInput = {by: capacity, direction: DESC}, page: PageInput = {limit: 10, offset: 0}): ChannelList!
+  channel_list(order: OrderChannelInput = { by: capacity, direction: DESC }, page: PageInput = { limit: 10, offset: 0 }): ChannelList!
   fee_info(timeRange: SnapshotTimeRangeEnum = TODAY): NodeFeeInfo
   num_channels: Float!
   total_capacity: String!
@@ -315,11 +315,6 @@ enum ChannelMetricsKeys {
 type ChannelNodeInfo {
   metrics: GraphMetrics
   node: BaseNode
-}
-
-enum ChannelRecommenderMode {
-  ALTRUISTIC
-  OPTIMIZED
 }
 
 type ChannelSeries {
@@ -504,7 +499,8 @@ input CreateOrder {
 }
 
 type CreateSubscriptionTransaction {
-  external_url: String!
+  external_url: String
+  lightning_invoice: String
   transaction_id: String!
 }
 
@@ -754,7 +750,7 @@ input GhostPaymentInput {
 type GraphInfo {
   channel_closure_types(from: String!): [ChannelClosureTypes!]
   channels: ChannelInfo
-  closed_channels(page: PageInput = {limit: 10, offset: 0}): ClosedChannelInfo
+  closed_channels(page: PageInput = { limit: 10, offset: 0 }): ClosedChannelInfo
   fee_buckets: Buckets
 
   """Last time we received a gossip update from a channel from this node"""
@@ -1196,7 +1192,7 @@ type Mutation {
   addOutOfBandNode(authKey: String!, node: OutOfBandNodeInput!): Boolean!
   addSocialsToNode(input: SocialInput!, pubkey: String): Boolean!
   approveCommunityRequest(id: String!): Boolean!
-  cancelOrder(id: String!, reason: OrderCancellationReason!): Boolean!
+  cancelOrder(id: String!, reason: OrderCancellationReason!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
   changeLightningAddress(input: LightningAddressInput): Boolean!
   changePubkey(pubkey: String!): Boolean!
   claimGhostAddress(address: String): GhostAddress!
@@ -1210,8 +1206,8 @@ type Mutation {
   createCustomNostrUsername(username: String!): Boolean!
   createCustomUrl(url: String!): Boolean!
   createNewAccount(input: CreateAccountInput): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Auth API for authentication!")
-  createOffer(input: CreateOffer!): Boolean!
-  createOrder(input: CreateOrder!): Boolean!
+  createOffer(input: CreateOffer!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
+  createOrder(input: CreateOrder!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
   createSnapshotOrder(ids: [String!]!): Boolean!
   createSubscriptionTransaction(method: TransactionMethod!, months: Float!, tier: SubscriptionType!): CreateSubscriptionTransaction!
   createTelegramLink: String!
@@ -1229,24 +1225,24 @@ type Mutation {
   migrateAccountPubkey(identifier: String!, signature: String!): Boolean!
   pushNodeBalances(input: ChannelBalancePushInput!): Boolean!
   saveBackup(backup: String!, signature: String!): Boolean!
-  sellerAcceptOrder(id: String!, request: String!): Boolean!
-  sellerAddTransaction(id: String!, transaction: String!): Boolean!
-  sellerRejectOrder(id: String!): Boolean!
+  sellerAcceptOrder(id: String!, request: String!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
+  sellerAddTransaction(id: String!, transaction: String!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
+  sellerRejectOrder(id: String!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
   sendAnnouncement(announcement: String!): Boolean!
   sendEmailVerification(email: String!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Auth API for verification/authentication!")
-  sendMagmaMessage(msg: String!, orderId: String!): Boolean!
-  setOrderCloseSide(closedBy: OrderChannelCloseSide!, orderId: String!): Boolean!
+  sendMagmaMessage(msg: String!, orderId: String!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
+  setOrderCloseSide(closedBy: OrderChannelCloseSide!, orderId: String!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
   setPrivacyLevel(privacyLevel: PrivacyLevels!, pubkey: String!): Boolean!
   tags: TagMutations!
   toggleFavEdge(channel_id: String!): Boolean!
   toggleFavNode(pubkey: String!): Boolean!
-  toggleOffer(id: String!): String!
+  toggleOffer(id: String!): String! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
   tokenLogin(token: String!): Boolean!
   unlinkTelegram: Boolean!
   updateAccountInformation(input: CreateAccountInput!): Boolean!
   updateAccountWebhook(url: String!): Boolean!
   updateGhostConfig(config: GhostConfigInput!): GhostConfig!
-  updateOffer(input: UpdateOffer!): Boolean!
+  updateOffer(input: UpdateOffer!): Boolean! @deprecated(reason: "This mutation has been deprecated! We have now shifted to our Magma API!")
   verifyAddAccountEmail(token: String!): Boolean!
   verifyEmail(token: String!): Boolean!
   verifyToken(token: String!): VerfiyTokenResult!
@@ -1781,7 +1777,7 @@ type Query {
   getChannelDeltas(pubkey: String!): [DeltaDataChannels!]!
   getClaimedDates: [String!]
   getCommunity(id: String!): CommunityType!
-  getCommunityPosts(communityId: String!, communityPostId: String, page: PageInput = {limit: 10, offset: 0}): PostList!
+  getCommunityPosts(communityId: String!, communityPostId: String, page: PageInput = { limit: 10, offset: 0 }): PostList!
   getCommunityRequest(id: String!): CommunityRequestResponse!
   getCurrentVotes(pubkey: String!): CurrentVotes!
   getEdge(id: String!): EdgeInfo!
@@ -1817,8 +1813,7 @@ type Query {
   getPopularNodes: [String!]!
   getPubForCustomUrl(url: String!): String!
   getRankLists: RankLists!
-  getRecommendedChannels(input: RecommendedChannelsInput!): RecommendedChannels!
-  getSharedChannels(page: PageInput = {limit: 10, offset: 0}, pubkey1: String!, pubkey2: String!): SharedChannelsInfo!
+  getSharedChannels(page: PageInput = { limit: 10, offset: 0 }, pubkey1: String!, pubkey2: String!): SharedChannelsInfo!
   getSignInfo: SignInfo!
   getSnapshots(from: String, to: String): [Snapshots!]!
   getSubscriptionPlans: [SubscriptionPlanType!]!
@@ -1880,24 +1875,6 @@ type RankLists {
   channels: [RankItem!]!
 }
 
-type RecommendedChannelOpen {
-  capacity: String!
-  id: String!
-  node: NodeType!
-  pubkey: String!
-}
-
-type RecommendedChannels {
-  id: String!
-  list: [RecommendedChannelOpen!]!
-}
-
-input RecommendedChannelsInput {
-  capacity: String!
-  mode: ChannelRecommenderMode!
-  pubkey: String
-}
-
 type ReputationScore {
   metric: String!
   score: String!
@@ -1942,8 +1919,8 @@ type SearchNodeResults {
 }
 
 type SearchResults {
-  edge_results(page: PageInput = {limit: 25, offset: 0}): SearchEdgeResults!
-  node_results(page: PageInput = {limit: 25, offset: 0}): SearchNodeResults!
+  edge_results(page: PageInput = { limit: 25, offset: 0 }): SearchEdgeResults!
+  node_results(page: PageInput = { limit: 25, offset: 0 }): SearchNodeResults!
 }
 
 type SearchSuggestion {
@@ -2178,6 +2155,7 @@ type TotalBtcGraph {
 }
 
 enum TransactionMethod {
+  AMBOSS_PAYMENTS
   BTCPAY
   LIGHTNING_INVOICE
   STRIPE
