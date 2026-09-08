@@ -138,7 +138,7 @@ export const prepareEvmSwap = async ({
 	simulationId?: string
 	timestampMs?: number
 }): Promise<EvmSwapPreparation> => {
-	const preparationTimestampMs = timestampMs ?? Date.now()
+	const preparationTimestampMs = timestampMs
 	if (session.lockedAt == null)
 		throw new Error('Session must be locked before swap preparation.')
 	if (
@@ -371,6 +371,7 @@ export const applyEvmSwapPreparation = async ({
 	context: LocalMutationContext
 }) => {
 	const preparationTimestampMs = timestampMs ?? Date.now()
+	const initialConnectionKey = walletConnections.filter(isSelectedWalletConnection)[0]?.connectionKey
 	const preparation = await prepareEvmSwap({
 		session,
 		action,
@@ -381,6 +382,15 @@ export const applyEvmSwapPreparation = async ({
 		simulationId,
 		timestampMs: preparationTimestampMs,
 	})
+	const currentWalletGate = resolveWalletTransactionPrepGate({
+		connections: walletConnections,
+		namespace: Caip2Namespace.Eip155,
+		reference: preparation.intent.networkCaip2.reference,
+		accountAddress: preparation.preparedCall.from,
+	})
+	if (!currentWalletGate.ready || currentWalletGate.connectionKey !== initialConnectionKey)
+		throw new Error('Swap preparation lost the selected wallet binding.')
+
 	const sessionActionSelector = {
 		sessionId: session.id,
 		actionId: action.actionId,

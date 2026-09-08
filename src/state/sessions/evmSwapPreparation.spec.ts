@@ -239,6 +239,36 @@ it('uses one concrete timestamp for all persisted preparation evidence when omit
 	vi.restoreAllMocks()
 })
 
+it.each(['account', 'connection'] as const)('refuses stale %s authority after asynchronous simulation', async (change) => {
+	const connections = [structuredClone(walletConnection)]
+	await expect(applyEvmSwapPreparation({
+		context: Object.create(null),
+		session: { id: 'session-1', lockedAt: 1 },
+		action,
+		fromAddress,
+		walletConnections: connections,
+		quoteSource,
+		simulationTransport: {
+			...simulationTransport,
+			simulate: async () => {
+				connections[0] = {
+					...walletConnection,
+					...(change === 'connection' && { connectionKey: 'replacement-connection' }),
+					activeAccount: {
+						...walletConnection.activeAccount,
+						accountAddress: change === 'account' ? routerAddress : fromAddress,
+					},
+				}
+				return { output: '0x01', gasUsed: 120_000n }
+			},
+		},
+		simulationId: 'stale-simulation',
+		timestampMs: 100,
+	})).rejects.toThrow('Swap preparation lost the selected wallet binding.')
+	expect(localMutationMocks.writeLocalBlockheadSwapIntent).not.toHaveBeenCalled()
+	expect(localMutationMocks.writeLocalBlockheadWalletRequest).not.toHaveBeenCalled()
+})
+
 it('stops before persistence when simulation fails', async () => {
 	await expect(applyEvmSwapPreparation({
 		context: Object.create(null),
