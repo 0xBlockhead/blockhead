@@ -15,6 +15,7 @@ import {
 	walletConnectV2ClientFromSignClient,
 } from './walletConnectV2.ts'
 import type { WalletCandidate, WalletConnection } from './types.ts'
+import type { WalletConnectApplicationConsumer } from '../walletConnectApplicationConsumer.ts'
 
 const eip155Session = (
 	topic = 'session-topic',
@@ -109,6 +110,23 @@ const createClient = ({
 		reject: (error: Error) => approval.reject(error),
 	}
 }
+
+const createApplicationConsumer = () => ({
+	start: vi.fn(async () => {}),
+	open: vi.fn(async () => {
+		throw new Error('Unexpected generic application open')
+	}),
+	openPairing: vi.fn(async () => {
+		throw new Error('Unexpected pairing application open')
+	}),
+	approvePairing: vi.fn(() => undefined),
+	rejectPairing: vi.fn(() => undefined),
+	settle: vi.fn(() => {
+		throw new Error('Unexpected generic application settlement')
+	}),
+	destroy: vi.fn(),
+	current: vi.fn(() => undefined),
+}) satisfies WalletConnectApplicationConsumer
 
 describe('WalletConnect v2 adapter', () => {
 	afterEach(() => {
@@ -269,9 +287,11 @@ describe('WalletConnect v2 adapter', () => {
 
 	it('requests exact scopes as optional account access and owns the QR through exact-topic approval', async () => {
 		const mock = createClient()
+		const applicationConsumer = createApplicationConsumer()
 		const candidates: WalletCandidate[][] = []
 		const displayUri = vi.fn()
 		const adapter = createWalletConnectV2Adapter({
+			applicationConsumer,
 			client: mock.client,
 			requestedScopes,
 			onDisplayUri: displayUri,
@@ -345,6 +365,11 @@ describe('WalletConnect v2 adapter', () => {
 		expect((await connectionPromise)?.accounts.every((account) => (
 			account.capabilities.includes(WalletCapability.SignMessage)
 		))).toBe(true)
+		expect(applicationConsumer.approvePairing).toHaveBeenCalledWith(
+			'wc:proposal@2',
+			'session-topic'
+		)
+		expect(applicationConsumer.rejectPairing).not.toHaveBeenCalled()
 		expect(displayUri.mock.calls).toEqual([
 			['wc:proposal@2'],
 			[undefined],
@@ -352,6 +377,31 @@ describe('WalletConnect v2 adapter', () => {
 		expect(candidates.at(-1)?.at(0)).not.toHaveProperty('connectionUri')
 
 		stop()
+	})
+
+	it('disconnects a relay-approved session when application correlation rejects it', async () => {
+		const mock = createClient()
+		const applicationConsumer = createApplicationConsumer()
+		applicationConsumer.approvePairing.mockImplementation(() => {
+			throw new Error('WalletConnect application callback is stale or superseded')
+		})
+		const adapter = createWalletConnectV2Adapter({
+			applicationConsumer,
+			client: mock.client,
+			requestedScopes,
+		})
+		adapter.start(() => {})
+		const connection = adapter.connect('walletconnect-v2')
+		mock.approve()
+
+		await expect(connection).rejects.toThrow('stale or superseded')
+		expect(mock.client.disconnect).toHaveBeenCalledWith({
+			topic: 'session-topic',
+			reason: {
+				code: 6000,
+				message: 'WalletConnect application result did not match the active pairing',
+			},
+		})
 	})
 
 	it('accepts only the approved CAIP-10 subset rather than widening from session chains', async () => {
@@ -544,8 +594,10 @@ describe('WalletConnect v2 adapter', () => {
 	it('clears a rejected or invalid approval and tears down an invalid session', async () => {
 		const displayUri = vi.fn()
 		const rejected = createClient()
+		const applicationConsumer = createApplicationConsumer()
 		const rejectedCandidates: WalletCandidate[][] = []
 		const rejectedAdapter = createWalletConnectV2Adapter({
+			applicationConsumer,
 			client: rejected.client,
 			requestedScopes,
 			onDisplayUri: displayUri,
@@ -557,6 +609,10 @@ describe('WalletConnect v2 adapter', () => {
 		const rejection = new Error('User rejected WalletConnect proposal')
 		rejected.reject(rejection)
 		await expect(rejectedConnection).rejects.toBe(rejection)
+		expect(applicationConsumer.rejectPairing).toHaveBeenCalledWith(
+			'wc:proposal@2'
+		)
+		expect(applicationConsumer.approvePairing).not.toHaveBeenCalled()
 		expect(rejectedCandidates.at(-1)?.at(0)).not.toHaveProperty('connectionUri')
 
 		const expired = createClient({
@@ -710,6 +766,7 @@ describe('WalletConnect v2 adapter', () => {
 
 	it('keeps a newer QR owned when a superseded approval completes late', async () => {
 		const mock = createClient()
+		const applicationConsumer = createApplicationConsumer()
 		const firstApproval = Promise.withResolvers<WalletConnectV2Session>()
 		const secondApproval = Promise.withResolvers<WalletConnectV2Session>()
 		mock.client.connect
@@ -724,6 +781,7 @@ describe('WalletConnect v2 adapter', () => {
 		const displayUri = vi.fn()
 		const candidates: WalletCandidate[][] = []
 		const adapter = createWalletConnectV2Adapter({
+			applicationConsumer,
 			client: mock.client,
 			requestedScopes,
 			onDisplayUri: displayUri,
@@ -733,6 +791,7 @@ describe('WalletConnect v2 adapter', () => {
 		await vi.waitFor(() => expect(displayUri).toHaveBeenCalledWith('wc:first@2'))
 		const secondConnection = adapter.connect('walletconnect-v2')
 		await vi.waitFor(() => expect(displayUri).toHaveBeenCalledWith('wc:second@2'))
+		expect(applicationConsumer.rejectPairing).toHaveBeenCalledWith('wc:first@2')
 
 		firstApproval.resolve(eip155Session('first-topic'))
 		await expect(firstConnection).rejects.toThrow(
@@ -743,12 +802,20 @@ describe('WalletConnect v2 adapter', () => {
 			[undefined],
 			['wc:second@2'],
 		])
+		expect(applicationConsumer.approvePairing).not.toHaveBeenCalledWith(
+			'wc:first@2',
+			'first-topic'
+		)
 
 		secondApproval.resolve(eip155Session('second-topic'))
 		await expect(secondConnection).resolves.toMatchObject({
 			connectionKey: 'second-topic',
 		})
 		expect(displayUri.mock.calls.at(-1)).toEqual([undefined])
+		expect(applicationConsumer.approvePairing).toHaveBeenCalledWith(
+			'wc:second@2',
+			'second-topic'
+		)
 		expect(candidates.map(([candidate]) => candidate.connectionUri)).toEqual([
 			undefined,
 			'wc:first@2',
@@ -807,6 +874,29 @@ describe('WalletConnect v2 adapter', () => {
 			'WalletConnect connection request was superseded'
 		)
 		expect(displayUri).not.toHaveBeenCalled()
+	})
+
+	it('cancels an open pairing and fences its late approval when disconnecting a pending attempt', async () => {
+		const mock = createClient()
+		const applicationConsumer = createApplicationConsumer()
+		const adapter = createWalletConnectV2Adapter({
+			applicationConsumer,
+			client: mock.client,
+			requestedScopes,
+		})
+		adapter.start(() => {})
+		const connection = adapter.connect('walletconnect-v2')
+		await vi.waitFor(() => expect(mock.client.connect).toHaveBeenCalledOnce())
+
+		await adapter.disconnect('walletconnect-v2', 'walletconnect-v2')
+		expect(applicationConsumer.rejectPairing).toHaveBeenCalledWith(
+			'wc:proposal@2'
+		)
+		mock.approve()
+		await expect(connection).rejects.toThrow(
+			'WalletConnect connection request was superseded'
+		)
+		expect(applicationConsumer.approvePairing).not.toHaveBeenCalled()
 	})
 
 	it('disconnects one topic, disposes its subscribers, and ignores late events', async () => {
