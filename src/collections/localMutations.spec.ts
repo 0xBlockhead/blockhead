@@ -1125,6 +1125,33 @@ describe('local mutation authority journal', () => {
 			'cannot start after an authority decision has been persisted'
 		)
 		expect(entityCollections[EntityType.BlockheadActionDispatchOccurrence].toArray).toHaveLength(0)
+		for (const decision of [
+			authorityDecision.assert({
+				kind: 'denied',
+				decidedAt: 21,
+				reason: 'Consent declined',
+			}),
+			authorityDecision.assert({
+				kind: 'cancelled',
+				decidedAt: 21,
+			}),
+		]) {
+			const decidedAuthority = await writeLocalBlockheadActionAuthorityRequest(context, {
+				...authorityRequest,
+				id: `authority-request-${decision.kind}`,
+				actionRevisionBindings: [{
+					sessionId: actionSelector.sessionId,
+					actionId: actionSelector.actionId,
+					contentRevisionHash: transferRevisionHash,
+				}],
+				decision,
+			})
+			await expect(writeLocalBlockheadActionDispatchOccurrenceStart(context, {
+				...occurrence,
+				authorityRequest: decidedAuthority,
+			})).rejects.toThrow('cannot start after an authority decision has been persisted')
+			expect(entityCollections[EntityType.BlockheadActionDispatchOccurrence].toArray).toHaveLength(0)
+		}
 		const staleAuthoritySelector = await writeLocalBlockheadActionAuthorityRequest(context, {
 			...authorityRequest,
 			id: 'authority-request-stale-revision',
