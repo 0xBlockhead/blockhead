@@ -80,7 +80,7 @@ These are directional findings from particular tasks and harnesses, not universa
 2. Identify a missed decision, false trigger, conflict, or irrelevant instruction.
 3. Change the narrowest canonical owner.
 4. Re-run the case and compare adherence, task quality, context use, and tool cost.
-5. Update `instruction-coverage.md` whenever knowledge moves.
+5. Update [coverage.md](coverage.md) whenever knowledge moves.
 
 ## Editing these instructions
 

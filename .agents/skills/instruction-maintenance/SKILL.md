@@ -24,7 +24,7 @@ Test behavior, not wording:
 
 - Use real requests for should-trigger, should-not-trigger, and ambiguous routing cases.
 - Compare the task with and without the smallest proposed instruction group. Inspect loaded context, missed decisions, irrelevant steps, checks, and outcome.
-- Repeat meaningful comparisons at least five times; do not encode a rule from one stochastic run.
+- For empirical claims from stochastic comparisons, choose repetitions and stopping criteria from the decision, expected variance and available budget before running; report uncertainty and every outcome. Directly observed contradictions, explicit user requirements and deterministic safety defects can be corrected without that experiment. Label editorial critique, deterministic checks and behavioral trials separately.
 - Keep a change only when it improves observable work or prevents a demonstrated failure at acceptable context and execution cost.
 
 Validate skill structure with the bundled `skill-creator/scripts/quick_validate.py` when available. Update [references/coverage.md](references/coverage.md) when ownership moves. Read and update [references/evaluation.md](references/evaluation.md) when a correction supplies a reusable case or when evaluating instruction behavior.

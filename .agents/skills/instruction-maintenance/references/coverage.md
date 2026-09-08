@@ -10,9 +10,11 @@ This ledger records the maintained owner of every section from the former root i
 | Git | Root and `atomic-commits` | `atomic-commits` references |
 | Packages | Root and `package.json` | — |
 | Tasks | Root and `package.json` | — |
-| Long-running orchestration | Root routing cue and global Codex `orchestrate-program` | `~/.codex/skills/orchestrate-program/SKILL.md` |
-| Codex Goal lifecycle and cross-task recovery | Global Codex `manage-codex-goal` and `supervise-orchestration` | `~/.codex/skills/manage-codex-goal/SKILL.md`; `~/.codex/skills/supervise-orchestration/SKILL.md` |
-| Cross-task context recall and exhaustive history recrawls | Root routing cue and global Codex `recall-task-context` | `~/.codex/skills/recall-task-context/SKILL.md` |
+| Long-running orchestration | Root routing cue and global `orchestrate-program` | `~/.agents/skills/orchestrate-program/SKILL.md` |
+| Independent model capability/cost comparisons and escalation-policy research | Root/tree routing cues and global `select-model-frontier` | `~/.agents/skills/select-model-frontier/SKILL.md` |
+| Recursive workstream ownership, delegation/context selection, model budgets and closest-common-ancestor resource placement | Root routing cue, inherited assignment contract and global `orchestrate-tree`; conditional delegation reference owns lifecycle distinctions | `~/.agents/skills/orchestrate-tree/SKILL.md` |
+| Codex Goal lifecycle and cross-task recovery | Global `manage-codex-goal` and `supervise-orchestration` | `~/.codex/skills/manage-codex-goal/SKILL.md`; `~/.agents/skills/supervise-orchestration/SKILL.md` |
+| Cross-task context recall and exhaustive history recrawls | Root routing cue and global `recall-task-context` | `~/.agents/skills/recall-task-context/SKILL.md` |
 | Testing | `tests/AGENTS.md`, `test-methodology`, `playwright-route-testing` | `playwright-route-testing/references/testing-reference.md` |
 | TypeScript | Root, `typescript-development`, lint | `typescript-development/references/expressions-and-types.md` |
 | Constants | `src/constants/AGENTS.md` | `src/constants/AGENTS.md` |
@@ -37,6 +39,7 @@ This ledger records the maintained owner of every section from the former root i
 | Test design, representative fixtures, consolidation, and fault-detection coverage | `test-methodology`; `playwright-route-testing` for browser-specific work |
 | Code, test, fixture, schema, or instruction reduction and irreducibility | Global portable `~/.agents/skills/reduce` |
 | Product-return decisions, candidate integration, shared resources, recovery, and denominator reconciliation | Global Codex `orchestrate-program` |
+| Cross-stack candidate topology, reusable joins, and composition-worktree lifecycle | `compose-stack-candidates` |
 | Playwright placement, `data-e2e`, assertions | `tests/AGENTS.md`; testing reference |
 | Cross-route matrix; CORS policy | Focused Playwright references; testing reference |
 | TypeScript formatting, style, lint quality | TypeScript references; lint |
@@ -49,4 +52,6 @@ This ledger records the maintained owner of every section from the former root i
 
 ## Verification rule
 
-When instructions move again, compare the former owner's heading inventory and repository-specific terms against this ledger, confirm every skill links directly to its references, and run the structural checks in `instruction-evaluation.md`.
+Failure-driven orchestration maintenance keeps scheduling/write acceptance in global orchestrate-tree, complete outcome claims in orchestrate-program, census validity in reconcile-git-worktrees, generation publication in source-provider-development, test execution evidence in test-methodology, and model/transport qualification in select-model-frontier and acpx-orchestration-policy. Dated incidents and successor decisions remain task artifacts. The September 8 three-pass review is at `/Users/sample/Developer/blockhead-2026-agent/20260908/skill-hardening/REVIEW.md`; it is evidence, not an additional startup instruction layer.
+
+When instructions move again, compare the changed contract and repository-specific terms against this ledger, confirm every skill links to its conditional references, and run the structural checks in [evaluation.md](evaluation.md). Historical migration headings are evidence, not prerequisites for maintaining a newly installed skill.
