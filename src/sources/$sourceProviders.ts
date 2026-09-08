@@ -49,6 +49,7 @@ import chainlinkDataFeedsSourceProvider from './ChainlinkDataFeeds/index.ts'
 import chainlistSourceProvider from './Chainlist/index.ts'
 import circleCctpSourceProvider from './CircleCctp/index.ts'
 import codexNetworkPresetsSourceProvider from './CodexNetworkPresets/index.ts'
+import codexNodeSourceProvider from './CodexNode/index.ts'
 import cohereSourceProvider from './Cohere/index.ts'
 import coingeckoSourceProvider from './Coingecko/index.ts'
 import coinMarketCapSourceProvider from './CoinMarketCap/index.ts'
@@ -313,6 +314,7 @@ const sourceProviders = [
 	chainlistSourceProvider,
 	circleCctpSourceProvider,
 	codexNetworkPresetsSourceProvider,
+	codexNodeSourceProvider,
 	cohereSourceProvider,
 	coingeckoSourceProvider,
 	coinMarketCapSourceProvider,

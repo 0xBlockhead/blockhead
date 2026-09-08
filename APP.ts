@@ -207,6 +207,7 @@ export enum Source {
 	CircleCctpContracts_Stellar = "CircleCctpContracts_Stellar",
 	CircleCctpIris = "CircleCctpIris",
 	CodexNetworkPresets_Github = "CodexNetworkPresets_Github",
+	CodexNode_Rest = "CodexNode_Rest",
 	Cohere_Rest = "Cohere_Rest",
 	Coingecko_Rest = "Coingecko_Rest",
 	CoinMarketCap_Rest = "CoinMarketCap_Rest",
@@ -491,6 +492,7 @@ export enum SourceProvider {
 	Chainlist = "Chainlist",
 	CircleCctp = "CircleCctp",
 	CodexNetworkPresets = "CodexNetworkPresets",
+	CodexNode = "CodexNode",
 	Cohere = "Cohere",
 	Coingecko = "Coingecko",
 	CoinMarketCap = "CoinMarketCap",
@@ -14568,7 +14570,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.CodexNode_Rest],
 							openFields: ["endpoint", "signedPeerRecord"],
 						},
 						summary: { title: ["peerId"], value: ["connectionId"], HeadingAfter: [{ field: "endpoint", format: "url" }] },
@@ -14646,7 +14648,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.CodexNode_Rest],
 							openFields: ["firstSeenAt"],
 						},
 						summary: { title: ["cid"], value: ["$nodeState"], HeadingAfter: [{ field: "firstSeenAt", format: "timestamp" }] },
@@ -23350,7 +23352,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.CodexNode_Rest],
 							openFields: ["treeCid", "datasetSizeBytes", "blockSizeBytes", "filename", "mimetype"],
 						},
 						summary: { title: ["filename"], titleFallback: ["cid"], value: ["mimetype"], HeadingAfter: [{ field: "datasetSizeBytes", format: "number" }] },
@@ -98285,6 +98287,10 @@ export const app = {
 				label: "Codex network presets",
 			},
 			{
+				provider: "CodexNode",
+				label: "Codex node",
+			},
+			{
 				provider: "Cohere",
 				label: "Cohere",
 			},
@@ -101713,6 +101719,48 @@ export const app = {
 					],
 					delivery: SourceDelivery.BrowserDirect,
 					credentials: [],
+				},
+			},
+			{
+				source: Source.CodexNode_Rest,
+				provider: "CodexNode",
+				label: "Codex node REST",
+				binding: {
+					target: {
+						kind: SourceTargetKind.LocalDevice,
+						key: "codex-node",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "http://127.0.0.1:8080",
+							corsEnabled: false,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.OpenApiHttp,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.LocalOnly,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/CodexNode/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/CodexNode/OpenApi/openapi.yaml",
+							generated: true,
+							officialUrl: "https://raw.githubusercontent.com/logos-storage/logos-storage-nim/master/openapi.yaml",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/CodexNode/OpenApi/openapi.d.ts",
+							generated: true,
+						},
+					],
 				},
 			},
 			{
@@ -115337,6 +115385,10 @@ export const app = {
 			{
 				source: Source.CircleCctpIris,
 				path: "src/resolvers/CircleCctp-Rest.ts",
+			},
+			{
+				source: Source.CodexNode_Rest,
+				path: "src/resolvers/CodexNode-Rest.ts",
 			},
 			{
 				source: Source.Coingecko_Rest,

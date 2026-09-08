@@ -29,7 +29,7 @@
 	const nodeState = $derived(selection.entitySelector.$nodeState)
 	const blockheadCodexStoredData = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Local_Internal,
+			Source.CodexNode_Rest,
 		],
 		fields: {
 			firstSeenAt: true,

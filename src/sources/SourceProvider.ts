@@ -50,6 +50,7 @@ export enum SourceProvider {
 	Chainlist = 'Chainlist',
 	CircleCctp = 'CircleCctp',
 	CodexNetworkPresets = 'CodexNetworkPresets',
+	CodexNode = 'CodexNode',
 	Cohere = 'Cohere',
 	Coingecko = 'Coingecko',
 	CoinMarketCap = 'CoinMarketCap',

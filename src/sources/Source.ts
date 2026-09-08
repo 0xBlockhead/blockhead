@@ -56,6 +56,7 @@ export enum Source {
 	CircleCctpContracts_Stellar = 'CircleCctpContracts_Stellar',
 	CircleCctpIris = 'CircleCctpIris',
 	CodexNetworkPresets_Github = 'CodexNetworkPresets_Github',
+	CodexNode_Rest = 'CodexNode_Rest',
 	Cohere_Rest = 'Cohere_Rest',
 	Coingecko_Rest = 'Coingecko_Rest',
 	CoinMarketCap_Rest = 'CoinMarketCap_Rest',

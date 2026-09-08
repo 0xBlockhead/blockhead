@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-255 providers register 287 sources and 513 bindings.
+256 providers register 288 sources and 514 bindings.
 
 ## Providers
 
@@ -59,6 +59,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | Chainlist | Chainlist |
 | CircleCctp | Circle CCTP |
 | CodexNetworkPresets | Codex network presets |
+| CodexNode | Codex node |
 | Cohere | Cohere |
 | Coingecko | Coingecko |
 | CoinMarketCap | Coin Market Cap |
@@ -325,6 +326,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | CircleCctpContracts_Stellar | CircleCctp | Circle CCTP Stellar contracts |
 | CircleCctpIris | CircleCctp | Circle CCTP Iris |
 | CodexNetworkPresets_Github | CodexNetworkPresets | Codex network presets GitHub |
+| CodexNode_Rest | CodexNode | Codex node REST |
 | Cohere_Rest | Cohere | Cohere REST |
 | Coingecko_Rest | Coingecko | Coingecko REST |
 | CoinMarketCap_Rest | CoinMarketCap | Coin Market Cap REST |
@@ -643,6 +645,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CircleCctpContracts_Stellar","NetworkSlug","stellar","BrowserDirect","CatalogRows"] | CircleCctp | CircleCctpContracts_Stellar | NetworkSlug | stellar | InProcess | CatalogRows | GenericRead | BrowserDirect |
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | CircleCctp | CircleCctpIris | Global | circle-cctp-iris-api | HttpRest | OpenApiHttp | GenericRead | BrowserDirect |
 | ["CodexNetworkPresets_Github","GitRepository","codex-storage-network/codex-network-presets@master:","BrowserDirect","GithubContentsApi"] | CodexNetworkPresets | CodexNetworkPresets_Github | GitRepository | codex-storage-network/codex-network-presets@master: | HttpRest | GithubContentsApi | GithubRepositoryContents, RepositoryMetadata | BrowserDirect |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | CodexNode | CodexNode_Rest | LocalDevice | codex-node | HttpRest | OpenApiHttp | GenericRead | LocalOnly |
 | ["Cohere_Rest","Global","cohere-api","RemoteQuery","RestJson"] | Cohere | Cohere_Rest | Global | cohere-api | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog, GenericRead | RemoteQuery |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | Coingecko | Coingecko_Rest | Global | coingecko-demo | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Coingecko_Rest","Global","coingecko-pro","HttpProxy","OpenApiHttp"] | Coingecko | Coingecko_Rest | Global | coingecko-pro | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
@@ -1168,6 +1171,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | HttpUrl | https://iris-api.circle.com | https://iris-api.circle.com | true |
 | ["CodexNetworkPresets_Github","GitRepository","codex-storage-network/codex-network-presets@master:","BrowserDirect","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
 | ["CodexNetworkPresets_Github","GitRepository","codex-storage-network/codex-network-presets@master:","BrowserDirect","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com | https://raw.githubusercontent.com | true |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | HttpUrl | http://127.0.0.1:8080 | http://127.0.0.1:8080 | false |
 | ["Cohere_Rest","Global","cohere-api","RemoteQuery","RestJson"] | HttpUrl | https://api.cohere.com | https://api.cohere.com | false |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | HttpUrl | https://api.coingecko.com/api/v3 | https://api.coingecko.com | false |
 | ["Coingecko_Rest","Global","coingecko-pro","HttpProxy","OpenApiHttp"] | HttpUrl | https://pro-api.coingecko.com/api/v3 | https://pro-api.coingecko.com | false |
@@ -1911,6 +1915,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | GenerationManifest | src/sources/CircleCctp/OpenApi/schema-source.ts | no |  |  |
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | OpenApiSpec | src/sources/CircleCctp/OpenApi/openapi.yaml | yes | https://developers.circle.com/openapi/cctp.yaml |  |
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | OpenApiTypes | src/sources/CircleCctp/OpenApi/openapi.d.ts | yes |  |  |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | GenerationManifest | src/sources/CodexNode/OpenApi/schema-source.ts | no |  |  |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | OpenApiSpec | src/sources/CodexNode/OpenApi/openapi.yaml | yes | https://raw.githubusercontent.com/logos-storage/logos-storage-nim/master/openapi.yaml |  |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | OpenApiTypes | src/sources/CodexNode/OpenApi/openapi.d.ts | yes |  |  |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Coingecko/OpenApi/schema-source.ts | no |  |  |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Coingecko/OpenApi/demo-api.json | no |  |  |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Coingecko/OpenApi/openapi.d.ts | yes |  |  |
