@@ -64,21 +64,7 @@ export default {
 							browseResult.displayType === 'image'
 						|| browseResult.displayType === 'video'
 						|| browseResult.displayType === 'audio' ?
-								((media) => (
-								media == null ?
-									undefined
-								:
-									{
-										...media,
-										$original: {
-											[EntityMetaKey.Selector]: {
-												url: browseResult.gatewayUrl,
-											},
-											...(browseResult.contentType != null && { mimeType: browseResult.contentType }),
-											...(browseResult.contentLength != null && { size: browseResult.contentLength }),
-										},
-									}
-								))(mediaFromUrl(browseResult.gatewayUrl, type))
+								mediaFromUrl(browseResult.gatewayUrl, type)
 							:
 								undefined
 						))(

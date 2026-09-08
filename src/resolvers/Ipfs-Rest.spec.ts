@@ -1,10 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { materializeResolverOutput, ResolverOutputMaterialization } from '$/collections/assertLoadedCollectionRows.ts'
 
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
+	entitySelectorKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import bindings from '$/sources/Ipfs/bindings.ts'
 import {
 	ipfsDocsIpnsName,
@@ -12,6 +16,7 @@ import {
 } from '$/sources/Ipfs/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 import { canonicalIpfsCidString } from '$/lib/multiformats.ts'
+import { entityDefinitionByType, schema, schemaMeta } from '$/schema/index.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 
@@ -137,12 +142,30 @@ describe('IPFS response captures', () => {
 		const fields = snapshot.$$timestamps[0][EntityMetaKey.Fields]
 		expect(fields[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], 'text')]).toBeUndefined()
 		expect(fields[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], '$media')]).toMatchObject({
-			$original: {
-				[EntityMetaKey.Selector]: { url: sourceFetch.mock.calls[0][1] },
-				mimeType: 'image/png',
-				size: 3,
+			[EntityMetaKey.Selector]: { url: sourceFetch.mock.calls[0][1] },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+				[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Ipfs,
 			},
 		})
+		const timestamp = snapshot.$$timestamps[0]
+		const timestampDefinition = entityDefinitionByType[EntityType.IpfsResource_Timestamp]
+		const timestampSelector = timestamp[EntityMetaKey.Selector]
+		const mediaField = schemaMeta.entityFieldDefinitionByEntityTypePathAndName[EntityType.IpfsResource_Timestamp]?.[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], '$media')]
+		if (mediaField == null)
+			throw new Error('IPFS timestamp media field is not registered')
+		const materialized = materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Field,
+			schema,
+			schemaIndex: schemaMeta,
+			entityDefinition: timestampDefinition,
+			parentSelector: timestampSelector,
+			parentSelectorKey: entitySelectorKey(schema, timestampDefinition, timestampSelector),
+			fieldDefinition: mediaField,
+			value: fields[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], '$media')],
+			source: Source.Ipfs_Rest,
+		})
+		expect(materialized).toHaveLength(1)
 	})
 })
 
@@ -193,10 +216,10 @@ describe('IPFS gateway endpoint content classes', () => {
 		if (media) {
 			expect(fields[entityFieldAddressKey(timestampType, [], 'text')]).toBeUndefined()
 			expect(fields[entityFieldAddressKey(timestampType, [], '$media')]).toMatchObject({
-				$original: {
-					[EntityMetaKey.Selector]: { url: gatewayUrl },
-					mimeType: contentType,
-					size: contentLength,
+				[EntityMetaKey.Selector]: { url: gatewayUrl },
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+					[entityFieldAddressKey(EntityType.Media, [], 'transport')]: endpointIndex === 0 ? MediaTransport.Ipfs : MediaTransport.Http,
 				},
 			})
 		} else {
