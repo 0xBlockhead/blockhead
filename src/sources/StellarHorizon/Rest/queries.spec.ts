@@ -888,6 +888,22 @@ describe('Stellar Horizon liquidity-pool transport', () => {
 		])
 	})
 
+	it('rejects unsupported list rows instead of returning a shortened cursor page', async () => {
+		getJson.mockResolvedValueOnce(page([{
+			id: 'b'.repeat(64),
+			paging_token: 'b'.repeat(64),
+			fee_bp: 30,
+			type: 'weighted',
+			total_trustlines: '1',
+			total_shares: '1.0000000',
+			reserves: [],
+			last_modified_ledger: 1,
+			last_modified_time: '2026-08-03T11:35:17Z',
+		}]))
+		await expect(getLiquidityPools(1)).rejects.toThrow('unsupported liquidity pool type')
+		expect(getJson).toHaveBeenCalledTimes(1)
+	})
+
 	it('rejects noncanonical pool identities and nonconstant-product reserve shapes', async () => {
 		getJson
 			.mockResolvedValueOnce({
