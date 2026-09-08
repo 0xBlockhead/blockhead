@@ -29,7 +29,7 @@
 
 - `PublicConfig` is the only browser-safe environment scope and uses `PUBLIC_*`.
 - `RuntimeSecret` is server-private, `LocalSecret` belongs to local credential storage, and `UserDelegated` belongs to wallet, session, or user-granted capability.
-- Browser-direct and HTTP-proxied bindings cannot require runtime or local secrets.
+- Browser-direct requests cannot require runtime or local secrets. An HTTP proxy may inject a runtime secret on the server; its browser-delivered binding metadata must not contain the secret value.
 - Saved `BlockheadSource` rows contain endpoint and auth references, never secret values or compile-time ontology.
 - CORS describes an HTTP endpoint. HTTP proxying is a delivery mode. Remote live WebSocket ownership belongs to SvelteKit live delivery, not CORS or `/api-proxy`.
 - Remote-live server code owns the upstream subscription and closes it on abort or unsubscribe.

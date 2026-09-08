@@ -16,4 +16,4 @@
 
 After any canonical or generator edit, read the edited input and representative final files. Formatting and lint success do not prove correct section placement or generated structure.
 
-If network or sandbox restrictions block the documented command, retry that command with the required approval. Do not replace it with an unreviewed download path.
+If network or sandbox restrictions block the documented command, classify the missing capability and use an already-authorized supported route when available. Request only approval actually required by the active host policy; an unchanged denial is not a reason to retry. Do not replace the command with an unreviewed download path.

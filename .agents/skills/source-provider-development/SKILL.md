@@ -15,6 +15,10 @@ Keep the data flow visible:
 4. Register generated inputs through the existing manifests and generators.
 5. Verify representative generated output after changing a manifest or generator.
 
+Before using a partial generation API, inspect both emission and stale-file cleanup semantics. A selected output list may mean deletion of every omitted generated file. If partial publication is not explicitly supported, configure a supported fresh empty output root before the generator initializes its destination, then review and transfer the intended closure. For a fixed-output generator, use a complete generation in an isolated checkout with preserved preimages; do not invent an unsupported partial API. Include deletions and preimages in the transfer manifest; regenerate from reconstructed canonical inputs when their existing generation evidence does not apply.
+
+Bind a canonical edit to the exact provider/source/binding declaration before applying it. Similar surrounding text or a successful patch application does not establish semantic identity. Generate from the reconstructed input and compare the resulting binding identity and runtime metadata; tests against a hand-edited registry do not prove that the canonical input owns the same behavior.
+
 Read [source-model.md](references/source-model.md) when changing provider, source, binding, endpoint, credential, delivery, or registry semantics.
 
 For a freshness audit or manual client drift, read [freshness-audits.md](references/freshness-audits.md). For OpenAPI or GraphQL artifacts, read [schema-codegen.md](references/schema-codegen.md).
