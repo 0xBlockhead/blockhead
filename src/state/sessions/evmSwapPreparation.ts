@@ -370,6 +370,7 @@ export const applyEvmSwapPreparation = async ({
 }: Parameters<typeof prepareEvmSwap>[0] & {
 	context: LocalMutationContext
 }) => {
+	const preparationTimestampMs = timestampMs ?? Date.now()
 	const preparation = await prepareEvmSwap({
 		session,
 		action,
@@ -378,7 +379,7 @@ export const applyEvmSwapPreparation = async ({
 		quoteSource,
 		simulationTransport,
 		simulationId,
-		timestampMs,
+		timestampMs: preparationTimestampMs,
 	})
 	const sessionActionSelector = {
 		sessionId: session.id,
@@ -426,7 +427,7 @@ export const applyEvmSwapPreparation = async ({
 			preparation.preparedCall.input,
 			preparation.preparedCall.value.toString(),
 		])),
-		requestedAt: timestampMs ?? preparation.simulation.createdAt,
+		requestedAt: preparationTimestampMs,
 		evm: {
 			network: preparation.intent.$network[EntityMetaKey.Selector],
 			simulation: {
@@ -440,7 +441,7 @@ export const applyEvmSwapPreparation = async ({
 		},
 	}, walletConnections)
 	await writeLocalBlockheadWalletRequest_Timestamp(context, preparation.walletRequest, {
-		timestampMs: timestampMs ?? preparation.simulation.createdAt,
+		timestampMs: preparationTimestampMs,
 		source: Source.Local_Internal,
 		status: 'prepared',
 	})

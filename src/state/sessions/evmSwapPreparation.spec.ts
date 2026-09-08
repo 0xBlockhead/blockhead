@@ -212,6 +212,33 @@ it('persists intent, quote, simulation, and only a prepared wallet request', asy
 	expect(Object.hasOwn(preparation, 'evmTransaction')).toBe(false)
 })
 
+it('uses one concrete timestamp for all persisted preparation evidence when omitted', async () => {
+	vi.spyOn(Date, 'now').mockReturnValue(321)
+	const context = Object.create(null)
+
+	await applyEvmSwapPreparation({
+		context,
+		session: { id: 'session-1', lockedAt: 1 },
+		action,
+		fromAddress,
+		walletConnections: [walletConnection],
+		quoteSource,
+		simulationTransport,
+		simulationId: 'simulation-1',
+	})
+
+	const quote = localMutationMocks.writeLocalBlockheadIntentQuote.mock.calls[0]
+	const simulation = localMutationMocks.writeLocalBlockheadSessionSimulation.mock.calls[0]
+	const walletRequest = localMutationMocks.writeLocalBlockheadWalletRequest.mock.calls[0]
+	const walletRequestTimestamp = localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp.mock.calls[0]
+	expect(quote[3]).toMatchObject({ requestedAt: 321 })
+	expect(quote[4]).toMatchObject({ timestampMs: 321 })
+	expect(simulation[2]).toMatchObject({ createdAt: 321, completedAt: 321 })
+	expect(walletRequest[1]).toMatchObject({ requestedAt: 321 })
+	expect(walletRequestTimestamp[2]).toMatchObject({ timestampMs: 321 })
+	vi.restoreAllMocks()
+})
+
 it('stops before persistence when simulation fails', async () => {
 	await expect(applyEvmSwapPreparation({
 		context: Object.create(null),
