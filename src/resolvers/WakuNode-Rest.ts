@@ -147,7 +147,6 @@ export default {
 			endpoint: (nodeState) => nodeState.endpoint,
 			$$timestamps: {
 				select: (nodeState) => nodeState.$$timestamps,
-				resolveCount: (nodeState) => nodeState.$$timestamps.length,
 			},
 		}),
 	],

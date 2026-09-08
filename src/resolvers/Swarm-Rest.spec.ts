@@ -69,7 +69,7 @@ describe('Swarm access hub + timestamp resolvers', () => {
 			[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'observedResourceCount')]: 1,
 			[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'seededExampleCount')]: 1,
 		})
-		expect(accessHubResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(accessHubResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		expect(accessHubResolver.projections.$$observedResources.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {

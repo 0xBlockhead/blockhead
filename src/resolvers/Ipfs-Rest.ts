@@ -190,7 +190,6 @@ export default {
 			scope: (hub) => hub.scope,
 			$$timestamps: {
 				select: (hub) => hub.$$timestamps,
-				resolveCount: (hub) => hub.$$timestamps.length,
 			},
 			$$observedResources: {
 				select: (hub) => hub.$$observedResources,

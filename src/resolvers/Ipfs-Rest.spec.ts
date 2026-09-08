@@ -179,7 +179,7 @@ describe('Ipfs access hub + timestamp resolvers', () => {
 			[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'reachableAccessEndpointCount')]: binding.endpoints.length,
 			[entityFieldAddressKey(EntityType._GlobalIpfsAccess_Timestamp, [], 'reachable')]: true,
 		})
-		expect(accessHubResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(accessHubResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		expect(accessHubResolver.projections.$$observedResources.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
