@@ -62,10 +62,13 @@ const normalizedVisibleLabels = (labels: readonly string[]) => (
 	)))]
 )
 
+const safeInputIds = new Set([
+	'password',
+	'unlock-password',
+])
+
 const normalizedInputIds = (ids: readonly string[]) => (
-	[...new Set(ids.map((id) => id.trim()).filter((id) => (
-		/^[A-Za-z][A-Za-z0-9_.:-]{0,127}$/.test(id)
-	)))]
+	[...new Set(ids.map((id) => id.trim()).filter((id) => safeInputIds.has(id)))]
 )
 
 const integerAfter = (copy: string | null, label: string) => {

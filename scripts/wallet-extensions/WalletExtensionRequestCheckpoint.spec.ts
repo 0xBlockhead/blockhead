@@ -38,7 +38,13 @@ test('captures a redacted request checkpoint without returning page payloads or 
 		extensionPages: [{
 			buttonNames: [' Cancel ', 'Sign', 'Sign', 'Approve transfer to 0xprivate'],
 			headingNames: [' Sign message ', '', 'Recovery words private-seed'],
-			inputIds: ['password', 'seed phrase words', 'password'],
+			inputIds: [
+				'password',
+				'seed phrase words',
+				'seed-phrase-words-123456',
+				'unlock-password',
+				'password',
+			],
 			url: 'chrome-extension://abcdefghijklmnopabcdefghijklmnop/popup.html?message=private-message#approval-secret',
 		}],
 		walletConnectionsText: 'Wallet discovery active. Providers detected: 3. Active connections: 1. Account 0xprivate',
@@ -56,7 +62,10 @@ test('captures a redacted request checkpoint without returning page payloads or 
 			buttonNames: ['Cancel', 'Sign', '[redacted]'],
 			extensionUrl: 'chrome-extension://abcdefghijklmnopabcdefghijklmnop/popup.html',
 			headingNames: ['Sign message', '[redacted]'],
-			inputIds: ['password'],
+			inputIds: [
+				'password',
+				'unlock-password',
+			],
 		}],
 	})
 	const serialized = JSON.stringify(checkpoint)
@@ -67,6 +76,7 @@ test('captures a redacted request checkpoint without returning page payloads or 
 		'0xprivate',
 		'private-seed',
 		'seed phrase words',
+		'seed-phrase-words-123456',
 	])
 		assert.equal(serialized.includes(secret), false)
 })
