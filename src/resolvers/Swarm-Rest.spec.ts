@@ -1,10 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { materializeResolverOutput, ResolverOutputMaterialization } from '$/collections/assertLoadedCollectionRows.ts'
 
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
+	entitySelectorKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
+import { entityDefinitionByType, schema, schemaMeta } from '$/schema/index.ts'
 import bindings from '$/sources/Swarm/bindings.ts'
 import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
@@ -124,5 +129,37 @@ describe('Swarm resource gateway reads', () => {
 			text: 'hello swarm',
 		})
 		expect(sourceFetch).toHaveBeenCalledTimes(2)
+	})
+
+	it('materializes an image media reference through the registered schema', async () => {
+		const reference = '8b6ca499eb6f3f7e5ee242f08f1de2e7e6bb1728d7f4ee5ec22091b048f34ff1'
+		sourceFetch.mockResolvedValueOnce(new Response(new Uint8Array([1, 2, 3]), {
+			headers: { 'content-type': 'image/png', 'content-length': '3' },
+		}))
+		const snapshot = await resourceResolver.resolve.ResourceAddress.resolve({ reference, contentPath: 'image.png' }, {})
+		const definition = entityDefinitionByType[EntityType.SwarmResource]
+		const selector = { reference, contentPath: 'image.png' }
+		const mediaField = schemaMeta.entityFieldDefinitionByEntityTypePathAndName[EntityType.SwarmResource]?.[entityFieldAddressKey(EntityType.SwarmResource, [], '$media')]
+		if (mediaField == null)
+			throw new Error('Swarm resource media field is not registered')
+		const media = snapshot.$media
+		expect(media).toMatchObject({
+			[EntityMetaKey.Selector]: { url: 'https://gateway.ethswarm.org/bzz/' + reference + '/image.png' },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+				[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+			},
+		})
+		expect(materializeResolverOutput({
+			kind: ResolverOutputMaterialization.Field,
+			schema,
+			schemaIndex: schemaMeta,
+			entityDefinition: definition,
+			parentSelector: selector,
+			parentSelectorKey: entitySelectorKey(schema, definition, selector),
+			fieldDefinition: mediaField,
+			value: media,
+			source: Source.Swarm_Rest,
+		})).toHaveLength(1)
 	})
 })
