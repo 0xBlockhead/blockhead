@@ -1469,6 +1469,20 @@ describe('Voltaire ENS records', () => {
 			},
 		])
 		expect(ensNameResolver.projections.$$records.resolveCount(snapshot)).toBe(7)
+		const firstRecord = ensNameResolver.projections.$$records.select(snapshot)[0]
+		if (firstRecord == null)
+			throw new Error('ENS record observation missing')
+		const recordTimestamps = firstRecord[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]
+		expect(recordTimestamps[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				timestampMs: 1_800_000_000_000,
+				source: Source.Voltaire_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: 'https://vitalik.ca',
+			},
+		})
+		expect(ensRecordResolver?.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	}, 15_000)
 
 	it('omits EnsName.$$records rows when live text, coin, contenthash, dns, zonehash, abi, or pubkey values are zero or empty', async () => {
