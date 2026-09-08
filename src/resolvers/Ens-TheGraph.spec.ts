@@ -310,7 +310,7 @@ describe('Ens-TheGraph entity resolver', () => {
 		})
 		expect(ensNameResolver.projections.$$subdomains.resolveCount(resolvedEntity)).toBe(1)
 		expect(ensNameResolver.projections.$$records.resolveCount(resolvedEntity)).toBe(3)
-		expect(ensNameResolver.projections.$$timestamps.resolveCount(resolvedEntity)).toBe(1)
+		expect(ensNameResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		expect(ensTheGraphResolvers.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.EnsName_Timestamp
 		))).toBe(false)
@@ -494,7 +494,7 @@ describe('Ens-TheGraph EnsRecord resolver', () => {
 				},
 			}],
 		})
-		expect(ensRecordResolver.projections.$$timestamps.resolveCount(textRecord)).toBe(1)
+		expect(ensRecordResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 
 		getName.mockResolvedValueOnce([vitalikDomainWire])
 		const coinRecord = await ensRecordResolver.resolve['NameRecordKey'].resolve(

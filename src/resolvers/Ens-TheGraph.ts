@@ -467,7 +467,6 @@ export default {
 				},
 				$$timestamps: {
 					select: (ensName) => ensName.$$timestamps,
-					resolveCount: (ensName) => ensName.$$timestamps.length,
 				},
 			}),
 
@@ -593,7 +592,6 @@ export default {
 				coinType: (ensRecord) => ensRecord.coinType,
 				$$timestamps: {
 					select: (ensRecord) => ensRecord.$$timestamps,
-					resolveCount: (ensRecord) => ensRecord.$$timestamps.length,
 				},
 			}),
 
