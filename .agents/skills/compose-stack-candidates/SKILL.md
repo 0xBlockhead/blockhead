@@ -52,6 +52,8 @@ Every join records its ordered parent commits, applicability cell, owner, falsif
 
 An applicability cell identifies every selected component and relevant execution dimension. Preserve matrix revision and cell identities when comparing reports; overlapping subsets and changed applicability cannot be summed as progress. Accept component proofs separately from the integration behavior a join must demonstrate. The join's accepting owner owns that oracle while each component owner retains its implementation.
 
+Before changing a registry representation, trace its actual validation and execution consumers. Prove the proposed shape is consumed in staging and preserves their contract. Distinct parent lockfiles record provenance; they do not establish a runnable combined dependency cohort. If a consumer correctly requires a missing executable input, retain that prerequisite rather than introducing an unread field or granting broader composition credit.
+
 ## Concurrency and publication
 
 Assign one writer to each component or join. Independent nodes may advance concurrently. Serialize only mutation of the same node, shared generated authority, or canonical `main`. Prepare downstream joins as soon as every required parent commit is immutable; do not wait for unrelated matrix cells.
