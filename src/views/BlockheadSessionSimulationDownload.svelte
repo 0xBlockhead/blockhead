@@ -15,6 +15,13 @@
 			createdAt: true,
 			completedAt: true,
 			paramsHash: true,
+			executionSourceKind: true,
+			executionSourceVersion: true,
+			$executionNetwork: {
+				fields: {
+					caip2: true,
+				},
+			},
 			forkBlockNumber: true,
 			forkRpcOrigin: true,
 			actionCount: true,
@@ -200,6 +207,9 @@
 				createdAt: loadedSimulation.createdAt,
 				completedAt: loadedSimulation.completedAt ?? null,
 				paramsHash: loadedSimulation.paramsHash,
+				executionSourceKind: loadedSimulation.executionSourceKind ?? null,
+				executionSourceVersion: loadedSimulation.executionSourceVersion ?? null,
+				executionNetworkCaip2: loadedSimulation.$executionNetwork?.caip2 ?? null,
 				forkBlockNumber: decimalStringOrNull(loadedSimulation.forkBlockNumber),
 				forkRpcOrigin: loadedSimulation.forkRpcOrigin ?? null,
 				actionCount: loadedSimulation.actionCount ?? null,
