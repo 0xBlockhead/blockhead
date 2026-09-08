@@ -110948,14 +110948,13 @@ export const app = {
 					delivery: SourceDelivery.HttpProxy,
 					credentials: [
 						{
-							scope: SourceCredentialScope.PublicConfig,
-							env: {
-								keys: [
-									{
-										name: "PUBLIC_THEGRAPH_API_KEY",
-										type: "string",
-									},
-								],
+							scope: SourceCredentialScope.RuntimeSecret,
+							envKey: "THEGRAPH_API_KEY",
+							injection: {
+								header: {
+									name: "Authorization",
+									prefix: "Bearer ",
+								},
 							},
 						},
 					],

@@ -10,7 +10,6 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-import { type as arktype } from 'arktype'
 
 export default indexSourceBindings([
 	{
@@ -32,10 +31,7 @@ export default indexSourceBindings([
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
-				scope: SourceCredentialScope.PublicConfig,
-				env: arktype({
-					'PUBLIC_THEGRAPH_API_KEY': 'string',
-				}),
+				scope: SourceCredentialScope.RuntimeSecret,
 			},
 		],
 		artifacts: [

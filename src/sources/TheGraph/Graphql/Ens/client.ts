@@ -18,14 +18,13 @@ export const queryEns = <
 	_Variables extends object,
 >(
 	binding: SourceBinding,
-	publicEnv: SourcePublicEnv,
+	_publicEnv: SourcePublicEnv,
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables?: _Variables
 ) => (
 	queryTheGraph({
 		binding,
 		document,
-		publicEnv,
 		variables,
 	})
 )

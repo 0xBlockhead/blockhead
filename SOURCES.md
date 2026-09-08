@@ -1793,7 +1793,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Subscan_Rest","Caip2Network","polkadot:91b171bb158e2d3848fa23a9f1c25182","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_SUBSCAN_API_KEY |
 | ["Tally","Global","tally-api","HttpProxy","GraphqlHttp"] | RuntimeSecret | no |  |
 | ["TezosDappetizer_Postgres","SqlDataset","tezos-dappetizer-dataset","ServerOnly","Postgres"] | RuntimeSecret | yes | TEZOS_DAPPETIZER_DATABASE_URL |
-| ["TheGraph_Graphql","Global","ens-subgraph","HttpProxy","GraphqlHttp"] | PublicConfig | yes | PUBLIC_THEGRAPH_API_KEY |
+| ["TheGraph_Graphql","Global","ens-subgraph","HttpProxy","GraphqlHttp"] | RuntimeSecret | no |  |
 | ["ThreeXpl_Rest","Global","production","BrowserDirect","RestJson"] | UserDelegated | no | Xpl-Token |
 | ["TonCenter","Caip2Network","ton:-239","HttpProxy","OpenApiHttp"] | RuntimeSecret | no |  |
 | ["TonCenter","Caip2Network","ton:-3","HttpProxy","OpenApiHttp"] | RuntimeSecret | no |  |

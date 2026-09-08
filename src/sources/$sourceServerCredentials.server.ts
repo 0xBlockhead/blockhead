@@ -756,6 +756,17 @@ const runtimeSecretCredentials = [
 		undefined,
 	],
 	[
+		'["TheGraph_Graphql","Global","ens-subgraph","HttpProxy","GraphqlHttp"]',
+		'THEGRAPH_API_KEY',
+		{
+			header: {
+				name: 'Authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
 		'["TonCenter","Caip2Network","ton:-239","HttpProxy","OpenApiHttp"]',
 		'TONCENTER_MAINNET_API_KEY',
 		{

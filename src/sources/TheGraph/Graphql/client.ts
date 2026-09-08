@@ -4,10 +4,6 @@ import type {
 } from 'gql.tada'
 
 import {
-	optionalPublicEnvString,
-} from '$/sources/$sources.ts'
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import {
 	firstHttpUrlForBinding,
 	sourceFetch,
 } from '$/sources/_runtime/http.ts'
@@ -21,29 +17,21 @@ export const queryTheGraph = async <
 	>({
 	binding,
 	document,
-	publicEnv,
 	variables,
 }: {
 	binding: SourceBinding
 	document: TadaDocumentNode<_Result, _Variables>
-	publicEnv: SourcePublicEnv
 	variables?: _Variables
 }) => {
-	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_THEGRAPH_API_KEY')
-
-	if (apiKey == null)
-		throw new Error('PUBLIC_THEGRAPH_API_KEY is required for The Graph gateway queries')
-
 	const response = await sourceFetch(
 		binding,
 		firstHttpUrlForBinding(binding),
 		{
 			method: 'POST',
-				headers: {
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${apiKey}`,
-				},
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
 			body: JSON.stringify({
 				query: print(document),
 				variables,
