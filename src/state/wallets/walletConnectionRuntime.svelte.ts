@@ -889,12 +889,12 @@ const createWalletRuntimeState = (
 			authorityRequestSelector
 		)
 		const localAuthorityRows = (fieldName: string) => (
-			context.entityFieldCollections[EntityType.BlockheadActionAuthorityRequest]?.[
+			context.entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][
 				entityFieldAddressKey(EntityType.BlockheadActionAuthorityRequest, [], fieldName)
-			]?.toArray.filter((row) => (
+			].toArray.filter((row) => (
 				row[EntityMetaKey.Source] === Source.Local_Internal
 				&& row[EntityMetaKey.ParentSelectorKey] === authorityRequestSelectorKey
-			)) ?? []
+			))
 		)
 		const assertPersistedAuthority = () => {
 			assertAuthorityStillSelected()
@@ -912,10 +912,12 @@ const createWalletRuntimeState = (
 			const accountRows = localAuthorityRows('$account')
 			if (
 				accountRows.length !== 1
-				|| stringify(accountRows[0][EntityMetaKey.Value]?.[EntityMetaKey.Selector]) !== stringify(accountSelector)
+					|| stringify(accountRows[0][EntityMetaKey.Value]) !== stringify({
+						[EntityMetaKey.Selector]: accountSelector,
+					})
 			)
 				throw new Error('Persisted wallet authority account changed before dispatch.')
-			if (localAuthorityRows('decision').some((row) => row[EntityMetaKey.Value] !== undefined))
+			if (localAuthorityRows('decision').length !== 0)
 				throw new Error('Wallet authority request was decided without dispatch.')
 		}
 		const requestPayloadHash = await hashWalletEvidence(requestPayload)
@@ -934,7 +936,7 @@ const createWalletRuntimeState = (
 				assertPersistedAuthority()
 			}
 			catch (error) {
-				if (localAuthorityRows('decision').some((row) => row[EntityMetaKey.Value] !== undefined))
+				if (localAuthorityRows('decision').length !== 0)
 					throw error
 				return writeLocalBlockheadActionAuthorityDecision(context, authorityRequestSelector, {
 					kind: 'prepared-without-dispatch',
@@ -997,17 +999,18 @@ const createWalletRuntimeState = (
 			)
 		}
 		catch (error) {
+			const adapterError = Object(error)
 			const errorMessage = error instanceof Error && error.message.length > 0 ? error.message : 'Wallet signing request failed'
-			const dispatchFailureEvidence = isWalletAdapterPreDispatchFailure(Object(error)) ?
+			const dispatchFailureEvidence = isWalletAdapterPreDispatchFailure(adapterError) ?
 				dispatchEvidence.assert({
 					kind: 'pre-dispatch-failure',
 					error: errorMessage,
 				})
-			: isWalletAdapterResponseAuditFailure(Object(error)) ?
+			: isWalletAdapterResponseAuditFailure(adapterError) ?
 				dispatchEvidence.assert({
 					kind: 'response-audit-failure',
-					returnedValueHash: await hashWalletEvidence(stringify(error.returnedValue)),
-					returnedValueCount: Array.isArray(error.returnedValue) ? error.returnedValue.length : 1,
+					returnedValueHash: await hashWalletEvidence(stringify(adapterError.returnedValue)),
+					returnedValueCount: Array.isArray(adapterError.returnedValue) ? adapterError.returnedValue.length : 1,
 					error: errorMessage,
 				})
 			:
@@ -1220,12 +1223,12 @@ const createWalletRuntimeState = (
 			authorityRequestSelector
 		)
 		const localAuthorityRows = (fieldName: string) => (
-			context.entityFieldCollections[EntityType.BlockheadActionAuthorityRequest]?.[
+			context.entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][
 				entityFieldAddressKey(EntityType.BlockheadActionAuthorityRequest, [], fieldName)
-			]?.toArray.filter((row) => (
+			].toArray.filter((row) => (
 				row[EntityMetaKey.Source] === Source.Local_Internal
 				&& row[EntityMetaKey.ParentSelectorKey] === authorityRequestSelectorKey
-			)) ?? []
+			))
 		)
 		const assertPersistedAuthority = () => {
 			assertAuthorityStillSelected()
@@ -1239,7 +1242,9 @@ const createWalletRuntimeState = (
 			const accountRows = localAuthorityRows('$account')
 			if (
 				accountRows.length !== 1
-				|| stringify(accountRows[0][EntityMetaKey.Value]?.[EntityMetaKey.Selector]) !== stringify(accountSelector)
+				|| stringify(accountRows[0][EntityMetaKey.Value]) !== stringify({
+					[EntityMetaKey.Selector]: accountSelector,
+				})
 			)
 				throw new Error('Persisted wallet authority account changed before dispatch.')
 			if (
@@ -1247,7 +1252,7 @@ const createWalletRuntimeState = (
 				|| localAuthorityRows('$$sessionActions').length !== 0
 			)
 				throw new Error('Persisted wallet authority gained an authored action before dispatch.')
-			if (localAuthorityRows('decision').some((row) => row[EntityMetaKey.Value] !== undefined))
+			if (localAuthorityRows('decision').length !== 0)
 				throw new Error('Wallet authority request was decided without dispatch.')
 		}
 		assertAuthorityStillSelected()
@@ -1265,7 +1270,7 @@ const createWalletRuntimeState = (
 				assertPersistedAuthority()
 			}
 			catch (error) {
-				if (localAuthorityRows('decision').some((row) => row[EntityMetaKey.Value] !== undefined))
+				if (localAuthorityRows('decision').length !== 0)
 					throw error
 				return writeLocalBlockheadActionAuthorityDecision(context, authorityRequestSelector, {
 					kind: 'prepared-without-dispatch',
@@ -1326,6 +1331,7 @@ const createWalletRuntimeState = (
 			)
 		}
 		catch (error) {
+			const adapterError = Object(error)
 			const errorMessage = (
 				error instanceof Error && error.message.length > 0 ?
 					error.message
@@ -1333,19 +1339,19 @@ const createWalletRuntimeState = (
 					'TON internal-message signing request failed'
 			)
 			let failureEvidence: typeof dispatchEvidence.infer
-			if (isWalletAdapterPreDispatchFailure(Object(error)))
+			if (isWalletAdapterPreDispatchFailure(adapterError))
 				failureEvidence = dispatchEvidence.assert({
 					kind: 'pre-dispatch-failure',
 					error: errorMessage,
 				})
-			else if (isWalletAdapterResponseAuditFailure(Object(error)))
+			else if (isWalletAdapterResponseAuditFailure(adapterError))
 				failureEvidence = dispatchEvidence.assert({
 					kind: 'response-audit-failure',
-					returnedValueHash: await hashWalletEvidence(stringify(error.returnedValue)),
-					returnedValueCount: Array.isArray(error.returnedValue) ? error.returnedValue.length : 1,
+					returnedValueHash: await hashWalletEvidence(stringify(adapterError.returnedValue)),
+					returnedValueCount: Array.isArray(adapterError.returnedValue) ? adapterError.returnedValue.length : 1,
 					error: errorMessage,
 				})
-			else if (isWalletAdapterProviderRejection(Object(error)))
+			else if (isWalletAdapterProviderRejection(adapterError))
 				failureEvidence = dispatchEvidence.assert({
 					kind: 'definite-rejection',
 					error: errorMessage,
