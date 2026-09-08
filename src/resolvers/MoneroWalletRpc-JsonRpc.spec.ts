@@ -160,6 +160,8 @@ describe('Monero local wallet journey', () => {
 				[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'balanceAtomicUnits')]: 12n,
 			},
 		})
+		expect(walletResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
+		expect(walletResolver.projections.$$timestamps.select(snapshot)).toEqual(snapshot.$$timestamps)
 		expect(snapshot.$$subaddresses[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				walletId: 'monero-wallet-rpc',
