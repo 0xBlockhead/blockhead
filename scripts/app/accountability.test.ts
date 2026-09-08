@@ -217,7 +217,7 @@ test('derives writer evidence only from a typed writer used to emit an observati
 test('re-derives the complete observation-time writer denominator without blessing unknown clocks', () => {
 	const rows = compiledApp.observationTimeAccountability
 
-	assert.equal(rows.length, 351)
+	assert.equal(rows.length, 352)
 	assert.deepEqual(compiledApp.observationTimeWriterManifest.map((writer) => ({ ...writer })), [
 		{
 			entityType: '_GlobalActivityPubNetwork_Timestamp',
@@ -274,6 +274,12 @@ test('re-derives the complete observation-time writer denominator without blessi
 			provenance: 'LocalRefresh',
 		},
 		{
+			entityType: 'IpfsResource_Timestamp',
+			selectorName: 'ResourceTimestampMsSource',
+			source: 'Ipfs_Rest',
+			provenance: 'HttpResponse',
+		},
+		{
 			entityType: 'NetworkEndpointObservation_Timestamp',
 			selectorName: 'NetworkEndpointUrlEndpointKindTimestampMsSource',
 			source: 'Beacon_Rest',
@@ -291,6 +297,7 @@ test('re-derives the complete observation-time writer denominator without blessi
 		['BeaconBlock_Timestamp', 'BlockTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['BeaconDataColumn_Timestamp', 'DataColumnTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['BeaconExecutionPayloadEnvelope_Timestamp', 'EnvelopeTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
+		['IpfsResource_Timestamp', 'ResourceTimestampMsSource', 'Ipfs_Rest', ObservationTimeProvenance.HttpResponse],
 		['NetworkEndpointObservation_Timestamp', 'NetworkEndpointUrlEndpointKindTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.HttpResponse],
 	])
 	assert.equal(rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified).length, 341)
