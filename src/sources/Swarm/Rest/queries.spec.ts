@@ -5,6 +5,12 @@ import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 
 const sourceFetch = vi.fn()
+const textResponse = (body: string) => new Response(body, {
+	status: 200,
+	headers: {
+		'content-type': 'text/plain',
+	},
+})
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	sourceFetch,
@@ -24,12 +30,7 @@ describe('Swarm gateway binding transport', () => {
 	})
 
 	it('uses the ordered HTTP endpoints from the canonical binding', async () => {
-		sourceFetch.mockResolvedValue(new Response('hello', {
-			status: 200,
-			headers: {
-				'content-type': 'text/plain',
-			},
-		}))
+		sourceFetch.mockResolvedValue(textResponse('hello'))
 
 		await expect(fetchBrowseResult({
 			reference: `bzz://${swarmDocsLandingReference}`,
@@ -60,12 +61,7 @@ describe('Swarm gateway binding transport', () => {
 	it('fails over after network errors instead of aborting the whole browse', async () => {
 		sourceFetch
 			.mockRejectedValueOnce(new Error('offline'))
-			.mockResolvedValueOnce(new Response('recovered', {
-				status: 200,
-				headers: {
-					'content-type': 'text/plain',
-				},
-			}))
+			.mockResolvedValueOnce(textResponse('recovered'))
 
 		await expect(fetchBrowseResult({
 			reference: swarmDocsLandingReference,

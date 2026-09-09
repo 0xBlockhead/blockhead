@@ -361,18 +361,9 @@ describe('Arweave public gateway metadata', () => {
 			size: '-1',
 		},
 	])('does not download content when exact offset size is absent or malformed', async (metadata) => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(
-			metadata == null ?
-				JSON.stringify({})
-			:
-				JSON.stringify(metadata),
-			{
-				status: 200,
-				headers: {
-					'content-type': 'application/json',
-				},
-			}
-		))
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+			Response.json(metadata ?? {})
+		)
 		vi.stubGlobal('fetch', fetchMock)
 
 		await expect(fetchBrowseResult({

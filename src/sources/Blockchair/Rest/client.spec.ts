@@ -23,11 +23,7 @@ describe('Blockchair REST client delivery', () => {
 			PUBLIC_BLOCKCHAIR_API_KEY: 'configured',
 		}, eligibleBindingIds).enabledSources.has(Source.Blockchair_Rest)).toBe(true)
 
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ data: [] }), {
-			headers: {
-				'content-type': 'application/json',
-			},
-		}))
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ data: [] }))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
 
