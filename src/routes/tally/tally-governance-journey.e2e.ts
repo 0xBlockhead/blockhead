@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 
 import { expectMainVisible } from '../../../tests/_e2eBrowserHelpers.ts'
 import { routeViewSmokeTimeoutsMs } from '../../../tests/e2e/_routeViewDiagnostics.ts'
+import { installRouteViewSqliteIsolation } from '../../../tests/e2e/_routeViewFixtures.ts'
 
 
 test.skip(process.env.TALLY_API_KEY == null, 'Tally browser journeys require the runtime-secret capability to be enabled')
@@ -97,15 +98,7 @@ const governor = {
 
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 2)
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-tally-journey-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, testInfo, 'tally-journey')
 })
 
 

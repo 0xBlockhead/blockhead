@@ -4,6 +4,7 @@ import {
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../../../../../../../../../../../tests/_e2eBrowserHelpers.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../../../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const transactionHash = `0x${'aa'.repeat(32)}`
@@ -20,15 +21,7 @@ const voltaireOrigins = new Set([
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-evm-blob-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, testInfo, 'evm-blob')
 	await installChainlistRpcsJsonStub(page)
 })
 

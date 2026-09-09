@@ -9,6 +9,7 @@ import {
 	routeViewSmokeTimeoutsMs,
 	setupRouteViewSmokePage,
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 test('Reddit popular submissions open meaningful live detail content', async ({ page }, testInfo) => {
@@ -21,15 +22,7 @@ test('Reddit popular submissions open meaningful live detail content', async ({ 
 	} = setupRouteViewSmokePage(page)
 
 	try {
-		await page.addInitScript(({ name, schemaVersion }) => {
-			window.__blockheadClientProbeEnabled = true
-			window.__blockheadWaSqliteDatabaseNameOverride = name
-			window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-			window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-		}, {
-			name: `blockhead-reddit-live-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-			schemaVersion: Date.now(),
-		})
+		await installRouteViewSqliteIsolation(page, testInfo, 'reddit-live')
 		await installChainlistRpcsJsonStub(page)
 		await step(page.goto('/reddit/links', {
 			waitUntil: 'load',

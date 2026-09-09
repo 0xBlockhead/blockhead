@@ -4,6 +4,7 @@ import {
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../../../../../../../../../../../../tests/_e2eBrowserHelpers.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../../../../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const poolId = '0x3de27efa2f1aa663ae5d458857e731c129069f29000200000000000000000588'
@@ -13,15 +14,7 @@ const userAddress = '0xa99b2d5cc6847849f9b9c051474964acf1cac543'
 
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-balancer-event-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, testInfo, 'balancer-event')
 	await installChainlistRpcsJsonStub(page)
 })
 

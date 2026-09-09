@@ -9,6 +9,7 @@ import {
 	routeViewSmokeTimeoutsMs,
 	setupRouteViewSmokePage,
 } from '../../../../../../../../tests/e2e/_routeViewDiagnostics.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const playlistId = 'PLdeterministicEmpty'
@@ -18,15 +19,7 @@ const playlistPath = `/youtube/playlist/${playlistId}`
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-youtube-playlist-semantic-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, testInfo, 'youtube-playlist-semantic')
 	await installChainlistRpcsJsonStub(page)
 })
 

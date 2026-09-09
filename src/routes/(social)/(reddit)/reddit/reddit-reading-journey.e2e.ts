@@ -9,6 +9,7 @@ import {
 	routeViewSmokeTimeoutsMs,
 	setupRouteViewSmokePage,
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const redditListing = (
@@ -84,15 +85,7 @@ const secondSubmission = {
 
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-reddit-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, testInfo, 'reddit-reading')
 	await installChainlistRpcsJsonStub(page)
 	await page.route('**/*', async (route) => {
 		const url = decodeURIComponent(route.request().url())

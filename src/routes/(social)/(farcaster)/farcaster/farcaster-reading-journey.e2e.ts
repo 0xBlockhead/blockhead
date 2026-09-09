@@ -13,6 +13,7 @@ import {
 	sourceBindingId,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const castHash = '0x1111111111111111111111111111111111111111'
@@ -137,15 +138,7 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 	})
 	page.on('pageerror', (error) => pageErrors.push(error.message))
 
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-farcaster-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, testInfo, 'farcaster-reading')
 	await installChainlistRpcsJsonStub(page)
 	await page.route('**/*', async (route) => {
 		const sourceUrl = decodeURIComponent(route.request().url())

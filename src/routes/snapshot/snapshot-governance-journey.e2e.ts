@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 
 import { expectMainVisible } from '../../../tests/_e2eBrowserHelpers.ts'
 import { routeViewSmokeTimeoutsMs } from '../../../tests/e2e/_routeViewDiagnostics.ts'
+import { installRouteViewSqliteIsolation } from '../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const proposalId = `0x${'1'.repeat(64)}`
@@ -49,15 +50,7 @@ const proposal = {
 
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 2)
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-snapshot-journey-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, testInfo, 'snapshot-journey')
 })
 
 
