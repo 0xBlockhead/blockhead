@@ -1,3 +1,4 @@
+import { createOgmiosFixture } from '../../tests/fixtures/ogmios.ts'
 import {
 	beforeEach,
 	describe,
@@ -35,82 +36,7 @@ const network = {
 const unsupportedNetwork = {
 	slug: 'ethereum',
 }
-const tipPoint = {
-	slot: 130_000_102,
-	id: 'c248757d390181c517a5beadc9c3fe64bf821d3e889a963fc717003ec248757d',
-}
-const protocolParameters = {
-	minFeeCoefficient: 44,
-	minFeeConstant: {
-		ada: {
-			lovelace: 155_381,
-		},
-	},
-	minUtxoDepositCoefficient: 4_310,
-	minUtxoDepositConstant: {
-		ada: {
-			lovelace: 0,
-		},
-	},
-	maxBlockBodySize: {
-		bytes: 90_112,
-	},
-	maxBlockHeaderSize: {
-		bytes: 1_100,
-	},
-	maxTransactionSize: {
-		bytes: 16_384,
-	},
-	maxValueSize: {
-		bytes: 5_000,
-	},
-	stakeCredentialDeposit: {
-		ada: {
-			lovelace: 2_000_000,
-		},
-	},
-	stakePoolDeposit: {
-		ada: {
-			lovelace: 500_000_000,
-		},
-	},
-	stakePoolRetirementEpochBound: 18,
-	stakePoolPledgeInfluence: '3/10',
-	minStakePoolCost: {
-		ada: {
-			lovelace: 340_000_000,
-		},
-	},
-	monetaryExpansion: '3/1000',
-	treasuryExpansion: '1/5',
-	desiredNumberOfStakePools: 500,
-	federatedBlockProductionRatio: '0/1',
-	collateralPercentage: 150,
-	maxCollateralInputs: 3,
-	plutusCostModels: {
-		'plutus:v3': [
-			1,
-			2,
-			3,
-		],
-	},
-	scriptExecutionPrices: {
-		memory: '577/10000',
-		cpu: '721/10000000',
-	},
-	maxExecutionUnitsPerTransaction: {
-		memory: 14_000_000,
-		cpu: 10_000_000_000,
-	},
-	maxExecutionUnitsPerBlock: {
-		memory: 62_000_000,
-		cpu: 20_000_000_000,
-	},
-	version: {
-		major: 9,
-		minor: 0,
-	},
-}
+const { tipPoint, protocolParameters } = createOgmiosFixture()
 const context = {
 	filters: [],
 	sorts: [],
