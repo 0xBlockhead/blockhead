@@ -508,6 +508,42 @@ describe('Sourcify REST resolvers', () => {
 		})
 	})
 
+	it('preserves empty source files, metadata fallback, and direct content precedence', async () => {
+		getContractLookup.mockResolvedValue({
+			...verifiedLookup,
+			metadata: {
+				sources: {
+					'empty-metadata.sol': { content: '' },
+					'fallback.sol': { content: 'metadata fallback' },
+					'overridden.sol': { content: 'metadata version' },
+					'emptied.sol': { content: 'metadata version' },
+				},
+			},
+			sources: {
+				'empty-direct.sol': { content: '' },
+				'fallback.sol': {},
+				'overridden.sol': { content: 'direct version' },
+				'emptied.sol': { content: '' },
+				'absent.sol': {},
+			},
+		})
+
+		await expect(findResolver(
+			EntityType.EvmContractSourceBundle,
+			'EvmContract'
+		).resolve.EvmContract.resolve({
+			$contract: contract,
+		})).resolves.toEqual({
+			files: JSON.stringify({
+				'empty-metadata.sol': '',
+				'fallback.sol': 'metadata fallback',
+				'overridden.sol': 'direct version',
+				'emptied.sol': '',
+				'empty-direct.sol': '',
+			}),
+		})
+	})
+
 	it('projects implementation only when the source declares a proxy', async () => {
 		const implementationResolver = sourcifyRest.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.EvmContract
