@@ -107032,6 +107032,7 @@ export const app = {
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayPublish,
 							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.RemoteLive,
@@ -107058,6 +107059,7 @@ export const app = {
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayPublish,
 							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.RemoteLive,
@@ -107084,6 +107086,7 @@ export const app = {
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayPublish,
 							SourceOperationGroup.NostrRelayRead,
 							SourceOperationGroup.NostrSearch,
 						],
@@ -107111,6 +107114,7 @@ export const app = {
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayPublish,
 							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.RemoteLive,

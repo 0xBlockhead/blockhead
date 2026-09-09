@@ -137,6 +137,7 @@ export default indexSourceBindings([
 		apiFamily: ApiFamily.NostrRelay,
 		operationGroups: [
 			SourceOperationGroup.GenericSubscribe,
+			SourceOperationGroup.NostrRelayPublish,
 			SourceOperationGroup.NostrRelayRead,
 		],
 		delivery: SourceDelivery.RemoteLive,
@@ -164,6 +165,7 @@ export default indexSourceBindings([
 		apiFamily: ApiFamily.NostrRelay,
 		operationGroups: [
 			SourceOperationGroup.GenericSubscribe,
+			SourceOperationGroup.NostrRelayPublish,
 			SourceOperationGroup.NostrRelayRead,
 		],
 		delivery: SourceDelivery.RemoteLive,
@@ -191,6 +193,7 @@ export default indexSourceBindings([
 		apiFamily: ApiFamily.NostrRelay,
 		operationGroups: [
 			SourceOperationGroup.GenericSubscribe,
+			SourceOperationGroup.NostrRelayPublish,
 			SourceOperationGroup.NostrRelayRead,
 			SourceOperationGroup.NostrSearch,
 		],
@@ -219,6 +222,7 @@ export default indexSourceBindings([
 		apiFamily: ApiFamily.NostrRelay,
 		operationGroups: [
 			SourceOperationGroup.GenericSubscribe,
+			SourceOperationGroup.NostrRelayPublish,
 			SourceOperationGroup.NostrRelayRead,
 		],
 		delivery: SourceDelivery.RemoteLive,
