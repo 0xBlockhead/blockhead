@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -36,15 +37,10 @@ vi.mock('$/sources/Etherscan/Rest/queries.ts', async (importOriginal) => {
 const { default: etherscanRest } = await import('$/resolvers/Etherscan-Rest.ts')
 
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 1,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 const address = '0x1111111111111111111111111111111111111111'
 const txHash = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'

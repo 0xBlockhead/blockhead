@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import {
 	entityFieldAddressKey,
@@ -55,16 +56,11 @@ const builderTipBidTrace = {
 	optimistic_submission: true,
 } as const
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 16,
 		offset: 0,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const relay = {

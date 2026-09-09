@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { createOgmiosFixture } from '../../tests/fixtures/ogmios.ts'
 import {
 	beforeEach,
@@ -38,15 +39,10 @@ const unsupportedNetwork = {
 }
 const { tipPoint, protocolParameters } = createOgmiosFixture()
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 3,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const timestampsResolver = ogmiosJsonRpc.resolvers.find((resolver) => (

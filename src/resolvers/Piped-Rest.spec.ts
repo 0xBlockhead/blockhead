@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -26,16 +27,11 @@ vi.mock('$/sources/Piped/Rest/queries.ts', async (importOriginal) => {
 const { default: pipedRest } = await import('$/resolvers/Piped-Rest.ts')
 
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 16,
 		offset: 0,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const resolver = (

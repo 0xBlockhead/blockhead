@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -98,16 +99,11 @@ const findResolver = (
 }
 
 const networkContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 16,
 		offset: 0,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 describe('Sourcify REST resolvers', () => {

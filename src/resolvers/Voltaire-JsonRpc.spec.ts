@@ -422,16 +422,11 @@ describe('Voltaire endpoint observation', () => {
 				reference: '10',
 			},
 		}, {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: {
 				limit: 1,
 				offset: 1,
 			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		})).resolves.toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {

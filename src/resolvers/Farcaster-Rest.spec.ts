@@ -4,6 +4,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import {
 	EntityMetaKey,
@@ -93,13 +94,10 @@ describe('Farcaster channel directory', () => {
 		}])
 
 		const snapshot = await channelsResolver.resolve.Scope.resolve({}, {
-			filters: [],
-			sorts: [],
-			pagination: { limit: 1 },
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
+			...createResolverContext(),
+			pagination: {
+				limit: 1,
+			},
 		})
 
 		expect(getAllChannels).toHaveBeenCalledOnce()

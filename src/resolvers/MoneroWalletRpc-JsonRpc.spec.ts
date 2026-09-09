@@ -6,6 +6,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -58,13 +59,10 @@ if (
 	throw new Error('Monero wallet resolvers missing')
 
 const context = {
-	filters: [],
-	sorts: [],
-	pagination: { limit: 8 },
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
+	...createResolverContext(),
+	pagination: {
+		limit: 8,
+	},
 }
 
 afterEach(() => {
