@@ -1,10 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { materializeResolverOutput, ResolverOutputMaterialization } from '$/collections/assertLoadedCollectionRows.ts'
+import { materializeField } from '../../tests/materializeField.ts'
 
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
-	entitySelectorKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaTransport } from '$/schema/MediaTransport.ts'
@@ -16,7 +15,6 @@ import {
 } from '$/sources/Ipfs/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
 import { canonicalIpfsCidString } from '$/lib/multiformats.ts'
-import { entityDefinitionByType, schema, schemaMeta } from '$/schema/index.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
 
@@ -149,22 +147,13 @@ describe('IPFS response captures', () => {
 			},
 		})
 		const timestamp = snapshot.$$timestamps[0]
-		const timestampDefinition = entityDefinitionByType[EntityType.IpfsResource_Timestamp]
-		const timestampSelector = timestamp[EntityMetaKey.Selector]
-		const mediaField = schemaMeta.entityFieldDefinitionByEntityTypePathAndName[EntityType.IpfsResource_Timestamp]?.[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], '$media')]
-		if (mediaField == null)
-			throw new Error('IPFS timestamp media field is not registered')
-		const materialized = materializeResolverOutput({
-			kind: ResolverOutputMaterialization.Field,
-			schema,
-			schemaIndex: schemaMeta,
-			entityDefinition: timestampDefinition,
-			parentSelector: timestampSelector,
-			parentSelectorKey: entitySelectorKey(schema, timestampDefinition, timestampSelector),
-			fieldDefinition: mediaField,
-			value: fields[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], '$media')],
-			source: Source.Ipfs_Rest,
-		})
+		const materialized = materializeField(
+			EntityType.IpfsResource_Timestamp,
+			timestamp[EntityMetaKey.Selector],
+			'$media',
+			fields[entityFieldAddressKey(EntityType.IpfsResource_Timestamp, [], '$media')],
+			Source.Ipfs_Rest
+		)
 		expect(materialized).toHaveLength(1)
 	})
 })

@@ -1,15 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { materializeResolverOutput, ResolverOutputMaterialization } from '$/collections/assertLoadedCollectionRows.ts'
+import { materializeField } from '../../tests/materializeField.ts'
 
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
-	entitySelectorKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaTransport } from '$/schema/MediaTransport.ts'
 import { MediaType } from '$/schema/MediaType.ts'
-import { entityDefinitionByType, schema, schemaMeta } from '$/schema/index.ts'
 import bindings from '$/sources/Swarm/bindings.ts'
 import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
@@ -137,11 +135,7 @@ describe('Swarm resource gateway reads', () => {
 			headers: { 'content-type': 'image/png', 'content-length': '3' },
 		}))
 		const snapshot = await resourceResolver.resolve.ResourceAddress.resolve({ reference, contentPath: 'image.png' }, {})
-		const definition = entityDefinitionByType[EntityType.SwarmResource]
 		const selector = { reference, contentPath: 'image.png' }
-		const mediaField = schemaMeta.entityFieldDefinitionByEntityTypePathAndName[EntityType.SwarmResource]?.[entityFieldAddressKey(EntityType.SwarmResource, [], '$media')]
-		if (mediaField == null)
-			throw new Error('Swarm resource media field is not registered')
 		const media = snapshot.$media
 		expect(media).toMatchObject({
 			[EntityMetaKey.Selector]: { url: 'https://gateway.ethswarm.org/bzz/' + reference + '/image.png' },
@@ -150,16 +144,6 @@ describe('Swarm resource gateway reads', () => {
 				[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
 			},
 		})
-		expect(materializeResolverOutput({
-			kind: ResolverOutputMaterialization.Field,
-			schema,
-			schemaIndex: schemaMeta,
-			entityDefinition: definition,
-			parentSelector: selector,
-			parentSelectorKey: entitySelectorKey(schema, definition, selector),
-			fieldDefinition: mediaField,
-			value: media,
-			source: Source.Swarm_Rest,
-		})).toHaveLength(1)
+		expect(materializeField(EntityType.SwarmResource, selector, '$media', media, Source.Swarm_Rest)).toHaveLength(1)
 	})
 })

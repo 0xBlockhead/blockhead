@@ -5,13 +5,12 @@ import {
 	it,
 	vi,
 } from 'vitest'
-import { materializeResolverOutput, ResolverOutputMaterialization } from '$/collections/assertLoadedCollectionRows.ts'
+import { materializeField } from '../../tests/materializeField.ts'
 
-import { EntityMetaKey, entityFieldAddressKey, entitySelectorKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaTransport } from '$/schema/MediaTransport.ts'
 import { MediaType } from '$/schema/MediaType.ts'
-import { entityDefinitionByType, schema, schemaMeta } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getNetworkInfo = vi.hoisted(() => vi.fn())
@@ -687,11 +686,7 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 		})
 		const resource = await resourceResolver.resolve.TransactionIdContentPath.resolve({ transactionId, contentPath: 'image.png' }, context)
 		const timestamp = resource.timestamps[0]
-		const definition = entityDefinitionByType[EntityType.ArweaveResource_Timestamp]
 		const selector = timestamp[EntityMetaKey.Selector]
-		const mediaField = schemaMeta.entityFieldDefinitionByEntityTypePathAndName[EntityType.ArweaveResource_Timestamp]?.[entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], '$media')]
-		if (mediaField == null)
-			throw new Error('Arweave timestamp media field is not registered')
 		const media = timestamp[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.ArweaveResource_Timestamp, [], '$media')]
 		expect(media).toMatchObject({
 			[EntityMetaKey.Selector]: { url: `https://arweave.net/${transactionId}/image.png` },
@@ -700,17 +695,7 @@ describe('Arweave_Rest block / info / resource browse resolvers', () => {
 				[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Arweave,
 			},
 		})
-		expect(materializeResolverOutput({
-			kind: ResolverOutputMaterialization.Field,
-			schema,
-			schemaIndex: schemaMeta,
-			entityDefinition: definition,
-			parentSelector: selector,
-			parentSelectorKey: entitySelectorKey(schema, definition, selector),
-			fieldDefinition: mediaField,
-			value: media,
-			source: Source.Arweave_Rest,
-		})).toHaveLength(1)
+		expect(materializeField(EntityType.ArweaveResource_Timestamp, selector, '$media', media, Source.Arweave_Rest)).toHaveLength(1)
 	})
 
 	it('normalizes nested resource paths before emitting the source-owned observation selector', async () => {

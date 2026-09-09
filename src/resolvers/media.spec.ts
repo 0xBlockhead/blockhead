@@ -1,29 +1,29 @@
-import {
-	describe,
-	expect,
-	it,
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { MediaTransport } from '$/schema/MediaTransport.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
+import { mediaUrlCases, rejectedMediaUrls } from '../../tests/mediaCases.ts'
 
 describe('mediaFromUrl', () => {
-	it('builds media entity field values from normalized media URLs', () => {
-		expect(mediaFromUrl('ipfs://bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/image.png', MediaType.Image)).toEqual({
-			[EntityMetaKey.Selector]: {
-				url: 'https://ipfs.io/ipfs/bafybeigdyrzt5sfp7udm7hu76f7lz4gf5o7vsvixd3rqfwxq6c6azp7j7m/image.png',
-			},
+	it.each(mediaUrlCases)('builds native media fields from %s', (input, url, transport) => {
+		expect(mediaFromUrl(input, MediaType.Image)).toEqual({
+			[EntityMetaKey.Selector]: { url },
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
-				[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Ipfs,
+				[entityFieldAddressKey(EntityType.Media, [], 'transport')]: transport,
 			},
 		})
 	})
 
-	it('omits invalid media URLs', () => {
-		expect(mediaFromUrl('not-a-media-url', MediaType.Image)).toBeUndefined()
+	it.each([MediaType.Video, MediaType.Audio])('preserves requested %s type', (type) => {
+		expect(mediaFromUrl(mediaUrlCases[0][0], type)?.[EntityMetaKey.Fields][
+			entityFieldAddressKey(EntityType.Media, [], 'type')
+		]).toBe(type)
+	})
+
+	it.each(rejectedMediaUrls)('omits unsupported media input %j', (input) => {
+		expect(mediaFromUrl(input, MediaType.Image)).toBeUndefined()
 	})
 })
