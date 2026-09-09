@@ -1132,7 +1132,10 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["BitTorrent","TorrentSwarm","metainfo-file","LocalOnly","BitTorrentClient"] | LocalFilePath | {torrent-file-path} |  |  |
 | ["BitTorrent","TorrentSwarm","http-tracker","RemoteQuery","BitTorrentTracker"] | HttpUrl | https://{tracker-host}/announce | https://{tracker-host} | false |
 | ["BitTorrent","TorrentSwarm","udp-tracker","ServerOnly","BitTorrentTracker"] | UdpAddress | udp://{tracker-host}:{port} |  |  |
-| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://{bootstrap-node}:{port} |  |  |
+| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://router.bittorrent.com:6881 |  |  |
+| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://router.utorrent.com:6881 |  |  |
+| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://dht.transmissionbt.com:6881 |  |  |
+| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://dht.libtorrent.org:25401 |  |  |
 | ["BitTorrent","TorrentSwarm","metadata-exchange","ServerOnly","BitTorrentClient"] | TcpAddress | {peer-host}:{port} |  |  |
 | ["BitTorrent","TorrentSwarm","peer-wire","ServerOnly","BitTorrentClient"] | TcpAddress | {peer-host}:{port} |  |  |
 | ["Blobscan_Rest","Eip155Chain","1","HttpProxy","RestJson"] | HttpUrl | https://api.blobscan.com | https://api.blobscan.com | false |
