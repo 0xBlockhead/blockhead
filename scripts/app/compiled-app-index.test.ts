@@ -3,7 +3,8 @@ import test from 'node:test'
 
 import { app, EntityType } from '../../APP.ts'
 import { compileApp } from './generate.ts'
-import { EntityFieldCardinality, EntityFieldType } from './model.ts'
+import { observationTimeAccountabilityKey } from './accountability.ts'
+import { EntityFieldCardinality, EntityFieldType, type _FieldReference } from './model.ts'
 import { renderGeneratedFile } from './render.ts'
 
 
@@ -45,11 +46,38 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 	assert.equal(compiledApp.defaultPluralViewEntityTypes.every((entityType) => (
 		app.schema.entities.some((entity) => entity.entityType === entityType)
 	)), true)
-	const authoredLists = app.schema.entities.flatMap((entity) => (
-		(entity.views.singular?.lists ?? []).map((placement) => ({ entity, placement }))
-	))
-	assert.equal(compiledApp.presentationManifest.length, authoredLists.length + 9)
-	assert.equal(compiledApp.presentationManifest.length, 348)
+	const fieldKey = (field: _FieldReference) => typeof field === 'string' ? field : field.join('.')
+	const facetListIds = (entity: (typeof app.schema.entities)[number]) => {
+		const entries = (entity.facets ?? []).map((facet) => ({
+			facet,
+			projectionPath: [facet.name],
+		}))
+		const ids: string[] = []
+		for (const entry of entries) {
+			ids.push(...(entry.facet.singularView?.lists ?? []).map((placement) => (
+				`${entity.entityType}.${entry.projectionPath.join('.')}.${fieldKey(placement.field)}`
+			)))
+			entries.push(...(entry.facet.facets ?? []).map((facet) => ({
+				facet,
+				projectionPath: [...entry.projectionPath, facet.name],
+			})))
+		}
+		return ids
+	}
+	const expectedPresentationManifestIds = app.schema.entities.flatMap((entity) => [
+		...(entity.views.singular?.lists ?? []).map((placement) => (
+			`${entity.entityType}.${fieldKey(placement.field)}`
+		)),
+		...facetListIds(entity),
+	]).toSorted()
+	assert.deepEqual(
+		compiledApp.presentationManifest.map(({ id }) => id).toSorted(),
+		expectedPresentationManifestIds
+	)
+	assert.equal(
+		new Set(compiledApp.presentationManifest.map(({ id }) => id)).size,
+		compiledApp.presentationManifest.length
+	)
 	assert.deepEqual(
 		(() => {
 			const entry = compiledApp.presentationManifest.find((candidate) => candidate.id === 'ArweaveResource.$$manifestPaths')
@@ -80,8 +108,14 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 	assert.ok(compiledApp.sourceClaims.length > 0)
 	assert.ok(compiledApp.sourceAccountability.claims.length > 0)
 	assert.ok(compiledApp.sourceAccountability.mappedSelectors.length > 0)
-	assert.equal(compiledApp.observationTimeAccountability.length, 351)
-	assert.equal(compiledApp.observationTimeWriterManifest.length, 10)
+	assert.equal(
+		new Set(compiledApp.observationTimeAccountability.map(observationTimeAccountabilityKey)).size,
+		compiledApp.observationTimeAccountability.length
+	)
+	assert.equal(
+		new Set(compiledApp.observationTimeWriterManifest.map((writer) => JSON.stringify(writer))).size,
+		compiledApp.observationTimeWriterManifest.length
+	)
 	assert.equal(
 		new Set(compiledApp.generatedFiles.map((generatedFile) => generatedFile.path)).size,
 		compiledApp.generatedFiles.length
