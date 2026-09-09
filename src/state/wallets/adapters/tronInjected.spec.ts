@@ -5,6 +5,7 @@ import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { createTronInjectedAdapter } from './tronInjected.ts'
 import type { WalletCandidate, WalletConnection } from './types.ts'
+import { createInjectedDiscoveryFixture } from './injectedDiscovery.test-fixture.ts'
 
 const firstAddress = 'TZ5XixnRyraxJJy996Q1sip85PHWuj4793'
 const secondAddress = 'TRKb2nAnCBfwxnLxgoKJro6VbyA6QmsuXq'
@@ -12,8 +13,6 @@ const firstHexAddress = '41fd7d047d1164aad0f6c1ea4966449cd2e34df696'
 const wrongVersionAddress = 'TZQ7s7Wkv2SyN5pgpJ7AMdTsXyvYLbktsg'
 
 const setup = () => {
-	const windowListeners = new Map<string, (event: CustomEvent) => void>()
-	const providerListeners = new Map<string, (payload: JsonValue) => void>()
 	let accounts = [firstAddress]
 	let reference = '0x2b6653dc'
 	const provider = {
@@ -27,18 +26,15 @@ const setup = () => {
 			providerListeners.delete(event)
 		},
 	}
-	vi.stubGlobal('window', {
-		addEventListener: (event: string, listener: (event: CustomEvent) => void) => {
-			windowListeners.set(event, listener)
-		},
-		removeEventListener: (event: string) => {
-			windowListeners.delete(event)
-		},
-		dispatchEvent: () => true,
-		setTimeout,
-		clearTimeout,
-	})
-
+	const { windowListeners, providerListeners } = createInjectedDiscoveryFixture<{
+		info: {
+			uuid: string
+			name: string
+			icon: string
+			rdns: string
+		}
+		provider: typeof provider
+	}>()
 	return {
 		announce: (uuid = 'tronlink') => windowListeners.get('TIP6963:announceProvider')?.(new CustomEvent(
 			'TIP6963:announceProvider',
