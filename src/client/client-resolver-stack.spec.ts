@@ -65,6 +65,7 @@ import {
 	sourceBindingId,
 	SourceDelivery,
 } from '$/sources/SourceBinding.ts'
+import { inMemoryPersistence } from '../../tests/inMemoryPersistence.ts'
 
 
 const testSourceIndex = <const _Source extends string>(sources: readonly _Source[]) => ({
@@ -2372,43 +2373,9 @@ describe('client resolver stack architecture', () => {
 	})
 
 	it('settles persisted account terminal projections through the app resolver registry', async () => {
-		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
-		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
-		const persistence = {
-			adapter: {
-				loadSubset: async (collectionId) => [
-					...(collectionRowsByCollectionId.get(collectionId) ?? new Map()),
-				].map(([key, value]) => ({
-					key,
-					value,
-				})),
-				applyCommittedTx: async (collectionId, transaction) => {
-					const collectionRows = collectionRowsByCollectionId.get(collectionId) ?? new Map()
-					for (const mutation of transaction.mutations) {
-						if (mutation.type === 'delete')
-							collectionRows.delete(mutation.key)
-						else
-							collectionRows.set(mutation.key, mutation.value)
-					}
-					collectionRowsByCollectionId.set(collectionId, collectionRows)
-					const collectionMetadata = collectionMetadataByCollectionId.get(collectionId) ?? new Map()
-					for (const mutation of transaction.collectionMetadataMutations ?? []) {
-						if (mutation.type === 'delete')
-							collectionMetadata.delete(mutation.key)
-						else
-							collectionMetadata.set(mutation.key, JSON.stringify(mutation.value))
-					}
-					collectionMetadataByCollectionId.set(collectionId, collectionMetadata)
-				},
-				loadCollectionMetadata: async (collectionId) => [
-					...(collectionMetadataByCollectionId.get(collectionId) ?? new Map()),
-				].map(([key, value]) => ({
-					key,
-					value: JSON.parse(value),
-				})),
-				ensureIndex: async () => {},
-			} satisfies PersistenceAdapter,
-		}
+		const {
+			persistence,
+		} = inMemoryPersistence()
 		const resolvers = (
 			await Promise.all([
 				import('$/resolvers/Constants.ts'),
@@ -2734,43 +2701,11 @@ describe('client resolver stack architecture', () => {
 			}),
 		] as const
 		let providerCalls = 0
-		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
-		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
-		const persistence = {
-			adapter: {
-				loadSubset: async (collectionId) => [
-					...(collectionRowsByCollectionId.get(collectionId) ?? new Map()),
-				].map(([key, value]) => ({
-					key,
-					value,
-				})),
-				applyCommittedTx: async (collectionId, transaction) => {
-					const collectionRows = collectionRowsByCollectionId.get(collectionId) ?? new Map()
-					for (const mutation of transaction.mutations) {
-						if (mutation.type === 'delete')
-							collectionRows.delete(mutation.key)
-						else
-							collectionRows.set(mutation.key, mutation.value)
-					}
-					collectionRowsByCollectionId.set(collectionId, collectionRows)
-					const collectionMetadata = collectionMetadataByCollectionId.get(collectionId) ?? new Map()
-					for (const mutation of transaction.collectionMetadataMutations ?? []) {
-						if (mutation.type === 'delete')
-							collectionMetadata.delete(mutation.key)
-						else
-							collectionMetadata.set(mutation.key, JSON.stringify(mutation.value))
-					}
-					collectionMetadataByCollectionId.set(collectionId, collectionMetadata)
-				},
-				loadCollectionMetadata: async (collectionId) => [
-					...(collectionMetadataByCollectionId.get(collectionId) ?? new Map()),
-				].map(([key, value]) => ({
-					key,
-					value: JSON.parse(value),
-				})),
-				ensureIndex: async () => {},
-			} satisfies PersistenceAdapter,
-		}
+		const {
+			collectionRowsByCollectionId,
+			collectionMetadataByCollectionId,
+			persistence,
+		} = inMemoryPersistence()
 		const createContext = () => client({
 			schema: fixtureSchema,
 			sourceProviders: [{
@@ -3832,43 +3767,11 @@ describe('client resolver stack architecture', () => {
 				},
 			}),
 		] as const
-		const collectionRowsByCollectionId = new Map<string, Map<string | number, object>>()
-		const collectionMetadataByCollectionId = new Map<string, Map<string, string>>()
-		const persistence = {
-			adapter: {
-				loadSubset: async (collectionId) => [
-					...(collectionRowsByCollectionId.get(collectionId) ?? new Map()),
-				].map(([key, value]) => ({
-					key,
-					value,
-				})),
-				applyCommittedTx: async (collectionId, transaction) => {
-					const collectionRows = collectionRowsByCollectionId.get(collectionId) ?? new Map()
-					for (const mutation of transaction.mutations) {
-						if (mutation.type === 'delete')
-							collectionRows.delete(mutation.key)
-						else
-							collectionRows.set(mutation.key, mutation.value)
-					}
-					collectionRowsByCollectionId.set(collectionId, collectionRows)
-					const collectionMetadata = collectionMetadataByCollectionId.get(collectionId) ?? new Map()
-					for (const mutation of transaction.collectionMetadataMutations ?? []) {
-						if (mutation.type === 'delete')
-							collectionMetadata.delete(mutation.key)
-						else
-							collectionMetadata.set(mutation.key, JSON.stringify(mutation.value))
-					}
-					collectionMetadataByCollectionId.set(collectionId, collectionMetadata)
-				},
-				loadCollectionMetadata: async (collectionId) => [
-					...(collectionMetadataByCollectionId.get(collectionId) ?? new Map()),
-				].map(([key, value]) => ({
-					key,
-					value: JSON.parse(value),
-				})),
-				ensureIndex: async () => {},
-			} satisfies PersistenceAdapter,
-		}
+		const {
+			collectionRowsByCollectionId,
+			collectionMetadataByCollectionId,
+			persistence,
+		} = inMemoryPersistence()
 		let providerCalls = 0
 		let localResolverCalls = 0
 		const createContext = () => client({
