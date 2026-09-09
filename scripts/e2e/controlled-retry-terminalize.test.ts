@@ -12,6 +12,7 @@ import {
 	type ControlledRetryAttempt,
 	type ControlledRetryManifest,
 } from './controlled-retry.mts'
+import { createControlledRetryFixtureManifest } from './fixtures/controlled-retry-manifest.ts'
 import {
 	canonicalJson,
 	createRouteRunIdentity,
@@ -36,19 +37,11 @@ const createFixture = async (count = 43) => {
 	const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: productRoot }).toString().trim()
 	const historicalRunnerSha256 = sha256(await readFile(runnerPath))
 	const manifest = {
-		schemaVersion: controlledRetrySchemaVersion,
+		...createControlledRetryFixtureManifest(commit),
 		ids: ['fixture'],
 		paths,
-		commit,
 		dirtyPatchHash: await productDirtyPatchHash(productRoot),
-		workers: 1,
-		freshContextPerAttempt: true,
-		attempts: 2,
-		runnerSha256: null,
 		historicalRunnerSha256,
-		server: { url: 'http://127.0.0.1:4173/', buildIdentity: 'fixture-build' },
-		corpusVersion: 'fixture-corpus',
-		classifierVersion: 'fixture-classifier',
 	} satisfies ControlledRetryManifest & { historicalRunnerSha256: string }
 	await writeFile(manifestPath, `${JSON.stringify(manifest)}\n`)
 	await mkdir(join(outputDirectory, 'diagnostics'))
