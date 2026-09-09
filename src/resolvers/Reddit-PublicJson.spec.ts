@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -23,15 +24,7 @@ vi.mock('$/sources/RedditPublic/Rest/queries.ts', () => ({
 	getSubredditAbout: vi.fn(),
 }))
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe('Reddit_PublicJson timestamp relationships', () => {
 	it('materializes subreddit metrics as canonical timestamp fields', async () => {

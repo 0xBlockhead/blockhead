@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	expect,
@@ -24,15 +25,7 @@ beforeEach(() => {
 	jsonRpc2.mockReset()
 })
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const findResolver = (entityType: EntityType) => avalancheInfo.resolvers.find((resolver) => (
 	resolver.entityType === entityType

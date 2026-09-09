@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -105,15 +106,7 @@ const message = {
 	simplified_status: 'received',
 } as const satisfies AxelarscanGmpMessage
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe('Axelarscan BridgeTransfer resolvers', () => {
 	beforeEach(() => {

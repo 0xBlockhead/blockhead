@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -24,15 +25,7 @@ vi.mock('$/sources/_runtime/http.ts', () => ({
 const { getContents } = await import('$/sources/EthereumEips/Github/queries.ts')
 const { default: ethereumEips } = await import('$/resolvers/EthereumEips-Github.ts')
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const proposalResolver = ethereumEips.resolvers.find((resolver) => resolver.entityType === EntityType.SpecificationProposal)
 const globalResolver = ethereumEips.resolvers.find((resolver) => resolver.entityType === EntityType._Global)

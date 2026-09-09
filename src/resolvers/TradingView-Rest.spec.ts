@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	expect,
 	it,
@@ -22,15 +23,7 @@ vi.mock('$/sources/TradingView/Rest/queries.ts', () => ({
 
 const { default: tradingViewResolvers } = await import('$/resolvers/TradingView-Rest.ts')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 const market = {
 	$base: {
 		kind: MarketAssetKind.Coin,

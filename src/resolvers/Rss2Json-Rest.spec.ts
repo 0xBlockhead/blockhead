@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { expect, it, vi } from 'vitest'
 
 import {
@@ -14,15 +15,7 @@ const { getFeed } = vi.hoisted(() => ({
 vi.mock('$/sources/Rss2Json/Rest/queries.ts', () => ({ getFeed }))
 
 const { default: rss2Json } = await import('$/resolvers/Rss2Json-Rest.ts')
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 const feedResolver = () => {
 	const resolver = rss2Json.resolvers.find(({ entityType }) => entityType === EntityType.RssFeed)
 	if (resolver == null || !('FeedUrl' in resolver.resolve))

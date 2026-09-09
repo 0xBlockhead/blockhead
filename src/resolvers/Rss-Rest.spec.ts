@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { expect, it, vi } from 'vitest'
 
 import {
@@ -27,15 +28,7 @@ vi.mock('$/sources/Rss/Rest/queries.ts', () => ({
 
 const { default: rss } = await import('$/resolvers/Rss-Rest.ts')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 it('gives the selected feed binding ownership of the resolver request', async () => {
 	const feedResolver = rss.resolvers.find(({ entityType }) => entityType === EntityType.RssFeed)

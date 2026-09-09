@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	afterEach,
 	beforeEach,
@@ -197,15 +198,7 @@ if (!('operatorState' in nodeStateResolver.resolveLive))
 const lightningNetwork = {
 	slug: 'lightning',
 } as const
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 const localPublicKey = `02${'a'.repeat(64)}`
 const peerPublicKey = `03${'b'.repeat(64)}`
 const channel = {

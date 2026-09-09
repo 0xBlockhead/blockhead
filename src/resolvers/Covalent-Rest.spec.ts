@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -57,15 +58,7 @@ if (
 const goldRushBinding = bindings[Source.GoldRushFoundational_Rest][0]
 const address = '0x1111111111111111111111111111111111111111'
 const tokenAddress = '0x2222222222222222222222222222222222222222'
-const emptyContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const emptyContext = createResolverContext()
 
 const balanceEnvelope = {
 	data: {

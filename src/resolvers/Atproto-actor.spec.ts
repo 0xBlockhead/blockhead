@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
 import type { PersistenceAdapter } from '@tanstack/db-sqlite-persistence-core'
@@ -50,15 +51,7 @@ const [
 	import('$/resolvers/Atproto-BskySocial-Xrpc.ts'),
 ])
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe.each([
 	{

@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -21,15 +22,7 @@ vi.mock('$/sources/Reddit/Rest/queries.ts', () => ({
 	listSubredditLinks: vi.fn(),
 }))
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe('Reddit_Rest listing continuation', () => {
 	it('uses the canonical subreddit owner for popular discovery', async () => {

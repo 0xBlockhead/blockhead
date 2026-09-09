@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
@@ -20,15 +21,7 @@ const { default: nearRpc } = await import('$/resolvers/NearRpc-JsonRpc.ts')
 const { nearRpc: createNearRpc } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 const { getBlock, viewState } = createNearRpc
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const storageEntryResolver = nearRpc.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NearContractStorageEntry

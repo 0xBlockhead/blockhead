@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	expect,
@@ -25,15 +26,7 @@ beforeEach(() => {
 	jsonRpc2.mockReset()
 })
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const blockchainResolver = avalanchePlatformVm.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.AvalancheBlockchain

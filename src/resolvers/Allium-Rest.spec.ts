@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -29,15 +30,7 @@ const network = {
 		reference: '1',
 	},
 } as const
-const emptyContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const emptyContext = createResolverContext()
 
 const nativeBalanceRow = {
 	chain: 'ethereum',

@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -28,15 +29,7 @@ const lightningNetwork = {
 	slug: 'lightning',
 } as const
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 const nodeResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningNode

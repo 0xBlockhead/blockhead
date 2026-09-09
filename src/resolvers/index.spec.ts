@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
@@ -2640,15 +2641,7 @@ describe('resolver registry live resolver architecture', () => {
 			id: '116539053870420123',
 			uri: 'https://mastodon.social/users/Gargron/statuses/116539053870420123',
 		}
-		const resolverContext = {
-			filters: [],
-			sorts: [],
-			pagination: {},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
-		}
+const resolverContext = createResolverContext()
 
 		for (const {
 			source,

@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -14,15 +15,7 @@ vi.mock('$/sources/Eip8004Scan/Rest/queries.ts', () => ({
 
 const { default: eip8004Scan } = await import('$/resolvers/Eip8004Scan-Rest.ts')
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const identityRegistry = '0x1234567890abcdef1234567890abcdef12345678' as const
 const registrationFile = {

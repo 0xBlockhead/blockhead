@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import localInternal from '$/resolvers/Local.ts'
@@ -10,15 +11,7 @@ import { entityDefinitionByType } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const walletRequestResolver = localInternal.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadWalletRequest

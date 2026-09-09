@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
@@ -59,15 +60,7 @@ if (networkBlocksResolver == null)
 if (transactionResolver == null)
 	throw new Error('NearBlocks-Rest spec missing NearTransaction resolver')
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const network = {
 	slug: networkBySlug.near.slug,

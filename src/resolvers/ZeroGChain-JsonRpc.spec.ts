@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -40,15 +41,7 @@ const zeroGResolvers = indexResolvers(
 	new Set([Source.ZeroGChain_JsonRpc])
 ).resolverDefinitions
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const network = {
 	caip2: {

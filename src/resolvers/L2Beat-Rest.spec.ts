@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -17,15 +18,7 @@ vi.mock('$/sources/L2Beat/Rest/queries.ts', () => ({
 
 const { default: l2Beat } = await import('$/resolvers/L2Beat-Rest.ts')
 
-const emptyContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const emptyContext = createResolverContext()
 
 const networkSelector = {
 	caip2: {

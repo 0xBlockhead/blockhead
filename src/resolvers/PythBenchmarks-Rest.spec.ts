@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -20,15 +21,7 @@ vi.mock('$/sources/Pyth/Rest/queries.ts', () => ({
 
 const { default: pythBenchmarks, pythBenchmarksStableChannel } = await import('$/resolvers/PythBenchmarks-Rest.ts')
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const priceFeedId = '0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43' as const
 const publishTimeSec = 1_785_470_400

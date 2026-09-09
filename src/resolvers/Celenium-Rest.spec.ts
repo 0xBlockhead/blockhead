@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	afterEach,
 	beforeEach,
@@ -54,15 +55,7 @@ const network = {
 const celestiaNetwork = {
 	$network: network,
 }
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 const networkResolver = celeniumRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaNetwork
 	&& '$$timestamps' in resolver.projections

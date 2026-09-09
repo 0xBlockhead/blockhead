@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -42,15 +43,7 @@ const [
 	import('$/resolvers/Primal-Rest.ts'),
 ])
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 const secretKey = Hex.toBytes(`0x${'02'.repeat(32)}`)
 const pubkey = Hex.fromBytes(schnorr.getPublicKey(secretKey)).slice(2)
 const rootEventId = '3'.repeat(64)

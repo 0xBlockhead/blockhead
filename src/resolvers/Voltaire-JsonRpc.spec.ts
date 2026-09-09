@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -378,16 +379,7 @@ describe('Voltaire endpoint observation', () => {
 			caip2: {
 				namespace: 'eip155',
 				reference: '10',
-			},
-		}, {
-			filters: [],
-			sorts: [],
-			pagination: {},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
-		})
+			}, }, createResolverContext())
 
 		expect(resolver.projections.$$endpointObservations(observation)).toEqual([{
 			[EntityMetaKey.Selector]: {

@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
@@ -12,15 +13,7 @@ const { default: bitcoinCashBcmrResolvers } = await import('$/resolvers/BitcoinC
 
 const [metadataResolver] = bitcoinCashBcmrResolvers.resolvers
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe('BitcoinCashBcmr metadata resolver', () => {
 	beforeEach(() => {

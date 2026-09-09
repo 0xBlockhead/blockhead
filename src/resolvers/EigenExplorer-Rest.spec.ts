@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -119,15 +120,7 @@ const avsTimestampSelector = {
 	timestampMs,
 	source: Source.EigenExplorer_Rest,
 }
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const evmNetworkAccountResolver = eigenExplorerResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmNetworkAccount

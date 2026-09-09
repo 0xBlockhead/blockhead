@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CoinId } from '$/constants/Coin.ts'
@@ -22,15 +23,7 @@ vi.mock('$/sources/Coinpaprika/OpenApi/queries.ts', async (importOriginal) => ({
 
 const { default: coinpaprikaResolvers } = await import('$/resolvers/Coinpaprika-Rest.ts')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe('Coinpaprika coin catalog resolver', () => {
 	it('emits only catalog-backed canonical selectors with authoritative resolveCount', async () => {

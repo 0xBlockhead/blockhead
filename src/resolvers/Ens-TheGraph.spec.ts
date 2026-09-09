@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -87,15 +88,7 @@ const ensNameSearchResolver = ensTheGraphResolvers.resolvers.find((
 if (ensNameSearchResolver == null)
 	throw new Error('Ens-TheGraph spec missing BlockheadEnsNameSearch $$matchingNames resolver')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 const vitalikDomainWire = {
 	id: '0x1234567890123456789012345678901234567890',

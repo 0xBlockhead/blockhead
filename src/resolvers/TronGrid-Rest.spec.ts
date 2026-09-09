@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
@@ -49,15 +50,7 @@ vi.mock('$/sources/TronGrid/Rest/queries.ts', () => ({
 
 const { default: tronGridRest } = await import('$/resolvers/TronGrid-Rest.ts')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe('TronGrid REST network relationships', () => {
 	it('shares each network projection across exact CAIP-2 and slug applicability', async () => {

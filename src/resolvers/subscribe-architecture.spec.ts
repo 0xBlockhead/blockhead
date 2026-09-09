@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	BaseQueryBuilder,
 	and,
@@ -32,15 +33,7 @@ describe('client resolver architecture', () => {
 			sources: [],
 			publicEnv: {},
 		})).toBe(7)
-		expect(resolverContextRowLimit({
-			filters: [],
-			sorts: [],
-			pagination: {},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
-		})).toBe(defaultResolverContextRowLimit)
+		expect(resolverContextRowLimit(createResolverContext())).toBe(defaultResolverContextRowLimit)
 	})
 
 	it('keeps field loaded-subset keys distinct across subscribe limits', () => {

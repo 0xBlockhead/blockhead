@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { networkBySlug } from '$/constants/Network.ts'
@@ -182,15 +183,7 @@ if (networkMempoolTransactionsResolver == null)
 if (networkTimestampsResolver == null)
 	throw new Error('Esplora-Rest spec missing Network.$$timestamps resolver')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 const liquidNetwork = {
 	slug: 'liquid',
