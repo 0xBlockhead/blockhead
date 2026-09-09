@@ -33,4 +33,25 @@ export default indexSourceBindings([
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
+	{
+		source: Source.MempoolSpace_Rest,
+		target: {
+			kind: SourceTargetKind.Caip2Network,
+			key: 'bip122:000000000933ea01ad0ee984209779ba',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://mempool.space/testnet/api',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+	},
 ])

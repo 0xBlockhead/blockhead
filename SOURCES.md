@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-256 providers register 288 sources and 516 bindings.
+256 providers register 288 sources and 517 bindings.
 
 ## Providers
 
@@ -790,6 +790,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["McpDeclared_Protocol","LocalDevice","declared-mcp-server","LocalOnly","McpProtocol"] | Mcp | McpDeclared_Protocol | LocalDevice | declared-mcp-server | JsonRpc2 | McpProtocol | AgentCapabilityCatalog, AgentRuntimeInvocation | LocalOnly |
 | ["McpPackageRegistry_Rest","Global","mcp-package-registry","RemoteQuery","RestJson"] | Mcp | McpPackageRegistry_Rest | Global | mcp-package-registry | HttpRest | RestJson | AgentCapabilityCatalog, AiArtifactCatalog, RepositoryMetadata | RemoteQuery |
 | ["MempoolSpace_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","BrowserDirect","RestJson"] | MempoolSpace | MempoolSpace_Rest | Caip2Network | bip122:000000000019d6689c085ae165831e93 | HttpRest | RestJson | GenericRead | BrowserDirect |
+| ["MempoolSpace_Rest","Caip2Network","bip122:000000000933ea01ad0ee984209779ba","BrowserDirect","RestJson"] | MempoolSpace | MempoolSpace_Rest | Caip2Network | bip122:000000000933ea01ad0ee984209779ba | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["MetadataVision_Rest","Global","open-graph","HttpProxy","RestJson"] | MetadataVision | MetadataVision_Rest | Global | open-graph | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["MevRelay_Rest","Feed","boost-relay.flashbots.net","HttpProxy","RestJson"] | MevRelay | MevRelay_Rest | Feed | boost-relay.flashbots.net | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["MevRelay_Rest","Feed","relay.ultrasound.money","HttpProxy","RestJson"] | MevRelay | MevRelay_Rest | Feed | relay.ultrasound.money | HttpRest | RestJson | GenericRead | HttpProxy |
@@ -1334,6 +1335,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["McpDeclared_Protocol","LocalDevice","declared-mcp-server","LocalOnly","McpProtocol"] | LocalProcess | mcp |  |  |
 | ["McpPackageRegistry_Rest","Global","mcp-package-registry","RemoteQuery","RestJson"] | HttpUrl | https://registry.modelcontextprotocol.io/v0.1/servers | https://registry.modelcontextprotocol.io | false |
 | ["MempoolSpace_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","BrowserDirect","RestJson"] | HttpUrl | https://mempool.space/api | https://mempool.space | true |
+| ["MempoolSpace_Rest","Caip2Network","bip122:000000000933ea01ad0ee984209779ba","BrowserDirect","RestJson"] | HttpUrl | https://mempool.space/testnet/api | https://mempool.space | true |
 | ["MetadataVision_Rest","Global","open-graph","HttpProxy","RestJson"] | HttpUrl | https://og.metadata.vision | https://og.metadata.vision | false |
 | ["MevRelay_Rest","Feed","boost-relay.flashbots.net","HttpProxy","RestJson"] | HttpUrl | https://boost-relay.flashbots.net | https://boost-relay.flashbots.net | false |
 | ["MevRelay_Rest","Feed","relay.ultrasound.money","HttpProxy","RestJson"] | HttpUrl | https://relay.ultrasound.money | https://relay.ultrasound.money | false |

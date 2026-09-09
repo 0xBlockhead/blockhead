@@ -106190,26 +106190,48 @@ export const app = {
 				source: Source.MempoolSpace_Rest,
 				provider: "MempoolSpace",
 				label: "mempool.space REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "bip122:000000000019d6689c085ae165831e93",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://mempool.space/api",
-							corsEnabled: true,
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "bip122:000000000019d6689c085ae165831e93",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://mempool.space/api",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "bip122:000000000933ea01ad0ee984209779ba",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://mempool.space/testnet/api",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+					},
+				],
 			},
 			{
 				source: Source.MetadataVision_Rest,
