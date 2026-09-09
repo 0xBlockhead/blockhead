@@ -14,7 +14,7 @@ const userAddress = '0xa99b2d5cc6847849f9b9c051474964acf1cac543'
 
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'balancer-event')
+	await installRouteViewSqliteIsolation(page, `blockhead-balancer-event-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

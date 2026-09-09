@@ -85,7 +85,7 @@ const secondSubmission = {
 
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'reddit-reading')
+	await installRouteViewSqliteIsolation(page, `blockhead-reddit-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 	await page.route('**/*', async (route) => {
 		const url = decodeURIComponent(route.request().url())

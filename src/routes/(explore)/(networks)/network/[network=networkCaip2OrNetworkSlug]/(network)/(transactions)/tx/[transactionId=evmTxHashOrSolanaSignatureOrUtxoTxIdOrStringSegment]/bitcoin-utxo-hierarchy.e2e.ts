@@ -43,7 +43,7 @@ const transactionWire = {
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'bitcoin-utxo')
+	await installRouteViewSqliteIsolation(page, `blockhead-bitcoin-utxo-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 })
 
 

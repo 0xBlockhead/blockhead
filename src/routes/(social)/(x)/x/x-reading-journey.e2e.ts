@@ -18,7 +18,7 @@ const postPath = '/x/post/1890000000000000000'
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-	await installRouteViewSqliteIsolation(page, testInfo, 'x-reading')
+	await installRouteViewSqliteIsolation(page, `blockhead-x-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

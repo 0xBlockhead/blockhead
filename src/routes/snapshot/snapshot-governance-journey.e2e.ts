@@ -50,7 +50,7 @@ const proposal = {
 
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 2)
-	await installRouteViewSqliteIsolation(page, testInfo, 'snapshot-journey')
+	await installRouteViewSqliteIsolation(page, `blockhead-snapshot-journey-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 })
 
 

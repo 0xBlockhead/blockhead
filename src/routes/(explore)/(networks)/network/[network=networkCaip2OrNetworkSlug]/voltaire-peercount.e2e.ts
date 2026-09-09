@@ -19,7 +19,7 @@ const voltaireOrigins = new Set([
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'voltaire-peercount')
+	await installRouteViewSqliteIsolation(page, `blockhead-voltaire-peercount-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

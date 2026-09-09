@@ -29,7 +29,7 @@ const bidTrace = {
 
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'mev-received-bids')
+	await installRouteViewSqliteIsolation(page, `blockhead-mev-received-bids-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

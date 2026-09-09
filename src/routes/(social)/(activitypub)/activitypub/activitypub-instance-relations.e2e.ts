@@ -49,7 +49,7 @@ test('ActivityPub hub renders settled directory and observation-owned instances'
 	} = setupRouteViewSmokePage(page)
 
 	try {
-		await installRouteViewSqliteIsolation(page, testInfo, 'activitypub-hub')
+		await installRouteViewSqliteIsolation(page, `blockhead-activitypub-hub-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 		await installChainlistRpcsJsonStub(page)
 		await page.route(mastodonPublicTimelineProxyRoute, async (route) => {
 			const providerUrl = new URL(decodeURIComponent(

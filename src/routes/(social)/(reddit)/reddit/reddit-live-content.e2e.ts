@@ -22,7 +22,7 @@ test('Reddit popular submissions open meaningful live detail content', async ({ 
 	} = setupRouteViewSmokePage(page)
 
 	try {
-		await installRouteViewSqliteIsolation(page, testInfo, 'reddit-live')
+		await installRouteViewSqliteIsolation(page, `blockhead-reddit-live-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 		await installChainlistRpcsJsonStub(page)
 		await step(page.goto('/reddit/links', {
 			waitUntil: 'load',

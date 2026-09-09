@@ -21,7 +21,7 @@ const videoPath = `/youtube/video/${videoId}`
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-	await installRouteViewSqliteIsolation(page, testInfo, 'youtube-reading')
+	await installRouteViewSqliteIsolation(page, `blockhead-youtube-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

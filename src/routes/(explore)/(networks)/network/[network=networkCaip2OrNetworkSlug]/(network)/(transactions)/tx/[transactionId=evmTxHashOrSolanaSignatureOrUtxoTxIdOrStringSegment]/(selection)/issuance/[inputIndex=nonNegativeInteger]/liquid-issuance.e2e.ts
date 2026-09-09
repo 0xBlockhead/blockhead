@@ -13,7 +13,7 @@ const issuancePath = `/network/liquid/tx/${transactionId}/issuance/0`
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'liquid-issuance')
+	await installRouteViewSqliteIsolation(page, `blockhead-liquid-issuance-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 })
 
 

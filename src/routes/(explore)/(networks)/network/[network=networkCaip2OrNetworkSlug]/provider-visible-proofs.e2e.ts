@@ -28,7 +28,7 @@ const tezosCurrentHead = {
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'provider-visible-proofs')
+	await installRouteViewSqliteIsolation(page, `blockhead-provider-visible-proofs-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

@@ -91,7 +91,7 @@ const expectPostIdentity = (providerUrl: URL) => {
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-	await installRouteViewSqliteIsolation(page, testInfo, 'atproto-post')
+	await installRouteViewSqliteIsolation(page, `blockhead-atproto-post-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

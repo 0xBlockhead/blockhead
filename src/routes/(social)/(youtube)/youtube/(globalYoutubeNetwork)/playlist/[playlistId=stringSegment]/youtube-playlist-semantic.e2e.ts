@@ -19,7 +19,7 @@ const playlistPath = `/youtube/playlist/${playlistId}`
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-	await installRouteViewSqliteIsolation(page, testInfo, 'youtube-playlist-semantic')
+	await installRouteViewSqliteIsolation(page, `blockhead-youtube-playlist-semantic-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

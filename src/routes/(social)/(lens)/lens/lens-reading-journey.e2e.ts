@@ -50,7 +50,7 @@ const post = {
 }
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 3)
-	await installRouteViewSqliteIsolation(page, testInfo, 'lens-reading')
+	await installRouteViewSqliteIsolation(page, `blockhead-lens-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

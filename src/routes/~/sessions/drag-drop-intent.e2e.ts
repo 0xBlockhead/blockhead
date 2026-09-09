@@ -11,7 +11,7 @@ import { installRouteViewSqliteIsolation } from '../../../../tests/e2e/_routeVie
 test.setTimeout(180_000)
 
 test('turns typed account selection into one reviewable persisted draft', async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'session-intent')
+	await installRouteViewSqliteIsolation(page, `blockhead-session-intent-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	const diagnostics = setupPageRuntimeDiagnostics(page)
 	await diagnostics.step(page.goto('/~/sessions'))
 	await expectMainAttached(page, 120_000, diagnostics)

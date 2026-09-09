@@ -52,7 +52,7 @@ test.setTimeout(180_000)
 
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'bitcoin-inscription')
+	await installRouteViewSqliteIsolation(page, `blockhead-bitcoin-inscription-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 })
 
 

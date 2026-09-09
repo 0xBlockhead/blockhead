@@ -98,7 +98,7 @@ const governor = {
 
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 2)
-	await installRouteViewSqliteIsolation(page, testInfo, 'tally-journey')
+	await installRouteViewSqliteIsolation(page, `blockhead-tally-journey-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 })
 
 

@@ -138,7 +138,7 @@ test('feed, cast, author, channel, and replies form a canonical reading journey'
 	})
 	page.on('pageerror', (error) => pageErrors.push(error.message))
 
-	await installRouteViewSqliteIsolation(page, testInfo, 'farcaster-reading')
+	await installRouteViewSqliteIsolation(page, `blockhead-farcaster-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 	await page.route('**/*', async (route) => {
 		const sourceUrl = decodeURIComponent(route.request().url())

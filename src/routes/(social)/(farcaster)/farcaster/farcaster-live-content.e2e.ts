@@ -191,7 +191,7 @@ test('Farcaster trending feed opens meaningful live cast content', async ({ page
 	} = setupRouteViewSmokePage(page)
 
 	try {
-		await installRouteViewSqliteIsolation(page, testInfo, 'farcaster-live')
+		await installRouteViewSqliteIsolation(page, `blockhead-farcaster-live-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 		await installChainlistRpcsJsonStub(page)
 		await installNeynarContinuationFixture(page)
 		await step(page.goto('/farcaster/feed/trending', {
@@ -236,15 +236,7 @@ test('Farcaster trending feed opens meaningful live cast content', async ({ page
 
 test('Farcaster continuation appends a terminal page without duplicate casts', async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test * 2)
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `bh-farcaster-page-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `bh-farcaster-page-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 	await installNeynarContinuationFixture(page)
 	await page.goto('/farcaster/feed/trending', {

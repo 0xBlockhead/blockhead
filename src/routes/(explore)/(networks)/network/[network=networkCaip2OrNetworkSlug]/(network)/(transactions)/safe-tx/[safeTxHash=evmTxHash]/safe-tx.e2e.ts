@@ -66,7 +66,7 @@ const safeStatus = {
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'safe-tx')
+	await installRouteViewSqliteIsolation(page, `blockhead-safe-tx-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 })
 
 

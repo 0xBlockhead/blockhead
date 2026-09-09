@@ -1,10 +1,9 @@
-import type { Page, TestInfo } from '@playwright/test'
+import type { Page } from '@playwright/test'
 
 /** Install the isolated browser database used by route-view journeys. */
 export const installRouteViewSqliteIsolation = async (
 	page: Page,
-	testInfo: TestInfo,
-	prefix: string
+	name: string
 ) => {
 	await page.addInitScript(({ name, schemaVersion }) => {
 		window.__blockheadClientProbeEnabled = true
@@ -12,7 +11,7 @@ export const installRouteViewSqliteIsolation = async (
 		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
 		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 	}, {
-		name: `blockhead-${prefix}-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+		name,
 		schemaVersion: Date.now(),
 	})
 }

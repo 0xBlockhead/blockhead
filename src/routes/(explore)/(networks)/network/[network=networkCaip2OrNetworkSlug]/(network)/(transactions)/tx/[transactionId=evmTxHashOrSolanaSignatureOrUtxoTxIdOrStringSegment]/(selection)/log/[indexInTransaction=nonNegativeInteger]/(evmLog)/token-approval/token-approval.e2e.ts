@@ -29,7 +29,7 @@ const approvalData = `0x${'0'.repeat(63)}a`
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'token-approval')
+	await installRouteViewSqliteIsolation(page, `blockhead-token-approval-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

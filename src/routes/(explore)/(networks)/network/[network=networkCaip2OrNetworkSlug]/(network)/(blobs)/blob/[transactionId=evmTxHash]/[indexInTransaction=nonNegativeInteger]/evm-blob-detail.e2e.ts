@@ -21,7 +21,7 @@ const voltaireOrigins = new Set([
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'evm-blob')
+	await installRouteViewSqliteIsolation(page, `blockhead-evm-blob-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

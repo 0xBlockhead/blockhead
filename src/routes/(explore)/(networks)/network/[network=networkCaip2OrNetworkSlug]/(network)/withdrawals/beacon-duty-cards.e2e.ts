@@ -13,7 +13,7 @@ const beaconRestOrigin = 'https://ethereum-beacon-api.publicnode.com'
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'beacon-duty')
+	await installRouteViewSqliteIsolation(page, `blockhead-beacon-duty-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

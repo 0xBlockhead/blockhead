@@ -22,7 +22,7 @@ const voltaireOrigins = new Set([
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'voltaire-execution')
+	await installRouteViewSqliteIsolation(page, `blockhead-voltaire-execution-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

@@ -57,7 +57,7 @@ const status = {
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-	await installRouteViewSqliteIsolation(page, testInfo, 'activitypub-actor')
+	await installRouteViewSqliteIsolation(page, `blockhead-activitypub-actor-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

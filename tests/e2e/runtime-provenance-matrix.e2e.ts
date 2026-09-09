@@ -12,7 +12,7 @@ import { installRouteViewSqliteIsolation } from './_routeViewFixtures.ts'
 test.setTimeout(240_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'runtime-provenance')
+	await installRouteViewSqliteIsolation(page, `blockhead-runtime-provenance-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

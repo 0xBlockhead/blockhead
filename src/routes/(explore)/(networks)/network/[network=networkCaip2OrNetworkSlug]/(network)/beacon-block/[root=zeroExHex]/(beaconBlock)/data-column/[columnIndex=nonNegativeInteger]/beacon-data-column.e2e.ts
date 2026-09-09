@@ -8,7 +8,7 @@ const beaconBlockRoot = `0x${'1'.repeat(64)}`
 const routePath = `/network/eip155:1/beacon-block/${beaconBlockRoot}/data-column/7`
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await installRouteViewSqliteIsolation(page, testInfo, 'beacon-data-column')
+	await installRouteViewSqliteIsolation(page, `blockhead-beacon-data-column-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 
