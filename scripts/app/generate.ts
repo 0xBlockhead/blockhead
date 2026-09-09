@@ -6236,6 +6236,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		sourceBindings: compiledSourceBindings.map(({ source, binding }) => ({
 			source,
 			delivery: binding.delivery,
+			target: binding.target,
 		})),
 		resolverModules,
 		fieldSourcedEntityTypes,

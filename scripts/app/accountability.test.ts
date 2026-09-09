@@ -14,6 +14,7 @@ import {
 	observationTimeWriterManifest,
 	publicColdReadGaps,
 	SourceAccess,
+	SourceBindingTargetMatch,
 	SourceClaimDemand,
 	SourceClaimExecutability,
 	sourceClaimAccountabilityKey,
@@ -123,6 +124,61 @@ test('classifies a source claim by declared route demand, delivery, and resolver
 			'FieldDefault/Public/HttpProxy/ResolverDeclared',
 		]
 	)
+})
+
+test('keeps target matches distinct from unverified applicability evidence', () => {
+	const authority = indexAccountabilityAuthority({
+		sourceBindings: [
+			{
+				source: 'NetworkRest',
+				delivery: 'BrowserDirect',
+				target: { kind: 'Caip2Network', key: 'bitcoin:mainnet' },
+			},
+			{
+				source: 'NetworkRest',
+				delivery: 'BrowserDirect',
+				target: { kind: 'Caip2Network', key: 'bitcoin:testnet' },
+			},
+		],
+		resolverModules: [{ source: 'NetworkRest' }],
+		fieldSourcedEntityTypes: new Set(),
+		referenceMaterializedEntityTypes: new Set(),
+	})
+
+	const unscoped = classifySourceClaim({
+		source: 'NetworkRest',
+		entityType: 'NetworkEntity',
+		selectorName: 'Network',
+		facetPath: [],
+		publicRoute: '/network/[network]',
+	}, authority)
+	assert.equal(unscoped.bindingEvidence.length, 2)
+	assert.deepEqual(unscoped.bindingEvidence.map(({ targetMatch, verification }) => [targetMatch, verification]), [
+		[SourceBindingTargetMatch.Unknown, 'Unverified'],
+		[SourceBindingTargetMatch.Unknown, 'Unverified'],
+	])
+
+	const mainnet = classifySourceClaim({
+		source: 'NetworkRest',
+		entityType: 'NetworkEntity',
+		selectorName: 'Network',
+		facetPath: [],
+		publicRoute: '/network/[network]',
+		target: { kind: 'Caip2Network', key: 'bitcoin:mainnet' },
+	}, authority)
+	assert.deepEqual(mainnet.bindingEvidence.map(({ targetMatch, verification }) => [targetMatch, verification]), [
+		[SourceBindingTargetMatch.Matches, 'Unverified'],
+		[SourceBindingTargetMatch.Differs, 'Unverified'],
+	])
+	assert.equal(mainnet.bindingEvidence.every(({ verification }) => verification === 'Unverified'), true)
+	assert.equal(mainnet.bindingEvidence.every(({ deliverySupportsExecution }) => deliverySupportsExecution), true)
+	const unknownDelivery = classifySourceClaim({ ...fixtureClaim, source: 'UnknownDelivery' }, indexAccountabilityAuthority({
+		sourceBindings: [{ source: 'UnknownDelivery', delivery: 'FutureTransport' }],
+		resolverModules: [],
+		fieldSourcedEntityTypes: new Set(),
+		referenceMaterializedEntityTypes: new Set(),
+	})).bindingEvidence[0]
+	assert.equal(unknownDelivery?.deliverySupportsExecution, false)
 })
 
 test('keys source claims without aliasing route punctuation or omitted coordinates', () => {
@@ -424,6 +480,12 @@ test('accounts for every compiled claim and mapped selector of the current app',
 		countBy(mappedSelectors, (row) => row.accountability)
 			.reduce((total, [, count]) => total + count, 0),
 		mappedSelectors.length
+	)
+	assert.equal(claims.flatMap((row) => row.bindingEvidence).every(({ verification }) => verification === 'Unverified'), true)
+	assert.ok(claims.some((row) => row.bindingEvidence.some(({ target }) => target != null)))
+	assert.equal(
+		claims.flatMap((row) => row.bindingEvidence).some(({ targetMatch }) => targetMatch === SourceBindingTargetMatch.Unknown),
+		true
 	)
 	assert.equal(
 		mappedSelectors.filter((row) => (
