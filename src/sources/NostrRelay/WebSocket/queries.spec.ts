@@ -575,6 +575,75 @@ describe('Nostr relay WebSocket subscriptions', () => {
 		subscription.close()
 	})
 
+	it('keeps two configured relay bindings isolated through cleanup (mock transport)', () => {
+		const [firstBinding, secondBinding] = webSocketBindings
+		if (firstBinding == null || secondBinding == null)
+			throw new Error('Nostr relay binding fixture requires two configured rows')
+		const firstRelayUrl = firstBinding.target.key
+		const secondRelayUrl = secondBinding.target.key
+		expect(firstRelayUrl).not.toBe(secondRelayUrl)
+
+		const firstSocket = new RelaySocketFixture()
+		const secondSocket = new RelaySocketFixture()
+		const received: string[] = []
+		const firstSubscription = openRelaySubscription({
+			binding: firstBinding,
+			subscriptionId: 'configured-first',
+			filters: [{ kinds: [1] }],
+			socketFactory: (binding) => {
+				const relayUrl = binding.endpoints[0].locator
+				expect(relayUrl).toBe(firstRelayUrl)
+				return firstSocket
+			},
+			onEvent: (event) => {
+				if (event.type === 'event')
+					received.push(`first:${event.event.id}`)
+			},
+		})
+		const secondSubscription = openRelaySubscription({
+			binding: secondBinding,
+			subscriptionId: 'configured-second',
+			filters: [{ kinds: [1] }],
+			socketFactory: (binding) => {
+				const relayUrl = binding.endpoints[0].locator
+				expect(relayUrl).toBe(secondRelayUrl)
+				return secondSocket
+			},
+			onEvent: (event) => {
+				if (event.type === 'event')
+					received.push(`second:${event.event.id}`)
+			},
+		})
+
+		firstSocket.open()
+		secondSocket.open()
+		const firstEvent = signedEvent(1, { content: 'first configured relay event' })
+		const secondEvent = signedEvent(1, { content: 'second configured relay event' })
+		const secondEventAfterFirstClose = signedEvent(1, { content: 'second event after first close' })
+		firstSocket.message(['EVENT', 'configured-first', firstEvent])
+		secondSocket.message(['EVENT', 'configured-second', secondEvent])
+		firstSubscription.close()
+		firstSocket.message(['EVENT', 'configured-first', signedEvent(1, { content: 'late first relay event' })])
+		secondSocket.message(['EVENT', 'configured-second', secondEventAfterFirstClose])
+
+		expect(firstSocket.sent).toEqual([
+			JSON.stringify(['REQ', 'configured-first', { kinds: [1] }]),
+			JSON.stringify(['CLOSE', 'configured-first']),
+		])
+		expect(secondSocket.sent).toEqual([JSON.stringify(['REQ', 'configured-second', { kinds: [1] }])])
+		expect(received).toEqual([
+			`first:${firstEvent.id}`,
+			`second:${secondEvent.id}`,
+			`second:${secondEventAfterFirstClose.id}`,
+		])
+		expect(firstSocket.closed).toBe(true)
+		expect(secondSocket.closed).toBe(false)
+
+		secondSubscription.close()
+		expect(secondSocket.sent.at(-1)).toBe(JSON.stringify(['CLOSE', 'configured-second']))
+		expect(secondSocket.closed).toBe(true)
+	})
+
 	it('collects raw snapshot events through EOSE and closes the subscription', async () => {
 		const socket = new RelaySocketFixture()
 		const event = signedEvent(30_023)
