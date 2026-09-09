@@ -200,6 +200,37 @@ export default indexSourceBindings([
 		source: Source.Pendle_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
+			key: '196',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.xlayer.tech',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Pendle_Rest,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
 			key: '999',
 		},
 		endpoints: [

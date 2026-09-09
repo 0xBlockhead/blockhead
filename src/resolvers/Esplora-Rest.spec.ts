@@ -5,6 +5,7 @@ import { networkBySlug } from '$/constants/Network.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import * as sourceHttp from '$/sources/_runtime/http.ts'
 
 const getTransaction = vi.fn()
 const getBlock = vi.fn()
@@ -225,6 +226,42 @@ describe('Esplora UTXO', () => {
 		getAssetTransactions.mockReset()
 		listRegistryAssets.mockReset()
 		getOutspend.mockReset()
+	})
+
+	it('requests Bitcoin Testnet transactions through the actual generated binding', async () => {
+		const actualQueries = await vi.importActual<typeof import('$/sources/Esplora/Rest/queries.ts')>(
+			'$/sources/Esplora/Rest/queries.ts'
+		)
+		getTransaction.mockImplementationOnce(actualQueries.getTransaction)
+		const sourceGetJson = vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
+			txid: 'a'.repeat(64),
+			version: 2,
+			locktime: 0,
+			size: 100,
+			weight: 400,
+			fee: 100,
+			status: { confirmed: false },
+			vin: [],
+			vout: [],
+		})
+		try {
+			await transactionResolver.resolve.NetworkTxId.resolve({
+				$network: bitcoinTestnetNetwork,
+				txId: 'a'.repeat(64),
+			}, resolverContext)
+			expect(sourceGetJson).toHaveBeenCalledExactlyOnceWith(
+				expect.objectContaining({
+					source: Source.Esplora_Rest,
+					target: {
+						kind: 'Caip2Network',
+						key: 'bip122:000000000933ea01ad0ee984209779ba',
+					},
+				}),
+				`https://blockstream.info/testnet/api/tx/${'a'.repeat(64)}`
+			)
+		} finally {
+			sourceGetJson.mockRestore()
+		}
 	})
 
 	it('materializes Bitcoin Testnet transactions through their native CAIP-2 source target', async () => {

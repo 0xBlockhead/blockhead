@@ -89,12 +89,12 @@ export default indexSourceBindings([
 		source: Source.Beacon_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
-			key: '17000',
+			key: '560048',
 		},
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://ethereum-holesky-beacon-api.publicnode.com',
+				locator: 'https://ethereum-hoodi-beacon-api.publicnode.com',
 				corsEnabled: true,
 			},
 		],

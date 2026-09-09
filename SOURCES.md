@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-256 providers register 288 sources and 517 bindings.
+256 providers register 288 sources and 519 bindings.
 
 ## Providers
 
@@ -592,7 +592,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Balancer_Rest","Global","balancer-api-v3","BrowserDirect","GraphqlHttp"] | Balancer | Balancer_Rest | Global | balancer-api-v3 | Graphql | GraphqlHttp | GenericRead | BrowserDirect |
 | ["Beacon_Rest","Eip155Chain","1","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 1 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 11155111 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 17000 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 560048 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
 | ["BeaconchaIn_Rest","Eip155Chain","1","HttpProxy","RestJson"] | BeaconchaIn | BeaconchaIn_Rest | Eip155Chain | 1 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["BeaconchaIn_Rest","Eip155Chain","17000","HttpProxy","RestJson"] | BeaconchaIn | BeaconchaIn_Rest | Eip155Chain | 17000 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["BeaconchaIn_Rest","Eip155Chain","560048","HttpProxy","RestJson"] | BeaconchaIn | BeaconchaIn_Rest | Eip155Chain | 560048 | HttpRest | RestJson | GenericRead | HttpProxy |
@@ -707,6 +707,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"] | Envio | EnvioHyperSync_RawHttp | Eip155Chain | 1 | RawHttp | EnvioHyperSyncApi | GenericRead | HttpProxy |
 | ["Erigon_JsonRpc","LocalDevice","erigon-node","LocalOnly","EvmExecutionJsonRpc"] | Erigon | Erigon_JsonRpc | LocalDevice | erigon-node | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | LocalOnly |
 | ["Esplora_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","BrowserDirect","RestJson"] | Esplora | Esplora_Rest | Caip2Network | bip122:000000000019d6689c085ae165831e93 | HttpRest | RestJson | GenericRead | BrowserDirect |
+| ["Esplora_Rest","Caip2Network","bip122:000000000933ea01ad0ee984209779ba","BrowserDirect","RestJson"] | Esplora | Esplora_Rest | Caip2Network | bip122:000000000933ea01ad0ee984209779ba | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["Esplora_Rest","NetworkSlug","liquid","BrowserDirect","RestJson"] | Esplora | Esplora_Rest | NetworkSlug | liquid | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["EthereumEips_Github","GitRepository","ethereum/EIPs@master:EIPS","HttpProxy","GithubContentsApi"] | EthereumEips | EthereumEips_Github | GitRepository | ethereum/EIPs@master:EIPS | HttpRest | GithubContentsApi | GithubRepositoryContents | HttpProxy |
 | ["EthereumEips_Github","GitRepository","ethereum/ercs@master:ERCS","HttpProxy","GithubContentsApi"] | EthereumEips | EthereumEips_Github | GitRepository | ethereum/ercs@master:ERCS | HttpRest | GithubContentsApi | GithubRepositoryContents | HttpProxy |
@@ -838,6 +839,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Pendle_Rest","Eip155Chain","56","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 56 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 143 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 146 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","196","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 196 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 999 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 5000 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 8453 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
@@ -1115,7 +1117,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Balancer_Rest","Global","balancer-api-v3","BrowserDirect","GraphqlHttp"] | HttpUrl | https://api-v3.balancer.fi/ | https://api-v3.balancer.fi | true |
 | ["Beacon_Rest","Eip155Chain","1","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-beacon-api.publicnode.com | https://ethereum-beacon-api.publicnode.com | true |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-sepolia-beacon-api.publicnode.com | https://ethereum-sepolia-beacon-api.publicnode.com | true |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-holesky-beacon-api.publicnode.com | https://ethereum-holesky-beacon-api.publicnode.com | true |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-hoodi-beacon-api.publicnode.com | https://ethereum-hoodi-beacon-api.publicnode.com | true |
 | ["BeaconchaIn_Rest","Eip155Chain","1","HttpProxy","RestJson"] | HttpUrl | https://beaconcha.in/api/v1 | https://beaconcha.in | false |
 | ["BeaconchaIn_Rest","Eip155Chain","17000","HttpProxy","RestJson"] | HttpUrl | https://holesky.beaconcha.in/api/v1 | https://holesky.beaconcha.in | false |
 | ["BeaconchaIn_Rest","Eip155Chain","560048","HttpProxy","RestJson"] | HttpUrl | https://hoodi.beaconcha.in/api/v1 | https://hoodi.beaconcha.in | false |
@@ -1243,6 +1245,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"] | HttpUrl | https://eth.hypersync.xyz | https://eth.hypersync.xyz | false |
 | ["Erigon_JsonRpc","LocalDevice","erigon-node","LocalOnly","EvmExecutionJsonRpc"] | HttpUrl | http://127.0.0.1:8545 | http://127.0.0.1:8545 | false |
 | ["Esplora_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","BrowserDirect","RestJson"] | HttpUrl | https://blockstream.info/api | https://blockstream.info | true |
+| ["Esplora_Rest","Caip2Network","bip122:000000000933ea01ad0ee984209779ba","BrowserDirect","RestJson"] | HttpUrl | https://blockstream.info/testnet/api | https://blockstream.info | true |
 | ["Esplora_Rest","NetworkSlug","liquid","BrowserDirect","RestJson"] | HttpUrl | https://blockstream.info/liquid/api | https://blockstream.info | true |
 | ["EthereumEips_Github","GitRepository","ethereum/EIPs@master:EIPS","HttpProxy","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
 | ["EthereumEips_Github","GitRepository","ethereum/EIPs@master:EIPS","HttpProxy","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com | https://raw.githubusercontent.com | true |
@@ -1390,6 +1393,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Pendle_Rest","Eip155Chain","56","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://binance.llamarpc.com | https://binance.llamarpc.com | false |
 | ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.monad.xyz | https://rpc.monad.xyz | false |
 | ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.soniclabs.com | https://rpc.soniclabs.com | false |
+| ["Pendle_Rest","Eip155Chain","196","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.xlayer.tech | https://rpc.xlayer.tech | false |
 | ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://hyperliquid.drpc.org | https://hyperliquid.drpc.org | false |
 | ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.mantle.xyz | https://rpc.mantle.xyz | false |
 | ["Pendle_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://mainnet.base.org | https://mainnet.base.org | false |
@@ -1863,9 +1867,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
 | ["BeaconchaIn_Rest","Eip155Chain","1","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/BeaconchaIn/Rest/types.ts | no |  |  |
 | ["BeaconchaIn_Rest","Eip155Chain","17000","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/BeaconchaIn/Rest/types.ts | no |  |  |
 | ["BeaconchaIn_Rest","Eip155Chain","560048","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/BeaconchaIn/Rest/types.ts | no |  |  |
@@ -2116,6 +2120,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","196","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","196","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |

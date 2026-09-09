@@ -100129,12 +100129,12 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Eip155Chain,
-							key: "17000",
+							key: "560048",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://ethereum-holesky-beacon-api.publicnode.com",
+								locator: "https://ethereum-hoodi-beacon-api.publicnode.com",
 								corsEnabled: true,
 							},
 						],
@@ -103657,6 +103657,26 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://blockstream.info/api",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "bip122:000000000933ea01ad0ee984209779ba",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://blockstream.info/testnet/api",
 								corsEnabled: true,
 							},
 						],
@@ -107577,6 +107597,7 @@ export const app = {
 						{ key: "56", locator: "https://binance.llamarpc.com" },
 						{ key: "143", locator: "https://rpc.monad.xyz" },
 						{ key: "146", locator: "https://rpc.soniclabs.com" },
+						{ key: "196", locator: "https://rpc.xlayer.tech" },
 						{ key: "999", locator: "https://hyperliquid.drpc.org" },
 						{ key: "5000", locator: "https://rpc.mantle.xyz" },
 						{ key: "8453", locator: "https://mainnet.base.org" },
