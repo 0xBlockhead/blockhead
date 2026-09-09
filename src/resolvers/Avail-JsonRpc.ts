@@ -12,6 +12,30 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
+import type { SourcePublicEnv } from '$/sources/$sources.ts'
+
+const loadQueries = async () => {
+	if (typeof window === 'undefined')
+		return import('$/sources/Avail/JsonRpc/queries.ts')
+
+	const remote = await import('$/sources/Avail/JsonRpc/queries.remote.ts')
+	return {
+		getNetworkIdentity: (_publicEnv: SourcePublicEnv) => remote.getNetworkIdentity(),
+		getSystemHealth: (_publicEnv: SourcePublicEnv) => remote.getSystemHealth(),
+		getSystemSyncState: (_publicEnv: SourcePublicEnv) => remote.getSystemSyncState(),
+		getFinalizedHead: (_publicEnv: SourcePublicEnv) => remote.getFinalizedHead(),
+		getBlockHash: (_publicEnv: SourcePublicEnv, blockNumber?: bigint) => remote.getBlockHash(blockNumber),
+		getHeader: (_publicEnv: SourcePublicEnv, blockHash?: string) => remote.getHeader(blockHash),
+		getBlock: (_publicEnv: SourcePublicEnv, blockHash: string) => remote.getBlock(blockHash),
+		getBlockTimestamp: (_publicEnv: SourcePublicEnv, blockHash: string) => remote.getBlockTimestamp(blockHash),
+		getHeaderByBlockNumber: (_publicEnv: SourcePublicEnv, blockNumber: bigint) => remote.getHeaderByBlockNumber(blockNumber),
+		getDataProof: (_publicEnv: SourcePublicEnv, blockHash: string, extrinsicIndex: number) => remote.getDataProof({
+			blockHash,
+			extrinsicIndex,
+		}),
+	}
+}
+
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
 const availSubmissionCoordinates = (submissionKey: string) => {
@@ -65,7 +89,7 @@ export default {
 							getDataProof,
 							getFinalizedHead,
 							getHeaderByBlockNumber,
-						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						} = await loadQueries()
 						const [
 							header,
 							finalized,
@@ -133,7 +157,7 @@ export default {
 							getNetworkIdentity,
 							getSystemHealth,
 							getSystemSyncState,
-						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						} = await loadQueries()
 						const publicEnv = context.publicEnv
 						const [
 							identity,
@@ -200,7 +224,7 @@ export default {
 							getBlockHash,
 							getHeader,
 							getHeaderByBlockNumber,
-						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						} = await loadQueries()
 						const publicEnv = context.publicEnv
 						const tipHash = await getBlockHash(publicEnv)
 						const tip = await getHeader(publicEnv, tipHash)
@@ -292,7 +316,7 @@ export default {
 						const {
 							getBlockHash,
 							getHeader,
-						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						} = await loadQueries()
 						const tipHash = await getBlockHash(context.publicEnv)
 						const tip = await getHeader(context.publicEnv, tipHash)
 						return Number(tip.blockNumber + 1n)
@@ -325,7 +349,7 @@ export default {
 							getNetworkIdentity,
 							getSystemHealth,
 							getSystemSyncState,
-						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						} = await loadQueries()
 						const publicEnv = context.publicEnv
 						const [
 							identity,
@@ -388,7 +412,7 @@ export default {
 						const {
 							getBlock,
 							getHeaderByBlockNumber,
-						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						} = await loadQueries()
 						const header = await getHeaderByBlockNumber(
 							context.publicEnv,
 							blockNumber
@@ -415,7 +439,7 @@ export default {
 				NetworkBlockHash: {
 					resolve: async ({ $network, blockHash }, context) => {
 						assertAvailMainnet($network.$network)
-						const { getBlock } = await import('$/sources/Avail/JsonRpc/queries.ts')
+						const { getBlock } = await loadQueries()
 						const block = await getBlock(context.publicEnv, blockHash)
 						const resolvedHash = block.hash ?? blockHash.toLowerCase()
 						return {
@@ -456,7 +480,7 @@ export default {
 						const {
 							getBlockHash,
 							getBlockTimestamp,
-						} = await import('$/sources/Avail/JsonRpc/queries.ts')
+						} = await loadQueries()
 						return getBlockTimestamp(
 							context.publicEnv,
 							await getBlockHash(context.publicEnv, blockNumber)
@@ -466,7 +490,7 @@ export default {
 				NetworkBlockHash: {
 					resolve: async ({ $network, blockHash }, context) => {
 						assertAvailMainnet($network.$network)
-						const { getBlockTimestamp } = await import('$/sources/Avail/JsonRpc/queries.ts')
+						const { getBlockTimestamp } = await loadQueries()
 						return getBlockTimestamp(context.publicEnv, blockHash)
 					},
 				},
