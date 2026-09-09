@@ -6,6 +6,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import authFailure from '$/sources/SpaceAndTime/MakeInfinite/fixtures/auth-failure.json'
 import completedDay from '$/sources/SpaceAndTime/MakeInfinite/fixtures/completed-day.json'
@@ -49,15 +50,10 @@ const priorCompletedDayStartTimestampMs = Date.parse('2026-07-14T00:00:00.000Z')
 const currentUtcDayStartTimestampMs = Date.parse('2026-07-16T00:00:00.000Z')
 const completedDayNowMs = Date.parse('2026-07-16T12:00:00.000Z')
 const listContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 describe('MakeInfinite source and resolver slice', () => {

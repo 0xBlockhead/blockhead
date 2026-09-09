@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import {
 	entityFieldAddressKey,
@@ -28,15 +29,10 @@ vi.mock('$/sources/Morpho/Graphql/queries.ts', async (importOriginal) => ({
 const { default: morphoGraphql } = await import('$/resolvers/Morpho-Graphql.ts')
 
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 16,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const networkResolvers = morphoGraphql.resolvers.filter((resolver) => (

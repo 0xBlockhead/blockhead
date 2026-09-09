@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
@@ -36,15 +37,10 @@ vi.mock('$/sources/BitcoinCore/JsonRpc/queries.ts', () => ({
 const { default: bitcoinCoreResolvers } = await import('$/resolvers/BitcoinCore-JsonRpc.ts')
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const blockHash = 'a'.repeat(64)
