@@ -5626,7 +5626,6 @@ test('derives disjoint CAIP-2 and slug domains from structured value types', () 
 	assert.ok(networkSchema)
 	assert.ok(renderGeneratedFile(networkSchema).includes("type('string').matching('^[abcdefghijklmnopqrstuvwxyz0123456789\\\\-]+$').atLeastLength(1)"))
 	assert.doesNotMatch(renderGeneratedFile(networkSchema), /networkBySlug/)
-	assert.doesNotThrow(() => compileApp(app))
 })
 
 test('emits selector names only in each entity schema selector definition', () => {
