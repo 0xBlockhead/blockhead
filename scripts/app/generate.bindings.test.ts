@@ -28,7 +28,8 @@ const sourceBindingRows = app.sources.sources.flatMap((source) => [
 	source: source.source,
 })))
 
-const sourcesMarkdown = compileApp(app).generatedFiles.find((generatedFile) => generatedFile.path === 'SOURCES.md')
+const baselineCompiledApp = compileApp(app)
+const sourcesMarkdown = baselineCompiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'SOURCES.md')
 assert.ok(sourcesMarkdown)
 assert.equal(sourcesMarkdown.kind, 'text')
 const sourcesMarkdownText = sourcesMarkdown.body.join('\n')
@@ -489,10 +490,9 @@ test('keys every binding provider from canonical source definitions', () => {
 })
 
 test('emits one provider binding file for every canonical provider closure', () => {
-	const compiled = compileApp(app)
 	const expectedProviders = [...new Set(sourceBindingRows.map(({ provider }) => provider))]
 		.toSorted((left, right) => left.localeCompare(right, 'en'))
-	const generatedProviderFiles = compiled.generatedFiles
+	const generatedProviderFiles = baselineCompiledApp.generatedFiles
 		.filter(({ path }) => /^src\/sources\/[^/]+\/bindings\.ts$/.test(path))
 		.toSorted((left, right) => left.path.localeCompare(right.path))
 	assert.deepEqual(
@@ -515,7 +515,7 @@ test('emits one provider binding file for every canonical provider closure', () 
 })
 
 test('changes a generated provider binding when its canonical APP row changes', () => {
-	const baseline = compileApp(app).generatedFiles.find(({ path }) => path === 'src/sources/Ipfs/bindings.ts')
+	const baseline = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/sources/Ipfs/bindings.ts')
 	assert.ok(baseline)
 	const changedApp = structuredClone(app)
 	const ipfs = changedApp.sources.sources.find(({ source }) => source === Source.Ipfs_Rest)
