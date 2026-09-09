@@ -6,6 +6,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { gitlabMergeRequestDiffNote, gitlabProject } from '../../tests/fixtures/gitlab.ts'
 
 
@@ -479,13 +480,8 @@ describe('GitLab repository journey', () => {
 			repositoryName: 'gitlab',
 		}
 		const pageContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: { limit: 1 },
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const issuePage = await mirrorIssuesResolver.resolve.ForgeHostOwnerRepositoryName.resolve(selector, pageContext)
 		const pullRequestPage = await mirrorPullRequestsResolver.resolve.ForgeHostOwnerRepositoryName.resolve(selector, pageContext)
@@ -547,13 +543,8 @@ describe('GitLab repository journey', () => {
 			repositoryName: 'gitlab',
 		}
 		const context = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: { limit: 1 },
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const pipelinePage = await mirrorPipelinesResolver.resolve.ForgeHostOwnerRepositoryName.resolve(mirror, context)
 		if (pipelinePage == null)
@@ -689,13 +680,8 @@ describe('GitLab repository journey', () => {
 			canonicalRemoteUrl: project.http_url_to_repo,
 		}
 		const pageContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: { limit: 2 },
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const branchPage = await repositoryRefsResolver.resolve.CanonicalRemoteUrl.resolve(selector, pageContext)
 		if (branchPage == null)
@@ -808,13 +794,8 @@ describe('GitLab repository journey', () => {
 			canonicalRemoteUrl: project.http_url_to_repo,
 		}
 		const pageContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: { limit: 1 },
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const commitPage = await repositoryObjectsResolver.resolve.CanonicalRemoteUrl.resolve(selector, pageContext)
 		if (commitPage == null)
@@ -885,13 +866,8 @@ describe('GitLab repository journey', () => {
 			canonicalRemoteUrl: project.http_url_to_repo,
 		}
 		const context = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: { limit: 1 },
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 
 		const page = await repositoryObjectsResolver.resolve.CanonicalRemoteUrl.resolve(selector, context)
@@ -1428,13 +1404,8 @@ describe('GitLab repository journey', () => {
 			repositoryName: 'gitlab',
 		}
 		const pageContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: { limit: 2 },
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		listProtectedBranches.mockResolvedValueOnce([
 			{
@@ -1542,13 +1513,8 @@ describe('GitLab repository journey', () => {
 			repositoryName: 'forgejo',
 		}
 		const pageContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: { limit: 1 },
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		await expect(mirrorProtectedBranchesResolver.resolve.ForgeHostOwnerRepositoryName.resolve($forgeMirror, pageContext)).resolves.toBeUndefined()
 		await expect(protectedBranchResolver.resolve.ForgeMirrorName.resolve({
@@ -1585,13 +1551,8 @@ describe('GitLab repository journey', () => {
 			repositoryName: 'gitlab',
 		}
 		const context = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: { limit: 1 },
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const issueSelector = {
 			$forgeMirror,
