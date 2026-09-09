@@ -49,6 +49,12 @@ const routeConditionSchema = {
 					valueType: 'string',
 				},
 				{
+					name: 'optionalTags',
+					type: EntityFieldType.Primitive,
+					cardinality: EntityFieldCardinality.ZeroOrMany,
+					valueType: 'string',
+				},
+				{
 					name: '$parent',
 					type: EntityFieldType.EntityReference,
 					cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -68,6 +74,23 @@ const routeConditionSchema = {
 							type: EntityFieldType.Primitive,
 							cardinality: EntityFieldCardinality.One,
 							valueType: 'string',
+						},
+					],
+					facets: [
+						{
+							name: 'Deep',
+							condition: {
+								path: ['format'],
+								is: 'deep',
+							},
+							fields: [
+								{
+									name: 'encoding',
+									type: EntityFieldType.Primitive,
+									cardinality: EntityFieldCardinality.One,
+									valueType: 'string',
+								},
+							],
 						},
 					],
 				},
@@ -105,10 +128,42 @@ defineRoutes(routeConditionSchema)({
 									isOneOf: ['valid'],
 								},
 								{
+									path: ['optionalTags'],
+									includes: 'optional-valid',
+								},
+								{
+									path: ['optionalTags', 0],
+									isOneOf: ['optional-valid'],
+								},
+								{
 									path: ['Nested', 'format'],
 									is: 'valid',
 								},
+								{
+									path: ['Nested', 'Deep', 'encoding'],
+									is: 'utf8',
+								},
 							],
+						},
+					},
+				},
+			},
+		},
+	},
+})
+
+defineRoutes(routeConditionSchema)({
+	outcomes: {},
+	children: {
+		'[id]': {
+			selectors: {
+				[EntityType.Network]: {
+					Id: {
+						...mapping,
+						when: {
+							// @ts-expect-error ZeroOrMany fields require includes or an item index.
+							path: ['optionalTags'],
+							is: 'invalid',
 						},
 					},
 				},
