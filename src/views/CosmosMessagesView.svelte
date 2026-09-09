@@ -30,11 +30,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					indexInTransaction: true,
-					typeUrl: true,
-				},
+			fields: {
+				indexInTransaction: true,
+				typeUrl: true,
 			},
 		})
 	}

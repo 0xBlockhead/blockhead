@@ -27,13 +27,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					text: true,
-					hash: true,
-					fid: true,
-					timestamp: true,
-				},
+			fields: {
+				text: true,
+				hash: true,
+				fid: true,
+				timestamp: true,
 			},
 		})
 	}

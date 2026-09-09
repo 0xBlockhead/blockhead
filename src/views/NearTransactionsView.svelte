@@ -29,17 +29,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.NearRpc_JsonRpc,
-					Source.NearBlocks_Rest,
-				],
-				fields: {
-					hash: true,
-					$signer: true,
-					signerAccountId: true,
-					$receiver: true,
-				},
+			sources: selection.sources ?? [
+				Source.NearRpc_JsonRpc,
+				Source.NearBlocks_Rest,
+			],
+			fields: {
+				hash: true,
+				$signer: true,
+				signerAccountId: true,
+				$receiver: true,
 			},
 		})
 	}

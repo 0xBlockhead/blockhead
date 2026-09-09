@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					partKind: true,
-					partIndex: true,
-					mimeType: true,
-				},
+			fields: {
+				partKind: true,
+				partIndex: true,
+				mimeType: true,
 			},
 		})
 	}

@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$towardNode: true,
-					feeRatePpm: true,
-					disabled: true,
-				},
+			fields: {
+				$towardNode: true,
+				feeRatePpm: true,
+				disabled: true,
 			},
 		})
 	}

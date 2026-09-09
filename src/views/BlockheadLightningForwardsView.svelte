@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$incomingChannel: true,
-					incomingHtlcId: true,
-					$outgoingChannel: true,
-				},
+			fields: {
+				$incomingChannel: true,
+				incomingHtlcId: true,
+				$outgoingChannel: true,
 			},
 		})
 	}

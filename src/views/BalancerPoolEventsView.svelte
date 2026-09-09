@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					eventType: true,
-					valueUsd: true,
-					$pool: true,
-				},
+			fields: {
+				eventType: true,
+				valueUsd: true,
+				$pool: true,
 			},
 		})
 	}

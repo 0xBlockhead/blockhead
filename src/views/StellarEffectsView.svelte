@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					effectType: true,
-					effectId: true,
-				},
+			fields: {
+				effectType: true,
+				effectId: true,
 			},
 		})
 	}

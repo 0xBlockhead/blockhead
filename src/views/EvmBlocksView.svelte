@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					blockNumber: true,
-					hash: true,
-				},
+			fields: {
+				blockNumber: true,
+				hash: true,
 			},
 		})
 	}

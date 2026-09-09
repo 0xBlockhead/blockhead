@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					htlcIndex: true,
-					$channel: true,
-					direction: true,
-				},
+			fields: {
+				htlcIndex: true,
+				$channel: true,
+				direction: true,
 			},
 		})
 	}

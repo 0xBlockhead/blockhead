@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					kind: true,
-					stateChangeKey: true,
-					isMiner: true,
-				},
+			fields: {
+				kind: true,
+				stateChangeKey: true,
+				isMiner: true,
 			},
 		})
 	}

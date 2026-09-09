@@ -27,10 +27,8 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					agentCardUrl: true,
-				},
+			fields: {
+				agentCardUrl: true,
 			},
 		})
 	}

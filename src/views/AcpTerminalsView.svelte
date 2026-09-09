@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					terminalId: true,
-					command: true,
-					cwd: true,
-				},
+			fields: {
+				terminalId: true,
+				command: true,
+				cwd: true,
 			},
 		})
 	}

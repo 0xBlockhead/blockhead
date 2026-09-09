@@ -30,17 +30,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					withdrawalIndex: true,
-					amountGwei: true,
-					$block: {
-						fields: {
-							version: true,
-							$slot: {
-								fields: {
-									$epoch: true,
-								},
+			fields: {
+				withdrawalIndex: true,
+				amountGwei: true,
+				$block: {
+					fields: {
+						version: true,
+						$slot: {
+							fields: {
+								$epoch: true,
 							},
 						},
 					},

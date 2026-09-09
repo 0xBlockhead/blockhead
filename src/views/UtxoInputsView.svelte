@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					indexInTransaction: true,
-					$spentOutput: true,
-				},
+			fields: {
+				indexInTransaction: true,
+				$spentOutput: true,
 			},
 		})
 	}

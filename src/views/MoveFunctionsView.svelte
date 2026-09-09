@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					functionName: true,
-					visibility: true,
-					$module: true,
-				},
+			fields: {
+				functionName: true,
+				visibility: true,
+				$module: true,
 			},
 		})
 	}

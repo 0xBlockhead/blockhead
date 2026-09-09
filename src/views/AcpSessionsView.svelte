@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					sessionId: true,
-					$runtime: true,
-					workspaceUri: true,
-				},
+			fields: {
+				sessionId: true,
+				$runtime: true,
+				workspaceUri: true,
 			},
 		})
 	}

@@ -29,12 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					repositoryId: true,
-					canonicalRemoteUrl: true,
-					objectFormat: true,
-				},
+			fields: {
+				repositoryId: true,
+				canonicalRemoteUrl: true,
+				objectFormat: true,
 			},
 		})
 	}

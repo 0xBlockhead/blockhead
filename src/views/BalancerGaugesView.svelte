@@ -28,15 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					poolSymbol: true,
-					gaugeAddress: true,
-					isKilled: true,
-					relativeWeightCap: true,
-					$network: true,
-					$pool: true,
-				},
+			fields: {
+				poolSymbol: true,
+				gaugeAddress: true,
+				isKilled: true,
+				relativeWeightCap: true,
+				$network: true,
+				$pool: true,
 			},
 		})
 	}

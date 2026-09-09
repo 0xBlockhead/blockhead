@@ -30,14 +30,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Local_Internal,
-				],
-				fields: {
-					userPrompt: true,
-					createdAt: true,
-				},
+			sources: selection.sources ?? [
+				Source.Local_Internal,
+			],
+			fields: {
+				userPrompt: true,
+				createdAt: true,
 			},
 		})
 	}

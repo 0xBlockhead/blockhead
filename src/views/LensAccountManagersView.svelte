@@ -29,11 +29,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					manager: true,
-					isLensManager: true,
-				},
+			fields: {
+				manager: true,
+				isLensManager: true,
 			},
 		})
 	}

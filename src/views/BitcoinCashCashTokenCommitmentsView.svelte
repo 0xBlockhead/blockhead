@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					commitmentHex: true,
-					$output: true,
-				},
+			fields: {
+				commitmentHex: true,
+				$output: true,
 			},
 		})
 	}

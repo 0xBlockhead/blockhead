@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$staker: true,
-					$operator: true,
-					$strategy: true,
-				},
+			fields: {
+				$staker: true,
+				$operator: true,
+				$strategy: true,
 			},
 		})
 	}

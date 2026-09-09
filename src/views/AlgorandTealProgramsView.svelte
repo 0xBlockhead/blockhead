@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					programHash: true,
-					programKind: true,
-					tealVersion: true,
-				},
+			fields: {
+				programHash: true,
+				programKind: true,
+				tealVersion: true,
 			},
 		})
 	}

@@ -29,21 +29,19 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					$nodeState: {
-						fields: {
-							$network: {
-								fields: {
-									name: true,
-									environment: true,
-								},
+			fields: {
+				timestampMs: true,
+				$nodeState: {
+					fields: {
+						$network: {
+							fields: {
+								name: true,
+								environment: true,
 							},
 						},
 					},
-					localChunkCount: true,
 				},
+				localChunkCount: true,
 			},
 		})
 	}

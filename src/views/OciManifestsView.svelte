@@ -27,13 +27,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					repository: true,
-					reference: true,
-					artifactType: true,
-					mediaType: true,
-				},
+			fields: {
+				repository: true,
+				reference: true,
+				artifactType: true,
+				mediaType: true,
 			},
 		})
 	}

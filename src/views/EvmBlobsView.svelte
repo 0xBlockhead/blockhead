@@ -36,14 +36,12 @@
 	TypeAnnotationTooltip={ModelTypeAnnotationTooltip}
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Voltaire_JsonRpc,
-				],
-				fields: {
-					indexInTransaction: true,
-					versionedHash: true,
-				},
+			sources: selection.sources ?? [
+				Source.Voltaire_JsonRpc,
+			],
+			fields: {
+				indexInTransaction: true,
+				versionedHash: true,
 			},
 		})
 	}

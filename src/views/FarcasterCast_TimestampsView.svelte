@@ -26,19 +26,17 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$cast: {
-						fields: {
-							text: true,
-							hash: true,
-							fid: true,
-							timestamp: true,
-						},
+			fields: {
+				$cast: {
+					fields: {
+						text: true,
+						hash: true,
+						fid: true,
+						timestamp: true,
 					},
-					timestampMs: true,
-					source: true,
 				},
+				timestampMs: true,
+				source: true,
 			},
 		})
 	}

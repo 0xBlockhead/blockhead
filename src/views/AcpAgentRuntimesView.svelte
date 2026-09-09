@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					runtimeId: true,
-					$programVersion: true,
-					transportKind: true,
-				},
+			fields: {
+				runtimeId: true,
+				$programVersion: true,
+				transportKind: true,
 			},
 		})
 	}

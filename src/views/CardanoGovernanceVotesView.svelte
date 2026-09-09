@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					vote: true,
-					voterKind: true,
-					voterCredential: true,
-				},
+			fields: {
+				vote: true,
+				voterKind: true,
+				voterCredential: true,
 			},
 		})
 	}

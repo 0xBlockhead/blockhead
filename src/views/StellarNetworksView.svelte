@@ -26,11 +26,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$network: true,
-					passphrase: true,
-				},
+			fields: {
+				$network: true,
+				passphrase: true,
 			},
 		})
 	}

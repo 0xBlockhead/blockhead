@@ -27,15 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					peerDomain: true,
-					$observation: {
-						fields: {
-							title: true,
-							$instance: true,
-							version: true,
-						},
+			fields: {
+				peerDomain: true,
+				$observation: {
+					fields: {
+						title: true,
+						$instance: true,
+						version: true,
 					},
 				},
 			},

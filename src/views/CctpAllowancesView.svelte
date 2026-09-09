@@ -27,10 +27,8 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					token: true,
-				},
+			fields: {
+				token: true,
 			},
 		})
 	}

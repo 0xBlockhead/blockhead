@@ -27,11 +27,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					packHash: true,
-					objectFormat: true,
-				},
+			fields: {
+				packHash: true,
+				objectFormat: true,
 			},
 		})
 	}

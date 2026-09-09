@@ -27,14 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					path: true,
-					$resource: {
-						fields: {
-							canonicalUri: true,
-							contentPath: true,
-						},
+			fields: {
+				path: true,
+				$resource: {
+					fields: {
+						canonicalUri: true,
+						contentPath: true,
 					},
 				},
 			},

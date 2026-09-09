@@ -28,14 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					name: true,
-					symbol: true,
-					totalAssets: true,
-					utilization: true,
-					$network: true,
-				},
+			fields: {
+				name: true,
+				symbol: true,
+				totalAssets: true,
+				utilization: true,
+				$network: true,
 			},
 		})
 	}

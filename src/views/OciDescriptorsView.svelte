@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					descriptorKind: true,
-					digest: true,
-					sizeBytes: true,
-				},
+			fields: {
+				descriptorKind: true,
+				digest: true,
+				sizeBytes: true,
 			},
 		})
 	}

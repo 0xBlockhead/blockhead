@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					scriptKind: true,
-					witnessIndex: true,
-					scriptHash: true,
-				},
+			fields: {
+				scriptKind: true,
+				witnessIndex: true,
+				scriptHash: true,
 			},
 		})
 	}

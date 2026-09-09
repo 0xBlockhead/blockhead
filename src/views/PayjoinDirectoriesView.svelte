@@ -29,11 +29,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					directoryUrl: true,
-					ohttpGatewayUrl: true,
-				},
+			fields: {
+				directoryUrl: true,
+				ohttpGatewayUrl: true,
 			},
 		})
 	}

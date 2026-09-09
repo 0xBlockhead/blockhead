@@ -29,14 +29,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Constants_Internal,
-				],
-				fields: {
-					upgradeId: true,
-					name: true,
-				},
+			sources: selection.sources ?? [
+				Source.Constants_Internal,
+			],
+			fields: {
+				upgradeId: true,
+				name: true,
 			},
 		})
 	}

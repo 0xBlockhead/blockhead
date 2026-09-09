@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					frameNumber: true,
-					shardKey: true,
-					frameHash: true,
-				},
+			fields: {
+				frameNumber: true,
+				shardKey: true,
+				frameHash: true,
 			},
 		})
 	}

@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					capability: true,
-					$category: true,
-					$commitment: true,
-				},
+			fields: {
+				capability: true,
+				$category: true,
+				$commitment: true,
 			},
 		})
 	}

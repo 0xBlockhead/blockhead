@@ -31,11 +31,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					query: true,
-					resultLimit: true,
-				},
+			fields: {
+				query: true,
+				resultLimit: true,
 			},
 		})
 	}

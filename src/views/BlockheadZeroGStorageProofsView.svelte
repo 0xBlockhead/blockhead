@@ -29,12 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					proofId: true,
-					verified: true,
-					proofKind: true,
-				},
+			fields: {
+				proofId: true,
+				verified: true,
+				proofKind: true,
 			},
 		})
 	}

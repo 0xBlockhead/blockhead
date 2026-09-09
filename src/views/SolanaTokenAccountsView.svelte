@@ -30,11 +30,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					tokenAccountPubkey: true,
-					$mint: true,
-				},
+			fields: {
+				tokenAccountPubkey: true,
+				$mint: true,
 			},
 		})
 	}

@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					path: true,
-					status: true,
-					commitObjectId: true,
-				},
+			fields: {
+				path: true,
+				status: true,
+				commitObjectId: true,
 			},
 		})
 	}

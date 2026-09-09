@@ -26,11 +26,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$feed: true,
-					timestampMs: true,
-				},
+			fields: {
+				$feed: true,
+				timestampMs: true,
 			},
 		})
 	}

@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					assetName: true,
-					fingerprint: true,
-					policyId: true,
-				},
+			fields: {
+				assetName: true,
+				fingerprint: true,
+				policyId: true,
 			},
 		})
 	}

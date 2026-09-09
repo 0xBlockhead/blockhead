@@ -13129,14 +13129,19 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 		]))})`
 		:
 		undefined
-	const renderedQuery = emitObject([
-		...(query === '{}' ? [] : [{ spread: query }]),
-		['sources', selectedSourcesExpression],
-		...(filterWhereExpression == null ? [] : [{
-			spread: `${filters.map((filter) => `${filter.prop} == null`).join(' && ')} ? {} : { where: ({ row }) => ${filterWhereExpression} }`,
-		}]),
-		['limit', pluralView?.query?.limit?.default == null ? undefined : 'limit'],
-	])
+	const renderedQuery = (
+		selectedSourcesExpression == null && filterWhereExpression == null && pluralView?.query?.limit?.default == null ?
+			query
+		:
+			emitObject([
+				...(query === '{}' ? [] : [{ spread: query }]),
+				['sources', selectedSourcesExpression],
+				...(filterWhereExpression == null ? [] : [{
+					spread: `${filters.map((filter) => `${filter.prop} == null`).join(' && ')} ? {} : { where: ({ row }) => ${filterWhereExpression} }`,
+				}]),
+				['limit', pluralView?.query?.limit?.default == null ? undefined : 'limit'],
+			])
+	)
 	const itemSelectorName = `${entityValueName}Selector`
 	const itemFieldsName = `${entityValueName}Fields`
 	const itemFieldsExpression = rowProjectionPaths.length === 0 ? entityValueName : itemFieldsName

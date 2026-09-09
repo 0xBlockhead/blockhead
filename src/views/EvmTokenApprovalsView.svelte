@@ -37,16 +37,14 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Blockscout_Rest,
-					Source.Voltaire_JsonRpc,
-				],
-				fields: {
-					approvalKind: true,
-					standard: true,
-					$approvedActor: true,
-				},
+			sources: selection.sources ?? [
+				Source.Blockscout_Rest,
+				Source.Voltaire_JsonRpc,
+			],
+			fields: {
+				approvalKind: true,
+				standard: true,
+				$approvedActor: true,
 			},
 		})
 	}

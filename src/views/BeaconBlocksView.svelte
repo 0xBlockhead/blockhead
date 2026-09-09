@@ -28,14 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					root: true,
-					version: true,
-					$slot: {
-						fields: {
-							$epoch: true,
-						},
+			fields: {
+				root: true,
+				version: true,
+				$slot: {
+					fields: {
+						$epoch: true,
 					},
 				},
 			},

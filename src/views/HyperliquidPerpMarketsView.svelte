@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					coin: true,
-					maxLeverage: true,
-					$network: true,
-				},
+			fields: {
+				coin: true,
+				maxLeverage: true,
+				$network: true,
 			},
 		})
 	}

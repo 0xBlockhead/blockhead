@@ -29,12 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					messageCid: true,
-					observedAtMs: true,
-					local: true,
-				},
+			fields: {
+				messageCid: true,
+				observedAtMs: true,
+				local: true,
 			},
 		})
 	}

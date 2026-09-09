@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					assetType: true,
-					amount: true,
-					ledgerVersion: true,
-				},
+			fields: {
+				assetType: true,
+				amount: true,
+				ledgerVersion: true,
 			},
 		})
 	}

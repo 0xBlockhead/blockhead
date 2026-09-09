@@ -26,14 +26,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					title: true,
-					timestampMs: true,
-					$instance: true,
-					source: true,
-					version: true,
-				},
+			fields: {
+				title: true,
+				timestampMs: true,
+				$instance: true,
+				source: true,
+				version: true,
 			},
 		})
 	}

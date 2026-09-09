@@ -27,11 +27,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					trackerUrl: true,
-					trackerKind: true,
-				},
+			fields: {
+				trackerUrl: true,
+				trackerKind: true,
 			},
 		})
 	}

@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					actionType: true,
-					selectedProtocol: true,
-					indexInSequence: true,
-				},
+			fields: {
+				actionType: true,
+				selectedProtocol: true,
+				indexInSequence: true,
 			},
 		})
 	}

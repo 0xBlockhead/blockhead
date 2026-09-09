@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$auxPow: true,
-					merkleRoot: true,
-				},
+			fields: {
+				$auxPow: true,
+				merkleRoot: true,
 			},
 		})
 	}

@@ -28,17 +28,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$pool: {
-						fields: {
-							noteProtocol: true,
-							activationNetworkUpgrade: true,
-						},
+			fields: {
+				$pool: {
+					fields: {
+						noteProtocol: true,
+						activationNetworkUpgrade: true,
 					},
-					saplingTree: true,
-					orchardTree: true,
 				},
+				saplingTree: true,
+				orchardTree: true,
 			},
 		})
 	}

@@ -26,11 +26,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					metagraphByteLength: true,
-				},
+			fields: {
+				timestampMs: true,
+				metagraphByteLength: true,
 			},
 		})
 	}

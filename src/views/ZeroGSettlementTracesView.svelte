@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					traceId: true,
-					$serviceRequest: true,
-					settlementTransactionHash: true,
-				},
+			fields: {
+				traceId: true,
+				$serviceRequest: true,
+				settlementTransactionHash: true,
 			},
 		})
 	}

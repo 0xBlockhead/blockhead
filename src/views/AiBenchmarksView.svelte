@@ -27,14 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					label: true,
-					taskType: true,
-					benchmarkId: true,
-					benchmarkUri: true,
-					metricName: true,
-				},
+			fields: {
+				label: true,
+				taskType: true,
+				benchmarkId: true,
+				benchmarkUri: true,
+				metricName: true,
 			},
 		})
 	}

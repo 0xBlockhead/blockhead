@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					outcomeKind: true,
-					transactionId: true,
-					createdAt: true,
-				},
+			fields: {
+				outcomeKind: true,
+				transactionId: true,
+				createdAt: true,
 			},
 		})
 	}

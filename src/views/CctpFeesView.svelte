@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					apiHost: true,
-					fromDomain: true,
-					toDomain: true,
-				},
+			fields: {
+				apiHost: true,
+				fromDomain: true,
+				toDomain: true,
 			},
 		})
 	}

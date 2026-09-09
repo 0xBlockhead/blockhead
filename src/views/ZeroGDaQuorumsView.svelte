@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					quorumId: true,
-					$network: true,
-					$consensusNetwork: true,
-				},
+			fields: {
+				quorumId: true,
+				$network: true,
+				$consensusNetwork: true,
 			},
 		})
 	}

@@ -28,15 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Reddit_PublicJson,
-					Source.Reddit_Rest,
-				],
-				fields: {
-					title: true,
-					name: true,
-				},
+			sources: selection.sources ?? [
+				Source.Reddit_PublicJson,
+				Source.Reddit_Rest,
+			],
+			fields: {
+				title: true,
+				name: true,
 			},
 		})
 	}

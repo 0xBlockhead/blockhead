@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					dataRoot: true,
-					$network: true,
-					sizeBytes: true,
-				},
+			fields: {
+				dataRoot: true,
+				$network: true,
+				sizeBytes: true,
 			},
 		})
 	}

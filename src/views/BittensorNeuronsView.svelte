@@ -28,13 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					uid: true,
-					$subnet: {
-						fields: {
-							name: true,
-						},
+			fields: {
+				uid: true,
+				$subnet: {
+					fields: {
+						name: true,
 					},
 				},
 			},

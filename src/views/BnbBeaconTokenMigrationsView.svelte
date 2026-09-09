@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					migrationKind: true,
-					$token: true,
-					$targetNetwork: true,
-				},
+			fields: {
+				migrationKind: true,
+				$token: true,
+				$targetNetwork: true,
 			},
 		})
 	}

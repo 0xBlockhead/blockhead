@@ -29,13 +29,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					title: true,
-					mimeType: true,
-					name: true,
-					uriTemplate: true,
-				},
+			fields: {
+				title: true,
+				mimeType: true,
+				name: true,
+				uriTemplate: true,
 			},
 		})
 	}

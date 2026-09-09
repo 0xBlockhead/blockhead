@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					transactionAddress: true,
-					amount: true,
-					deliveryType: true,
-				},
+			fields: {
+				transactionAddress: true,
+				amount: true,
+				deliveryType: true,
 			},
 		})
 	}

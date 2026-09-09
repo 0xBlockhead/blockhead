@@ -26,21 +26,19 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					$sourceDomain: {
-						fields: {
-							name: true,
-						},
+			fields: {
+				timestampMs: true,
+				$sourceDomain: {
+					fields: {
+						name: true,
 					},
-					$destinationDomain: {
-						fields: {
-							name: true,
-						},
-					},
-					source: true,
 				},
+				$destinationDomain: {
+					fields: {
+						name: true,
+					},
+				},
+				source: true,
 			},
 		})
 	}

@@ -27,20 +27,18 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					name: true,
-					$task: {
-						fields: {
-							taskId: true,
-							contextId: true,
-							providerTaskId: true,
-							updatedAt: true,
-						},
+			fields: {
+				name: true,
+				$task: {
+					fields: {
+						taskId: true,
+						contextId: true,
+						providerTaskId: true,
+						updatedAt: true,
 					},
-					artifactId: true,
-					createdAt: true,
 				},
+				artifactId: true,
+				createdAt: true,
 			},
 		})
 	}

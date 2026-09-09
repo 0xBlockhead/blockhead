@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					tipsetKey: true,
-					exitCode: true,
-					gasUsed: true,
-				},
+			fields: {
+				tipsetKey: true,
+				exitCode: true,
+				gasUsed: true,
 			},
 		})
 	}

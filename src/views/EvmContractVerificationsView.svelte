@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					match: true,
-					runtimeMatch: true,
-					$contract: true,
-				},
+			fields: {
+				match: true,
+				runtimeMatch: true,
+				$contract: true,
 			},
 		})
 	}

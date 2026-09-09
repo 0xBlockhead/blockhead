@@ -26,11 +26,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$consensusNetwork: true,
-					timestampMs: true,
-				},
+			fields: {
+				$consensusNetwork: true,
+				timestampMs: true,
 			},
 		})
 	}

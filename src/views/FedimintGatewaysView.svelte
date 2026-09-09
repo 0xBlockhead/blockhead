@@ -27,11 +27,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					gatewayId: true,
-					apiUrl: true,
-				},
+			fields: {
+				gatewayId: true,
+				apiUrl: true,
 			},
 		})
 	}

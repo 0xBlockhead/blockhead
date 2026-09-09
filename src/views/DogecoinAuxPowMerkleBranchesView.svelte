@@ -30,11 +30,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					branchKind: true,
-					$auxPow: true,
-				},
+			fields: {
+				branchKind: true,
+				$auxPow: true,
 			},
 		})
 	}

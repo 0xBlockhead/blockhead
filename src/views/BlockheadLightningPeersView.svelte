@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					publicKey: true,
-					$localNodeState: true,
-					$node: true,
-				},
+			fields: {
+				publicKey: true,
+				$localNodeState: true,
+				$node: true,
 			},
 		})
 	}

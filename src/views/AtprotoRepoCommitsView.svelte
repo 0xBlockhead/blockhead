@@ -29,13 +29,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					rev: true,
-					commitCid: true,
-					repoDid: true,
-					source: true,
-				},
+			fields: {
+				rev: true,
+				commitCid: true,
+				repoDid: true,
+				source: true,
 			},
 		})
 	}

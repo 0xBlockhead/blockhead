@@ -30,13 +30,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					isSynced: true,
-					hasUtxoIndex: true,
-					peerCount: true,
-				},
+			fields: {
+				timestampMs: true,
+				isSynced: true,
+				hasUtxoIndex: true,
+				peerCount: true,
 			},
 		})
 	}

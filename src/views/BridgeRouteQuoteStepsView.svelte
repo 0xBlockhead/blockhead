@@ -29,12 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					indexInQuote: true,
-					tool: true,
-					stepType: true,
-				},
+			fields: {
+				indexInQuote: true,
+				tool: true,
+				stepType: true,
 			},
 		})
 	}

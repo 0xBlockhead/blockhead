@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					certificateKind: true,
-					certificateIndex: true,
-				},
+			fields: {
+				certificateKind: true,
+				certificateIndex: true,
 			},
 		})
 	}

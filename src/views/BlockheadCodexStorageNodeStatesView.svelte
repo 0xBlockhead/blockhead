@@ -29,12 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					peerId: true,
-					connectionId: true,
-					endpoint: true,
-				},
+			fields: {
+				peerId: true,
+				connectionId: true,
+				endpoint: true,
 			},
 		})
 	}
