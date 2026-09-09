@@ -239,16 +239,29 @@ export const acquireNetworkPresentationDriver = (
 		limit: 1,
 		orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc']],
 	})
-	const nativePrice = projection
-		.$nativeCoin({ sources: [Source.Constants_Internal] })
-		.$$marketsWithCoinAsBase({ sources: [Source.Constants_Internal], limit: 1 })
-		.$$marketPrices({ sources: [Source.Constants_Internal], limit: 1 })
-		.$$quotes({
-			sources: [Source.Coingecko_Rest],
-			fields: { price: true },
-			limit: 1,
-			orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc']],
-		})
+	const nativePrice = projection.$nativeCoin({
+		sources: [Source.Constants_Internal],
+		fields: {
+			$$marketsWithCoinAsBase: {
+				sources: [Source.Constants_Internal],
+				limit: 1,
+				fields: {
+					$$marketPrices: {
+						sources: [Source.Constants_Internal],
+						limit: 1,
+						fields: {
+							$$quotes: {
+								sources: [Source.Coingecko_Rest],
+								fields: { price: true },
+								limit: 1,
+								orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc']],
+							},
+						},
+					},
+				},
+			},
+		},
+	})
 	const latestMempool = projection.$$txpoolTimestamps({
 		sources: [Source.Voltaire_JsonRpc],
 		fields: { timestampMs: true, pendingCount: true, queuedCount: true },
@@ -267,10 +280,14 @@ export const acquireNetworkPresentationDriver = (
 		limit: 1,
 		orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].slot ?? Number.NEGATIVE_INFINITY, 'desc']],
 	})
-	const blocks = projection.$$blocks({ sources: [Source.Voltaire_JsonRpc], limit: 4 })({
+	const blocks = projection.$$blocks({
+		sources: [Source.Voltaire_JsonRpc],
+		limit: 4,
 		fields: { blockNumber: true, hash: true },
 	})
-	const transactions = projection.$$transactions({ sources: [Source.Blockscout_Rest], limit: 16 })({
+	const transactions = projection.$$transactions({
+		sources: [Source.Blockscout_Rest],
+		limit: 16,
 		fields: { txHash: true },
 	})
 	const resources = [
@@ -318,7 +335,7 @@ export const acquireNetworkPresentationDriver = (
 						return { value: `${decimal.format(row[EntityMetaKey.Selector].blockNumber)} · ${formatFixedBigInt(row.baseFeePerGas, 9)} gwei` }
 					}),
 					nativePrice: materializeResource(nativePrice, (data) => {
-						const price = data?.values[0]?.price
+						const price = data?.$$marketsWithCoinAsBase.values[0]?.$$marketPrices.values[0]?.$$quotes.values[0]?.price
 						if (price === undefined)
 							return { value: null }
 						return { value: formatFixedBigInt(price, 8) }
