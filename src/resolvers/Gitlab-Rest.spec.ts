@@ -6,6 +6,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { gitlabMergeRequestDiffNote, gitlabProject } from '../../tests/fixtures/gitlab.ts'
 
 
 const {
@@ -160,17 +161,7 @@ if (
 )
 	throw new Error('GitLab repository-journey resolvers must all be registered')
 
-const project = {
-	id: 278964,
-	path: 'gitlab',
-	path_with_namespace: 'gitlab-org/gitlab',
-	default_branch: 'master',
-	visibility: 'public',
-	http_url_to_repo: 'https://gitlab.com/gitlab-org/gitlab.git',
-	ssh_url_to_repo: 'git@gitlab.com:gitlab-org/gitlab.git',
-	web_url: 'https://gitlab.com/gitlab-org/gitlab',
-	repository_object_format: 'sha1',
-}
+const project = gitlabProject()
 const observationTimestampMs = Date.parse('2026-08-14T00:00:00Z')
 const dateNow = vi.spyOn(Date, 'now')
 
@@ -345,23 +336,7 @@ describe('GitLab repository journey', () => {
 		})
 		getMergeRequests.mockResolvedValue([])
 		getMergeRequestNotes.mockResolvedValue([])
-		getMergeRequestNote.mockResolvedValue({
-			id: 404,
-			body: 'Review the native graph',
-			created_at: '2026-02-04T00:00:00Z',
-			updated_at: '2026-02-04T00:00:00Z',
-			system: false,
-			noteable_iid: 34,
-			noteable_type: 'MergeRequest',
-			type: 'DiffNote',
-			discussion_id: 'abcd1234',
-			position: {
-				old_path: 'src/index.ts',
-				new_path: 'src/index.ts',
-				old_line: null,
-				new_line: 12,
-			},
-		})
+		getMergeRequestNote.mockResolvedValue(gitlabMergeRequestDiffNote())
 		getRelease.mockResolvedValue({
 			tag_name: 'v1.0.0',
 			name: 'Version 1.0.0',
@@ -1646,23 +1621,7 @@ describe('GitLab repository journey', () => {
 				web_url: 'https://gitlab.com/issue-author',
 			},
 		}])
-		getMergeRequestNotes.mockResolvedValueOnce([{
-			id: 404,
-			body: 'Review the native graph',
-			created_at: '2026-02-04T00:00:00Z',
-			updated_at: '2026-02-04T00:00:00Z',
-			system: false,
-			noteable_iid: 34,
-			noteable_type: 'MergeRequest',
-			type: 'DiffNote',
-			discussion_id: 'abcd1234',
-			position: {
-				old_path: 'src/index.ts',
-				new_path: 'src/index.ts',
-				old_line: null,
-				new_line: 12,
-			},
-		}])
+		getMergeRequestNotes.mockResolvedValueOnce([gitlabMergeRequestDiffNote()])
 		getReleaseAssetLinks.mockResolvedValueOnce([{
 			id: 9,
 			name: 'release.md',

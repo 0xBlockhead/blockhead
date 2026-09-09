@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
+import { gitlabMergeRequestDiffNote, gitlabProject } from '../../../../tests/fixtures/gitlab.ts'
 
 const sourceGetJson = vi.hoisted(() => vi.fn())
 
@@ -47,17 +47,7 @@ describe('GitLab REST wires', () => {
 
 	it('accepts the native repository journey payloads', async () => {
 		sourceGetJson
-			.mockResolvedValueOnce({
-				id: 278964,
-				path: 'gitlab',
-				path_with_namespace: 'gitlab-org/gitlab',
-				default_branch: 'master',
-				visibility: 'public',
-				http_url_to_repo: 'https://gitlab.com/gitlab-org/gitlab.git',
-				ssh_url_to_repo: 'git@gitlab.com:gitlab-org/gitlab.git',
-				web_url: 'https://gitlab.com/gitlab-org/gitlab',
-				repository_object_format: 'sha1',
-			})
+			.mockResolvedValueOnce(gitlabProject())
 			.mockResolvedValueOnce([
 				{
 					name: 'master',
@@ -796,23 +786,7 @@ describe('GitLab REST wires', () => {
 			noteable_type: 'Issue',
 			type: null,
 		}
-		const mergeRequestNote = {
-			id: 404,
-			body: 'Review the native graph',
-			created_at: '2026-02-04T00:00:00Z',
-			updated_at: '2026-02-04T00:00:00Z',
-			system: false,
-			noteable_iid: 34,
-			noteable_type: 'MergeRequest',
-			type: 'DiffNote',
-			discussion_id: 'abcd1234',
-			position: {
-				old_path: 'src/index.ts',
-				new_path: 'src/index.ts',
-				old_line: null,
-				new_line: 12,
-			},
-		}
+		const mergeRequestNote = gitlabMergeRequestDiffNote()
 		const releaseLink = {
 			id: 9,
 			name: 'release.md',
