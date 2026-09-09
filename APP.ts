@@ -53519,7 +53519,8 @@ export const schema = {
 				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
-				"observedItemCount": { label: "Observed items", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				// A failed read does not determine how many items the feed contains.
+				"observedItemCount": { label: "Observed items", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
 				"error": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -53622,7 +53623,8 @@ export const schema = {
 				"$item": { label: "Item", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.RssItem },
 				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"observed": { label: "Observed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				// A failed feed read cannot establish whether the requested item was observed.
+				"observed": { label: "Observed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"reachable": { label: "Feed reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
 				"error": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({

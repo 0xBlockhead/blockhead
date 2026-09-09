@@ -30,7 +30,7 @@ export default entity({
 	},
 	observedItemCount: {
 		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	error: {
 		primitiveType: type('string'),

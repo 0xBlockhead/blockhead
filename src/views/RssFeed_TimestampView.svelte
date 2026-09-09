@@ -103,26 +103,29 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Observed items</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									observedItemCount: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							<NumberValue
-								value={entity.observedItemCount}
-							/>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							observedItemCount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const observedItemCount = entity.observedItemCount}
+					{#if observedItemCount != null}
+						<div>
+							<dt>Observed items</dt>
+							<dd>
+								<NumberValue
+									value={observedItemCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">

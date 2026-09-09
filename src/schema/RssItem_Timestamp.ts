@@ -26,7 +26,7 @@ export default entity({
 	},
 	observed: {
 		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	reachable: {
 		primitiveType: type('boolean'),

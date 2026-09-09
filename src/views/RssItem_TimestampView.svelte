@@ -79,24 +79,27 @@
 				</dd>
 			</div>
 
-			<div>
-				<dt>Observed</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									observed: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							{entity.observed ? 'Yes' : 'No'}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							observed: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const observed = entity.observed}
+					{#if observed != null}
+						<div>
+							<dt>Observed</dt>
+							<dd>
+								{observed ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<div>
 				<dt>Feed reachable</dt>
