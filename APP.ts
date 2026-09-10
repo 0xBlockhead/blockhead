@@ -42806,7 +42806,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest],
+							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql],
 							fields: ["shortChannelId", "fundingTransactionId", "fundingOutputIndex"],
 							openFields: ["openedAtMs"],
 						},
@@ -48529,8 +48529,8 @@ export const schema = {
 									label: "Network graph",
 									className: "network-view-collapsible-network-graph",
 									sections: [
-										{ id: "lightning-network-observations", field: ["Lightning", "$$timestamps"], List: "LightningNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.LightningMempoolSpace_Rest], limit: 16 } },
-										{ id: "lightning-network-nodes", field: ["Lightning", "$$nodes"], List: "LightningNodesView", label: "Nodes", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
+										{ id: "lightning-network-observations", field: ["Lightning", "$$timestamps"], List: "LightningNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
+										{ id: "lightning-network-nodes", field: ["Lightning", "$$nodes"], List: "LightningNodesView", label: "Nodes", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql], limit: 16 } },
 									],
 								},
 							],

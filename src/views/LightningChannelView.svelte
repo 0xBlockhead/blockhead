@@ -33,6 +33,7 @@
 		sources: selection.sources ?? [
 			Source.LightningMempoolSpace_Rest,
 			Source.LightningLnd_Rest,
+			Source.Amboss_Graphql,
 		],
 	}))
 	const lightningChannel = $derived(viewSelection({
