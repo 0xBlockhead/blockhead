@@ -33,6 +33,7 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import CelestiaBlobOccurrencesView from '$/views/CelestiaBlobOccurrencesView.svelte'
 	import CelestiaNamespaceView from '$/views/CelestiaNamespaceView.svelte'
 	import CelestiaBlockView from '$/views/CelestiaBlockView.svelte'
 </script>
@@ -164,30 +165,6 @@
 				resource={
 					selection({
 						fields: {
-							index: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const index = entity.index}
-					{#if index != null}
-						<div>
-							<dt>index</dt>
-							<dd>
-								<NumberValue
-									value={index}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
 							sizeBytes: true,
 						},
 					})
@@ -210,50 +187,6 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							signer: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const signer = entity.signer}
-					{#if signer != null}
-						<div>
-							<dt>signer</dt>
-							<dd>
-								{signer}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							txHash: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const txHash = entity.txHash}
-					{#if txHash != null}
-						<div>
-							<dt>Transaction hash</dt>
-							<dd>
-								<TruncatedValue value={txHash} />
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
 			<ResourceBoundary
 				resource={selection.$block}
 			>
@@ -334,6 +267,24 @@
 					<code>{blobData}</code>
 				{:else}
 					<p data-text="muted">No blob data available.</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const occurrencesResource = selection.$$occurrences}
+		<ResourceBoundary
+			resource={occurrencesResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<CelestiaBlobOccurrencesView
+						selection={occurrencesResource}
+						countResource={occurrencesResource.count}
+						title='blob occurrences'
+						id='occurrences'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -14,29 +14,33 @@
 	// State
 	let {
 		data,
+		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CelestiaBlob, data.selector))
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CelestiaBlobSubmission, {
+		$blob: data.selector,
+		txHash: params.txHash,
+	}))
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import CelestiaBlobView from '$/views/CelestiaBlobView.svelte'
+	import CelestiaBlobSubmissionView from '$/views/CelestiaBlobSubmissionView.svelte'
 </script>
 
 
 <svelte:head>
 	{#if pageSelection != null}
-		<title>{data?.title ?? (pageSelection.entitySelector.commitment || 'celestia blob')} • celestia blob • Blockhead</title>
+		<title>{data?.title ?? (pageSelection.entitySelector.txHash || 'celestia blob submission')} • celestia blob submission • Blockhead</title>
 	{:else}
-		<title>{data?.title ?? 'celestia blob'} • celestia blob • Blockhead</title>
+		<title>{data?.title ?? 'celestia blob submission'} • celestia blob submission • Blockhead</title>
 	{/if}
 </svelte:head>
 
 
 <Page>
 	{#if pageSelection != null}
-	<CelestiaBlobView
+	<CelestiaBlobSubmissionView
 		selection={pageSelection}
 	/>
 	{/if}

@@ -46,6 +46,13 @@ export default entity({
 			Source.Celenium_Rest,
 		],
 	},
+	$$blobSubmissions: {
+		entityType: EntityType.CelestiaBlobSubmission,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.Celenium_Rest,
+		],
+	},
 })({
 	selectors: {
 		Network: [

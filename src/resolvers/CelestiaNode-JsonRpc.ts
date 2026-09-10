@@ -7,6 +7,7 @@ import {
 	entityFieldAddressKey,
 	EntityMetaKey,
 	type EntitySelector,
+	type EntitySelectorForSelectorName,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
@@ -14,6 +15,89 @@ import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 type CelestiaBlobId = EntitySelector<typeof schema, EntityType.CelestiaBlob>
+type CelestiaBlobOccurrenceBlockIndex = EntitySelectorForSelectorName<
+	typeof schema,
+	EntityType.CelestiaBlobOccurrence,
+	'BlockIndex'
+>
+type CelestiaBlobOccurrenceNamespaceHeightIndex = EntitySelectorForSelectorName<
+	typeof schema,
+	EntityType.CelestiaBlobOccurrence,
+	'NamespaceHeightIndex'
+>
+
+const occurrenceFromBlob = ({
+	$namespace,
+	height,
+	blob,
+}: {
+	$namespace: EntitySelectorForSelectorName<
+		typeof schema,
+		EntityType.CelestiaNamespace,
+		'NetworkNamespaceId'
+	>
+	height: bigint
+	blob: {
+		commitment: string
+		index: number
+	}
+}) => ({
+	[EntityMetaKey.Selector]: {
+		$block: {
+			$network: $namespace.$network,
+			height,
+		},
+		index: blob.index,
+	},
+	[EntityMetaKey.Fields]: {
+		[entityFieldAddressKey(EntityType.CelestiaBlobOccurrence, [], '$namespace')]: {
+			[EntityMetaKey.Selector]: $namespace,
+		},
+		[entityFieldAddressKey(EntityType.CelestiaBlobOccurrence, [], 'height')]: height,
+		[entityFieldAddressKey(EntityType.CelestiaBlobOccurrence, [], '$blob')]: {
+			[EntityMetaKey.Selector]: {
+				$namespace,
+				height,
+				commitment: blob.commitment,
+			},
+		},
+	},
+})
+
+const occurrenceSnapshot = ({
+	$namespace,
+	height,
+	index,
+	commitment,
+}: {
+	$namespace: EntitySelectorForSelectorName<
+		typeof schema,
+		EntityType.CelestiaNamespace,
+		'NetworkNamespaceId'
+	>
+	height: bigint
+	index: number
+	commitment: string
+}) => ({
+	$block: {
+		[EntityMetaKey.Selector]: {
+			$network: $namespace.$network,
+			height,
+		},
+	},
+	index,
+	$namespace: {
+		[EntityMetaKey.Selector]: $namespace,
+	},
+	height,
+	$blob: {
+		[EntityMetaKey.Selector]: {
+			$namespace,
+			height,
+			commitment,
+		},
+	},
+})
 
 const assertCelestiaMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== 'celestia')
@@ -433,7 +517,6 @@ export default {
 						})
 						return {
 							shareVersion: blob.shareVersion,
-							index: blob.index,
 							sizeBytes: blob.sizeBytes,
 							blobData: blob.data,
 							payloadRequested: true,
@@ -451,13 +534,115 @@ export default {
 			},
 		})({
 			shareVersion: (blob) => blob.shareVersion,
-			index: (blob) => blob.index,
 			sizeBytes: (blob) => blob.sizeBytes,
 			blobData: (blob) => blob.blobData,
 			payloadRequested: (blob) => blob.payloadRequested,
 			proof: (blob) => blob.proof,
 			shareProofAvailable: (blob) => blob.shareProofAvailable,
 			$block: (blob) => blob.$block,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaBlob,
+			resolve: {
+				NamespaceHeightCommitment: {
+					resolve: async ({ $namespace, height, commitment }, context) => {
+						assertCelestiaMainnet($namespace.$network.$network)
+						const {
+							getBlobsByNamespace,
+						} = await import('$/sources/Celestia/JsonRpc/queries.ts')
+						return (await getBlobsByNamespace({
+							publicEnv: context.publicEnv,
+							height,
+							namespaces: [$namespace.namespaceId],
+						})).filter((blob) => (
+							blob.commitment === commitment
+						)).map((blob) => occurrenceFromBlob({
+							$namespace,
+							height,
+							blob,
+						}))
+					},
+				},
+			},
+		})({
+			$$occurrences: (occurrences) => occurrences,
+		}),
+
+		defineResolver({
+			entityType: EntityType.CelestiaBlobOccurrence,
+			resolve: {
+				BlockIndex: {
+					resolve: async ({
+						$block,
+						index,
+					}: CelestiaBlobOccurrenceBlockIndex, context): Promise<ReturnType<typeof occurrenceSnapshot>> => {
+						assertCelestiaMainnet($block.$network.$network)
+						if (!('height' in $block))
+							throw new Error('CelestiaNode: blob occurrence BlockIndex requires a block height')
+						const {
+							getBlobsByNamespace,
+							getShareRange,
+						} = await import('$/sources/Celestia/JsonRpc/queries.ts')
+						const height = $block.height
+						const { namespace } = await getShareRange({
+							publicEnv: context.publicEnv,
+							height,
+							from: index,
+							to: index + 1,
+						})
+						const matches = (await getBlobsByNamespace({
+							publicEnv: context.publicEnv,
+							height,
+							namespaces: [namespace],
+						})).filter((blob) => blob.index === index)
+						if (matches.length !== 1)
+							throw new Error(`CelestiaNode: expected one blob occurrence at index ${index}, received ${matches.length}`)
+						const [blob] = matches
+						return occurrenceSnapshot({
+							$namespace: {
+								$network: $block.$network,
+								namespaceId: namespace,
+							},
+							height,
+							index,
+							commitment: blob.commitment,
+						})
+					},
+				},
+				NamespaceHeightIndex: {
+					resolve: async ({
+						$namespace,
+						height,
+						index,
+					}: CelestiaBlobOccurrenceNamespaceHeightIndex, context) => {
+						assertCelestiaMainnet($namespace.$network.$network)
+						const {
+							getBlobsByNamespace,
+						} = await import('$/sources/Celestia/JsonRpc/queries.ts')
+						const matches = (await getBlobsByNamespace({
+							publicEnv: context.publicEnv,
+							height,
+							namespaces: [$namespace.namespaceId],
+						})).filter((blob) => blob.index === index)
+						if (matches.length !== 1)
+							throw new Error(`CelestiaNode: expected one blob occurrence at index ${index}, received ${matches.length}`)
+						const [blob] = matches
+						return occurrenceSnapshot({
+							$namespace,
+							height,
+							index,
+							commitment: blob.commitment,
+						})
+					},
+				},
+			},
+		})({
+			$block: (occurrence) => occurrence.$block,
+			index: (occurrence) => occurrence.index,
+			$namespace: (occurrence) => occurrence.$namespace,
+			height: (occurrence) => occurrence.height,
+			$blob: (occurrence) => occurrence.$blob,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

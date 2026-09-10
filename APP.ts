@@ -1103,6 +1103,8 @@ export enum EntityType {
 	CctpFee = "CctpFee",
 	CctpMessage = "CctpMessage",
 	CelestiaBlob = "CelestiaBlob",
+	CelestiaBlobOccurrence = "CelestiaBlobOccurrence",
+	CelestiaBlobSubmission = "CelestiaBlobSubmission",
 	CelestiaBlock = "CelestiaBlock",
 	CelestiaNamespace = "CelestiaNamespace",
 	CelestiaNamespace_Timestamp = "CelestiaNamespace_Timestamp",
@@ -23112,15 +23114,13 @@ export const schema = {
 				"commitment": { label: "commitment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"dataHash": { label: "data hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"shareVersion": { label: "share version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
-				"index": { label: "index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CelestiaNode] },
 				"sizeBytes": { label: "size bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
-				"signer": { label: "signer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Celenium_Rest] },
-				"txHash": { label: "Transaction hash", description: "The transaction hash in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Celenium_Rest] },
 				"$block": { label: "block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CelestiaBlock, defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
 				"proof": { label: "proof", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown", defaultSources: [Source.CelestiaNode] },
 				"shareProofAvailable": { label: "share proof available", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.CelestiaNode] },
 				"blobData": { label: "blob data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CelestiaNode] },
 				"payloadRequested": { label: "payload requested", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.CelestiaNode] },
+				"$$occurrences": { label: "blob occurrences", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlobOccurrence, defaultSources: [Source.CelestiaNode] },
 			})({
 				selectors: {
 					"NamespaceHeightCommitment": ["$namespace", "height", "commitment"],
@@ -23135,8 +23135,8 @@ export const schema = {
 						content: {
 							dl: [
 								["$namespace", { field: "height", format: "numberValue" }, { field: "commitment", format: "truncated" }],
-								["dataHash", { field: "shareVersion", format: "number" }, { field: "index", format: "number" }, { field: "sizeBytes", format: "numberValue" }],
-								["signer", { field: "txHash", format: "truncated" }, "$block", "shareProofAvailable", "payloadRequested"],
+								["dataHash", { field: "shareVersion", format: "number" }, { field: "sizeBytes", format: "numberValue" }],
+								["$block", "shareProofAvailable", "payloadRequested"],
 							],
 							body: {
 								field: "blobData",
@@ -23144,9 +23144,78 @@ export const schema = {
 								emptyText: "No blob data available.",
 							},
 						},
+						lists: [
+							{ field: "$$occurrences", component: "CelestiaBlobOccurrencesView", emptyText: "No blob occurrences found.", selection: { sources: [Source.CelestiaNode] } },
+						],
 					},
 					plural: { component: "CelestiaBlobsView",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.CelestiaBlobOccurrence,
+				labels: {
+					singular: "celestia blob occurrence",
+					plural: "celestia blob occurrences",
+				},
+			})({
+				"$block": { label: "block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CelestiaBlock, defaultSources: [Source.CelestiaNode] },
+				"index": { label: "EDS share index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.CelestiaNode] },
+				"$namespace": { label: "Namespace", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CelestiaNamespace, defaultSources: [Source.CelestiaNode] },
+				"height": { label: "Height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt", defaultSources: [Source.CelestiaNode] },
+				"$blob": { label: "blob content", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CelestiaBlob, defaultSources: [Source.CelestiaNode] },
+			})({
+				selectors: {
+					"BlockIndex": ["$block", "index"],
+					"NamespaceHeightIndex": ["$namespace", "height", "index"],
+				},
+				views: {
+					singular: {
+						summary: {
+							serial: { field: "index", label: "Blob occurrence" },
+							HeadingAfter: ["$block"],
+						},
+						content: {
+							dl: [
+								["$block", { field: "index", format: "number" }, "$namespace", { field: "height", format: "numberValue" }],
+								["$blob"],
+							],
+						},
+					},
+					plural: { component: "CelestiaBlobOccurrencesView", title: "Celestia blob occurrences" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.CelestiaBlobSubmission,
+				labels: {
+					singular: "celestia blob submission",
+					plural: "celestia blob submissions",
+				},
+			})({
+				"$blob": { label: "blob content", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CelestiaBlob },
+				"txHash": { label: "transaction hash", description: "The transaction hash in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$transaction": { label: "transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CosmosTransaction },
+				"$$submitters": { label: "PFB submitters", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount, defaultSources: [Source.Celenium_Rest] },
+			})({
+				selectors: {
+					"BlobTransaction": ["$blob", "txHash"],
+				},
+				views: {
+					singular: {
+						summary: {
+							title: [{ field: "txHash", format: "truncated" }],
+							HeadingAfter: ["$blob"],
+						},
+						content: {
+							dl: [
+								["$blob", { field: "txHash", format: "truncated" }, "$transaction"],
+							],
+							lists: [{ field: "$$submitters", component: "CosmosAccountsView", emptyText: "No PFB submitters found." }],
+						},
+					},
+					plural: { component: "CelestiaBlobSubmissionsView", title: "Celestia blob submissions" },
 				},
 			}),
 
@@ -23287,6 +23356,7 @@ export const schema = {
 				"$$blocks": { label: "blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlock, defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
 				"$$namespaces": { label: "namespaces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaNamespace, defaultSources: [Source.Celenium_Rest] },
 				"$$blobs": { label: "blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlob, defaultSources: [Source.Celenium_Rest] },
+				"$$blobSubmissions": { label: "blob submissions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlobSubmission, defaultSources: [Source.Celenium_Rest] },
 			})({
 				selectors: {
 					"Network": ["$network"],
@@ -23318,6 +23388,7 @@ export const schema = {
 								sections: [
 									{ id: "celestia-namespaces", field: "$$namespaces", List: "CelestiaNamespacesView", label: "Namespaces", emptyText: "No namespaces found." },
 									{ id: "celestia-blobs", field: "$$blobs", List: "CelestiaBlobsView", label: "Blobs", emptyText: "No blobs found." },
+									{ id: "celestia-blob-submissions", field: "$$blobSubmissions", List: "CelestiaBlobSubmissionsView", label: "Blob submissions", emptyText: "No blob submissions found." },
 								],
 							},
 						],
@@ -83993,6 +84064,23 @@ export const routes = defineRoutes(schema)({
 																				projection: { entityType: EntityType.Network, facetPath: ["Celestia"] }
 																			},
 																		}
+																	},
+																	children: {
+																		"occurrence": {
+																			children: {
+																				"[index]": {
+																					params: { "index": ["NonNegativeInteger"] },
+																					selectors: {
+																						[EntityType.CelestiaBlobOccurrence]: {
+																							"BlockIndex": {
+																								derivations: { "index": { kind: "param", name: "index" } },
+																								page: {},
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
 																	}
 																}
 															},
@@ -84063,6 +84151,42 @@ export const routes = defineRoutes(schema)({
 																								[EntityType.CelestiaBlob]: {
 																									"NamespaceHeightCommitment": {
 																										params: { "height": ["height"], "commitment": ["commitment"] },
+																										page: {},
+																										when: { path: ["namespace"], is: "Celestia" },
+																										projection: { entityType: EntityType.Network, facetPath: ["Celestia"] },
+																									}
+																								}
+																							},
+																							children: {
+																								"submission": {
+																									children: {
+																										"[txHash]": {
+																											selectors: {
+																												[EntityType.CelestiaBlobSubmission]: {
+																													"BlobTransaction": {
+																														params: { "txHash": ["txHash"] },
+																														page: {},
+																													}
+																												}
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		},
+																		"occurrence": {
+																			children: {
+																				"[height]": {
+																					children: {
+																						"[index]": {
+																							selectors: {
+																								[EntityType.CelestiaBlobOccurrence]: {
+																									"NamespaceHeightIndex": {
+																										params: { "height": ["height"], "index": ["index"] },
 																										page: {},
 																										when: { path: ["namespace"], is: "Celestia" },
 																										projection: { entityType: EntityType.Network, facetPath: ["Celestia"] },
