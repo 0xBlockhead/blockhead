@@ -362,6 +362,8 @@ describe('WalletConnect v2 adapter', () => {
 				}),
 			],
 		})
+		expect(await connectionPromise).not.toHaveProperty('peerId')
+		expect(await connectionPromise).not.toHaveProperty('transportSessionId')
 		expect((await connectionPromise)?.accounts.every((account) => (
 			account.capabilities.includes(WalletCapability.SignMessage)
 		))).toBe(true)
