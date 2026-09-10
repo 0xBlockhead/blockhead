@@ -23914,7 +23914,7 @@ export const schema = {
 				"$comet": { label: "Comet market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CompoundComet },
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"tokenAddress": { label: "Token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
-				"priceFeedAddress": { label: "Price feed address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"priceFeedAddress": { label: "Price feed address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
 				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
 				"borrowCF": { label: "Borrow collateral factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
 				"liquidateCF": { label: "Liquidation collateral factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },

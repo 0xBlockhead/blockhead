@@ -33,7 +33,7 @@ export default entity({
 	},
 	priceFeedAddress: {
 		primitiveType: EvmAddress,
-		cardinality: EntityFieldCardinality.One,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Compound_Rest,
 		],
