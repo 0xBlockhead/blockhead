@@ -52,3 +52,25 @@ test('identifies the first unfinished harness phase without granting capability'
 		walletCapabilityEstablished: false,
 	})
 })
+
+test('keeps a complete fixture trace distinct from emulator and physical evidence', () => {
+	const diagnostic = diagnoseHardwareHarnessPhases({
+		artifact: { detail: 'Pinned protocol fixture is present.', outcome: 'passed' },
+		process: { detail: 'No owned emulator process was required for this fixture.', outcome: 'passed' },
+		transport: { detail: 'The source-shaped request/response transport was audited.', outcome: 'passed' },
+		protocol: { detail: 'The response correlates to the exact request.', outcome: 'passed' },
+		'cryptographic-verification': { detail: 'The signature verifies for the bound message and key.', outcome: 'passed' },
+	})
+
+	assert.equal(diagnostic.nextPhase, null)
+	assert.deepEqual(diagnostic.phases.map(({ phase, state }) => ({ phase, state })), [
+		{ phase: 'artifact', state: 'passed' },
+		{ phase: 'process', state: 'passed' },
+		{ phase: 'transport', state: 'passed' },
+		{ phase: 'protocol', state: 'passed' },
+		{ phase: 'cryptographic-verification', state: 'passed' },
+	])
+	assert.equal(diagnostic.emulatorProtocolExecuted, false)
+	assert.equal(diagnostic.physicalHardwareEvidence, false)
+	assert.equal(diagnostic.nativeSettlementEvidence, false)
+})
