@@ -515,7 +515,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={network}>
 			{#snippet children(entity)}
-				{entity.name || title || titleFallback}
+				{network.current?.name || entity.name || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
