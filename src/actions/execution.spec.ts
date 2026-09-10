@@ -42,7 +42,16 @@ describe('TON internal-message execution authority schema', () => {
 	it('accepts the protocol envelope and binds its exact hash', () => {
 		const parsed = authorityRequestEnvelope.assert(envelope)
 		expect(parsed).toEqual(envelope)
-		expect(actionAuthorityRequestEnvelopeHash(parsed)).toMatch(/^0x[0-9a-f]{64}$/)
+		const originalHash = actionAuthorityRequestEnvelopeHash(parsed)
+		expect(originalHash).toMatch(/^0x[0-9a-f]{64}$/)
+		const changedHash = actionAuthorityRequestEnvelopeHash({
+			...parsed,
+			value: {
+				...parsed.value,
+				messages: [{ ...parsed.value.messages[0], amount: '1001' }],
+			},
+		})
+		expect(changedHash).not.toBe(originalHash)
 		expect(dispatchAddress.assert({
 			kind: 'wallet-connection',
 			connectionKey: 'ton-session',
