@@ -70,6 +70,14 @@ export const walletCandidateCard = (page: Page, walletName: string) => (
 	page.locator(`[data-wallet-name="${walletName}"][data-wallet-state="candidate"]`)
 )
 
+export const walletCandidateCardById = (page: Page, walletId: string) => (
+	page.locator(`[data-wallet-id="${walletId}"][data-wallet-state="candidate"]`)
+)
+
+export const connectWalletButtonById = (page: Page, walletId: string) => (
+	walletCandidateCardById(page, walletId).locator('[data-wallet-action="connect"]')
+)
+
 export const walletConnectionCard = (page: Page, walletName: string) => (
 	page.locator(`[data-wallet-name="${walletName}"][data-wallet-state="connection"]`)
 )

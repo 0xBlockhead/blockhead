@@ -6,7 +6,7 @@ import {
 	openPolkadotJs,
 } from '../../../../scripts/wallet-extensions/PolkadotJs/driver.ts'
 import {
-	connectWalletButtonForDriver,
+	connectWalletButtonById,
 	disconnectWalletButton,
 	selectedWalletAccount,
 	selectedWalletAccountLabel,
@@ -40,11 +40,12 @@ test('connects, selects, disconnects, and reloads polkadot.js accounts through B
 	await waitForWalletPageReady(page)
 	await createPolkadotJsAccounts(await openPolkadotJs(context, extension))
 	await expect.poll(() => page.evaluate(() => Object.keys(window.injectedWeb3 ?? {}))).toContain('polkadot-js')
-	await expect(connectWalletButtonForDriver(page, 'PolkadotJs')).toBeVisible()
+	const connect = connectWalletButtonById(page, 'polkadot:polkadot-js')
+	await expect(connect).toBeVisible()
 
 	await Promise.all([
 		approvePolkadotJsConnection(context, extension.id, walletPageUrl),
-		connectWalletButtonForDriver(page, 'PolkadotJs').click(),
+		connect.click(),
 	])
 	const connection = walletConnectionCardById(page, 'polkadot:polkadot-js')
 	await expect(connection).toBeVisible({ timeout: 45_000 })

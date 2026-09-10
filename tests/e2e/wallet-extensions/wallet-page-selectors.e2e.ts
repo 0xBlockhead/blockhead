@@ -16,6 +16,7 @@ import {
 
 import {
 	connectWalletButton,
+	connectWalletButtonById,
 	connectWalletButtonForDriver,
 	disconnectWalletButton,
 	messageToSignInput,
@@ -77,7 +78,7 @@ test('locates wallet page controls by product semantics', async ({ page }) => {
 			<a href="/~/wallets/argent-x">Argent X</a>
 			<button data-wallet-action="connect" type="button">Connect Argent X</button>
 		</article>
-		<article data-wallet-name="polkadot-js" data-wallet-state="candidate">
+		<article data-wallet-id="polkadot:polkadot-js" data-wallet-name="polkadot-js" data-wallet-state="candidate">
 			<a href="/~/wallets/polkadot-js">polkadot-js</a>
 			<button data-wallet-action="connect" type="button">Connect polkadot-js</button>
 		</article>
@@ -97,6 +98,7 @@ test('locates wallet page controls by product semantics', async ({ page }) => {
 	await expect(connectWalletButtonForDriver(page, 'Petra')).toBeVisible()
 	await expect(connectWalletButtonForDriver(page, 'ArgentX')).toBeVisible()
 	await expect(connectWalletButtonForDriver(page, 'PolkadotJs')).toBeVisible()
+	await expect(connectWalletButtonById(page, 'polkadot:polkadot-js')).toBeVisible()
 	await expect(walletCandidateCard(page, 'Petra')).toContainText('Connect Petra')
 	await expect(walletConnectionCard(page, 'UniSat')).toContainText('bc1qselected')
 	await expect(selectedWalletAccount(walletConnectionCard(page, 'UniSat'))).toHaveAccessibleName('bc1qselected')
