@@ -392,13 +392,16 @@ const validatedBlockWire = (wire: typeof blockWire.infer) => {
 			[]
 		),
 	])
-	for (const [value, label] of [
-		[wire.hash, 'block hash'],
-		[wire.parent_hash, 'parent block hash'],
-		[wire.app_hash, 'application hash'],
-		[wire.data_hash, 'data hash'],
+	for (const [value, label, allowEmpty] of [
+		[wire.hash, 'block hash', false] as const,
+		[wire.parent_hash, 'parent block hash', wire.height === 1] as const,
+		[wire.app_hash, 'application hash', false] as const,
+		[wire.data_hash, 'data hash', false] as const,
 	])
-		assertHash(value, label)
+		if (allowEmpty && value === '')
+			continue
+		else
+			assertHash(value, label)
 	assertTimestamp(wire.time, 'block timestamp')
 	if (!/^[0-9a-fA-F]{40}$/.test(wire.proposer.cons_address))
 		throw new Error('Celenium_Rest: invalid block proposer address')
