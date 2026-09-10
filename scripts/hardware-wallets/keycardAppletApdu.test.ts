@@ -166,4 +166,11 @@ test('verifies a protocol-shaped Keycard ECDSA fixture without claiming card exe
 		),
 		response,
 	}), /does not verify/)
+	const tamperedResponse = Uint8Array.from(response)
+	tamperedResponse[2] ^= 1
+	assert.throws(() => verifyKeycardFixtureEcdsaSignature({
+		digest,
+		expectedPublicKey: secp256k1.getPublicKey(privateKey, true),
+		response: tamperedResponse,
+	}), /does not verify/)
 })
