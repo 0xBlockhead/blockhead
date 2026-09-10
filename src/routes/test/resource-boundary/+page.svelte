@@ -148,20 +148,23 @@
 		id: string,
 		observe?: (event: string, update: () => void) => void,
 	) => new TanStackLiveQueryResource(
-		() => ({
+		() => {
+			const ready = resourceFixtureSource.isReady() && resourceFixtureSource.has(id)
+			return {
 			data: resourceFixtureSource.get(id)?.value ?? '',
-			isLoading: !resourceFixtureSource.isReady(),
+			isLoading: !ready,
 			isError: resourceFixtureSource.status === 'error',
-			isReady: resourceFixtureSource.isReady(),
+			isReady: ready,
 			status: (
 				resourceFixtureSource.status === 'error' ?
 					'error'
-				: resourceFixtureSource.isReady() ?
+				: ready ?
 					'ready'
 				:
 					'loading'
 			),
-		}),
+			}
+		},
 		(update) => {
 			resourceFixtureSource.onFirstReady(update)
 			const subscription = resourceFixtureSource.subscribeChanges(update, {
@@ -317,9 +320,7 @@
 	<button onclick={async () => {
 		await resourceFixtureSource.preload()
 		if (resourceFixtureSource.has('lifecycle-a'))
-			resourceFixtureSource.update('lifecycle-a', (draft) => {
-				draft.value = ''
-			})
+			resourceFixtureSource.delete('lifecycle-a')
 		lifecycleKey = 'a'
 		showLifecycle = true
 	}}>Start pending native A</button>
