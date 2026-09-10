@@ -2727,6 +2727,63 @@ describe('local mutation authority journal', () => {
 				[EntityMetaKey.Value]: 'local-final',
 			}),
 		])
+		await writeLocalBlockheadActionOutcome(
+			context,
+			preparationActionSelector,
+			{
+				outcomeId: 'outcome-1',
+				outcomeKind: 'transaction',
+				transactionId: transactionSelector.txHash,
+				createdAt: 21,
+				evmTransactions: [transactionSelector],
+			},
+			{
+				timestampMs: 23,
+				source: Source.Voltaire_JsonRpc,
+				status: 'confirmed',
+				finality: 'finalized',
+				transactionId: transactionSelector.txHash,
+				sourcePayloadHash: '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+			}
+		)
+		expect(context.entityCollections[EntityType.BlockheadActionOutcome].toArray).toHaveLength(1)
+		expect(context.entityCollections[EntityType.BlockheadActionOutcome_Timestamp].toArray).toHaveLength(2)
+		expect(context.entityFieldCollections[EntityType.BlockheadActionOutcome_Timestamp][entityFieldAddressKey(
+			EntityType.BlockheadActionOutcome_Timestamp,
+			[],
+			'finality'
+		)].toArray).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelector]: {
+					$outcome: outcomeSelector,
+					timestampMs: 22,
+					source: Source.Local_Internal,
+				},
+				[EntityMetaKey.Value]: 'local-final',
+			}),
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelector]: {
+					$outcome: outcomeSelector,
+					timestampMs: 23,
+					source: Source.Voltaire_JsonRpc,
+				},
+				[EntityMetaKey.Value]: 'finalized',
+			}),
+		]))
+		expect(context.entityFieldCollections[EntityType.BlockheadActionOutcome_Timestamp][entityFieldAddressKey(
+			EntityType.BlockheadActionOutcome_Timestamp,
+			[],
+			'sourcePayloadHash'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.ParentSelector]: {
+					$outcome: outcomeSelector,
+					timestampMs: 23,
+					source: Source.Voltaire_JsonRpc,
+				},
+				[EntityMetaKey.Value]: '0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+			}),
+		])
 		expect(context.entityFieldCountCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
 			EntityType.BlockheadSessionAction,
 			[],
