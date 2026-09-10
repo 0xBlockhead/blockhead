@@ -351,3 +351,34 @@ test('reports an unavailable configured executable without installing a fallback
 		}
 	)
 })
+
+test('reports a nonzero child exit as a readiness failure with exit diagnostics', async (context) => {
+	// Fault: a launcher that exits immediately could be mistaken for a hung startup or generic unavailable executable.
+	// Owner: process/readiness boundary. Observable: typed readiness failure retains the child exit code and stderr.
+	const workingDirectory = await mkdtemp(join(tmpdir(), 'blockhead-hardware-emulator-'))
+	context.after(() => rm(workingDirectory, { force: true, recursive: true }))
+	const port = await reservePort()
+
+	await assert.rejects(
+		startHardwareWalletEmulator({
+			...configuration({
+				identity: 'worker-0-repeat-0-nonzero-exit',
+				kind: 'trezor-user-env',
+				port,
+				workingDirectory,
+			}),
+			command: {
+				args: ['-e', 'process.stderr.write("fixture-exit\\n"); process.exit(7)'],
+				executable: process.execPath,
+				workingDirectory,
+			},
+		}),
+		(error: Error) => {
+			assert(error instanceof HardwareWalletEmulatorStartError)
+			assert.equal(error.phase, 'readiness')
+			assert.match(error.cause instanceof Error ? error.cause.message : '', /exited before readiness with code 7/)
+			assert.match(error.diagnostics, /fixture-exit/)
+			return true
+		}
+	)
+})
