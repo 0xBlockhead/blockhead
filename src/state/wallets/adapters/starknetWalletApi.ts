@@ -258,8 +258,13 @@ export const createStarknetWalletApiAdapter = (): WalletAdapter => {
 		connect: async (walletId) => {
 			const wallet = walletByWalletId.get(walletId)
 			if (wallet == null) return undefined
+			const connectVersion = (updateVersionByWalletId.get(walletId) ?? 0) + 1
+			updateVersionByWalletId.set(walletId, connectVersion)
 
 			const state = await readStarknetState(wallet, false, Date.now())
+			if (walletByWalletId.get(walletId) !== wallet
+				|| updateVersionByWalletId.get(walletId) !== connectVersion)
+				return undefined
 			stateByWalletId.set(walletId, state)
 
 			return starknetConnection(walletId, state)
@@ -301,6 +306,7 @@ export const createStarknetWalletApiAdapter = (): WalletAdapter => {
 			}))
 		},
 		disconnect: (walletId) => {
+			updateVersionByWalletId.set(walletId, (updateVersionByWalletId.get(walletId) ?? 0) + 1)
 			stateByWalletId.delete(walletId)
 		},
 		subscribeConnection: (walletId, updateConnection) => {

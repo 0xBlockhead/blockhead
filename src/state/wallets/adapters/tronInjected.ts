@@ -363,12 +363,17 @@ export const createTronInjectedAdapter = (): WalletAdapter => {
 		connect: async (walletId) => {
 			const provider = providerByWalletId.get(walletId)
 			if (provider == null) return undefined
+			const connectVersion = (updateVersionByWalletId.get(walletId) ?? 0) + 1
+			updateVersionByWalletId.set(walletId, connectVersion)
 
 			const state = await readTronState(
 				provider,
 				'eth_requestAccounts',
 				Date.now()
 			)
+			if (providerByWalletId.get(walletId) !== provider
+				|| updateVersionByWalletId.get(walletId) !== connectVersion)
+				return undefined
 			if (!state.accounts.length)
 				throw new Error('TRON wallet did not return any accounts')
 
@@ -387,6 +392,7 @@ export const createTronInjectedAdapter = (): WalletAdapter => {
 			return personalSign(provider, accountAddress, message)
 		},
 		disconnect: (walletId) => {
+			updateVersionByWalletId.set(walletId, (updateVersionByWalletId.get(walletId) ?? 0) + 1)
 			stateByWalletId.delete(walletId)
 		},
 		subscribeConnection: (walletId, updateConnection) => {

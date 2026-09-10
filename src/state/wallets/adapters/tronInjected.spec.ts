@@ -71,6 +71,21 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 		vi.unstubAllGlobals()
 	})
 
+	it('does not publish a delayed connect after local disconnect', async () => {
+		const { announce, provider } = setup()
+		const accounts = Promise.withResolvers<JsonValue>()
+		provider.request.mockImplementation((call: { method: string }) => (
+			call.method === 'eth_accounts' || call.method === 'eth_requestAccounts' ? accounts.promise : Promise.resolve('0x2b6653dc')
+		))
+		const adapter = createTronInjectedAdapter()
+		adapter.start(() => {})
+		announce()
+		const pending = adapter.connect('tron-tip6963:tronlink')
+		adapter.disconnect('tron-tip6963:tronlink')
+		accounts.resolve([firstAddress])
+		expect(await pending).toBeUndefined()
+	})
+
 	it('discovers providers announced before or after the request with UUID identity', () => {
 		const { announce, windowListeners } = setup()
 		const candidates: WalletCandidate[][] = []

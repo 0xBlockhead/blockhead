@@ -123,6 +123,16 @@ afterEach(() => {
 })
 
 describe('controlled Sui Wallet Standard signing boundary', () => {
+	it('does not publish a delayed connect after local disconnect', async () => {
+		const pending = Promise.withResolvers<{ accounts: typeof validAccount[] }>()
+		const mounted = mountRegistry(createWallet({ connect: vi.fn(() => pending.promise) }))
+		const connect = mounted.adapter.connect(walletId)
+		const disconnect = mounted.adapter.disconnect(walletId)
+		pending.resolve({ accounts: [validAccount] })
+		await disconnect
+		expect(await connect).toBeUndefined()
+		mounted.cleanup()
+	})
 	it('accepts only a canonical Sui mainnet account and exposes only the advertised message capability', async () => {
 		const mounted = mountRegistry(createWallet({
 			account: validAccount,

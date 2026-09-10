@@ -222,6 +222,7 @@ export const createSuiWalletStandardAdapter = (): WalletAdapter => {
 	let registrationByWallet = new WeakMap<StandardWallet, SuiWalletRegistration>()
 	const connectedAtByWalletId = new Map<string, number>()
 	const accountsByWalletId = new Map<string, readonly SuiWalletAccount[]>()
+	const connectionVersionByWalletId = new Map<string, number>()
 	let updateCandidates: ((candidates: WalletCandidate[]) => void) | undefined
 	let activeCleanup: (() => void) | undefined
 
@@ -331,13 +332,17 @@ export const createSuiWalletStandardAdapter = (): WalletAdapter => {
 			if (wallet == null) return undefined
 			const registration = registrationByWallet.get(wallet)
 			if (registration?.walletId !== walletId) return undefined
+			const connectVersion = (connectionVersionByWalletId.get(walletId) ?? 0) + 1
+			connectionVersionByWalletId.set(walletId, connectVersion)
 
 			const standardConnect = connectFeature(wallet)
 			if (standardConnect == null)
 				throw new Error(`${wallet.name} does not implement standard:connect 1.0.0`)
 
 			const { accounts } = await standardConnect.connect()
-			if (registrationByWallet.get(wallet) !== registration) return undefined
+			if (registrationByWallet.get(wallet) !== registration
+				|| connectionVersionByWalletId.get(walletId) !== connectVersion)
+				return undefined
 			if (!walletAccounts(wallet, accounts).length)
 				throw new Error(`${wallet.name} did not authorize a valid Sui mainnet account`)
 
@@ -384,6 +389,7 @@ export const createSuiWalletStandardAdapter = (): WalletAdapter => {
 
 			await disconnectFeature(wallet)?.disconnect()
 			if (registrationByWallet.get(wallet) !== registration) return
+			connectionVersionByWalletId.set(walletId, (connectionVersionByWalletId.get(walletId) ?? 0) + 1)
 			connectedAtByWalletId.delete(walletId)
 			accountsByWalletId.delete(walletId)
 		},

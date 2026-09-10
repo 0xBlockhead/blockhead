@@ -110,6 +110,20 @@ describe('Starknet Wallet API adapter', () => {
 		vi.unstubAllGlobals()
 	})
 
+	it('does not publish a delayed connect after local disconnect', async () => {
+		const { wallet } = setup()
+		const accounts = Promise.withResolvers<string[]>()
+		wallet.request.mockImplementation((call: { type: string }) => (
+			call.type === 'wallet_requestAccounts' ? accounts.promise : Promise.resolve(mainnetChainId)
+		))
+		const adapter = createStarknetWalletApiAdapter()
+		adapter.start(() => {})
+		const pending = adapter.connect('starknet:argentx')
+		adapter.disconnect('starknet:argentx')
+		accounts.resolve([firstAddress])
+		expect(await pending).toBeUndefined()
+	})
+
 	it('discovers provider metadata and only truthful lifecycle capabilities', () => {
 		const { wallet } = setup()
 		vi.stubGlobal('window', {
