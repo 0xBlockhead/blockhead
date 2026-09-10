@@ -1104,7 +1104,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Arweave_Graphql","NetworkSlug","arweave","BrowserDirect","GraphqlHttp"] | HttpUrl | https://arweave.net/graphql | https://arweave.net | true |
 | ["Arweave_Rest","NetworkSlug","arweave","BrowserDirect","ArweaveGateway"] | HttpUrl | https://arweave.net | https://arweave.net | true |
 | ["Arweave_Rest","NetworkSlug","arweave","BrowserDirect","ArweaveGateway"] | HttpUrl | https://ar-io.net | https://ar-io.net | true |
-| ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://bsky.social | https://bsky.social | false |
+| ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://api.bsky.app | https://api.bsky.app | false |
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://public.api.bsky.app | https://public.api.bsky.app | false |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteQuery","AtprotoSync"] | HttpUrl | https://{pds-host} | https://{pds-host} | false |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteLive","AtprotoSync"] | WebSocketUrl | wss://{pds-host}/xrpc/com.atproto.sync.subscribeRepos |  |  |

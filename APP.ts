@@ -99711,7 +99711,7 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://bsky.social",
+							locator: "https://api.bsky.app",
 							corsEnabled: false,
 						},
 					],
