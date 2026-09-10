@@ -118,17 +118,13 @@ test.describe('representative route screenshot quality', () => {
 				settled,
 			})
 
-			if (quality.failures.length > 0) {
-				const screenshotPath = testInfo.outputPath(
-					'route-screenshots',
-					routeScreenshotArtifactName(pathname, 'failure.png'),
-				)
-				await page.screenshot({ animations: 'disabled', fullPage: true, path: screenshotPath })
-				await testInfo.attach(routeScreenshotArtifactName(pathname, 'failure.png'), {
-					path: screenshotPath,
-					contentType: 'image/png',
-				})
-			}
+			const screenshotName = routeScreenshotArtifactName(pathname, 'quality.png')
+			const screenshotPath = testInfo.outputPath('route-screenshots', screenshotName)
+			await page.screenshot({ animations: 'disabled', fullPage: true, path: screenshotPath })
+			await testInfo.attach(screenshotName, {
+				path: screenshotPath,
+				contentType: 'image/png',
+			})
 			if (quality.warnings.length > 0)
 				await testInfo.attach('route-screenshot-warnings.txt', {
 					body: quality.warnings.join('\n'),
