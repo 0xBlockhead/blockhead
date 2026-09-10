@@ -102,6 +102,7 @@
 				data-column-item="flexible"
 				data-card
 				data-scroll-container
+				data-connection-status={connection.status}
 				data-wallet-id={connection.walletId}
 				data-wallet-name={candidate?.name ?? connection.walletId}
 				data-wallet-state="connection"

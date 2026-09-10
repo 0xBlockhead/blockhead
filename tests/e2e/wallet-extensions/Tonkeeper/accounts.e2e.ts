@@ -5,6 +5,7 @@ import { tonkeeperDriver } from '../../../../scripts/wallet-extensions/Tonkeeper
 import {
 	connectWalletButtonForDriver,
 	disconnectWalletButton,
+	walletConnectionCard,
 	walletConnectionsStatusById,
 } from '../_walletPageSelectors.ts'
 import { expect, test } from '../wallet.fixture.ts'
@@ -39,10 +40,17 @@ test('onboards two ephemeral Tonkeeper accounts and exercises TON Connect in Blo
 		})
 	})
 	let manifestProxyRequests = 0
+	const requestedManifestUrls: string[] = []
 	await test.step('substitute only the remote manifest proxy with the actual local app response', async () => {
 		await context.route('https://c.tonapi.io/json?*', async (route) => {
 			const encodedUrl = new URL(route.request().url()).searchParams.get('url')
-			expect(encodedUrl).toBe(Buffer.from(manifestUrl).toString('base64'))
+			const requestedManifestUrl = encodedUrl == null ? null : Buffer.from(encodedUrl, 'base64').toString()
+			if (requestedManifestUrl != null)
+				requestedManifestUrls.push(requestedManifestUrl)
+			if (requestedManifestUrl !== manifestUrl) {
+				await route.abort('blockedbyclient')
+				return
+			}
 			const response = await context.request.get(manifestUrl)
 			expect(response.ok()).toBe(true)
 			manifestProxyRequests += 1
@@ -92,25 +100,28 @@ test('onboards two ephemeral Tonkeeper accounts and exercises TON Connect in Blo
 			context,
 			extension,
 			previousPages
-		),
+		).then(async (requestPage) => {
+			await expect.poll(() => requestedManifestUrls, {
+				message: 'Tonkeeper must fetch the manifest for the actual local dApp origin before authority',
+				timeout: 10_000,
+			}).toEqual([manifestUrl])
+			return requestPage
+		}),
 		password
 	)
 	password = ''
 
 	expect(connectionRequestSupported).toBe(true)
 	expect(manifestProxyRequests).toBeGreaterThan(0)
-	await expect(page.getByText('connected', {
-		exact: true,
-	}).first()).toBeAttached({
+	const connection = walletConnectionCard(page, 'Tonkeeper')
+	await expect(connection).toHaveAttribute('data-connection-status', 'connected', {
 		timeout: 120_000,
 	})
 	await expect(walletConnectionsStatusById(page)).toContainText('Active connections: 1.')
 	await expect(page.getByRole('radio')).toHaveCount(1)
 
 	await disconnectWalletButton(page).click()
-	await expect(page.getByText('disconnected', {
-		exact: true,
-	}).first()).toBeAttached({
+	await expect(connection).toHaveAttribute('data-connection-status', 'disconnected', {
 		timeout: 120_000,
 	})
 	await expect(walletConnectionsStatusById(page)).toContainText('Active connections: 0.')
