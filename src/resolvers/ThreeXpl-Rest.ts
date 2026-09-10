@@ -40,6 +40,22 @@ const threeXplBlockchain = (network: NetworkId) => {
 	throw new Error(`ThreeXpl_Rest: unsupported network ${network.caip2.namespace}:${network.caip2.reference}`)
 }
 
+const threeXplUtxoNetworkApplicability = [
+	{ $network: { caip2: networkBySlug.bitcoin.caip2 } },
+	{ $network: { caip2: networkBySlug['bitcoin-cash'].caip2 } },
+	{ $network: { caip2: networkBySlug.dogecoin.caip2 } },
+	{ $network: { caip2: networkBySlug.litecoin.caip2 } },
+	{ $network: { caip2: networkBySlug.zcash.caip2 } },
+] as const
+
+const threeXplNetworkApplicability = [
+	{ slug: 'bitcoin' },
+	{ slug: 'bitcoin-cash' },
+	{ slug: 'dogecoin' },
+	{ slug: 'litecoin' },
+	{ slug: 'zcash' },
+] as const
+
 const eventTransactions = (events: Record<string, ThreeXplBlockEvent[]> | undefined) => (
 	[
 		...new Set(
@@ -575,6 +591,7 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				NetworkHeight: {
+					appliesTo: threeXplUtxoNetworkApplicability,
 					resolve: async ({ $network, height }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
@@ -605,6 +622,7 @@ export default {
 					},
 				},
 				NetworkHeightHash: {
+					appliesTo: threeXplUtxoNetworkApplicability,
 					resolve: async ({ $network, height, hash }) => {
 						const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 						const wireBlock = await fetchBlock({
@@ -643,6 +661,7 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				Slug: {
+					appliesTo: threeXplNetworkApplicability,
 					resolve: async (network, context) => (
 						tipBlockReferences({
 							$network: network,

@@ -84,6 +84,15 @@ const timestamp = '2026-07-30T12:00:00.000Z'
 const timestampMs = Date.parse(timestamp)
 
 describe('ThreeXpl block response ownership', () => {
+	it('does not claim slug-form Bitcoin UTXO blocks', () => {
+		expect(utxoBlockResolver.resolve.NetworkHeight.appliesTo).not.toContainEqual({
+			slug: 'bitcoin',
+		})
+		expect(utxoBlockResolver.resolve.NetworkHeight.appliesTo).toContainEqual({
+			$network: { caip2: networkBySlug.bitcoin.caip2 },
+		})
+	})
+
 	beforeEach(() => {
 		vi.clearAllMocks()
 		fetchBlock.mockResolvedValue({
