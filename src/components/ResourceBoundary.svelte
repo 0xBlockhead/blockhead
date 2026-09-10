@@ -79,6 +79,9 @@
 	retry: () => void,
 )}
 	{@const normalizedError = normalizeBoundaryError(error)}
+	{#if resourceRaw.current !== undefined}
+		{@render children(resourceRaw.current)}
+	{/if}
 	{#if Failed}
 		{@render Failed(
 			normalizedError,

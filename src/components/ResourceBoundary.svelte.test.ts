@@ -195,3 +195,21 @@ test('renders an explicit default source failure without hiding its detail', asy
 	await expect.element(failure).toHaveTextContent('Failed to load')
 	expect(failure.element().getAttribute('title')).toBe('provider unavailable')
 })
+
+test('retains the last good value beside a refresh failure', async () => {
+	const resource = new TanStackLiveQueryResource(() => ({
+		data: 'last good value',
+		isLoading: false,
+		isError: false,
+		isReady: true,
+		status: 'ready',
+	}))
+
+	await render(ResourceBoundaryFixture, { resource })
+	await expect.element(page.getByText('last good value')).toBeInTheDocument()
+
+	resource.fail(new Error('refresh failed'))
+
+	await expect.element(page.getByText('last good value')).toBeInTheDocument()
+	await expect.element(page.getByRole('alert', { name: 'refresh failed' })).toBeInTheDocument()
+})
