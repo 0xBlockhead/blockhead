@@ -2128,7 +2128,31 @@ export const writeLocalBlockheadActionOutcome = async (
 		if (existingFields.some((fieldName) => (
 			stringify(localPrimitiveFieldValue(context, EntityType.BlockheadActionOutcome, entitySelector, fieldName)) !==
 			stringify(primitiveFields[fieldName])
-		)))
+		)) || [
+			['$walletRequest', outcome.walletRequest],
+			['$intentOrder', outcome.intentOrder],
+			['$simulation', outcome.simulation],
+		].some(([fieldName, selector]) => (
+			localReferenceValueKey(
+				context,
+				EntityType.BlockheadActionOutcome,
+				entitySelector,
+				fieldName
+			) !== (selector === undefined ? undefined : localEntityReferenceValueKey(
+				EntityType.BlockheadActionOutcome,
+				fieldName,
+				selector
+			))
+		)) || stringify(localReferenceValueKeys(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$$evmTransactions'
+		)) !== stringify((outcome.evmTransactions ?? []).map((selector) => localEntityReferenceValueKey(
+			EntityType.BlockheadActionOutcome,
+			'$$evmTransactions',
+			selector
+		))))
 			throw new Error('Local_BlockheadActionOutcome: conflicting immutable outcome')
 	}
 	writeLocalPresence(context, EntityType.BlockheadActionOutcome, entitySelector)

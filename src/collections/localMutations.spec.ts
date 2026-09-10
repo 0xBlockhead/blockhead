@@ -2763,6 +2763,30 @@ describe('local mutation authority journal', () => {
 				error: 'conflicting outcome identity',
 			}
 		)).rejects.toThrow('conflicting immutable outcome')
+		await expect(writeLocalBlockheadActionOutcome(
+			context,
+			preparationActionSelector,
+			{
+				outcomeId: 'outcome-1',
+				outcomeKind: 'transaction',
+				transactionId: transactionSelector.txHash,
+				createdAt: 21,
+				evmTransactions: [{
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '137',
+						},
+					},
+					txHash: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+				}],
+			},
+			{
+				timestampMs: 25,
+				source: Source.Voltaire_JsonRpc,
+				status: 'confirmed',
+			}
+		)).rejects.toThrow('conflicting immutable outcome')
 		expect(context.entityCollections[EntityType.BlockheadActionOutcome].toArray).toHaveLength(1)
 		expect(context.entityCollections[EntityType.BlockheadActionOutcome_Timestamp].toArray).toHaveLength(2)
 		expect(context.entityFieldCollections[EntityType.BlockheadActionOutcome_Timestamp][entityFieldAddressKey(
