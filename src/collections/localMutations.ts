@@ -2110,6 +2110,27 @@ export const writeLocalBlockheadActionOutcome = async (
 		sourcePayloadHash: observation.sourcePayloadHash,
 		error: observation.error,
 	}
+	const existingOutcome = context.entityCollections[EntityType.BlockheadActionOutcome].toArray.find((row) => (
+		row[EntityMetaKey.SelectorKey] === entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadActionOutcome],
+			entitySelector
+		)
+	))
+	if (existingOutcome !== undefined) {
+		const existingFields: (keyof typeof primitiveFields)[] = [
+			'outcomeKind',
+			'transactionId',
+			'bridgeTransferId',
+			'createdAt',
+			'outcomePayloadHash',
+		]
+		if (existingFields.some((fieldName) => (
+			stringify(localPrimitiveFieldValue(context, EntityType.BlockheadActionOutcome, entitySelector, fieldName)) !==
+			stringify(primitiveFields[fieldName])
+		)))
+			throw new Error('Local_BlockheadActionOutcome: conflicting immutable outcome')
+	}
 	writeLocalPresence(context, EntityType.BlockheadActionOutcome, entitySelector)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadActionOutcome, entitySelector, primitiveFields)
 	writeLocalPresence(context, EntityType.BlockheadActionOutcome_Timestamp, observationEntitySelector)
