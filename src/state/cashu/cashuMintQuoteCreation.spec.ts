@@ -7,6 +7,7 @@ import {
 
 import type { LocalMutationContext } from '$/collections/localMutations.ts'
 import { Source } from '$/sources/Source.ts'
+import { bolt11DonationInvoice as bolt11Fixture } from './cashuMintQuoteCreation.fixtures.ts'
 
 const {
 	createMintQuoteBolt11,
@@ -47,7 +48,7 @@ it('creates and durably admits a matching BOLT11 mint quote', async () => {
 	const signal = new AbortController().signal
 	createMintQuoteBolt11.mockResolvedValue({
 		quote: 'quote-1',
-		request: 'lnbc-invoice',
+		request: bolt11Fixture,
 		amount: 21,
 		unit: 'sat',
 		method: 'bolt11',
@@ -89,7 +90,7 @@ it('creates and durably admits a matching BOLT11 mint quote', async () => {
 			mintUrl: 'https://mint.example',
 			method: 'bolt11',
 			quoteId: 'quote-1',
-			request: 'lnbc-invoice',
+			request: bolt11Fixture,
 			amount: 21n,
 			unit: 'sat',
 		},
@@ -105,7 +106,7 @@ it('creates and durably admits a matching BOLT11 mint quote', async () => {
 it('rejects a quote for a different amount or unit before local admission', async () => {
 	createMintQuoteBolt11.mockResolvedValue({
 		quote: 'quote-foreign',
-		request: 'lnbc-invoice',
+		request: bolt11Fixture,
 		amount: 22,
 		unit: 'sat',
 		method: 'bolt11',
@@ -127,7 +128,7 @@ it('rejects a quote for a different amount or unit before local admission', asyn
 it('persists a legacy state-less quote without fabricating an observation', async () => {
 	createMintQuoteBolt11.mockResolvedValue({
 		quote: 'quote-legacy',
-		request: 'lnbc-invoice',
+		request: bolt11Fixture,
 		amount: 21,
 		unit: 'sat',
 		method: 'bolt11',
@@ -150,7 +151,7 @@ it('refreshes an existing BOLT11 quote through the same durable owner', async ()
 	const signal = new AbortController().signal
 	getMintQuoteBolt11.mockResolvedValue({
 		quote: 'quote-1',
-		request: 'lnbc-invoice',
+		request: bolt11Fixture,
 		amount: 21,
 		unit: 'sat',
 		method: 'bolt11',
@@ -178,7 +179,7 @@ it('refreshes an existing BOLT11 quote through the same durable owner', async ()
 			mintUrl: 'https://mint.example',
 			method: 'bolt11',
 			quoteId: 'quote-1',
-			request: 'lnbc-invoice',
+			request: bolt11Fixture,
 			amount: 21n,
 			unit: 'sat',
 		},
@@ -194,7 +195,7 @@ it('refreshes an existing BOLT11 quote through the same durable owner', async ()
 it('rejects a refresh response for a different quote identity', async () => {
 	getMintQuoteBolt11.mockResolvedValue({
 		quote: 'quote-other',
-		request: 'lnbc-invoice',
+		request: bolt11Fixture,
 		amount: 21,
 		unit: 'sat',
 		method: 'bolt11',
@@ -210,4 +211,77 @@ it('rejects a refresh response for a different quote identity', async () => {
 		quoteId: 'quote-1',
 	})).rejects.toThrow('quote-other !== quote-1')
 	expect(writeLocalBlockheadCashuMintQuote).not.toHaveBeenCalled()
+})
+
+it('refreshes ISSUED state and preserves the source timestamp and expiry seconds mapping', async () => {
+	getMintQuoteBolt11.mockResolvedValue({
+		quote: 'quote-issued',
+		request: bolt11Fixture,
+		amount: 21,
+		unit: 'sat',
+		method: 'bolt11',
+		amount_paid: 21,
+		amount_issued: 21,
+		updated_at: 1_700_000_020,
+		state: 'ISSUED',
+		expiry: 1_700_000_120,
+	})
+
+	await refreshLocalCashuMintQuoteBolt11(context, {
+		mintUrl: 'https://mint.example',
+		quoteId: 'quote-issued',
+	})
+
+	expect(writeLocalBlockheadCashuMintQuote.mock.calls[0][2]).toMatchObject({
+		timestampMs: 1_700_000_020_000,
+		source: Source.CashuMint_Rest,
+		state: 'ISSUED',
+		expiryMs: 1_700_000_120_000,
+	})
+})
+
+it('does not admit a refresh when mint transport aborts', async () => {
+	const transportFailure = new DOMException('aborted', 'AbortError')
+	getMintQuoteBolt11.mockRejectedValue(transportFailure)
+	const signal = new AbortController().signal
+
+	await expect(refreshLocalCashuMintQuoteBolt11(context, {
+		mintUrl: 'https://mint.example',
+		quoteId: 'quote-1',
+		signal,
+	})).rejects.toBe(transportFailure)
+	expect(writeLocalBlockheadCashuMintQuote).not.toHaveBeenCalled()
+})
+
+it('keeps mint transport failures distinct from durable admission failures', async () => {
+	const transportFailure = new Error('mint unavailable')
+	createMintQuoteBolt11.mockRejectedValue(transportFailure)
+
+	await expect(createLocalCashuMintQuoteBolt11(context, {
+		mintUrl: 'https://mint.example',
+		amount: 21,
+		unit: 'sat',
+	})).rejects.toBe(transportFailure)
+	expect(writeLocalBlockheadCashuMintQuote).not.toHaveBeenCalled()
+
+	createMintQuoteBolt11.mockResolvedValue({
+		quote: 'quote-save-failure',
+		request: bolt11Fixture,
+		amount: 21,
+		unit: 'sat',
+		method: 'bolt11',
+		amount_paid: 0,
+		amount_issued: 0,
+		updated_at: 1_700_000_000,
+		expiry: null,
+	})
+	const saveFailure = new Error('local persistence unavailable')
+	writeLocalBlockheadCashuMintQuote.mockRejectedValue(saveFailure)
+
+	await expect(createLocalCashuMintQuoteBolt11(context, {
+		mintUrl: 'https://mint.example',
+		amount: 21,
+		unit: 'sat',
+	})).rejects.toBe(saveFailure)
+	expect(writeLocalBlockheadCashuMintQuote).toHaveBeenCalledTimes(1)
 })

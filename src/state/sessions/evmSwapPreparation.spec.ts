@@ -239,7 +239,7 @@ it('uses one concrete timestamp for all persisted preparation evidence when omit
 	vi.restoreAllMocks()
 })
 
-it.each(['account', 'connection'] as const)('refuses stale %s authority after asynchronous simulation', async (change) => {
+it.each(['account', 'connection', 'permission', 'capability', 'chain'] as const)('refuses stale %s authority after asynchronous simulation', async (change) => {
 	const connections = [structuredClone(walletConnection)]
 	await expect(applyEvmSwapPreparation({
 		context: Object.create(null),
@@ -253,10 +253,19 @@ it.each(['account', 'connection'] as const)('refuses stale %s authority after as
 			simulate: async () => {
 				connections[0] = {
 					...walletConnection,
+					...(change === 'permission' && { status: BlockheadConnectionStatus.Disconnected }),
+					...(change === 'capability' && {
+						accounts: [{ ...walletConnection.accounts[0], capabilities: [] }],
+					}),
+					...(change === 'chain' && {
+						accounts: [{ ...walletConnection.accounts[0], reference: '10' }],
+					}),
 					...(change === 'connection' && { connectionKey: 'replacement-connection' }),
 					activeAccount: {
 						...walletConnection.activeAccount,
 						accountAddress: change === 'account' ? routerAddress : fromAddress,
+						...(change === 'capability' && { capabilities: [] }),
+						...(change === 'chain' && { reference: '10' }),
 					},
 				}
 				return { output: '0x01', gasUsed: 120_000n }
@@ -295,4 +304,22 @@ it('stops before persistence when simulation fails', async () => {
 	expect(localMutationMocks.writeLocalBlockheadSessionSimulation).not.toHaveBeenCalled()
 	expect(localMutationMocks.writeLocalBlockheadWalletRequest).not.toHaveBeenCalled()
 	expect(localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp).not.toHaveBeenCalled()
+})
+
+it('stops before persistence when quote acquisition fails', async () => {
+	const quoteFailure = new Error('solver unavailable')
+	await expect(prepareEvmSwap({
+		session: { id: 'session-1', lockedAt: 1 },
+		action,
+		fromAddress,
+		walletConnections: [walletConnection],
+		quoteSource: {
+			...quoteSource,
+			getQuote: async () => { throw quoteFailure },
+		},
+		simulationTransport,
+		simulationId: 'simulation-quote-failure',
+		timestampMs: 100,
+	})).rejects.toBe(quoteFailure)
+	expect(simulationTransport.simulate).not.toHaveBeenCalled()
 })

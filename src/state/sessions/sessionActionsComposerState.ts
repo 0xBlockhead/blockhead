@@ -308,7 +308,7 @@ export const finishSessionComposerPreparation = (
 ): Exclude<SessionComposerNotice, { status: 'idle' | 'info' | 'error' | 'preparing' }> => {
 	const readinessCheckIds = (
 		preparation.readiness
-			?.map(({ checkId }) => typeof checkId === 'string' ? checkId.trim() : '')
+			?.map(({ checkId }) => checkId.trim())
 			.filter((checkId) => checkId !== '')
 		?? []
 	)

@@ -457,10 +457,9 @@ export const isSessionSimulationWithoutPreparedRequest = (
 	simulation: SessionSimulationObservation,
 	preparedRequest?: SessionPreparedRequestObservation | null
 ) => (
-	typeof simulation.id === 'string'
-	&& simulation.id.trim() !== ''
+	simulation.id.trim() !== ''
 	&& (preparedRequest?.id == null
-		|| (typeof preparedRequest.id === 'string' && preparedRequest.id.trim() === ''))
+		|| preparedRequest.id.trim() === '')
 	&& preparedRequest?.status !== 'prepared'
 )
 
@@ -468,7 +467,7 @@ export const isSessionSimulationWithoutSend = (
 	send?: SessionPreparedRequestObservation | null
 ) => (
 	send?.submittedAt == null
-	&& (!Array.isArray(send?.evmTransactionIds) || send.evmTransactionIds.length === 0)
+	&& (send?.evmTransactionIds == null || send.evmTransactionIds.length === 0)
 )
 
 export const composeSessionSimulationVsPreparedRequest = ({

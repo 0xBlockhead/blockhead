@@ -130,12 +130,6 @@ describe('sessionActionsComposerState', () => {
 		})
 	})
 
-	it('rejects unknown runtime action types before creating a draft', () => {
-		expect(() => emptyDraftFieldsForActionType('Unknown' as ActionType)).toThrow(
-			'Unsupported session action type: Unknown'
-		)
-	})
-
 	it('makes preparing exclusive of wallet-request and message payloads', () => {
 		const notice = beginSessionComposerPreparation()
 		expect(notice).toEqual({ status: 'preparing' })

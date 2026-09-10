@@ -609,9 +609,7 @@ export const prepareEvmNativeTransfer = async ({
 	: callOutputError
 	const gasError = gasResult.status === 'rejected' ? (
 		gasResult.reason instanceof Error ? gasResult.reason.message : String(gasResult.reason)
-	) : typeof gasResult.value !== 'bigint' ?
-		'EVM execution transport returned malformed eth_estimateGas data.'
-	: gasResult.value < 0n ?
+	) : gasResult.value < 0n ?
 		'EVM execution transport returned invalid negative eth_estimateGas data.'
 	: undefined
 	const gasValue = gasResult.status === 'fulfilled' && gasError == null ? gasResult.value : undefined
