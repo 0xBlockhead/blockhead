@@ -101,6 +101,7 @@ export default defineConfig({
 		fs: {
 			allow: [
 				searchForWorkspaceRoot(import.meta.dirname),
+				realpathSync(resolve(import.meta.dirname, 'node_modules/@fontsource/ubuntu')),
 				realpathSync(resolve(import.meta.dirname, 'node_modules/@journeyapps/wa-sqlite/dist')),
 			],
 		},
