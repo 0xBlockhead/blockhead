@@ -3543,14 +3543,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.AtprotoActor,
-					defaultSources: [Source.Constants_Internal, Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
+					defaultSources: [Source.Constants_Internal, Source.Atproto_BskySocial_Xrpc],
 				},
 				"$$observedPosts": {
 					label: "Recent posts",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.AtprotoPost,
-					defaultSources: [Source.Constants_Internal, Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
+					defaultSources: [Source.Constants_Internal, Source.Atproto_BskySocial_Xrpc],
 				},
 				"$$timestamps": {
 					label: "Observations",
@@ -92306,7 +92306,7 @@ export const routes = defineRoutes(schema)({
 												"$$observedActors"
 											],
 											query: {
-												sources: [Source.Constants_Internal, Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
+												sources: [Source.Constants_Internal, Source.Atproto_BskySocial_Xrpc],
 											},
 											derivations: {
 												"scope": { kind: "literal", value: "_GlobalAtprotoNetwork" }
@@ -92326,7 +92326,7 @@ export const routes = defineRoutes(schema)({
 												"$$observedPosts"
 											],
 											query: {
-												sources: [Source.Constants_Internal, Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
+												sources: [Source.Constants_Internal, Source.Atproto_BskySocial_Xrpc],
 											},
 											derivations: {
 												"scope": { kind: "literal", value: "_GlobalAtprotoNetwork" }
