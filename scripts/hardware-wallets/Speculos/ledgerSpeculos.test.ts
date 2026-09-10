@@ -157,6 +157,29 @@ test('parses a production-shaped Speculos APDU response without claiming emulato
 	})
 })
 
+test('refuses incomplete or extended APDU commands before transport', async () => {
+	// Fault: a process-ready Speculos endpoint could turn malformed input into apparent
+	// protocol evidence. Owner: Ledger APDU transport boundary. Observable: malformed
+	// commands fail locally and never invoke fetch.
+	let fetchCalls = 0
+	const fetchImplementation: typeof fetch = async () => {
+		fetchCalls += 1
+		throw new Error('unexpected transport')
+	}
+
+	for (const command of [new Uint8Array(0), new Uint8Array(4), new Uint8Array(261)])
+		await assert.rejects(
+			exchangeLedgerSpeculosApdu({
+				command,
+				endpoint: new URL('http://127.0.0.1:8100/apdu'),
+				fetchImplementation,
+			}),
+			/complete short APDU/
+		)
+
+	assert.equal(fetchCalls, 0)
+})
+
 test('promotes only a cryptographically verified Ledger response beyond APDU audit', () => {
 	// Fault: a successful APDU status word could be counted as a valid signature
 	// without binding the returned bytes to the requested message and account.

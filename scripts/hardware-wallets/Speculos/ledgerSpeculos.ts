@@ -100,6 +100,7 @@ export class LedgerSpeculosApduError extends Error {
 
 const hardened = 0x80000000
 const maximumPathLength = 10
+const maximumShortApduLength = 260
 
 
 // Functions
@@ -191,6 +192,11 @@ export const exchangeLedgerSpeculosApdu = async ({
 	endpoint: URL
 	fetchImplementation?: typeof fetch
 }): Promise<LedgerSpeculosApduResponse> => {
+	if (command.byteLength < 5 || command.byteLength > maximumShortApduLength)
+		throw new LedgerSpeculosApduError(
+			`Speculos APDU command must be a complete short APDU between 5 and ${maximumShortApduLength} bytes`
+		)
+
 	let response: Response
 
 	try {
