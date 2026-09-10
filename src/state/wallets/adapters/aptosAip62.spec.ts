@@ -425,6 +425,34 @@ describe('Aptos AIP-62 discovery adapter', () => {
 		)).rejects.toThrow('invalid aptos:signMessage signature')
 	})
 
+	it('fences a delayed signMessage response after provider replacement', async () => {
+		const discovery = setup()
+		const first = createSyntheticAip62Wallet()
+		const pending = Promise.withResolvers<{
+			status: 'Approved'
+			args: { signature: string }
+		}>()
+		first.wallet.features['aptos:signMessage'].signMessage.mockImplementationOnce(() => pending.promise)
+		const adapter = createAptosAip62Adapter()
+		adapter.start(() => {})
+		const unregister = discovery.announce(first.wallet)
+		await adapter.connect('aptos-aip62:Petra')
+		const signing = adapter.signMessage?.(
+			'aptos-aip62:Petra',
+			canonicalAccountA,
+			'hello'
+		)
+
+		unregister()
+		discovery.announce(createSyntheticAip62Wallet().wallet)
+		pending.resolve({
+			status: 'Approved',
+			args: { signature: '0xstale-signature' },
+		})
+
+		await expect(signing).rejects.toThrow('registration changed during Aptos message signing')
+	})
+
 	it('fences a delayed connection across unregister and same-name replacement', async () => {
 		const discovery = setup()
 		const first = createSyntheticAip62Wallet()
