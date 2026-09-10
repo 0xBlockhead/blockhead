@@ -4,6 +4,19 @@ import { base58 } from '@scure/base'
 import type { LoadedWalletExtension } from '../WalletExtensionHarness.ts'
 
 export const phantomSolanaMainnet = 'solana:mainnet' as const
+
+/** Phantom approval surfaces stay within the loaded extension origin. */
+export const isPhantomExtensionPageUrl = (url: string, extensionId: string) => {
+	try {
+		const parsed = new URL(url)
+		return parsed.protocol === 'chrome-extension:'
+			&& parsed.hostname === extensionId
+			&& parsed.pathname.length > 1
+	}
+	catch {
+		return false
+	}
+}
 export type PhantomWalletStandardIdentity = {
 	name: string
 	icon: string
@@ -34,10 +47,10 @@ export const verifyPhantomSignMessageOutput = ({ accountAddress, message, output
 }
 
 const approval = async (context: BrowserContext, extension: LoadedWalletExtension) => {
-	const existing = context.pages().find((page) => page.url().startsWith(`chrome-extension://${extension.id}/`))
+	const existing = context.pages().find((page) => isPhantomExtensionPageUrl(page.url(), extension.id))
 	if (existing) return existing
-	await context.waitForEvent('page', { predicate: (page) => page.url().startsWith(`chrome-extension://${extension.id}/`), timeout: 30_000 })
-	const page = context.pages().find((candidate) => candidate.url().startsWith(`chrome-extension://${extension.id}/`))
+	await context.waitForEvent('page', { predicate: (page) => isPhantomExtensionPageUrl(page.url(), extension.id), timeout: 30_000 })
+	const page = context.pages().find((candidate) => isPhantomExtensionPageUrl(candidate.url(), extension.id))
 	if (!page) throw new Error('Phantom approval page was not found')
 	return page
 }

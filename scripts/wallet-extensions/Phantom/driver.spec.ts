@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { ed25519 } from '@noble/curves/ed25519.js'
 import { base58 } from '@scure/base'
-import { isPhantomWalletStandardIdentity, verifyPhantomSignMessageOutput } from './driver.ts'
+import { isPhantomExtensionPageUrl, isPhantomWalletStandardIdentity, verifyPhantomSignMessageOutput } from './driver.ts'
 
 test('verifies Phantom signMessage against the exact account and message', () => {
 	const privateKey = new Uint8Array(32).fill(17)
@@ -13,4 +13,13 @@ test('verifies Phantom signMessage against the exact account and message', () =>
 	assert.equal(isPhantomWalletStandardIdentity(wallet), true)
 	assert.deepEqual(verifyPhantomSignMessageOutput({ accountAddress: wallet.accounts[0].address, message, outputs: [{ signature }], wallet }), signature)
 	assert.throws(() => verifyPhantomSignMessageOutput({ accountAddress: wallet.accounts[0].address, message: new TextEncoder().encode('mutated'), outputs: [{ signature }], wallet }), /does not bind/)
+})
+
+test('binds Phantom approval observation to the loaded extension origin', () => {
+	const extensionId = 'bfnaelmomeimhlpmgjnjophhpkkoljpa'
+	assert.equal(isPhantomExtensionPageUrl(`chrome-extension://${extensionId}/notification.html`, extensionId), true)
+	assert.equal(isPhantomExtensionPageUrl(`chrome-extension://${extensionId}/notification.html#approval`, extensionId), true)
+	assert.equal(isPhantomExtensionPageUrl(`chrome-extension://other/notification.html`, extensionId), false)
+	assert.equal(isPhantomExtensionPageUrl('https://phantom.app/notification.html', extensionId), false)
+	assert.equal(isPhantomExtensionPageUrl(`chrome-extension://${extensionId}/`, extensionId), false)
 })
