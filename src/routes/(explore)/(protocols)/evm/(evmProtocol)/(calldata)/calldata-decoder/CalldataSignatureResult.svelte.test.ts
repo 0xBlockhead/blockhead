@@ -3,7 +3,10 @@ import { expect, test } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { tick } from 'svelte'
 
-import { functionSelectorFromSignature } from '$/lib/calldata-decode.ts'
+import {
+	eventTopicFromSignature,
+	functionSelectorFromSignature,
+} from '$/lib/calldata-decode.ts'
 import { TanStackLiveQueryResource } from '$/lib/db/queryResource.svelte.ts'
 import { Source } from '$/sources/Source.ts'
 import CalldataSignatureResult from './CalldataSignatureResult.svelte'
@@ -39,6 +42,20 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 		'download',
 		'evm-function-calldata-raw.txt'
 	)
+	await expect.element(page.getByRole('link', { name: 'Download raw input JSON' })).toHaveAttribute(
+		'download',
+		'evm-function-calldata-raw.json'
+	)
+	const rawInputJsonHref = page.getByRole('link', {
+		name: 'Download raw input JSON',
+	}).element().getAttribute('href')
+	if (rawInputJsonHref == null)
+		throw new Error('Missing raw input JSON href')
+	expect(JSON.parse(decodeURIComponent(rawInputJsonHref.split(',')[1] ?? ''))).toEqual({
+		artifactVersion: 1,
+		kind: 'function-calldata',
+		input: `${functionSelectorFromSignature(signature)}${'0'.repeat(62)}7b`,
+	})
 	await expect.element(page.getByLabelText('Loading function signature...')).toBeInTheDocument()
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 	await tick()
@@ -55,6 +72,11 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 		'download',
 		'evm-function-calldata-provenance.json'
 	)
+	await expect.element(page.getByRole('link', { name: 'Download raw input JSON' })).toHaveAttribute(
+		'download',
+		'evm-function-calldata-raw.json'
+	)
+	await expect.element(page.getByRole('link', { name: 'Download decoded table CSV' })).not.toBeInTheDocument()
 	const noMatchManifestHref = page.getByRole('link', {
 		name: 'Download provenance manifest JSON',
 	}).element().getAttribute('href')
@@ -82,6 +104,45 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 		'download',
 		'evm-function-calldata-decoded.json'
 	)
+	await expect.element(page.getByRole('link', { name: 'Download decoded table CSV' })).toHaveAttribute(
+		'download',
+		'evm-function-calldata-decoded.csv'
+	)
+	const decodedTableCsvHref = page.getByRole('link', {
+		name: 'Download decoded table CSV',
+	}).element().getAttribute('href')
+	if (decodedTableCsvHref == null)
+		throw new Error('Missing decoded table CSV href')
+	expect(decodeURIComponent(decodedTableCsvHref.split(',')[1] ?? '')).toBe(
+		'"index","type","value"\r\n"0","uint256","123"\r\n'
+	)
+	const candidateAbiHref = page.getByRole('link', {
+		name: 'Download candidate ABI JSON',
+	}).element().getAttribute('href')
+	if (candidateAbiHref == null)
+		throw new Error('Missing candidate ABI href')
+	expect(JSON.parse(decodeURIComponent(candidateAbiHref.split(',')[1] ?? ''))).toMatchObject([{
+		type: 'function',
+		name: 'setValue',
+		inputs: [{ type: 'uint256' }],
+	}])
+	const decodedJsonHref = page.getByRole('link', {
+		name: 'Download decoded JSON',
+	}).element().getAttribute('href')
+	if (decodedJsonHref == null)
+		throw new Error('Missing decoded JSON href')
+	expect(JSON.parse(decodeURIComponent(decodedJsonHref.split(',')[1] ?? ''))).toMatchObject({
+		artifactVersion: 1,
+		kind: 'function-calldata',
+		input: `${functionSelectorFromSignature(signature)}${'0'.repeat(62)}7b`,
+		signature,
+		name: 'setValue',
+		params: [{
+			index: 0,
+			type: 'uint256',
+			value: '123',
+		}],
+	})
 	await expect.element(page.getByRole('link', { name: 'Download provenance manifest JSON' })).toHaveAttribute(
 		'download',
 		'evm-function-calldata-provenance.json'
@@ -121,4 +182,142 @@ test('keeps pending, ready-empty, late decoded data, and failure distinct withou
 	await expect.element(page.getByRole('complementary', { name: 'Signature provenance' })).toBeVisible()
 	await expect.element(page.getByText('No catalog signatures matched this function selector.')).not.toBeInTheDocument()
 	await expect.element(page.getByRole('button', { name: 'Retry signature lookup' })).toBeInTheDocument()
+	await expect.element(page.getByRole('link', { name: 'Download raw input JSON' })).toHaveAttribute(
+		'download',
+		'evm-function-calldata-raw.json'
+	)
+	await expect.element(page.getByRole('link', { name: 'Download decoded table CSV' })).not.toBeInTheDocument()
+
+	const escapingSignature = 'setValue(string)'
+	const escapingResource = new TanStackLiveQueryResource<{ values: readonly string[] }>(() => ({
+		data: { values: [] },
+		isLoading: true,
+		isError: false,
+		isReady: false,
+		status: 'loading',
+	}))
+	await render(CalldataSignatureResult, {
+		hex: `${functionSelectorFromSignature(escapingSignature)}${'0'.repeat(62)}20${'0'.repeat(62)}04${'612c2262'}${'0'.repeat(56)}`,
+		kind: 'Function',
+		resource: escapingResource,
+		retry: () => {},
+		source: Source.Openchain_Rest,
+	})
+	escapingResource.set({ values: [escapingSignature] })
+	await expect.element(page.getByRole('link', { name: 'Download decoded table CSV' })).toBeInTheDocument()
+	const escapingCsvHref = page.getByRole('link', {
+		name: 'Download decoded table CSV',
+	}).element().getAttribute('href')
+	if (escapingCsvHref == null)
+		throw new Error('Missing escaping CSV href')
+	expect(decodeURIComponent(escapingCsvHref.split(',')[1] ?? '')).toBe(
+		'"index","type","value"\r\n"0","string","a,""b"\r\n'
+	)
+})
+
+test('exports event-data decoded JSON from a catalog candidate', async () => {
+	const signature = 'ValueSet(uint256)'
+	const topic = eventTopicFromSignature(signature)
+	if (topic == null)
+		throw new Error('Missing event topic')
+
+	const hex = `${topic}${'0'.repeat(62)}7b`
+	const resource = new TanStackLiveQueryResource<{ values: readonly string[] }>(() => ({
+		data: { values: [] },
+		isLoading: true,
+		isError: false,
+		isReady: false,
+		status: 'loading',
+	}))
+
+	await render(CalldataSignatureResult, {
+		hex,
+		kind: 'Event',
+		resource,
+		retry: () => {},
+		source: Source.FourByteDirectory_Rest,
+	})
+
+	await expect.element(page.getByRole('link', { name: 'Download raw input JSON' })).toHaveAttribute(
+		'download',
+		'evm-event-data-raw.json'
+	)
+	await expect.element(page.getByRole('link', { name: 'Download decoded JSON' })).not.toBeInTheDocument()
+
+	resource.set({ values: [signature] })
+	await expect.element(page.getByRole('link', { name: 'Download decoded JSON' })).toHaveAttribute(
+		'download',
+		'evm-event-data-decoded.json'
+	)
+	await expect.element(page.getByRole('link', { name: 'Download candidate ABI JSON' })).toHaveAttribute(
+		'download',
+		'evm-event-candidate-abi.json'
+	)
+	await expect.element(page.getByRole('link', { name: 'Download provenance manifest JSON' })).toHaveAttribute(
+		'download',
+		'evm-event-data-provenance.json'
+	)
+
+	const decodedJsonHref = page.getByRole('link', {
+		name: 'Download decoded JSON',
+	}).element().getAttribute('href')
+	if (decodedJsonHref == null)
+		throw new Error('Missing event decoded JSON href')
+	expect(JSON.parse(decodeURIComponent(decodedJsonHref.split(',')[1] ?? ''))).toEqual({
+		artifactVersion: 1,
+		kind: 'event-data',
+		input: hex,
+		signature,
+		name: 'ValueSet',
+		params: [{
+			index: 0,
+			type: 'uint256',
+			value: '123',
+		}],
+	})
+
+	const candidateAbiHref = page.getByRole('link', {
+		name: 'Download candidate ABI JSON',
+	}).element().getAttribute('href')
+	if (candidateAbiHref == null)
+		throw new Error('Missing event candidate ABI href')
+	expect(JSON.parse(decodeURIComponent(candidateAbiHref.split(',')[1] ?? ''))).toEqual([{
+		type: 'event',
+		name: 'ValueSet',
+		inputs: [{
+			name: 'param0',
+			type: 'uint256',
+		}],
+	}])
+
+	const provenanceManifestHref = page.getByRole('link', {
+		name: 'Download provenance manifest JSON',
+	}).element().getAttribute('href')
+	if (provenanceManifestHref == null)
+		throw new Error('Missing event provenance manifest href')
+	expect(JSON.parse(decodeURIComponent(provenanceManifestHref.split(',')[1] ?? ''))).toMatchObject({
+		kind: 'event-data',
+		input: hex,
+		sourceClaim: {
+			source: Source.FourByteDirectory_Rest,
+			lookupHex: topic,
+			outcome: 'single-claim',
+			signature,
+		},
+		deterministicResult: {
+			name: 'ValueSet',
+			params: [{
+				index: 0,
+				type: 'uint256',
+				value: '123',
+			}],
+		},
+	})
+
+	resource.fail(new Error('catalog unavailable'))
+	await expect.element(page.getByRole('link', { name: 'Download decoded JSON' })).not.toBeInTheDocument()
+	await expect.element(page.getByRole('link', { name: 'Download raw input JSON' })).toHaveAttribute(
+		'download',
+		'evm-event-data-raw.json'
+	)
 })

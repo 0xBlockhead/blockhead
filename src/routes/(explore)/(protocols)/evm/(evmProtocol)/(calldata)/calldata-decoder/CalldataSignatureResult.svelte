@@ -13,6 +13,7 @@
 	import { resolve } from '$app/paths'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
+	import type { DecodedCalldata } from '$/typescript/DecodedCalldata.ts'
 
 	const truncateParamLength = 28
 
@@ -49,6 +50,16 @@
 	} from '$/lib/calldata-decode.ts'
 	import { errorDisplayMessage } from '$/lib/errors.ts'
 
+	const csvField = (value: string) => `"${value.replaceAll('"', '""')}"`
+	const decodedParamsCsv = (params: DecodedCalldata['params']) => [
+		['index', 'type', 'value'].map(csvField).join(','),
+		...params.map((param, index) => [
+			String(index),
+			param.type,
+			formatDecodedParamValue(param.type, param.value),
+		].map(csvField).join(',')),
+	].join('\r\n') + '\r\n'
+
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -78,6 +89,17 @@
 	download={`evm-${kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data'}-raw.txt`}
 >
 	Download raw hex
+</a>
+
+<a
+	href={`data:application/json;charset=utf-8,${encodeURIComponent(`${JSON.stringify({
+		artifactVersion: 1,
+		kind: kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data',
+		input: hex,
+	}, null, '\t')}\n`)}`}
+	download={`evm-${kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data'}-raw.json`}
+>
+	Download raw input JSON
 </a>
 
 <ResourceBoundary
@@ -193,6 +215,7 @@
 					value: formatDecodedParamValue(param.type, param.value),
 				})),
 			}, null, '\t')}\n`}
+			{@const decodedTableCsv = decoded == null ? null : decodedParamsCsv(decoded.params)}
 			<dl data-definition-list="vertical">
 				<div>
 					<dt>Signature</dt>
@@ -258,6 +281,15 @@
 					download={`evm-${kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data'}-decoded.json`}
 				>
 					Download decoded JSON
+				</a>
+			{/if}
+
+			{#if decodedTableCsv != null}
+				<a
+					href={`data:text/csv;charset=utf-8,${encodeURIComponent(decodedTableCsv)}`}
+					download={`evm-${kind === CalldataSignatureKind.Function ? 'function-calldata' : 'event-data'}-decoded.csv`}
+				>
+					Download decoded table CSV
 				</a>
 			{/if}
 
