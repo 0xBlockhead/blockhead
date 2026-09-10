@@ -31,23 +31,25 @@ const profileInput = {
 
 // Tests
 
-test('plans isolated Speculos REST and APDU surfaces without establishing wallet capability', () => {
-	// Fault: configuration could be counted as executable or physical Ledger evidence before a process is ready.
-	// Owner: Speculos vertical plan. Observable: explicit configuration-only evidence and distinct loopback endpoints.
-	const plan = createLedgerSpeculosPlan(profileInput)
+for (const model of ['stax', 'nanos', 'nanosp', 'nanox', 'flex'] as const) {
+	test(`plans isolated ${model} REST and APDU surfaces without establishing wallet capability`, () => {
+		// Configuration is not executable or physical Ledger evidence.
+		const plan = createLedgerSpeculosPlan({ ...profileInput, model })
 
-	assert.equal(plan.evidenceClass, 'configuration-only')
-	assert.equal(plan.capabilityEstablished, false)
-	assert.equal(plan.emulatorProtocolExecuted, false)
-	assert.equal(plan.physicalHardwareEvidence, false)
-	assert.equal(plan.productionModelExecutionEstablished, false)
-	assert.equal(plan.nativeSettlementEvidence, false)
-	assert.equal(plan.apduEndpoint.href, 'http://127.0.0.1:45100/apdu')
-	assert.equal(plan.automationEndpoint.href, 'http://127.0.0.1:45100/button')
-	if (!('endpoint' in plan.profile.readiness))
-		assert.fail('Speculos must use HTTP readiness')
-	assert.equal(plan.profile.readiness.endpoint.href, 'http://127.0.0.1:45100/events')
-})
+		assert.equal(plan.profile.command.args.includes(model), true)
+		assert.equal(plan.evidenceClass, 'configuration-only')
+		assert.equal(plan.capabilityEstablished, false)
+		assert.equal(plan.emulatorProtocolExecuted, false)
+		assert.equal(plan.physicalHardwareEvidence, false)
+		assert.equal(plan.productionModelExecutionEstablished, false)
+		assert.equal(plan.nativeSettlementEvidence, false)
+		assert.equal(plan.apduEndpoint.href, 'http://127.0.0.1:45100/apdu')
+		assert.equal(plan.automationEndpoint.href, 'http://127.0.0.1:45100/button')
+		if (!('endpoint' in plan.profile.readiness))
+			assert.fail('Speculos must use HTTP readiness')
+		assert.equal(plan.profile.readiness.endpoint.href, 'http://127.0.0.1:45100/events')
+	})
+}
 
 test('encodes the production Ethereum address APDU with an exact hardened derivation path', () => {
 	// Fault: endianness or display consent could diverge while a synthetic address fixture still passes.
@@ -121,19 +123,6 @@ test('rejects an internally consistent address response with an impossible SEC1 
 			return true
 		}
 	)
-})
-
-test('keeps every Speculos model selector below production Ledger model evidence', () => {
-	// Fault: selecting a Speculos target is reported as execution evidence for the corresponding Stax, Nano, or Flex production device.
-	// Owner: Ledger Speculos plan evidence boundary. Observable: all five enrolled model mappings remain configuration-only and deny production-model execution.
-	for (const model of ['stax', 'nanos', 'nanosp', 'nanox', 'flex'] as const) {
-		const plan = createLedgerSpeculosPlan({ ...profileInput, model })
-		assert.equal(plan.profile.command.args.includes(model), true)
-		assert.equal(plan.evidenceClass, 'configuration-only')
-		assert.equal(plan.productionModelExecutionEstablished, false)
-		assert.equal(plan.physicalHardwareEvidence, false)
-		assert.equal(plan.nativeSettlementEvidence, false)
-	}
 })
 
 test('parses a production-shaped Speculos APDU response without claiming emulator capability', async () => {

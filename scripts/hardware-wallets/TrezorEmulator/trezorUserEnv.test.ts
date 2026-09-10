@@ -43,6 +43,7 @@ test('plans a pinned isolated Trezor User Env without claiming capability or phy
 	// Owner: Trezor User Env plan. Observable: configuration-only flags and loopback-only surfaces.
 	const plan = createTrezorUserEnvPlan({
 		controllerRequestId: 17,
+		firmwareVersion: '2.8.0',
 		model: 'T3T1',
 		profile,
 		transaction,
@@ -72,11 +73,23 @@ test('plans a pinned isolated Trezor User Env without claiming capability or phy
 	])
 })
 
+test('refuses floating and path-shaped firmware selectors before constructing a controller request', () => {
+	for (const firmwareVersion of ['', '-latest', 'develop', '../2.8.0', '2.8', '2.8.0/latest'])
+		assert.throws(() => createTrezorUserEnvPlan({
+			controllerRequestId: 17,
+			firmwareVersion,
+			model: 'T3T1',
+			profile,
+			transaction,
+		}), /pinned numeric X.Y.Z version/)
+})
+
 test('constructs official controller and EIP-1559 signing requests with approval still external', () => {
 	// Fault: the harness could send stale controller keys or omit consent-relevant EIP-1559 fields.
 	// Owner: Trezor controller and Connect request construction. Observable: closed source-shaped requests.
 	const plan = createTrezorUserEnvPlan({
 		controllerRequestId: 17,
+		firmwareVersion: '2.8.0',
 		model: 'T3T1',
 		profile,
 		transaction,
@@ -88,7 +101,7 @@ test('constructs official controller and EIP-1559 signing requests with approval
 		output_to_logfile: true,
 		save_screenshots: false,
 		type: 'emulator-start',
-		version: '-latest',
+		version: '2.8.0',
 		wipe: true,
 	})
 	assert.deepEqual(plan.signingRequest, {
@@ -106,6 +119,7 @@ test('does not promote controller or request construction into a returned Trezor
 	// Owner: Trezor User Env evidence boundary. Observable: response audit and every later execution/evidence tier remain explicitly false.
 	const plan = createTrezorUserEnvPlan({
 		controllerRequestId: 18,
+		firmwareVersion: '2.8.0',
 		model: 'T3T1',
 		profile,
 		transaction,
@@ -134,6 +148,7 @@ test('refuses noncanonical transaction fields before any authority request', () 
 	assert.throws(
 		() => createTrezorUserEnvPlan({
 			controllerRequestId: 17,
+			firmwareVersion: '2.8.0',
 			model: 'T3T1',
 			profile,
 			transaction: { ...transaction, maxFeePerGas: '0x00' },
@@ -143,6 +158,7 @@ test('refuses noncanonical transaction fields before any authority request', () 
 	assert.throws(
 		() => createTrezorUserEnvPlan({
 			controllerRequestId: 17,
+			firmwareVersion: '2.8.0',
 			model: 'T3T1',
 			profile,
 			transaction: { ...transaction, data: '0xabc' },
@@ -159,6 +175,7 @@ test('refuses an impossible EIP-1559 fee relation before Trezor execution', () =
 	assert.throws(
 		() => createTrezorUserEnvPlan({
 			controllerRequestId: 17,
+			firmwareVersion: '2.8.0',
 			model: 'T3T1',
 			profile,
 			transaction: {
@@ -176,6 +193,7 @@ test('refuses an unavailable emulator launcher before process ownership begins',
 	// Owner: Trezor launch boundary. Observable: configuration-phase refusal with no capability.
 	const plan = createTrezorUserEnvPlan({
 		controllerRequestId: 17,
+		firmwareVersion: '2.8.0',
 		model: 'T3T1',
 		profile: {
 			...profile,
@@ -204,6 +222,7 @@ test('cryptographically audits a Trezor-shaped transaction fixture without emula
 	// verifies while every emulator, model, hardware, and settlement tier is false.
 	const plan = createTrezorUserEnvPlan({
 		controllerRequestId: 19,
+		firmwareVersion: '2.8.0',
 		model: 'T3T1',
 		profile,
 		transaction,

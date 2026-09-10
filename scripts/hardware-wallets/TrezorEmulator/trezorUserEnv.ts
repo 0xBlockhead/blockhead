@@ -25,7 +25,7 @@ export type TrezorUserEnvControllerRequest = Readonly<{
 	output_to_logfile: true
 	save_screenshots: false
 	type: 'emulator-start'
-	version: '-latest'
+	version: string
 	wipe: true
 }>
 
@@ -133,17 +133,21 @@ const requireHexData = (label: string, value: `0x${string}`) => {
 
 export const createTrezorUserEnvPlan = ({
 	controllerRequestId,
+	firmwareVersion,
 	model,
 	profile,
 	transaction,
 }: {
 	controllerRequestId: number
+	firmwareVersion: string
 	model: TrezorEmulatorModel
 	profile: TrezorUserEnvProfileInput
 	transaction: TrezorEthereumSignTransactionRequest['params']['transaction']
 }): TrezorUserEnvPlan => {
 	if (!Number.isSafeInteger(controllerRequestId) || controllerRequestId < 0)
 		throw new Error('Trezor User Env controller request id must be a non-negative safe integer')
+	if (!/^\d+\.\d+\.\d+$/.test(firmwareVersion))
+		throw new Error('Trezor User Env firmware version must be a pinned numeric X.Y.Z version')
 	if (!Number.isSafeInteger(transaction.chainId) || transaction.chainId <= 0)
 		throw new Error('Trezor transaction chain id must be a positive safe integer')
 	if (!/^0x[a-fA-F0-9]{40}$/.test(transaction.to))
@@ -170,7 +174,7 @@ export const createTrezorUserEnvPlan = ({
 			output_to_logfile: true,
 			save_screenshots: false,
 			type: 'emulator-start',
-			version: '-latest',
+			version: firmwareVersion,
 			wipe: true,
 		}),
 		cryptographicSignatureVerified: false,
