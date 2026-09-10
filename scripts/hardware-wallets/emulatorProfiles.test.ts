@@ -96,6 +96,30 @@ test('does not promote family process evidence to any enrolled production model'
 	}
 })
 
+test('keeps every executable family bound to an exact command and loopback probe', () => {
+	// Fault: a profile can remain named and executable while silently dropping its
+	// port, application, image, or readiness identity. Owner: profile definitions.
+	// Observable: each current executable family has an absolute launcher/workdir,
+	// non-empty command arguments, and a loopback-only readiness coordinate.
+	const profiles = [
+		createBitBox02SimulatorProfile({ executable: '/opt/bitbox/simulator', identity: 'matrix-bitbox', port: 48_110, workingDirectory: '/opt/bitbox' }),
+		createGridPlusLatticeSimulatorProfile({ httpPort: 48_120, identity: 'matrix-gridplus', pnpmExecutable: '/opt/pnpm', workingDirectory: '/opt/lattice' }),
+		createLedgerSpeculosProfile({ apiPort: 48_130, apduPort: 48_131, applicationPath: '/opt/apps/ethereum.elf', executable: '/opt/speculos.py', identity: 'matrix-ledger', model: 'nanosp', workingDirectory: '/opt/speculos' }),
+		createTrezorUserEnvProfile({ controllerPort: 48_140, dashboardPort: 48_141, dockerExecutable: '/opt/docker', identity: 'matrix-trezor', image: `ghcr.io/trezor/user-env@sha256:${'03'.repeat(32)}`, vncPort: 48_142, workingDirectory: '/opt/trezor' }),
+	]
+
+	for (const profile of profiles) {
+		assert(profile.command.executable.startsWith('/'))
+		assert(profile.command.workingDirectory.startsWith('/'))
+		assert(profile.command.args.length > 0)
+		if (profile.readiness.kind === 'tcp')
+			assert.equal(profile.readiness.host, '127.0.0.1')
+		else
+			assert.equal(profile.readiness.endpoint.hostname, '127.0.0.1')
+		assert.equal(hardwareWalletProcessReadinessEvidence(profile.kind).evidenceClass, 'process-readiness')
+	}
+})
+
 test('constructs a launch profile for the official BitBox02 simulator without execution credit', () => {
 	// Fault: a profile could use the default shared port and let a sibling simulator establish readiness.
 	// Owner: BitBox02 simulator profile. Observable: the chosen port is passed to the binary and probed over TCP.
