@@ -301,6 +301,15 @@ type LocalBlockheadIntentQuote_Timestamp = Omit<
 	inputPreview?: object
 	outputPreview?: object
 }
+type QuoteIntentSelector =
+	| {
+		entityType: EntityType.BlockheadSwapIntent
+		selector: EntitySelector<typeof schema, EntityType.BlockheadSwapIntent>
+	}
+	| {
+		entityType: EntityType.BlockheadBridgeIntent
+		selector: EntitySelector<typeof schema, EntityType.BlockheadBridgeIntent>
+	}
 type LocalBlockheadIntentInvocation = Omit<
 	EntityFieldValues<typeof schema, EntityType.BlockheadIntentInvocation>,
 	'$createdAction' | '$session' | 'sessionId' | 'sourceSelector' | 'targetSelector'
@@ -1888,7 +1897,7 @@ export const writeLocalBlockheadSwapIntent = async (
 export const writeLocalBlockheadIntentQuote = async (
 	context: LocalMutationContext,
 	sessionActionSelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
-	swapIntentSelector: EntitySelector<typeof schema, EntityType.BlockheadSwapIntent>,
+	quoteIntent: QuoteIntentSelector,
 	quote: LocalBlockheadIntentQuote,
 	observation: LocalBlockheadIntentQuote_Timestamp
 ) => {
@@ -1943,8 +1952,8 @@ export const writeLocalBlockheadIntentQuote = async (
 		),
 		writeLocalEntityReferenceField(
 			context,
-			EntityType.BlockheadSwapIntent,
-			swapIntentSelector,
+			quoteIntent.entityType,
+			quoteIntent.selector,
 			'$$quotes',
 			quoteSelector
 		),

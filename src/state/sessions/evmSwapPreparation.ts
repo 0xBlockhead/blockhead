@@ -400,7 +400,7 @@ export const applyEvmSwapPreparation = async ({
 		writeLocalBlockheadIntentQuote(
 			context,
 			sessionActionSelector,
-			swapIntentSelector,
+			{ entityType: EntityType.BlockheadSwapIntent, selector: swapIntentSelector },
 			preparation.quote,
 			preparation.quoteObservation
 		),
