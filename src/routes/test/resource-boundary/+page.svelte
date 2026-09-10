@@ -314,6 +314,15 @@
 		lifecycleKey = 'a'
 		showLifecycle = true
 	}}>Start native A</button>
+	<button onclick={async () => {
+		await resourceFixtureSource.preload()
+		if (resourceFixtureSource.has('lifecycle-a'))
+			resourceFixtureSource.update('lifecycle-a', (draft) => {
+				draft.value = ''
+			})
+		lifecycleKey = 'a'
+		showLifecycle = true
+	}}>Start pending native A</button>
 	<button onclick={switchLifecycle}>Switch native A to B</button>
 	<button onclick={() => writeResourceFixtureValue('lifecycle-b', 'Value B')}>Seed native B</button>
 	<button onclick={deliverStaleNotification}>Deliver retired A notification</button>
