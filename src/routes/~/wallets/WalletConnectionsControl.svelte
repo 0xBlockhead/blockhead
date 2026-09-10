@@ -52,6 +52,7 @@
 		error: Error
 	}>()
 	let walletAccountSelectionPending = $state(false)
+	let walletConnectionMutationPending = $state<string>()
 
 
 	// Components
@@ -304,7 +305,22 @@
 						<button
 							type="button"
 							data-wallet-action="disconnect"
-							onclick={() => walletRuntime.disconnect(connectionKey)}
+							aria-busy={walletConnectionMutationPending === connectionKey}
+							disabled={walletConnectionMutationPending === connectionKey}
+							onclick={async () => {
+								walletConnectionMutationPending = connectionKey
+								walletControlFailure = undefined
+								walletControlStatus = 'Disconnecting wallet.'
+								try {
+									await walletRuntime.disconnect(connectionKey)
+									walletControlStatus = 'Wallet disconnected.'
+								} catch (error) {
+									walletControlStatus = ''
+									walletControlFailure = { error: normalizeBoundaryError(error) }
+								} finally {
+									walletConnectionMutationPending = undefined
+								}
+							}}
 						>
 							{candidate.capabilities.includes(WalletCapability.Disconnect) ?
 								'Disconnect wallet'
