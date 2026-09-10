@@ -37,6 +37,7 @@ export type WalletMatrixScenario = {
 
 export type WalletMatrixEvidence = {
 	code: string
+	tier?: 'runtime' | 'contract' | 'environment'
 	detail?: string
 	source?: string
 }

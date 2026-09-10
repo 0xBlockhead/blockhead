@@ -22,6 +22,7 @@ import {
 	type WalletMatrixScenario,
 } from './WalletCompatibilityMatrix.ts'
 import { zerionWalletMatrixScenarios } from './Zerion/matrix.ts'
+import { walletCapabilityCorpus } from './capabilityCorpus.ts'
 
 const scenario = {
 	id: 'petra-create-account-1',
@@ -100,6 +101,36 @@ test('records dimensions without exposing account addresses', async () => {
 	assert.equal(result.id, scenario.id)
 	assert.equal(result.lifecycleEdgeCase, scenario.lifecycleEdgeCase)
 	assert.equal(JSON.stringify(result).includes(address), false)
+})
+
+test('accepts shared corpus observations only with capability-tier evidence', async () => {
+	const results = await runWalletCompatibilityMatrixSuite({
+		entries: walletCapabilityCorpus.map((entry) => ({
+			driver: {
+				kind: entry.walletKind,
+				run: async () => ({
+					accountAddress: entry.accountAddress,
+					outcome: 'pass' as const,
+					evidence: {
+						code: entry.capability,
+						tier: 'contract' as const,
+						source: 'wallet-capability-corpus',
+					},
+				}),
+			},
+			scenarios: [{
+				...scenario,
+				id: `${entry.walletKind}-corpus`,
+				wallet: { kind: entry.walletKind, version: entry.version },
+				ecosystem: entry.chain.startsWith('solana') ? WalletHarnessEcosystem.Solana : entry.chain.startsWith('cardano') ? WalletHarnessEcosystem.Cardano : WalletHarnessEcosystem.Evm,
+				chain: entry.chain,
+				requestMethod: entry.requestMethod,
+			}],
+		})),
+	})
+	assert.equal(results.length, walletCapabilityCorpus.length)
+	assert.ok(results.every((result) => result.outcome === 'pass' && result.evidence.tier === 'contract'))
+	assert.equal(new Set(results.map(({ walletKind }) => walletKind)).size, walletCapabilityCorpus.length)
 })
 
 test('rejects invalid outcome evidence', async () => {
