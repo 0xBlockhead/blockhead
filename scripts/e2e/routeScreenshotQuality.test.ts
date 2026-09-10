@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 
-import { routeScreenshotQuality } from '../../tests/_routeScreenshotQuality.ts'
+import {
+	routeScreenshotArtifactName,
+	routeScreenshotCorpusFailures,
+	routeScreenshotQuality,
+} from '../../tests/_routeScreenshotQuality.ts'
 
 
 const validInput = {
@@ -21,6 +25,24 @@ const validInput = {
 } as const
 
 describe('route screenshot quality', () => {
+	it('requires two distinct fixtures with visible-content oracles', () => {
+		assert.deepEqual(routeScreenshotCorpusFailures([
+			{ pathname: '/network', overlay: { routeTitle: 'Network' } },
+			{ pathname: '/coins', overlay: { minEntityRows: 2 } },
+		]), [])
+		assert.deepEqual(routeScreenshotCorpusFailures([
+			{ pathname: '/network', overlay: {} },
+		]), [
+			'representative corpus must contain at least two distinct fixtures',
+			'/network has no visible-content oracle',
+		])
+	})
+
+	it('creates stable route-scoped artifact names', () => {
+		assert.equal(routeScreenshotArtifactName('/network/eip155:1', 'failure.png'), 'network-eip155-1-failure.png')
+		assert.equal(routeScreenshotArtifactName('/', 'failure.png'), 'root-failure.png')
+	})
+
 	it('accepts settled content and keeps visual smells non-fatal', () => {
 		assert.deepEqual(routeScreenshotQuality({
 			...validInput,

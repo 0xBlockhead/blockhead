@@ -13,7 +13,11 @@ import {
 	resetBoundaryProbe,
 	waitForBoundarySettle,
 } from '../_e2eBrowserHelpers.ts'
-import { routeScreenshotQuality } from '../_routeScreenshotQuality.ts'
+import {
+	routeScreenshotArtifactName,
+	routeScreenshotCorpusFailures,
+	routeScreenshotQuality,
+} from '../_routeScreenshotQuality.ts'
 import { createRouteRunIdentity } from '../../scripts/e2e/routeRunIdentity.ts'
 
 import { e2eDomQualityProbeOverlays } from './_routeParamFixtures.ts'
@@ -35,6 +39,12 @@ test.skip(
 )
 
 test.describe('representative route screenshot quality', () => {
+	const corpus = Object.entries(e2eDomQualityProbeOverlays).map(([pathname, overlay]) => ({ pathname, overlay }))
+	const corpusFailures = routeScreenshotCorpusFailures(corpus)
+	test.beforeAll(() => {
+		expect(corpusFailures, corpusFailures.join('\n')).toEqual([])
+	})
+
 	for (const [pathname, overlay] of Object.entries(e2eDomQualityProbeOverlays)) {
 		test(pathname, async ({ page }, testInfo) => {
 			await testInfo.attach('route-screenshot-quality-run.json', {
@@ -106,11 +116,17 @@ test.describe('representative route screenshot quality', () => {
 				settled,
 			})
 
-			if (quality.failures.length > 0)
-				await testInfo.attach('route-screenshot.png', {
-					body: await page.screenshot({ animations: 'disabled', fullPage: true }),
+			if (quality.failures.length > 0) {
+				const screenshotPath = testInfo.outputPath(
+					'route-screenshots',
+					routeScreenshotArtifactName(pathname, 'failure.png'),
+				)
+				await page.screenshot({ animations: 'disabled', fullPage: true, path: screenshotPath })
+				await testInfo.attach(routeScreenshotArtifactName(pathname, 'failure.png'), {
+					path: screenshotPath,
 					contentType: 'image/png',
 				})
+			}
 			if (quality.warnings.length > 0)
 				await testInfo.attach('route-screenshot-warnings.txt', {
 					body: quality.warnings.join('\n'),
