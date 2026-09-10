@@ -124,3 +124,36 @@ test('rejects invalid outcome evidence', async () => {
 	await assert.rejects(() => run('blocked'), /secret-free/)
 	await assert.rejects(() => run('blocked', '0xblocked-account'), /must not produce an account address/)
 })
+
+test('stops later wallet effects when a scenario driver rejects', async () => {
+	const laterScenario = {
+		...scenario,
+		id: 'petra-create-account-2',
+		accountOrdinal: 2 as const,
+	}
+	const calls: string[] = []
+	await assert.rejects(() => runWalletCompatibilityMatrix({
+		driver: {
+			kind: 'petra',
+			run: async (current) => {
+				calls.push(current.id)
+				if (current.id === scenario.id)
+					throw new Error('driver rejection')
+				return {
+					accountAddress: '0x2222',
+					outcome: 'pass' as const,
+					evidence: { code: 'must-not-run' },
+				}
+			},
+		},
+		scenarios: [scenario, laterScenario],
+		step: async (name, run) => {
+			calls.push(`step:${name}`)
+			return run()
+		},
+	}), /driver rejection/)
+	assert.deepEqual(calls, [
+		`step:${scenario.id}`,
+		scenario.id,
+	])
+})

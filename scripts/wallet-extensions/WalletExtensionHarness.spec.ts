@@ -15,6 +15,12 @@ import {
 	type WalletTestRequestMetadata,
 } from './WalletExtensionHarness.ts'
 import { WalletHarnessEcosystem } from './ecosystems.ts'
+import {
+	personalSigningAccount,
+	personalSigningMessage,
+	personalSigningSignature,
+} from './personalSigning.fixtures.ts'
+import { permitAccount, permitOtherSignerSignature, permitSignature, permitTypedData } from './typedDataSigning.fixtures.ts'
 
 
 test('parses platform-delimited extension directories', () => {
@@ -26,20 +32,21 @@ test('parses platform-delimited extension directories', () => {
 })
 
 test('resolves named extension env dirs before the fixture fallback', () => {
-	const previous = process.env.METAMASK_EXTENSION_DIR
-	process.env.METAMASK_EXTENSION_DIR = '/tmp/blockhead-wallet-metamask'
-	try {
-		assert.deepEqual(resolveWalletExtensionDirectories({
-			fixtureDirectory: '/tmp/fixture',
-		}), [
-			resolve('/tmp/blockhead-wallet-metamask'),
-		])
-	} finally {
-		if (previous == null)
-			delete process.env.METAMASK_EXTENSION_DIR
-		else
-			process.env.METAMASK_EXTENSION_DIR = previous
-	}
+	assert.deepEqual(resolveWalletExtensionDirectories({
+		environment: { METAMASK_EXTENSION_DIR: '/tmp/blockhead-wallet-metamask' },
+		fixtureDirectory: '/tmp/fixture',
+	}), [resolve('/tmp/blockhead-wallet-metamask')])
+	assert.deepEqual(resolveWalletExtensionDirectories({
+		environment: {
+			WALLET_EXTENSION_DIRS: `/tmp/one${delimiter}/tmp/two`,
+			METAMASK_EXTENSION_DIR: '/tmp/must-not-load',
+		},
+		fixtureDirectory: '/tmp/fixture',
+	}), [resolve('/tmp/one'), resolve('/tmp/two')])
+	assert.deepEqual(resolveWalletExtensionDirectories({
+		environment: {},
+		fixtureDirectory: '/tmp/fixture',
+	}), [resolve('/tmp/fixture')])
 })
 
 test('classifies supported wallets without treating the fixture as real', () => {
@@ -124,22 +131,22 @@ test('captures safe metadata for message and typed-data approvals', async () => 
 			ecosystem: WalletHarnessEcosystem.Evm,
 			kind: 'message',
 			method: 'personal_sign',
-			accountAddress: '0x1111111111111111111111111111111111111111',
+			accountAddress: personalSigningAccount,
 			chainId: 'eip155:1',
 			params: [
-				'private test message',
-				'0x1111111111111111111111111111111111111111',
+				personalSigningMessage,
+				personalSigningAccount,
 			],
 		},
 		{
 			ecosystem: WalletHarnessEcosystem.Evm,
 			kind: 'typed-data',
 			method: 'eth_signTypedData_v4',
-			accountAddress: '0x1111111111111111111111111111111111111111',
+			accountAddress: permitAccount,
 			chainId: 'eip155:1',
 			params: [
-				'0x1111111111111111111111111111111111111111',
-				'{"domain":{"name":"private test domain"},"message":{"secret":"not metadata"}}',
+				permitAccount,
+				JSON.stringify(permitTypedData),
 			],
 		},
 	] as const satisfies readonly WalletTestRequest[]) {
@@ -147,7 +154,7 @@ test('captures safe metadata for message and typed-data approvals', async () => 
 		const result = await exerciseWalletSigningRequest({
 			contract: {
 				provider: {
-					request: async () => '0xsigned',
+					request: async () => request.kind === 'typed-data' ? permitSignature : personalSigningSignature,
 				},
 				driver: {
 					waitForRequest: async (requestMetadata) => {
@@ -173,6 +180,88 @@ test('captures safe metadata for message and typed-data approvals', async () => 
 		assert.equal(JSON.stringify(result.metadata).includes('private test'), false)
 		assert.equal(JSON.stringify(result.metadata).includes('secret'), false)
 	}
+})
+
+test('rejects personal-sign approval for another message, signer, request account, or malformed response', async () => {
+	for (const { message, account, selectedAccount, signature } of [
+		{ message: '0xdeadbeef' },
+		{ selectedAccount: '0x2222222222222222222222222222222222222222', account: '0x2222222222222222222222222222222222222222' },
+		{ account: '0x2222222222222222222222222222222222222222' },
+		{ signature: '0xsigned' },
+	]) {
+		await assert.rejects(exerciseWalletSigningRequest({
+			contract: {
+				provider: { request: async () => signature ?? personalSigningSignature },
+				driver: {
+					waitForRequest: async () => {},
+					approve: async () => {},
+					reject: async () => { throw new Error('unexpected rejection') },
+				},
+				observePersistence: () => ({ evmTransactionIds: [] }),
+			},
+			request: {
+				ecosystem: WalletHarnessEcosystem.Evm,
+				kind: 'message',
+				method: 'personal_sign',
+				accountAddress: selectedAccount ?? personalSigningAccount,
+				params: [message ?? personalSigningMessage, account ?? personalSigningAccount],
+			},
+			decision: 'approve',
+		}), /does not verify against the requested message and account/)
+	}
+})
+
+test('rejects EIP-712 approval for changed domain, message, signer, or requested account', async () => {
+	for (const { data = permitTypedData, account = permitAccount, signature = permitSignature } of [
+		{ data: { ...permitTypedData, domain: { ...permitTypedData.domain, chainId: 2 } } },
+		{ data: { ...permitTypedData, message: { ...permitTypedData.message, value: '2000000000000000000' } } },
+		{ signature: permitOtherSignerSignature },
+		{ account: '0x2222222222222222222222222222222222222222' },
+	])
+		await assert.rejects(exerciseWalletSigningRequest({
+			contract: {
+				provider: { request: async () => signature },
+				driver: {
+					waitForRequest: async () => {},
+					approve: async () => {},
+					reject: async () => { throw new Error('unexpected rejection') },
+				},
+				observePersistence: () => ({ evmTransactionIds: [] }),
+			},
+			request: {
+				ecosystem: WalletHarnessEcosystem.Evm,
+				kind: 'typed-data',
+				method: 'eth_signTypedData_v4',
+				accountAddress: permitAccount,
+				params: [account, JSON.stringify(data)],
+			},
+			decision: 'approve',
+		}), /does not verify against the requested typed data and account/)
+})
+
+test('refuses unqualified typed-data approval methods before asking the wallet', async () => {
+	let calls = 0
+	for (const method of ['eth_signTypedData', 'eth_signTypedData_v3'] as const)
+		await assert.rejects(exerciseWalletSigningRequest({
+			contract: {
+				provider: { request: async () => { calls++; return permitSignature } },
+				driver: {
+					waitForRequest: async () => {},
+					approve: async () => {},
+					reject: async () => {},
+				},
+				observePersistence: () => ({ evmTransactionIds: [] }),
+			},
+			request: {
+				ecosystem: WalletHarnessEcosystem.Evm,
+				kind: 'typed-data',
+				method,
+				accountAddress: permitAccount,
+				params: [permitAccount, JSON.stringify(permitTypedData)],
+			},
+			decision: 'approve',
+		}), /older typed-data methods are not qualified/)
+	assert.equal(calls, 0)
 })
 
 test('drives explicit rejection without submission or EvmTransaction persistence', async () => {

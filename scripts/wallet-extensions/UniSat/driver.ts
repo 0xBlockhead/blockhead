@@ -113,25 +113,17 @@ export const unisatDriver = {
 		}).click()
 		await page.waitForURL(/#\/account\/create-hd-wallet$/)
 
-		const recoveryWords = await page.locator('body').evaluate((body) => (
-			(body.textContent ?? '')
-				.split('\n')
-				.flatMap((line, index, lines) => (
-					/^\d+\.$/.test(lines[index - 1] ?? '') && /^[a-z]+$/.test(line) ?
-						[
-							line,
-						]
-					:
-						[]
-				))
-		))
-		if (recoveryWords.length !== 12)
+		const recoveryWordFields = page.locator('[data-testid^="mnemonic-word-"]')
+		await recoveryWordFields.first().waitFor({
+			state: 'visible',
+			timeout: 30_000,
+		})
+		if (await recoveryWordFields.count() !== 12)
 			throw new Error('UniSat did not expose exactly 12 recovery-word fields')
 
 		await page.getByTestId('mnemonic-saved-checkbox-input').click()
 		if (!await page.getByTestId('mnemonic-saved-checkbox-input').isChecked())
 			throw new Error('UniSat recovery confirmation checkbox did not remain checked')
-		recoveryWords.fill('')
 		await page.getByTestId('mnemonic-continue-button').click()
 		await page.getByTestId('address-type-continue-button').click()
 	},
