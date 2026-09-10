@@ -430,7 +430,6 @@ const createWalletRuntimeState = (
 						)
 					}
 					if (newlyAvailable) {
-						writeLocalBlockheadWallet(context, candidate)
 						for (const connection of connections)
 							if (connection.walletId === candidate.id)
 								subscribePersistedConnection(connection, adapter)
