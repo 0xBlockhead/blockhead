@@ -1093,6 +1093,11 @@ const createWalletRuntimeState = (
 					returnedValueCount: Array.isArray(adapterError.returnedValue) ? adapterError.returnedValue.length : 1,
 					error: errorMessage,
 				})
+			: isWalletAdapterProviderRejection(adapterError) ?
+				dispatchEvidence.assert({
+					kind: 'definite-rejection',
+					error: errorMessage,
+				})
 			:
 				dispatchEvidence.assert({
 					kind: 'ambiguous',

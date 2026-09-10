@@ -738,6 +738,44 @@ describe('wallet connection runtime normalization', () => {
 		expect(writeWalletRequestObservation.mock.calls[1][2]).not.toHaveProperty('transactionId')
 	}, 30_000)
 
+	it('records provider-declared message-signing rejection as definite rejection', async () => {
+		const { WalletAdapterProviderRejection } = await import('$/state/wallets/adapters/types.ts')
+		const signMessage = vi.fn(async () => {
+			throw new WalletAdapterProviderRejection('wallet rejected signing')
+		})
+		const connection = {
+			connectionKey: 'wallet-rejection-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const { runtime, writeDispatchEvidence } = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			signMessage,
+		})
+
+		await runtime.connect(connection.walletId)
+		await expect(runtime.signMessage({
+			connectionKey: connection.connectionKey,
+			message: 'Reject this private challenge',
+			authorityPresentation: { submittedAt: 1 },
+		})).rejects.toThrow('wallet rejected signing')
+		expect(writeDispatchEvidence.mock.calls.at(-1)?.[2]).toMatchObject({
+			kind: 'definite-rejection',
+			error: 'wallet rejected signing',
+		})
+		runtime.destroy()
+	})
+
 	it('binds controlled Sui personal-message authority through dispatch and returned evidence', async () => {
 		vi.spyOn(Date, 'now')
 			.mockReturnValueOnce(100)
