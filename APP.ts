@@ -99921,7 +99921,8 @@ export const app = {
 				source: Source.AvalanchePlatformVm_JsonRpc,
 				provider: "AvalanchePlatformVm",
 				label: "Avalanche PlatformVM JSON-RPC",
-				binding: {
+				bindings: [
+				{
 					target: {
 						kind: SourceTargetKind.NetworkSlug,
 						key: "avalanche-p-chain",
@@ -99941,6 +99942,31 @@ export const app = {
 					delivery: SourceDelivery.HttpProxy,
 					credentials: [],
 				},
+				{
+					target: {
+						kind: SourceTargetKind.LocalDevice,
+						key: "local-avalanche-platform-vm",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "http://127.0.0.1:9650/ext/bc/P",
+							corsEnabled: false,
+						},
+					],
+					wireProtocol: WireProtocol.JsonRpc2,
+					apiFamily: ApiFamily.JsonRpcApi,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.LocalOnly,
+					credentials: [
+						{
+							scope: SourceCredentialScope.LocalSecret,
+						},
+					],
+				},
+				],
 			},
 			{
 				source: Source.AwsBedrock_Rest,

@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-256 providers register 288 sources and 520 bindings.
+256 providers register 288 sources and 521 bindings.
 
 ## Providers
 
@@ -586,6 +586,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | Avail | Avail | NetworkSlug | avail | JsonRpc2 | SubstrateJsonRpc | GenericRead | RemoteQuery |
 | ["AvalancheInfo_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | AvalancheInfo | AvalancheInfo_JsonRpc | NetworkSlug | avalanche-p-chain | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
 | ["AvalanchePlatformVm_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | AvalanchePlatformVm | AvalanchePlatformVm_JsonRpc | NetworkSlug | avalanche-p-chain | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
+| ["AvalanchePlatformVm_JsonRpc","LocalDevice","local-avalanche-platform-vm","LocalOnly","JsonRpcApi"] | AvalanchePlatformVm | AvalanchePlatformVm_JsonRpc | LocalDevice | local-avalanche-platform-vm | JsonRpc2 | JsonRpcApi | GenericRead | LocalOnly |
 | ["AwsBedrock_Rest","Global","aws-bedrock","RemoteQuery","RestJson"] | AwsBedrock | AwsBedrock_Rest | Global | aws-bedrock | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog | RemoteQuery |
 | ["Axelarscan_Rest","Global","axelarscan-api","HttpProxy","RestJson"] | Axelarscan | Axelarscan_Rest | Global | axelarscan-api | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["AzureAiFoundry_Rest","Global","azure-ai-foundry","RemoteQuery","RestJson"] | AzureAiFoundry | AzureAiFoundry_Rest | Global | azure-ai-foundry | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog | RemoteQuery |
@@ -1112,6 +1113,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | HttpUrl | env:PUBLIC_AVAIL_RPC_URL |  | false |
 | ["AvalancheInfo_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | HttpUrl | https://api.avax.network/ext/info | https://api.avax.network | false |
 | ["AvalanchePlatformVm_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | HttpUrl | https://api.avax.network/ext/bc/P | https://api.avax.network | false |
+| ["AvalanchePlatformVm_JsonRpc","LocalDevice","local-avalanche-platform-vm","LocalOnly","JsonRpcApi"] | HttpUrl | http://127.0.0.1:9650/ext/bc/P | http://127.0.0.1:9650 | false |
 | ["AwsBedrock_Rest","Global","aws-bedrock","RemoteQuery","RestJson"] | HttpUrl | env:AWS_BEDROCK_ENDPOINT |  |  |
 | ["Axelarscan_Rest","Global","axelarscan-api","HttpProxy","RestJson"] | HttpUrl | https://api.axelarscan.io | https://api.axelarscan.io | false |
 | ["AzureAiFoundry_Rest","Global","azure-ai-foundry","RemoteQuery","RestJson"] | HttpUrl | env:AZURE_AI_FOUNDRY_ENDPOINT |  |  |
@@ -1668,6 +1670,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Anthropic_Rest","Global","anthropic-api","RemoteQuery","RestJson"] | RuntimeSecret | no | ANTHROPIC_API_KEY |
 | ["AptosAip62_WalletApi","LocalDevice","aptos-aip62-wallet","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | PublicConfig | yes | PUBLIC_AVAIL_RPC_URL |
+| ["AvalanchePlatformVm_JsonRpc","LocalDevice","local-avalanche-platform-vm","LocalOnly","JsonRpcApi"] | LocalSecret | no |  |
 | ["AwsBedrock_Rest","Global","aws-bedrock","RemoteQuery","RestJson"] | RuntimeSecret | no | AWS_ACCESS_KEY_ID, AWS_BEDROCK_REGION, AWS_SECRET_ACCESS_KEY |
 | ["AzureAiFoundry_Rest","Global","azure-ai-foundry","RemoteQuery","RestJson"] | RuntimeSecret | no | AZURE_AI_FOUNDRY_API_KEY |
 | ["BeaconchaIn_Rest","Eip155Chain","1","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_BEACONCHAIN_API_KEY |
