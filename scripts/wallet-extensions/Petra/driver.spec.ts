@@ -103,11 +103,11 @@ test('keeps proven Petra create-new bridges separate from blocked recover', asyn
 						petraBlockedObservation(scenario)
 					:
 						{
-							accountAddress: `0xpetra${scenario.accountOrdinal}`,
-							outcome: 'pass',
+							outcome: 'unsupported',
 							evidence: {
-								code: scenario.lifecycleEdgeCase,
-								source: 'unit-bridge-contract',
+								code: 'real-driver-required',
+								detail: 'Compatibility success requires the real Petra extension driver',
+								source: 'request-construction-only',
 							},
 						}
 				),
@@ -115,8 +115,8 @@ test('keeps proven Petra create-new bridges separate from blocked recover', asyn
 			scenarios,
 		}),
 		[
-			'pass',
-			'pass',
+			'unsupported',
+			'unsupported',
 			'blocked',
 		],
 		'petra proven bridge / blocked recovery'

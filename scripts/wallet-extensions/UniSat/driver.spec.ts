@@ -146,11 +146,11 @@ test('keeps proven UniSat create-new bridges separate from blocked recover', asy
 						unisatBlockedObservation(scenario)
 					:
 						{
-							accountAddress: `bc1qunisat${scenario.accountOrdinal}`,
-							outcome: 'pass',
+							outcome: 'unsupported',
 							evidence: {
-								code: scenario.lifecycleEdgeCase,
-								source: 'unit-bridge-contract',
+								code: 'real-driver-required',
+								detail: 'Compatibility success requires the real UniSat extension driver',
+								source: 'request-construction-only',
 							},
 						}
 				),
@@ -158,8 +158,8 @@ test('keeps proven UniSat create-new bridges separate from blocked recover', asy
 			scenarios,
 		}),
 		[
-			'pass',
-			'pass',
+			'unsupported',
+			'unsupported',
 			'blocked',
 		],
 		'unisat proven bridge / blocked recovery'

@@ -272,8 +272,9 @@ test('does not upgrade Backpack unit bridge construction into request capability
 						{
 							outcome: 'unsupported',
 							evidence: {
-								code: scenario.lifecycleEdgeCase,
-								source: 'unit-bridge-contract',
+								code: 'real-driver-required',
+								detail: 'Compatibility success requires the real Backpack extension driver',
+								source: 'request-construction-only',
 							},
 						}
 				),

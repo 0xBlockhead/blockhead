@@ -114,11 +114,11 @@ test('keeps the proven Taho first-account bridge separate from blocked account r
 						tahoBlockedObservation(scenario)
 					:
 						{
-							accountAddress: '0xtaho1',
-							outcome: 'pass',
+							outcome: 'unsupported',
 							evidence: {
-								code: scenario.lifecycleEdgeCase,
-								source: 'unit-bridge-contract',
+								code: 'real-driver-required',
+								detail: 'Compatibility success requires the real Taho extension driver',
+								source: 'request-construction-only',
 							},
 						}
 				),
@@ -126,7 +126,7 @@ test('keeps the proven Taho first-account bridge separate from blocked account r
 			scenarios,
 		}),
 		[
-			'pass',
+			'unsupported',
 			'blocked',
 			'blocked',
 		],
