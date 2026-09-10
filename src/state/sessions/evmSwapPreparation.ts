@@ -385,7 +385,7 @@ export const applyEvmSwapPreparation = async ({
 	const currentWalletGate = resolveWalletTransactionPrepGate({
 		connections: walletConnections,
 		namespace: Caip2Namespace.Eip155,
-		reference: preparation.intent.networkCaip2.reference,
+		reference: String(preparation.intent.chainId),
 		accountAddress: preparation.preparedCall.from,
 	})
 	if (!currentWalletGate.ready || currentWalletGate.connectionKey !== initialConnectionKey)
