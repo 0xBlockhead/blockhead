@@ -273,14 +273,21 @@ export type SourceBindingAuthority = Readonly<{
 	}>
 }>
 
-export const sourceClaimAccountabilityKey = (claim: Pick<SourceClaimFacts, 'publicRoute' | 'source' | 'entityType' | 'selectorName' | 'facetPath' | 'fieldName'>) => JSON.stringify([
+export const sourceClaimAccountabilityKey = (claim: Pick<SourceClaimFacts, 'publicRoute' | 'source' | 'entityType' | 'selectorName' | 'facetPath' | 'fieldName' | 'conditions'>) => JSON.stringify([
 	claim.publicRoute ?? null,
 	claim.source,
 	claim.entityType,
 	claim.selectorName ?? null,
 	claim.facetPath,
 	claim.fieldName ?? null,
+	claim.conditions ?? null,
 ])
+
+export type SourceClaimCondition = Readonly<{
+	prop?: string
+	field?: string
+	equals: string | number | boolean
+}>
 
 type SourceClaimFacts = Readonly<{
 	source: string
@@ -290,6 +297,7 @@ type SourceClaimFacts = Readonly<{
 	fieldName?: string
 	publicRoute?: string
 	target?: SourceBindingAuthority['target']
+	conditions?: readonly SourceClaimCondition[]
 }>
 
 type MappedSelectorFacts = Readonly<{

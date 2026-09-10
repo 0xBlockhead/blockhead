@@ -134,6 +134,7 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 		assert.deepEqual(
 			Object.keys(claim).toSorted(),
 			[
+				...(claim.conditions == null ? [] : ['conditions']),
 				'entityType',
 				'facetPath',
 				...(claim.fieldName == null ? [] : ['fieldName']),
@@ -427,6 +428,13 @@ test('classifies every source claim and mapped selector against authority', () =
 		assert.ok(keys.includes('access'))
 		assert.ok(keys.includes('deliveries'))
 		assert.ok(keys.includes('executability'))
+		if (keys.includes('conditions')) {
+			assert.ok(claim.conditions?.length)
+			for (const condition of claim.conditions ?? []) {
+				assert.ok(condition.field != null || condition.prop != null)
+				assert.ok(Object.hasOwn(condition, 'equals'))
+			}
+		}
 		assert.ok(['PublicRoute', 'FieldDefault'].includes(claim.demand))
 		assert.ok(['Public', 'LocalRuntime', 'ServerRuntime'].includes(claim.access))
 		assert.ok(['ResolverDeclared', 'ResolverMissing'].includes(claim.executability))
@@ -465,4 +473,20 @@ test('classifies every source claim and mapped selector against authority', () =
 		&& claim.executability === 'ResolverMissing'
 	))
 	assert.equal(publicColdReadGaps.length, 0)
+})
+
+test('preserves every conditioned source-selection branch as distinct accountability evidence', () => {
+	const conditionedClaims = baselineCompiledApp.sourceClaims.filter(({ conditions }) => conditions != null)
+	assert.ok(conditionedClaims.length > 0)
+	assert.equal(
+		new Set(conditionedClaims.map((claim) => JSON.stringify(claim.conditions))).size > 1,
+		true
+	)
+	assert.equal(
+		conditionedClaims.every(({ conditions }) => conditions?.every((condition) => (
+			(condition.field != null || condition.prop != null)
+			&& Object.hasOwn(condition, 'equals')
+		))),
+		true
+	)
 })

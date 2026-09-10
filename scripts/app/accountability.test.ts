@@ -198,6 +198,13 @@ test('keys source claims without aliasing route punctuation or omitted coordinat
 
 	assert.notEqual(sourceClaimAccountabilityKey(routeClaim), sourceClaimAccountabilityKey(fieldClaim))
 	assert.notEqual(sourceClaimAccountabilityKey({ ...routeClaim, selectorName: undefined }), sourceClaimAccountabilityKey(routeClaim))
+	assert.notEqual(
+		sourceClaimAccountabilityKey(routeClaim),
+		sourceClaimAccountabilityKey({
+			...routeClaim,
+			conditions: [{ field: 'network', equals: 'eip155:1' }],
+		})
+	)
 })
 
 test('keeps generated observation clocks unclassified until a writer proves their provenance', () => {

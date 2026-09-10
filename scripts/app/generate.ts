@@ -381,6 +381,11 @@ export type CompiledSourceClaim = Readonly<{
 	facetPath: readonly string[]
 	fieldName?: string
 	publicRoute?: string
+	conditions?: readonly Readonly<{
+		prop?: string
+		field?: string
+		equals: string | number | boolean
+	}>[]
 }>
 
 const repoRoot = process.cwd()
@@ -1869,6 +1874,19 @@ const sourceSelectionSources = (
 	]
 )
 
+const sourceSelectionClaims = (
+	selection: readonly string[] | _SourceSelection
+) => Array.isArray(selection) ?
+	selection.map((source) => ({ source }))
+:
+	[
+		...selection.default.map((source) => ({ source })),
+		...(selection.cases ?? []).flatMap(({ when, sources }) => sources.map((source) => ({
+			source,
+			conditions: when,
+		}))),
+	]
+
 const compileSourceClaims = (
 	entities: readonly Entity[],
 	facetEntries: readonly EntityFacetEntry[],
@@ -1894,12 +1912,13 @@ const compileSourceClaims = (
 	})))),
 	...physicalRouteFiles.flatMap((routeFile) => routeFile.kind !== 'page' ? [] : [
 		...routeFile.mappings.flatMap((mapping) => mapping.sourceSelection == null ? [] : (
-			sourceSelectionSources(mapping.sourceSelection).map((source) => ({
+			sourceSelectionClaims(mapping.sourceSelection).map(({ source, conditions }) => ({
 				source,
 				entityType: mapping.entityType,
 				selectorName: mapping.selectorName,
 				facetPath: [] as readonly string[],
 				publicRoute: publicRouteId(routeFile.appRoutePath),
+				...(conditions == null ? {} : { conditions }),
 			}))
 		)),
 		...routeFile.collections.flatMap((collection) => {
@@ -1923,12 +1942,13 @@ const compileSourceClaims = (
 			if (field == null || terminalFieldOwner == null)
 				return []
 
-			return sourceSelectionSources(collection.query.sources).map((source) => ({
+			return sourceSelectionClaims(collection.query.sources).map(({ source, conditions }) => ({
 				source,
 				entityType: terminalFieldOwner.entityType,
 				facetPath,
 				fieldName: field.name,
 				publicRoute: publicRouteId(routeFile.appRoutePath),
+				...(conditions == null ? {} : { conditions }),
 			}))
 		}),
 	]),
