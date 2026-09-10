@@ -49,7 +49,20 @@ export const waitForWalletPageReady = async (
 ) => {
 	const walletSurface = walletConnectionsStatusById(page)
 	const routeFailure = page.locator('main [role="alert"]')
-	await expect(walletSurface.or(routeFailure)).toBeVisible({ timeout })
+	try {
+		await expect(walletSurface.or(routeFailure)).toBeVisible({ timeout })
+	} catch (error) {
+		const state = await page.evaluate(() => ({
+			documentReadyState: document.readyState,
+			hasBody: document.body !== null,
+			mainCount: document.querySelectorAll('main').length,
+			routeAlertCount: document.querySelectorAll('main [role="alert"]').length,
+			walletSurfaceCount: document.querySelectorAll('#wallet-connections').length,
+		})).catch(() => ({ evaluationFailed: true }))
+		throw new Error(`Wallet route readiness failed at ${page.url()}: ${JSON.stringify(state)}`, {
+			cause: error,
+		})
+	}
 	if (await routeFailure.isVisible())
 		throw new Error('Wallet route failed before provider discovery; inspect structural diagnostics')
 	return walletSurface
