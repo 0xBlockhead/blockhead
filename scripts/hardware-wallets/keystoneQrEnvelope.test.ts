@@ -180,7 +180,7 @@ test('binds a fixture signature to request, message, and key without claiming ha
 		privateKey,
 		{ format: 'recovered', prehash: false }
 	)
-	const response = encode(new Map<number, Tagged | Uint8Array>([
+	let response = encode(new Map<number, Tagged | Uint8Array>([
 		[1, new Tagged(37, requestId)],
 		[2, Uint8Array.from([...recoveredSignature.slice(1), 27 + recoveredSignature[0]])],
 		[3, 'Keystone fixture, not a device observation'],
@@ -257,5 +257,25 @@ test('binds a fixture signature to request, message, and key without claiming ha
 			requestCbor: siblingRequest.cbor,
 		}),
 		/address does not match/
+	)
+	const tamperedResponse = decode(response, { tags: Tagged.preserve(37), useMaps: true })
+	assert(tamperedResponse instanceof Map)
+	const tamperedSignature = tamperedResponse.get(2)
+	assert(tamperedSignature instanceof Uint8Array)
+	tamperedSignature[0] ^= 1
+	response = encode(tamperedResponse)
+	assert.throws(
+		() => verifyKeystoneEip191FixtureSignature({
+			cbor: response,
+			expectedPublicKey: publicKey,
+			expectedRequestId: requestId,
+			message,
+			requestCbor: request.cbor,
+		}),
+		(error: Error) => {
+			assert(error instanceof KeystoneQrResponseError)
+			assert(/does not verify/.test(error.message))
+			return true
+		}
 	)
 })
