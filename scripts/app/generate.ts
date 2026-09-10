@@ -1962,14 +1962,21 @@ const compileSourceClaims = (
 // that deliberately have no authored page and therefore express resolver-only
 // capability rather than public route demand.
 const compileMappedSelectorFacts = (
-	routeNodes: readonly RouteNode[]
-) => routeNodes.flatMap((node) => routeNodeSelectorMappings(node).map((mapping) => ({
-	entityType: mapping.entityType,
-	selectorName: mapping.selectorName,
-	route: publicRouteId(node.svelteKitPath),
-	authoredPage: mapping.page !== false,
-	sources: mapping.sourceSelection == null ? [] : sourceSelectionSources(mapping.sourceSelection),
-})))
+	routeNodes: readonly RouteNode[],
+	physicalRouteFiles: readonly CompiledPhysicalRouteFileFacts[]
+) => {
+	const pageRoutes = new Set(physicalRouteFiles.flatMap((routeFile) => (
+		routeFile.kind === 'page' ? [routeFile.appRoutePath] : []
+	)))
+
+	return routeNodes.flatMap((node) => routeNodeSelectorMappings(node).map((mapping) => ({
+		entityType: mapping.entityType,
+		selectorName: mapping.selectorName,
+		route: publicRouteId(node.svelteKitPath),
+		authoredPage: mapping.page !== false && pageRoutes.has(node.svelteKitPath.replace(/^\//, '')),
+		sources: mapping.sourceSelection == null ? [] : sourceSelectionSources(mapping.sourceSelection),
+	})))
+}
 
 const sourceSelectionConditionFields = (
 	selection: _SourceSelection
@@ -6273,7 +6280,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	const sourceAccountability = {
 		claims: classifiedSourceClaims,
 		bindingCoverage: compileSourceClaimBindingCoverage(classifiedSourceClaims),
-		mappedSelectors: compileMappedSelectorFacts(indexedRouteNodes)
+		mappedSelectors: compileMappedSelectorFacts(indexedRouteNodes, physicalRouteFiles)
 			.map((mapping) => classifyMappedSelector(mapping, accountabilityAuthority)),
 	}
 	const observationTimeWriters = observationTimeWriterManifest(resolverModules)
