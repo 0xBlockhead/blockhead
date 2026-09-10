@@ -385,6 +385,12 @@ describe('Wallet Standard adapter', () => {
 			signingPrivateKey
 		)))
 
+		await expect(mounted.adapter.signMessage?.(
+			'wallet-standard:Standard Wallet',
+			secondSolanaAccount,
+			'Sign this private challenge'
+		)).rejects.toThrow(/account|authority|connected/i)
+
 		expect(signMessage).toHaveBeenCalledWith({
 			account: expect.objectContaining({
 				address: firstSolanaAccount,
