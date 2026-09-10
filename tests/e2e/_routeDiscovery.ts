@@ -57,6 +57,47 @@ export const pathnameFromRouteFixture = (
 	}
 )
 
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+export const routeFixtureParamsFromPathname = (
+	metadata: E2eRouteFixtureMetadata,
+	pathname: string
+) => {
+	const publicRouteId = publicRouteIdFromRouteId(metadata.routeId)
+	const paramNames: string[] = []
+	const matcherByParam = Object.fromEntries([...metadata.routeId.matchAll(
+		/\[\[?(?:\.\.\.)?([^=\]]+)=([^\]]+)\]\]?/g
+	)].map((match) => [match[1], match[2]]))
+	let cursor = 0
+	let pattern = '^'
+
+	for (const match of publicRouteId.matchAll(/\[\[?(\.\.\.)?(\w+)(?:=\w+)?\]\]?/g)) {
+		const index = match.index
+		const token = match[0]
+		const rest = token.startsWith('[...') || token.startsWith('[[...')
+		const paramName = match[2]
+
+		pattern += escapeRegExp(publicRouteId.slice(cursor, index))
+		pattern += rest ? '(.+)' : '([^/]+)'
+		paramNames.push(paramName)
+		cursor = index + token.length
+	}
+	pattern += `${escapeRegExp(publicRouteId.slice(cursor))}$`
+
+	const values = new RegExp(pattern, 'u').exec(pathname)
+	if (values == null)
+		throw new Error(`${pathname} does not match ${metadata.routeId}`)
+
+	return Object.fromEntries(paramNames.map((paramName, index) => {
+		const encodedValue = values[index + 1]
+		const value = encodedValue.split('/').map(decodeURIComponent).join('/')
+		if (!matchE2eRouteParam(matcherByParam[paramName], value))
+			throw new Error(`${pathname} has invalid route parameter ${paramName}`)
+
+		return [paramName, value]
+	}))
+}
+
 const generatedRouteFixtureMetadata = (routeId: string): E2eRouteFixtureMetadata => {
 	const matches = Object.values(e2eRouteFixtureMetadataByNodeId)
 		.filter((metadata) => metadata.routeId === routeId)
@@ -84,10 +125,7 @@ export const routeProbeCaseParams = (probeCase: {
 
 const pathnamesFromMetadata = (metadata: E2eRouteFixtureMetadata) => {
 	const probeCases = metadata.mappings.flatMap(routeProbeCasesForMapping)
-	const variantMode = process.env.E2E_ROUTE_VARIANTS?.trim() || 'all'
-	if (variantMode !== 'all' && variantMode !== 'first')
-		throw new Error('E2E_ROUTE_VARIANTS must be all or first')
-	const selectedCases = variantMode === 'first' ? probeCases.slice(0, 1) : probeCases
+	const selectedCases = process.env.E2E_ROUTE_VARIANTS === 'all' ? probeCases : probeCases.slice(0, 1)
 	if (selectedCases.length === 0)
 		throw new Error(`${metadata.routeId} has no generated route probe cases`)
 
