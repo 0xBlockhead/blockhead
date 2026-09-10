@@ -6,7 +6,9 @@ import {
 	classifyMappedSelector,
 	classifySourceClaim,
 	compileObservationTimeAccountability,
+	compileSourceClaimBindingCoverage,
 	countBy,
+	dualBindingDeclarationGaps,
 	indexAccountabilityAuthority,
 	MappedSelectorAccountability,
 	ObservationTimeProvenance,
@@ -205,6 +207,47 @@ test('keys source claims without aliasing route punctuation or omitted coordinat
 			conditions: [{ field: 'network', equals: 'eip155:1' }],
 		})
 	)
+})
+
+test('measures two executable bindings per exact field or conditioned route coordinate', () => {
+	const authority = indexAccountabilityAuthority({
+		sourceBindings: [
+			{ source: 'Primary', delivery: 'BrowserDirect' },
+			{ source: 'Secondary', delivery: 'HttpProxy' },
+			{ source: 'Retired', delivery: 'Unsupported' },
+		],
+		resolverModules: [{ source: 'Primary' }, { source: 'Secondary' }],
+		fieldSourcedEntityTypes: new Set(),
+		referenceMaterializedEntityTypes: new Set(),
+	})
+	const coordinate = {
+		entityType: 'FixtureEntity',
+		facetPath: ['Network'],
+		fieldName: 'height',
+	}
+	const rows = compileSourceClaimBindingCoverage([
+		classifySourceClaim({ ...coordinate, source: 'Primary' }, authority),
+		classifySourceClaim({ ...coordinate, source: 'Secondary' }, authority),
+		classifySourceClaim({ ...coordinate, source: 'Retired' }, authority),
+		classifySourceClaim({
+			...coordinate,
+			source: 'Primary',
+			conditions: [{ field: 'network', equals: 'eip155:1' }],
+		}, authority),
+	])
+
+	assert.equal(rows.length, 2)
+	const unconditional = rows.find(({ conditions }) => conditions == null)
+	const conditioned = rows.find(({ conditions }) => conditions != null)
+	assert.deepEqual(unconditional == null ? undefined : {
+		declaredExecutableBindings: unconditional.declaredExecutableBindings,
+		sources: unconditional.sources,
+	}, { declaredExecutableBindings: 2, sources: ['Primary', 'Retired', 'Secondary'] })
+	assert.deepEqual(conditioned == null ? undefined : {
+		declaredExecutableBindings: conditioned.declaredExecutableBindings,
+		sources: conditioned.sources,
+	}, { declaredExecutableBindings: 1, sources: ['Primary'] })
+	assert.deepEqual(dualBindingDeclarationGaps(rows), [conditioned])
 })
 
 test('keeps generated observation clocks unclassified until a writer proves their provenance', () => {
@@ -469,10 +512,15 @@ test('classifies a mapped selector by route sources, authored page, and inherite
 })
 
 test('accounts for every compiled claim and mapped selector of the current app', () => {
-	const { claims, mappedSelectors } = compiledSourceAccountability
+	const { bindingCoverage, claims, mappedSelectors } = compiledSourceAccountability
 
 	assert.ok(claims.length > 0)
 	assert.ok(mappedSelectors.length > 0)
+	assert.ok(bindingCoverage.length > 0)
+	assert.equal(
+		bindingCoverage.length,
+		compileSourceClaimBindingCoverage(claims).length
+	)
 	assert.equal(claims.length, compiledSourceAccountability.claims.length)
 	assert.deepEqual(
 		claims.filter((row) => row.access === SourceAccess.Undeclared),

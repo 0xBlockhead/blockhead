@@ -107,6 +107,7 @@ test('exports complete immutable generated-file, source-claim, and source-accoun
 	)
 	assert.ok(compiledApp.sourceClaims.length > 0)
 	assert.ok(compiledApp.sourceAccountability.claims.length > 0)
+	assert.ok(compiledApp.sourceAccountability.bindingCoverage.length > 0)
 	assert.ok(compiledApp.sourceAccountability.mappedSelectors.length > 0)
 	assert.equal(
 		new Set(compiledApp.observationTimeAccountability.map(observationTimeAccountabilityKey)).size,

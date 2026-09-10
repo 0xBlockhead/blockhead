@@ -26,7 +26,9 @@ import {
 import {
 	classifyMappedSelector,
 	classifySourceClaim,
+	compileSourceClaimBindingCoverage,
 	compileObservationTimeAccountability,
+	dualBindingDeclarationGaps,
 	indexAccountabilityAuthority,
 	MappedSelectorAccountability,
 	ObservationTimeProvenance,
@@ -37,6 +39,7 @@ import {
 	type ObservationTimeWriter,
 	type MappedSelectorAccountabilityRow,
 	type SourceClaimAccountabilityRow,
+	type SourceClaimBindingCoverageRow,
 } from './accountability.ts'
 
 import {
@@ -371,6 +374,7 @@ export type CompiledApp = Readonly<{
 
 export type CompiledSourceAccountability = Readonly<{
 	claims: readonly SourceClaimAccountabilityRow[]
+	bindingCoverage: readonly SourceClaimBindingCoverageRow[]
 	mappedSelectors: readonly MappedSelectorAccountabilityRow[]
 }>
 
@@ -6265,8 +6269,10 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		// generator must not infer it from schema edges alone.
 		referenceMaterializedEntityTypes: new Set(),
 	})
+	const classifiedSourceClaims = sourceClaims.map((claim) => classifySourceClaim(claim, accountabilityAuthority))
 	const sourceAccountability = {
-		claims: sourceClaims.map((claim) => classifySourceClaim(claim, accountabilityAuthority)),
+		claims: classifiedSourceClaims,
+		bindingCoverage: compileSourceClaimBindingCoverage(classifiedSourceClaims),
 		mappedSelectors: compileMappedSelectorFacts(indexedRouteNodes)
 			.map((mapping) => classifyMappedSelector(mapping, accountabilityAuthority)),
 	}
@@ -15699,11 +15705,14 @@ const checkGeneratedViewImportsResolve = async (files: readonly GeneratedFile[])
 // `node --import tsx scripts/app/generate.ts accountability`.
 const renderAccountabilityReport = ({
 	claims,
+	bindingCoverage,
 	mappedSelectors,
 }: CompiledSourceAccountability) => [
 	...Object.entries(Object.groupBy(claims, (row) => `${row.demand}/${row.access}/${row.executability}`))
 		.map(([key, rows]) => `claim ${key}: ${rows?.length ?? 0}`)
 		.toSorted((left, right) => left.localeCompare(right, 'en')),
+	`binding coordinates: ${bindingCoverage.length}`,
+	`binding coordinates below required two: ${dualBindingDeclarationGaps(bindingCoverage).length}`,
 	...Object.entries(Object.groupBy(mappedSelectors, (row) => row.accountability))
 		.map(([key, rows]) => `selector ${key}: ${rows?.length ?? 0}`)
 		.toSorted((left, right) => left.localeCompare(right, 'en')),

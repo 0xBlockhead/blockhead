@@ -316,6 +316,18 @@ export type SourceClaimAccountabilityRow = SourceClaimFacts & Readonly<{
 	bindingEvidence: readonly SourceClaimBindingEvidence[]
 }>
 
+export type SourceClaimBindingCoverageRow = Readonly<{
+	entityType: string
+	selectorName?: string
+	facetPath: readonly string[]
+	fieldName?: string
+	publicRoute?: string
+	conditions?: readonly SourceClaimCondition[]
+	sources: readonly string[]
+	declaredExecutableBindings: number
+	requiredBindings: 2
+}>
+
 export type SourceClaimBindingEvidence = Readonly<{
 	target?: SourceBindingAuthority['target']
 	delivery: string
@@ -434,6 +446,41 @@ export const classifySourceClaim = (
 		SourceClaimExecutability.ResolverMissing,
 	bindingEvidence: sourceClaimBindingEvidence(claim, authority),
 })
+
+const sourceClaimCoverageKey = (claim: SourceClaimFacts) => JSON.stringify([
+	claim.publicRoute ?? null,
+	claim.entityType,
+	claim.selectorName ?? null,
+	claim.facetPath,
+	claim.fieldName ?? null,
+	claim.conditions ?? null,
+])
+
+export const compileSourceClaimBindingCoverage = (
+	claims: readonly SourceClaimAccountabilityRow[]
+): readonly SourceClaimBindingCoverageRow[] => [...Map.groupBy(claims, sourceClaimCoverageKey).values()]
+	.map((group) => {
+		const first = group[0]
+		return {
+			entityType: first.entityType,
+			...(first.selectorName == null ? {} : { selectorName: first.selectorName }),
+			facetPath: first.facetPath,
+			...(first.fieldName == null ? {} : { fieldName: first.fieldName }),
+			...(first.publicRoute == null ? {} : { publicRoute: first.publicRoute }),
+			...(first.conditions == null ? {} : { conditions: first.conditions }),
+			sources: [...new Set(group.map(({ source }) => source))].toSorted(),
+			declaredExecutableBindings: group.reduce((count, claim) => count + claim.bindingEvidence.filter((binding) => (
+				binding.deliverySupportsExecution
+				&& binding.targetMatch !== SourceBindingTargetMatch.Differs
+			)).length, 0),
+			requiredBindings: 2,
+		}
+	})
+	.toSorted((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), 'en'))
+
+export const dualBindingDeclarationGaps = (
+	rows: readonly SourceClaimBindingCoverageRow[]
+) => rows.filter(({ declaredExecutableBindings, requiredBindings }) => declaredExecutableBindings < requiredBindings)
 
 const mappedSelectorAccountability = (
 	mapping: MappedSelectorFacts,
