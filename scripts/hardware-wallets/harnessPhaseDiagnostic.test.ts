@@ -74,3 +74,32 @@ test('keeps a complete fixture trace distinct from emulator and physical evidenc
 	assert.equal(diagnostic.physicalHardwareEvidence, false)
 	assert.equal(diagnostic.nativeSettlementEvidence, false)
 })
+
+test('stops at the first failed phase and rejects later evidence as out of order', () => {
+	// Fault: a later protocol or signature result could hide a failed transport phase,
+	// or diagnostics could continue past a bounded failure and imply capability.
+	// Owner: phase diagnostic state machine. Observable: failure is the next action,
+	// later phases are blocked, and no evidence tier is promoted.
+	const diagnostic = diagnoseHardwareHarnessPhases({
+		artifact: { detail: 'Pinned fixture exists.', outcome: 'passed' },
+		process: { detail: 'Owned process was unavailable.', outcome: 'failed' },
+	})
+
+	assert.equal(diagnostic.nextPhase, 'process')
+	assert.deepEqual(diagnostic.phases.map(({ phase, state }) => ({ phase, state })), [
+		{ phase: 'artifact', state: 'passed' },
+		{ phase: 'process', state: 'failed' },
+		{ phase: 'transport', state: 'blocked' },
+		{ phase: 'protocol', state: 'blocked' },
+		{ phase: 'cryptographic-verification', state: 'blocked' },
+	])
+	assert.equal(diagnostic.walletCapabilityEstablished, false)
+	assert.throws(
+		() => diagnoseHardwareHarnessPhases({
+			artifact: { detail: 'Pinned fixture exists.', outcome: 'passed' },
+			process: { detail: 'Owned process was unavailable.', outcome: 'failed' },
+			protocol: { detail: 'Unexpected later fixture response.', outcome: 'passed' },
+		}),
+		/precedes its required phase/
+	)
+})
