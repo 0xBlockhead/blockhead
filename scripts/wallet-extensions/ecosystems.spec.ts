@@ -3,8 +3,10 @@ import test from 'node:test'
 
 import {
 	assertEveryRealWalletKindHasEcosystem,
+	WalletHarnessEvidenceKind,
 	WalletHarnessCoverageKind,
 	WalletHarnessEcosystem,
+	walletHarnessEvidenceByExtensionKind,
 	walletHarnessEcosystems,
 	walletHarnessEcosystemsByExtensionKind,
 } from './ecosystems.ts'
@@ -30,6 +32,17 @@ test('maps every real wallet kind into an ecosystem', () => {
 	assertEveryRealWalletKindHasEcosystem(realWalletKinds)
 	for (const kind of realWalletKinds)
 		assert.ok(walletHarnessEcosystemsByExtensionKind(kind).length)
+})
+
+test('requires one strongest evidence classification for every manifest wallet', () => {
+	const evidenceKinds = Object.keys(walletHarnessEvidenceByExtensionKind).sort()
+	assert.deepEqual(evidenceKinds, [...realWalletKinds].sort())
+	assert.equal(walletHarnessEvidenceByExtensionKind.backpack, WalletHarnessEvidenceKind.CryptographicFixture)
+	assert.equal(walletHarnessEvidenceByExtensionKind['polkadot-js'], WalletHarnessEvidenceKind.RealHeadedJourney)
+	assert.equal(walletHarnessEvidenceByExtensionKind.taho, WalletHarnessEvidenceKind.RealHeadedJourney)
+	assert.equal(walletHarnessEvidenceByExtensionKind.tonkeeper, WalletHarnessEvidenceKind.RequestConstruction)
+	assert.equal(walletHarnessEvidenceByExtensionKind.unisat, WalletHarnessEvidenceKind.CryptographicFixture)
+	assert.ok(realWalletKinds.every((kind) => walletHarnessEvidenceByExtensionKind[kind] != null))
 })
 
 test('keeps architecture-only and identity-overlay rows out of extension mappings', () => {
