@@ -1622,6 +1622,24 @@ describe('local mutation authority journal', () => {
 				[EntityMetaKey.Value]: 'UNPAID',
 			}),
 		])
+		await writeLocalBlockheadCashuMintQuote(context, {
+			mintUrl: 'https://mint.example',
+			method: 'bolt11',
+			quoteId: 'quote-1',
+			request: 'lnbc-invoice',
+			amount: 21n,
+			unit: 'sat',
+		}, {
+			timestampMs: 1_700_000_000_100,
+			source: Source.CashuMint_Rest,
+			state: 'PAID',
+			expiryMs: 1_700_000_100_000,
+		})
+		expect(context.entityFieldCollections[EntityType.BlockheadCashuMintQuote_Timestamp][entityFieldAddressKey(
+			EntityType.BlockheadCashuMintQuote_Timestamp,
+			[],
+			'state'
+		)].toArray.map((row) => row[EntityMetaKey.Value])).toEqual(['UNPAID', 'PAID'])
 		const firstAccount = {
 			namespace: 'eip155',
 			reference: '1',
