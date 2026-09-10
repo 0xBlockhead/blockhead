@@ -10411,10 +10411,10 @@ export const schema = {
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"validatorCount": { label: "validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
-				"delegatorCount": { label: "delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"delegatorCount": { label: "delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"totalStakeNavax": { label: "total stake navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
-				"chainCount": { label: "chain count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
-				"pendingValidatorCount": { label: "pending validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"chainCount": { label: "chain count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"pendingValidatorCount": { label: "pending validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 			})({
 				selectors: {
 					"SubnetTimestampMsSource": ["$subnet", "timestampMs", "source"],
@@ -10500,7 +10500,7 @@ export const schema = {
 				"uptimePercent": { label: "uptime percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"validatorSetKind": { label: "validator set kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"observedStakeNavax": { label: "observed stake navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
-				"observedDelegatorCount": { label: "observed delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"observedDelegatorCount": { label: "observed delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 			})({
 				selectors: {
 					"ValidatorTimestampMsSource": ["$validator", "timestampMs", "source"],
