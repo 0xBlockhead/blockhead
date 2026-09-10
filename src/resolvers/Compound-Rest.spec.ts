@@ -607,6 +607,28 @@ describe('Compound Rest resolver module', () => {
 		).rejects.toThrow(`${Source.Compound_Rest}: invalid configuration response envelope`)
 	})
 
+	it('omits an unavailable collateral feed while preserving collateral identity', async () => {
+		if (compoundCometAssetResolver == null)
+			throw new Error('missing CompoundCometAsset resolver')
+
+		const { priceFeed: _feed, ...withoutFeed } = baseConfiguration.assets.WETH
+		sourceGetJson
+			.mockResolvedValueOnce({ ...baseConfiguration, assets: { WETH: withoutFeed } })
+			.mockResolvedValueOnce(baseRoots)
+		const asset = await compoundCometAssetResolver.resolve.CometAssetSymbol.resolve({
+			$comet: {
+				$network: baseNetwork,
+				cometAddress: baseCometAddress,
+			},
+			symbol: 'WETH',
+		}, context)
+		expect(asset).not.toHaveProperty('priceFeedAddress')
+		expect(compoundCometAssetResolver.projections.priceFeedAddress(asset)).toBeUndefined()
+		expect(compoundCometAssetResolver.projections.tokenAddress(asset)).toBe(
+			'0x4200000000000000000000000000000000000006'
+		)
+	})
+
 	it('resolves a Compound Comet collateral asset by comet and symbol', async () => {
 		if (compoundCometAssetResolver == null)
 			throw new Error('missing CompoundCometAsset resolver')

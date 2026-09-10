@@ -2,7 +2,7 @@ import { type as arktype } from 'arktype'
 
 export type CompoundCometConfigurationAssetWire = {
 	address: string
-	priceFeed: string
+	priceFeed?: string
 	decimals: string
 	borrowCF: number
 	liquidateCF: number
@@ -74,7 +74,7 @@ export const compoundCometConfigurationEnvelope = arktype({
 	assets: {
 		'[string]': {
 			address: 'string',
-			priceFeed: 'string',
+			'priceFeed?': 'string',
 			decimals: '/^(0|[1-9][0-9]*)$/',
 			borrowCF: 'number',
 			liquidateCF: 'number',
@@ -93,7 +93,7 @@ export const compoundCometRootsEnvelope = arktype({
 export type CompoundCometConfigurationAsset = {
 	symbol: string
 	tokenAddress: `0x${string}`
-	priceFeedAddress: `0x${string}`
+	priceFeedAddress?: `0x${string}`
 	decimals: number
 	borrowCF: number
 	liquidateCF: number

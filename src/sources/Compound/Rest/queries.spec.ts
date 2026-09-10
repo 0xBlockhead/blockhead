@@ -69,6 +69,74 @@ const baseRoots = {
 } as const
 
 describe('Compound III deployment operations', () => {
+	it('accepts the pinned WBTC pumpBTC collateral without a price feed', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			assets: {
+				pumpBTC: {
+					address: '0xF469fBD2abcd6B9de8E169d128226C0Fc90a012e',
+					decimals: '8',
+					borrowCF: 0.75,
+					liquidateCF: 0.78,
+					liquidationFactor: 0.9,
+					supplyCap: '15e8',
+				},
+			},
+		})
+		const configuration = await getConfiguration({ networkSlug: 'mainnet', marketSlug: 'wbtc' })
+		expect(configuration.assets).toEqual([{
+			symbol: 'pumpBTC',
+			tokenAddress: '0xf469fbd2abcd6b9de8e169d128226c0fc90a012e',
+			decimals: 8,
+			borrowCF: 0.75,
+			liquidateCF: 0.78,
+			liquidationFactor: 0.9,
+			supplyCap: '15e8',
+		}])
+	})
+
+	it.each(['', 'not-an-address', null])('rejects a supplied invalid collateral feed: %s', async (priceFeed) => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			assets: { WETH: { ...baseConfiguration.assets.WETH, priceFeed } },
+		})
+		await expect(getConfiguration({ networkSlug: 'base', marketSlug: 'usdc' })).rejects.toThrow()
+	})
+
+	it('still requires the base-token price feed', async () => {
+		const { baseTokenPriceFeed: _feed, ...withoutBaseFeed } = baseConfiguration
+		sourceGetJson.mockResolvedValueOnce(withoutBaseFeed)
+		await expect(getConfiguration({ networkSlug: 'base', marketSlug: 'usdc' })).rejects.toThrow('invalid configuration response envelope')
+	})
+
+	it.each([
+		['7_500_000e18', '7500000e18'],
+		['9007199254740993_123456789', '9007199254740993123456789'],
+		['1.2_5e1_8', '1.25e18'],
+	])('normalizes valid amount separators without numeric conversion: %s', async (supplyCap, expected) => {
+		sourceGetJson.mockResolvedValueOnce({
+			...baseConfiguration,
+			targetReserves: '20_000_000e6',
+			assets: { WETH: { ...baseConfiguration.assets.WETH, supplyCap } },
+		})
+		await expect(getConfiguration({ networkSlug: 'base', marketSlug: 'usdc' })).resolves.toMatchObject({
+			targetReserves: '20000000e6',
+			assets: [{ supplyCap: expected }],
+		})
+	})
+
+	it.each(['_1', '1_', '1__0', '1_.0', '1._0', '1_e2', '1e_2', '01_0'])(
+		'rejects malformed amount separators: %s', async (supplyCap) => {
+			sourceGetJson.mockResolvedValueOnce({
+				...baseConfiguration,
+				assets: { WETH: { ...baseConfiguration.assets.WETH, supplyCap } },
+			})
+			await expect(getConfiguration({ networkSlug: 'base', marketSlug: 'usdc' })).rejects.toThrow(
+				'configuration WETH supplyCap must be a non-negative decimal or scientific amount'
+			)
+		}
+	)
+
 	beforeEach(() => {
 		sourceGetJson.mockReset()
 	})

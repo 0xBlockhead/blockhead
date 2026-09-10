@@ -70,7 +70,7 @@ const assertNonEmptyString = (
 }
 
 /** Official Comet config amounts use decimal or scientific forms (`1e0`, `5000000e6`). */
-const compoundAmountPattern = /^(?:0|[1-9]\d*)(?:\.\d+)?(?:e\d+)?$/i
+const compoundAmountPattern = /^(?:0|[1-9](?:_?\d)*)(?:\.\d(?:_?\d)*)?(?:e\d(?:_?\d)*)?$/i
 
 const assertCompoundAmountString = (
 	value: string,
@@ -79,7 +79,7 @@ const assertCompoundAmountString = (
 	const normalized = assertNonEmptyString(value, label)
 	if (!compoundAmountPattern.test(normalized))
 		throw new Error(`${Source.Compound_Rest}: configuration ${label} must be a non-negative decimal or scientific amount`)
-	return normalized
+	return normalized.replaceAll('_', '')
 }
 
 const assertEnvelope = (
@@ -127,7 +127,9 @@ const assertConfigurationAssetWire = (
 	return {
 		symbol,
 		tokenAddress: assertAddress(asset.address, `${symbol} address`),
-		priceFeedAddress: assertAddress(asset.priceFeed, `${symbol} price feed`),
+		...(asset.priceFeed != null && {
+			priceFeedAddress: assertAddress(asset.priceFeed, `${symbol} price feed`),
+		}),
 		decimals,
 		borrowCF: assertCollateralFactor(asset.borrowCF, 'borrowCF'),
 		liquidateCF: assertCollateralFactor(asset.liquidateCF, 'liquidateCF'),
