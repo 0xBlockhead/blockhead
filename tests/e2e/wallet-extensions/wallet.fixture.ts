@@ -27,6 +27,11 @@ export const test = base.extend<{
 			headless: process.env.PLAYWRIGHT_WALLET_HEADLESS === '1',
 			serviceWorkerTimeoutMs: Number(process.env.WALLET_EXTENSION_SW_TIMEOUT_MS ?? 45_000),
 		})
+		const databaseProfile = `wallet-${testInfo.workerIndex}-${testInfo.parallelIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${testInfo.testId}`
+		await harness.context.addInitScript((profile) => {
+			window.__blockheadWaSqliteDatabaseNameOverride = profile
+			window.__blockheadWaSqliteVfsNameOverride = profile
+		}, databaseProfile)
 		const telemetry = attachWalletExtensionStructuralTelemetry(harness.context)
 
 		try {

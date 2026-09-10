@@ -74,6 +74,10 @@ export const walletConnectionCard = (page: Page, walletName: string) => (
 	page.locator(`[data-wallet-name="${walletName}"][data-wallet-state="connection"]`)
 )
 
+export const walletConnectionCardById = (page: Page, walletId: string) => (
+	page.locator(`[data-wallet-id="${walletId}"][data-wallet-state="connection"]`)
+)
+
 export const walletConnectionCardByNameFallback = (page: Page, walletName: string) => (
 	page.getByRole('article').filter({
 		has: page.getByRole('link', {

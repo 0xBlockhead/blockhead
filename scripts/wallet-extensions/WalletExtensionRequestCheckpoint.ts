@@ -35,7 +35,7 @@ export type WalletExtensionRequestCheckpoint = WalletExtensionSurfaceCheckpoint 
 }
 
 export type WalletExtensionStructuralTelemetry = {
-	events: Array<{ elapsedMilliseconds: number; kind: 'http-error' | 'page-crash' | 'page-error' | 'request-failed'; page: string; resourceType?: string; classification: string }>
+	events: Array<{ elapsedMilliseconds: number; kind: 'console-error' | 'http-error' | 'page-crash' | 'page-error' | 'request-failed'; page: string; resourceType?: string; classification: string }>
 	pageControls: Array<{ page: string; buttons: number; disabledButtons: number; inputs: number; dialogs: number; alerts: number }>
 	pageErrors: string[]
 	networkFailures: Array<{ path: string; status: number | null; classification: string }>
@@ -103,6 +103,10 @@ export const attachWalletExtensionStructuralTelemetry = (
 			boundedPush(networkFailures, { url: diagnosticNetworkLocation(request.url()), status: null, errorText: classification })
 			record({ kind: 'request-failed', classification, resourceType: request.resourceType() })
 		}
+		const onConsole = (message: { type(): string; text(): string }) => {
+			if (message.type() !== 'error') return
+			record({ kind: 'console-error', classification: safeErrorClassification(message.text()) })
+		}
 		const onResponse = (response: Response) => {
 			if (response.status() >= 400) {
 				boundedPush(networkFailures, { url: diagnosticNetworkLocation(response.url()), status: response.status() })
@@ -113,11 +117,13 @@ export const attachWalletExtensionStructuralTelemetry = (
 		page.on('crash', onCrash)
 		page.on('requestfailed', onRequestFailed)
 		page.on('response', onResponse)
+		page.on('console', onConsole)
 		listeners.set(page, [
 			() => page.off('pageerror', onPageError),
 			() => page.off('crash', onCrash),
 			() => page.off('requestfailed', onRequestFailed),
 			() => page.off('response', onResponse),
+			() => page.off('console', onConsole),
 		])
 	}
 	const onPage = (page: Page) => attach(page)

@@ -261,6 +261,30 @@ const createWalletRuntimeState = (
 	let candidates = $state<WalletCandidate[]>([])
 	let connections = $state<WalletConnection[]>([])
 	const runtimeMutatedConnectionKeys = new SvelteSet<string>()
+	const preserveAdapterSelection = (
+		previous: WalletConnection | undefined,
+		next: WalletConnection
+	) => {
+		const previousActiveAccount = previous?.activeAccount
+		// Polkadot publishes an account list, not the product's selected account.
+		const refreshedActiveAccount = previousActiveAccount != null
+			&& next.status === BlockheadConnectionStatus.Connected
+			&& next.protocol === WalletProtocol.PolkadotInjectedWeb3 ?
+				next.accounts.find((account) => (
+					account.namespace === previousActiveAccount.namespace
+					&& account.reference === previousActiveAccount.reference
+					&& account.accountAddress === previousActiveAccount.accountAddress
+				))
+			:
+				undefined
+		return preserveWalletConnectionSelection(
+			previous,
+			refreshedActiveAccount == null ? next : {
+				...next,
+				activeAccount: refreshedActiveAccount,
+			}
+		)
+	}
 
 	const upsertConnection = async (
 		connection: WalletConnection,
@@ -353,22 +377,8 @@ const createWalletRuntimeState = (
 						...nextConnection,
 						connectionKey,
 					})
-					const previousActiveAccount = previous?.activeAccount
-					// Polkadot publishes an account list, not the product's selected account.
-					const refreshedActiveAccount = previousActiveAccount != null
-						&& next.status === BlockheadConnectionStatus.Connected
-						&& next.protocol === WalletProtocol.PolkadotInjectedWeb3 ?
-							next.accounts.find((account) => (
-							account.namespace === previousActiveAccount.namespace
-							&& account.reference === previousActiveAccount.reference
-							&& account.accountAddress === previousActiveAccount.accountAddress
-						))
-						:
-							undefined
-					if (refreshedActiveAccount != null)
-						next.activeAccount = refreshedActiveAccount
 					void upsertConnection(
-						preserveWalletConnectionSelection(previous, next)
+						preserveAdapterSelection(previous, next)
 					)
 				},
 				connection.connectionKey
@@ -676,7 +686,7 @@ const createWalletRuntimeState = (
 						walletConnectionKey(candidate) === connectionKey
 					))
 					void upsertConnection(
-						preserveWalletConnectionSelection(
+						preserveAdapterSelection(
 							previous,
 							buildWalletConnection({
 								...nextConnection,
