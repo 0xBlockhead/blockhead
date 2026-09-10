@@ -27,6 +27,8 @@
 
 
 	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import HyperliquidValidator_TimestampsView from '$/views/HyperliquidValidator_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -55,7 +57,30 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Content()}
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			{#if !contentOpen}
+				<div>
+					<dt>network</dt>
+					<dd>
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							layout={EntityLayout.Value}
+						/>
+					</dd>
+				</div>
+			{/if}
+
+			{#if !contentOpen}
+				<div>
+					<dt>validator</dt>
+					<dd>
+						{selection.entitySelector.validator}
+					</dd>
+				</div>
+			{/if}
+		</dl>
+
 		<dl data-column-item="center">
 			<div>
 				<dt>network</dt>
@@ -74,5 +99,23 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const timestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={timestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<HyperliquidValidator_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

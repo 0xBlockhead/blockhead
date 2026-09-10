@@ -31,6 +31,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import HyperliquidTransaction_TimestampsView from '$/views/HyperliquidTransaction_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import HyperliquidBlockView from '$/views/HyperliquidBlockView.svelte'
 	import HyperliquidAccountView from '$/views/HyperliquidAccountView.svelte'
@@ -61,7 +62,30 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Content()}
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			{#if !contentOpen}
+				<div>
+					<dt>network</dt>
+					<dd>
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							layout={EntityLayout.Value}
+						/>
+					</dd>
+				</div>
+			{/if}
+
+			{#if !contentOpen}
+				<div>
+					<dt>Transaction hash</dt>
+					<dd>
+						<TruncatedValue value={selection.entitySelector.txHash} />
+					</dd>
+				</div>
+			{/if}
+		</dl>
+
 		<dl data-column-item="center">
 			<div>
 				<dt>network</dt>
@@ -138,5 +162,23 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const timestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={timestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<HyperliquidTransaction_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

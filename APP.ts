@@ -39428,6 +39428,10 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						closed: ["$network", "txHash"],
+						lists: [{ field: "$$timestamps", component: "HyperliquidTransaction_TimestampsView", label: "Observations", emptyText: "No Hyperliquid transaction observations." }],
+					},
 					plural: { component: "HyperliquidTransactionsView" },
 				},
 			}),
@@ -39524,6 +39528,10 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						closed: ["$network", "validator"],
+						lists: [{ field: "$$timestamps", component: "HyperliquidValidator_TimestampsView", label: "Observations", emptyText: "No Hyperliquid validator observations." }],
+					},
 					plural: { component: "HyperliquidValidatorsView" },
 				},
 			}),
@@ -65007,6 +65015,10 @@ export const schema = {
 					"NetworkAddress": ["$network", "address"],
 				},
 				views: {
+					singular: {
+						closed: ["$network", "address"],
+						lists: [{ field: "$$timestamps", component: "TronWitness_TimestampsView", label: "Observations", emptyText: "No Tron witness observations." }],
+					},
 					plural: { component: "TronWitnessesView", },
 				},
 			}),
