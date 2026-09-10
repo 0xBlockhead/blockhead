@@ -642,6 +642,24 @@ describe('EVM native transfer preparation', () => {
 		expect(edited.paramsHash).not.toBe(first.paramsHash)
 		expect(first.simulation?.paramsHash).not.toBe(edited.paramsHash)
 	})
+
+	it('binds simulation effect evidence to the returned call output', async () => {
+		const result = await prepareEvmNativeTransfer({
+			session: { id: 'session-1', lockedAt: 1 },
+			actions: [transferAction()],
+			walletConnections: [connectedWallet()],
+			executionTransport: executionTransport({ callOutput: '0xdeadbeef' }).transport,
+			simulationId: 'simulation-effect-output',
+			timestampMs: 100,
+		})
+
+		expect(result.ready).toBe(true)
+		expect(result.simulationCall).toMatchObject({
+			outputDataHash: expect.stringMatching(/^0x[\da-f]{64}$/),
+			reverted: false,
+		})
+		expect(result.simulationCall?.outputDataHash).not.toBe(expectedEmptyDataHash)
+	})
 })
 
 describe('EVM native transfer preparation application', () => {

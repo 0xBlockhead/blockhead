@@ -152,6 +152,12 @@ it('prepares quote and simulation evidence without invoking any wallet provider'
 			gasUsed: 120_000n,
 		},
 	})
+	expect(quoteSource.getQuote).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
+		chainId: 1,
+		tokenIn: action.actionParams.tokenIn,
+		tokenOut: action.actionParams.tokenOut,
+		amount: action.actionParams.amount,
+	}))
 	expect(Object.hasOwn(preparation, 'txHash')).toBe(false)
 	expect(Object.hasOwn(preparation, 'evmTransaction')).toBe(false)
 })
