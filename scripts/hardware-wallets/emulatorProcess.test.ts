@@ -42,7 +42,7 @@ const configuration = ({
 	workingDirectory,
 }: {
 	identity: string
-	kind: 'ledger-speculos' | 'trezor-user-env'
+	kind: 'gridplus-lattice-simulator' | 'ledger-speculos' | 'trezor-user-env'
 	mode?: 'never-ready' | 'ready'
 	port: number
 	workingDirectory: string
@@ -149,6 +149,39 @@ test('reports BitBox02-profile process readiness only after its socket accepts c
 	})
 	assert.equal(session.evidenceClass, 'process-readiness')
 	assert.equal(session.walletCapabilityEstablished, false)
+	await session.stop()
+	assert.equal(await processExists(session.processId), false)
+})
+
+test('keeps GridPlus HTTP readiness below protocol execution and settlement', async (context) => {
+	// Fault: a healthy Lattice-branded HTTP service could be mistaken for a signed request or a settled native action.
+	// Owner: GridPlus process lifecycle. Observable: HTTP readiness yields only process evidence and the owned child is cleaned up.
+	const workingDirectory = await mkdtemp(join(tmpdir(), 'blockhead-hardware-emulator-'))
+	context.after(() => rm(workingDirectory, { force: true, recursive: true }))
+	const port = await reservePort()
+	const session = await startHardwareWalletEmulator({
+		...configuration({
+			identity: 'worker-2-repeat-0-gridplus',
+			kind: 'gridplus-lattice-simulator',
+			port,
+			workingDirectory,
+		}),
+		readiness: {
+			endpoint: new URL(`http://127.0.0.1:${port}/health`),
+			expectedResponse: {
+				bodyIncludes: '"ready":true',
+				status: 200,
+			},
+			intervalMilliseconds: 50,
+			timeoutMilliseconds: 3_000,
+		},
+	})
+
+	assert.equal(session.readiness.kind, 'gridplus-lattice-simulator')
+	assert.equal(session.readiness.emulatorProtocolExecuted, false)
+	assert.equal(session.readiness.cryptographicSignatureVerified, false)
+	assert.equal(session.readiness.nativeSettlementEvidence, false)
+	assert.equal(session.readiness.physicalHardwareEvidence, false)
 	await session.stop()
 	assert.equal(await processExists(session.processId), false)
 })
