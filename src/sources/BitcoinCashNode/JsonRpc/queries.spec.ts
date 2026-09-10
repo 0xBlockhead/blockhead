@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/BitcoinCashNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import { resetJsonRpc2Mock } from '$/sources/_shared/test/jsonRpc2.ts'
 
 const { jsonRpc2 } = vi.hoisted(() => ({
 	jsonRpc2: vi.fn(),
@@ -25,7 +26,7 @@ const address = `bitcoincash:q${'q'.repeat(41)}`
 
 describe('Bitcoin Cash Node JSON-RPC envelopes', () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		resetJsonRpc2Mock(jsonRpc2)
 	})
 
 	it('asserts verbose getblock / getrawtransaction envelopes', async () => {
