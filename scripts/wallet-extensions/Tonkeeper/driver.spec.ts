@@ -27,22 +27,23 @@ test('maps headed TonConnect chrome to Tonkeeper index.html URLs', () => {
 test('owns only a phase-specific Tonkeeper connection surface', () => {
 	const extensionId = 'omaabbefbmiifabbmlbohnckoonlcani'
 	const url = `chrome-extension://${extensionId}/index.html#/`
-	const classify = (
-		headingNames: readonly string[],
-		buttonNames: readonly string[]
-	) => isTonkeeperConnectionRequestSurface({
-		buttonNames,
+	const classify = (visibleFormCount: number, visibleSubmitButtonCount: number) => isTonkeeperConnectionRequestSurface({
 		extensionId,
-		headingNames,
+		visibleFormCount,
+		visibleSubmitButtonCount,
 		url,
 	})
 
-	assert.equal(classify(['Wallet'], ['Receive', 'Send']), false)
-	assert.equal(classify(['Connect to Blockhead'], ['Cancel', 'Connect wallet']), true)
-	assert.equal(classify(['So, let’s check'], ['Continue', 'Cancel']), true)
-	assert.equal(classify(['So, let’s check', 'Enter password'], ['Confirm', 'Cancel']), true)
-	assert.equal(classify(['Wallet', 'Enter password'], ['Confirm', 'Cancel']), false)
-	assert.equal(classify(['Wallet'], ['Continue', 'Cancel']), false)
+	assert.equal(classify(0, 0), false)
+	assert.equal(classify(1, 1), true)
+	assert.equal(classify(1, 0), false)
+	assert.equal(classify(2, 2), false)
+	assert.equal(isTonkeeperConnectionRequestSurface({
+		extensionId: 'other',
+		visibleFormCount: 1,
+		visibleSubmitButtonCount: 1,
+		url,
+	}), false)
 })
 
 test('selects only the Tonkeeper-owned connection request from a safe checkpoint', () => {
@@ -54,18 +55,24 @@ test('selects only the Tonkeeper-owned connection request from a safe checkpoint
 			buttonNames: ['Receive', 'Send'],
 			headingNames: ['Wallet'],
 			inputIds: [],
+			visibleFormCount: 0,
+			visibleSubmitButtonCount: 0,
 			url: `chrome-extension://${extensionId}/index.html#/wallet`,
 		},
 		{
 			buttonNames: ['Cancel', 'Continue'],
 			headingNames: ['So, let’s check'],
 			inputIds: [],
+			visibleFormCount: 1,
+			visibleSubmitButtonCount: 1,
 			url: `chrome-extension://${extensionId}/index.html#/connect?request=secret`,
 		},
 		{
 			buttonNames: ['Cancel', 'Continue'],
 			headingNames: ['So, let’s check'],
 			inputIds: [],
+			visibleFormCount: 1,
+			visibleSubmitButtonCount: 1,
 			url: 'chrome-extension://other/index.html#/connect',
 		},
 	])
@@ -75,6 +82,20 @@ test('selects only the Tonkeeper-owned connection request from a safe checkpoint
 		extensionId,
 	}), 1)
 	assert.equal(JSON.stringify(checkpoint).includes('request=secret'), false)
+})
+
+test('recognizes consent structurally after localized copy is redacted', () => {
+	const extensionId = 'omaabbefbmiifabbmlbohnckoonlcani'
+	const checkpoint = walletExtensionSurfaceCheckpointFromSnapshots([{
+		buttonNames: ['Connect wallet'],
+		headingNames: ['Connect to\u00a0Blockhead?', 'Connect to private account?'],
+		inputIds: [],
+		visibleFormCount: 1,
+		visibleSubmitButtonCount: 1,
+		url: `chrome-extension://${extensionId}/index.html`,
+	}])
+	assert.equal(tonkeeperConnectionRequestSurfaceIndex({ checkpoint, extensionId }), 0)
+	assert.equal(JSON.stringify(checkpoint).includes('private account'), false)
 })
 
 test('keeps the Tonkeeper account lifecycle shard free of invented recover passes', () => {

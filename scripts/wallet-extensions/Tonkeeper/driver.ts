@@ -47,31 +47,26 @@ export const isTonkeeperIndexPageUrl = (
 	&& url.includes('/index.html')
 )
 
+// The pinned 26.6.1 request component renders its decision as the form's
+// submit button and disables it for loading, unsupported, or manifest-mismatch
+// states. Keep the selector independent of the locale-provided button label.
+export const tonkeeperConnectionApprovalSelector = 'button[type="submit"]'
+
 export const isTonkeeperConnectionRequestSurface = ({
-	buttonNames,
 	extensionId,
-	headingNames,
+	visibleFormCount,
+	visibleSubmitButtonCount,
 	url,
 }: {
-	buttonNames: readonly string[]
 	extensionId: string
-	headingNames: readonly string[]
+	visibleFormCount: number
+	visibleSubmitButtonCount: number
 	url: string
 }) => {
 	if (!isTonkeeperIndexPageUrl(url, extensionId))
 		return false
 
-	const legacyConnect = buttonNames.some((name) => /^connect wallet$/i.test(name.trim()))
-		&& headingNames.some((name) => /connect/i.test(name))
-	const ownsCurrentConnect = headingNames.some((name) => /^so,? let(?:'|’)s check$/i.test(name.trim()))
-	const currentConnect = ownsCurrentConnect
-		&& buttonNames.some((name) => /^cancel$/i.test(name.trim()))
-		&& buttonNames.some((name) => /^continue$/i.test(name.trim()))
-	const currentPasswordUnlock = ownsCurrentConnect
-		&& headingNames.some((name) => /^enter password$/i.test(name.trim()))
-		&& buttonNames.some((name) => /^cancel$/i.test(name.trim()))
-		&& buttonNames.some((name) => /^confirm$/i.test(name.trim()))
-	return legacyConnect || currentConnect || currentPasswordUnlock
+	return visibleFormCount === 1 && visibleSubmitButtonCount === 1
 }
 
 export const tonkeeperConnectionRequestSurfaceIndex = ({
@@ -80,11 +75,11 @@ export const tonkeeperConnectionRequestSurfaceIndex = ({
 }: {
 	checkpoint: WalletExtensionSurfaceCheckpoint
 	extensionId: string
-}) => checkpoint.extensionPages.findIndex(({ buttonNames, extensionUrl, headingNames }) => (
+}) => checkpoint.extensionPages.findIndex(({ extensionUrl, visibleFormCount, visibleSubmitButtonCount }) => (
 	isTonkeeperConnectionRequestSurface({
-		buttonNames,
 		extensionId,
-		headingNames,
+		visibleFormCount,
+		visibleSubmitButtonCount,
 		url: extensionUrl,
 	})
 ))
@@ -172,6 +167,16 @@ const createWallet = async (
 	await page.getByRole('button', {
 		name: 'Continue',
 	}).click()
+	if (existingPassword) {
+		const unlockPassword = page.locator('#unlock-password')
+		await unlockPassword.fill(password)
+		await page.getByRole('button', {
+			name: 'Confirm',
+		}).click()
+		await unlockPassword.waitFor({
+			state: 'hidden',
+		})
+	}
 
 	if (!existingPassword) {
 		await page.locator('#create-password').fill(password)
@@ -193,7 +198,11 @@ const createWallet = async (
 		() => false
 	)
 	if (!namePageReady)
-		return false
+		throw new Error(`Tonkeeper ${existingPassword ? 'existing-password second-wallet' : 'initial'} onboarding did not reach wallet naming; phase observations: ${JSON.stringify({
+			headingCount: await page.getByRole('heading').count(),
+			passwordInputVisible: await page.locator('input[type="password"]').first().isVisible().catch(() => false),
+			modalPresent: await page.locator('#react-portal-modal-container').count() > 0,
+		})}`)
 
 	await page.locator('#wallet-name').fill(name)
 	await page.locator('#wallet-name').press('Enter')
@@ -228,6 +237,7 @@ export const tonkeeperDriver = {
 		password: string
 	) => {
 		const page = await openExtensionPage(context, extension, 'index.html')
+		page.setDefaultTimeout(30_000)
 		await page.getByRole('button', {
 			name: 'Get started',
 		}).click()
@@ -259,19 +269,12 @@ export const tonkeeperDriver = {
 			await passwordInput.waitFor({ state: 'hidden' })
 		}
 
-		const legacyConnectButton = page.getByRole('button', {
-			name: 'Connect wallet',
-		})
-		const currentConnectButton = page.getByRole('button', {
-			name: 'Continue',
-		})
-		const connectButton = await legacyConnectButton.isVisible() ?
-			legacyConnectButton
-			:
-			currentConnectButton
+		const connectButton = page.locator(tonkeeperConnectionApprovalSelector)
 		await connectButton.waitFor({ state: 'visible' })
 		if (!await connectButton.isVisible())
 			throw new Error('Tonkeeper connection authority surface disappeared before its decision')
+		if (await connectButton.isDisabled())
+			throw new Error('Tonkeeper connection request is disabled; inspect structural diagnostics before approving')
 
 		await connectButton.click()
 		if (await passwordInput.isVisible()) {
