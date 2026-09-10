@@ -56,10 +56,18 @@ test('connects, selects, disconnects, and reloads polkadot.js accounts through B
 	await connection.getByRole('radio').nth(1).click()
 	await expect(connection.locator('fieldset:has(input[type="radio"])')).toHaveAttribute('aria-busy', 'false')
 	await expect(selectedWalletAccountLabel(connection)).toHaveText(accountLabels[1])
+	await expect(walletConnectionsStatus(page)).toContainText('Saved connections: 1.', {
+		timeout: 45_000,
+	})
 
 	await page.reload()
 	await expect.poll(() => page.evaluate(() => Object.keys(window.injectedWeb3 ?? {}))).toContain('polkadot-js')
-	await expect(selectedWalletAccountLabel(walletConnectionCardById(page, 'polkadot:polkadot-js'))).toHaveText(accountLabels[1])
+	await expect(walletConnectionsStatus(page)).toContainText('Saved connections: 1.', {
+		timeout: 45_000,
+	})
+	await expect(selectedWalletAccountLabel(walletConnectionCardById(page, 'polkadot:polkadot-js'))).toHaveText(accountLabels[1], {
+		timeout: 45_000,
+	})
 	await disconnectWalletButton(walletConnectionCardById(page, 'polkadot:polkadot-js')).click()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.', { timeout: 45_000 })
 	await page.reload()
