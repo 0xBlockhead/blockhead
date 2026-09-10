@@ -643,13 +643,15 @@ const withRouteTimeout = async (
 	pathname: string,
 	index: number,
 	total: number,
-	visit: Promise<void>
+	visit: Promise<void>,
+	onTimeout: () => Promise<void>
 ) => {
 	const timeoutMs = settleTimeoutMs + gotoLoadTimeoutMs + 30_000
 	await Promise.race([
 		visit,
 		new Promise<never>((_, reject) => {
-			setTimeout(() => {
+			setTimeout(async () => {
+				await onTimeout()
 				reject(new Error(
 					`route matrix timeout after ${timeoutMs}ms at ${pathname} (${index + 1}/${total})`
 				))
@@ -831,7 +833,19 @@ test.describe('route matrix (shell, URL, settlement, diagnostics, boundary)', ()
 						pathname,
 						index,
 						pageUrls.length,
-						visitRouteFailFast(page, testInfo, pathname)
+						visitRouteFailFast(page, testInfo, pathname),
+						async () => {
+							const snapshot = await pageFailureSnapshot(page)
+							await testInfo.attach('route-timeout-evidence.txt', {
+								body: [
+									`pathname: ${pathname}`,
+									`url: ${page.url()}`,
+									'section/resource/source ownership:',
+									snapshot,
+								].join('\n'),
+								contentType: 'text/plain',
+							})
+						}
 					)
 				} finally {
 					await context.close()
