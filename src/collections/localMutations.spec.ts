@@ -2018,6 +2018,9 @@ describe('local mutation authority journal', () => {
 			authorKey: 'did:plc:ewvi7nxzyoun6zhxrhs64oiz',
 			walletConnectionKey: 'connection-1',
 			agentConversationId: 'conversation-1',
+			status: 'published',
+			publishedEntityType: 'AtprotoPost',
+			publishedSelector: { uri: 'at://did:plc:ewvi7nxzyoun6zhxrhs64oiz/app.bsky.feed.post/1' },
 			mediaUrls: [
 				'https://cdn.example/first.png',
 				'https://cdn.example/second.png',
@@ -2027,6 +2030,9 @@ describe('local mutation authority journal', () => {
 			id: 'social-session-1',
 			protocol: SocialProtocol.Atproto,
 			authorKey: 'did:plc:ewvi7nxzyoun6zhxrhs64oiz',
+			status: 'published',
+			publishedEntityType: 'AtprotoPost',
+			publishedSelector: { uri: 'at://did:plc:ewvi7nxzyoun6zhxrhs64oiz/app.bsky.feed.post/1' },
 			mediaUrls: [],
 		})
 
@@ -2039,6 +2045,26 @@ describe('local mutation authority journal', () => {
 				[EntityMetaKey.Value]: SocialProtocol.Atproto,
 			}),
 		])
+		expect(context.entityFieldCollections[EntityType.BlockheadSocialPostSession][entityFieldAddressKey(
+			EntityType.BlockheadSocialPostSession,
+			[],
+			'status'
+		)].toArray).toEqual([
+			expect.objectContaining({
+				[EntityMetaKey.Value]: 'published',
+			}),
+		])
+		for (const [fieldName, value] of [
+			['publishedEntityType', 'AtprotoPost'],
+			['publishedSelector', { uri: 'at://did:plc:ewvi7nxzyoun6zhxrhs64oiz/app.bsky.feed.post/1' }],
+		] as const)
+			expect(context.entityFieldCollections[EntityType.BlockheadSocialPostSession][entityFieldAddressKey(
+				EntityType.BlockheadSocialPostSession,
+				[],
+				fieldName
+			)].toArray).toEqual([
+				expect.objectContaining({ [EntityMetaKey.Value]: value }),
+			])
 		expect(context.entityFieldCollections[EntityType.BlockheadSocialPostSession][entityFieldAddressKey(
 			EntityType.BlockheadSocialPostSession,
 			[],
