@@ -220,4 +220,35 @@ describe('Xaman XRPL adapter', () => {
 
 		await expect(signing).rejects.toThrow('transport closed')
 	})
+
+	it('refuses a request whose Account differs before creating a Xaman payload', async () => {
+		const xumm = fixture()
+		const { adapter, connection } = await connect(xumm.bridge)
+		const mismatchedRequest = { ...request, Account: 'rPT1Sjq2YGrBMTttXg' }
+
+		await expect(adapter.signXrplTransaction?.(
+			'xrpl:xaman',
+			account,
+			mismatchedRequest,
+			connection.connectionKey
+		)).rejects.toThrow('signing authority changed before dispatch')
+		expect(xumm.createAndSubscribe).not.toHaveBeenCalled()
+	})
+
+	it('refuses signing when the connected Xaman bridge has no payload API', async () => {
+		const xumm = fixture()
+		const bridgeWithoutPayload = { ...xumm.bridge, payload: undefined }
+		const adapter = createXrplXamanAdapter(() => bridgeWithoutPayload)
+		adapter.start(() => {})
+		const connection = await adapter.connect('xrpl:xaman')
+		if (connection == null)
+			throw new Error('Xaman fixture did not connect')
+
+		await expect(adapter.signXrplTransaction?.(
+			'xrpl:xaman',
+			account,
+			request,
+			connection.connectionKey
+		)).rejects.toThrow('payload API is unavailable')
+	})
 })

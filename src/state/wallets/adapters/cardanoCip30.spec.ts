@@ -8,16 +8,11 @@ import { WalletCapability } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { createCardanoCip30Adapter } from './cardanoCip30.ts'
 import type { WalletConnection } from './types.ts'
+import { ed25519SigningPrivateKey as signingPrivateKey } from './ed25519Signing.fixtures.ts'
 
 const mainnetAddress = '019493315cd92eb5d8c4304e67b7e16ae36d61d34502694657811a2c8e337b62cfff6403a06a3acbc34f8c46003c69fe79a3628cefa9c47251'
 const secondMainnetAddress = '018493315cd92eb5d8c4304e67b7e16ae36d61d34502694657811a2c8e337b62cfff6403a06a3acbc34f8c46003c69fe79a3628cefa9c47251'
 const mainnetPointerAddress = `41${'11'.repeat(28)}000000`
-const signingPrivateKey = new Uint8Array([
-	7, 19, 31, 43, 59, 71, 83, 97,
-	109, 127, 139, 151, 163, 179, 191, 211,
-	223, 229, 233, 239, 241, 251, 3, 13,
-	23, 37, 47, 61, 73, 89, 101, 113,
-])
 const signingPublicKey = ed25519.getPublicKey(signingPrivateKey)
 const signingAddress = hex.encode(new Uint8Array([
 	0x61,

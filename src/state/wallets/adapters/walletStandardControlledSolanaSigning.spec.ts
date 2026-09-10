@@ -11,15 +11,12 @@ import {
 	WalletAdapterPreDispatchFailure,
 	WalletAdapterResponseAuditFailure,
 } from './types.ts'
+import {
+	solanaSigningAccountAddress as accountAddress,
+	ed25519SigningPrivateKey as privateKey,
+	solanaSigningPublicKey as publicKey,
+} from './ed25519Signing.fixtures.ts'
 
-const privateKey = new Uint8Array([
-	7, 19, 31, 43, 59, 71, 83, 97,
-	109, 127, 139, 151, 163, 179, 191, 211,
-	223, 229, 233, 239, 241, 251, 3, 13,
-	23, 37, 47, 61, 73, 89, 101, 113,
-])
-const accountAddress = base58.encode(ed25519.getPublicKey(privateKey))
-const publicKey = ed25519.getPublicKey(privateKey)
 const siblingPrivateKey = new Uint8Array(32).fill(9)
 const walletId = 'wallet-standard:Controlled Solana Wallet'
 type SignMessage = NonNullable<

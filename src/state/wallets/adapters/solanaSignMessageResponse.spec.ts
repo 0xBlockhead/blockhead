@@ -6,22 +6,13 @@ import {
 	WalletAdapterResponseAuditFailure,
 } from './types.ts'
 import { createSolanaSignMessageResponseAudit } from './solanaSignMessageResponse.ts'
-
-const privateKey = new Uint8Array([
-	7, 19, 31, 43, 59, 71, 83, 97,
-	109, 127, 139, 151, 163, 179, 191, 211,
-	223, 229, 233, 239, 241, 251, 3, 13,
-	23, 37, 47, 61, 73, 89, 101, 113,
-])
-const siblingPrivateKey = new Uint8Array([
-	3, 5, 7, 11, 13, 17, 19, 23,
-	29, 31, 37, 41, 43, 47, 53, 59,
-	61, 67, 71, 73, 79, 83, 89, 97,
-	101, 103, 107, 109, 113, 127, 131, 137,
-])
-const publicKey = ed25519.getPublicKey(privateKey)
-const accountAddress = base58.encode(publicKey)
-const message = 'Blockhead controlled signing challenge: session 42, revision 3'
+import {
+	ed25519SiblingPrivateKey as siblingPrivateKey,
+	solanaSigningAccountAddress as accountAddress,
+	solanaSigningMessage as message,
+	ed25519SigningPrivateKey as privateKey,
+	solanaSigningPublicKey as publicKey,
+} from './ed25519Signing.fixtures.ts'
 
 const audit = () => createSolanaSignMessageResponseAudit({
 	accountAddress,
@@ -59,6 +50,8 @@ describe('Solana Wallet Standard signMessage response audit', () => {
 		const validSignature = ed25519.sign(responseAudit.messageForProvider(), privateKey)
 
 		for (const response of [
+			null,
+			undefined,
 			[],
 			[{ signature: validSignature }, { signature: validSignature }],
 			{ signature: validSignature },

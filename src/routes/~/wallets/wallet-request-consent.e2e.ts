@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import {
 	expect,
 	test,
@@ -24,7 +26,7 @@ test('keeps rejected consent out of connected and submitted request rows after r
 		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
 		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 	}, {
-		name: `blockhead-wallet-request-consent-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+		name: `blockhead-wallet-request-consent-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${randomUUID()}.sqlite`,
 		schemaVersion: Date.now(),
 	})
 
@@ -64,7 +66,7 @@ test('keeps rejected consent out of connected and submitted request rows after r
 					localStorage.setItem('wallet-consent-sign-attempts', String(attempts))
 					if (attempts === 1)
 						throw new Error('User rejected the wallet signing request')
-					return '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+					throw new Error('Unexpected wallet signing redispatch after rejected request')
 				}
 
 				throw new Error(`Unsupported fixture wallet method: ${method}`)

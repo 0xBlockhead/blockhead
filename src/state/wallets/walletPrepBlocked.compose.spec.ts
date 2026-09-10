@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
+import { account, base } from '$/state/wallets/walletRequestPreparation.fixtures.ts'
+import { WalletCapability } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import {
 	connectedWalletConnection,
@@ -13,27 +14,6 @@ import {
 	resolveExecutableWalletRequestPrep,
 } from './walletRequestPreparation.ts'
 
-
-const account = {
-	namespace: 'eip155',
-	reference: '1',
-	accountAddress: '0x1111111111111111111111111111111111111111',
-	capabilities: [WalletCapability.SendTransaction],
-} as const
-
-const base = {
-	walletId: 'eip6963:com.example',
-	protocol: WalletProtocol.Eip6963,
-	transportKind: WalletTransportKind.InjectedProvider,
-	scopes: [{
-		namespace: 'eip155',
-		reference: '1',
-		methods: ['eth_sendTransaction'],
-		events: [],
-	}],
-	accounts: [account],
-	activeAccount: account,
-} as const
 
 const prepableCalls = [{
 	toAddress: '0x2222222222222222222222222222222222222222',

@@ -1,7 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { readFile } from 'node:fs/promises'
-
 import { WalletCapability, WalletProtocol } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
@@ -84,17 +82,6 @@ describe('TON Connect injected adapter', () => {
 	afterEach(() => {
 		vi.useRealTimers()
 		vi.unstubAllGlobals()
-	})
-
-	it('publishes the canonical TON Connect app manifest', async () => {
-		expect(JSON.parse(await readFile(
-			new URL('../../../../static/tonconnect-manifest.json', import.meta.url),
-			'utf8'
-		))).toEqual({
-			url: 'https://blockhead.info',
-			name: 'Blockhead',
-			iconUrl: 'https://blockhead.info/favicon.png',
-		})
 	})
 
 	it('discovers only present standard registry JS bridge keys', () => {

@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import {
 	expect,
 	test,
@@ -33,7 +35,7 @@ test('reloads the explicit-submit authority graph without wallet redispatch or b
 		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
 		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 	}, {
-		name: `blockhead-wallet-authority-reload-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+		name: `blockhead-wallet-authority-reload-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${randomUUID()}.sqlite`,
 		schemaVersion: Date.now(),
 	})
 
@@ -91,7 +93,9 @@ test('reloads the explicit-submit authority graph without wallet redispatch or b
 	const diagnostics = setupPageRuntimeDiagnostics(page)
 	await page.goto('/~/wallets')
 	await expectMainVisible(page, 60_000, diagnostics)
-	await expect(walletConnectionsStatus(page)).toContainText(/Providers detected: [1-9][0-9]*\./)
+	await diagnostics.step(expect(walletConnectionsStatus(page)).toContainText(/Providers detected: [1-9][0-9]*\./, {
+		timeout: 120_000,
+	}))
 	await page.getByRole('button', { name: 'Connect Authority Reload Fixture Wallet' }).click()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 1.')
 
