@@ -40,4 +40,31 @@ export default indexSourceBindings([
 			},
 		],
 	},
+	{
+		source: Source.NearRpc_JsonRpc,
+		target: {
+			kind: SourceTargetKind.NetworkSlug,
+			key: 'near',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://free.rpc.fastnear.com',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.JsonRpcApi,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/NearRpc/JsonRpc/types.ts',
+			},
+		],
+	},
 ])

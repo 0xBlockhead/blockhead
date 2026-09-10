@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-256 providers register 288 sources and 519 bindings.
+256 providers register 288 sources and 520 bindings.
 
 ## Providers
 
@@ -808,6 +808,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["NearConnect_WalletApi","LocalDevice","near-connect","BrowserDirect","WalletApi"] | NearConnect | NearConnect_WalletApi | LocalDevice | near-connect | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["NearNeps_Github","GitRepository","near/NEPs@master:neps","BrowserDirect","GithubContentsApi"] | NearNeps | NearNeps_Github | GitRepository | near/NEPs@master:neps | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
 | ["NearRpc_JsonRpc","NetworkSlug","near","HttpProxy","JsonRpcApi"] | NearRpc | NearRpc_JsonRpc | NetworkSlug | near | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
+| ["NearRpc_JsonRpc","NetworkSlug","near","BrowserDirect","JsonRpcApi"] | NearRpc | NearRpc_JsonRpc | NetworkSlug | near | JsonRpc2 | JsonRpcApi | GenericRead | BrowserDirect |
 | ["NearWalletSelector_WalletApi","LocalDevice","near-wallet-selector","BrowserDirect","WalletApi"] | NearWalletSelector | NearWalletSelector_WalletApi | LocalDevice | near-wallet-selector | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | Neynar | Neynar_Rest | Global | api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Nfid_WalletApi","LocalDevice","nfid","BrowserDirect","WalletApi"] | Nfid | Nfid_WalletApi | LocalDevice | nfid | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
@@ -1360,6 +1361,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["NearNeps_Github","GitRepository","near/NEPs@master:neps","BrowserDirect","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
 | ["NearNeps_Github","GitRepository","near/NEPs@master:neps","BrowserDirect","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com | https://raw.githubusercontent.com | true |
 | ["NearRpc_JsonRpc","NetworkSlug","near","HttpProxy","JsonRpcApi"] | HttpUrl | https://rpc.mainnet.near.org | https://rpc.mainnet.near.org | false |
+| ["NearRpc_JsonRpc","NetworkSlug","near","BrowserDirect","JsonRpcApi"] | HttpUrl | https://free.rpc.fastnear.com | https://free.rpc.fastnear.com | true |
 | ["NearWalletSelector_WalletApi","LocalDevice","near-wallet-selector","BrowserDirect","WalletApi"] | BrowserWalletProvider | near-wallet-selector |  |  |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | HttpUrl | https://api.neynar.com | https://api.neynar.com | false |
 | ["Nfid_WalletApi","LocalDevice","nfid","BrowserDirect","WalletApi"] | BrowserWalletProvider | nfid |  |  |
@@ -2085,6 +2087,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Morpho_Rest","Global","morpho-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Morpho/Rest/types.ts | no |  | https://docs.morpho.org/developers/api/morpho/ |
 | ["NearBlocks_Rest","NetworkSlug","near","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/NearBlocks/Rest/types.ts | no |  |  |
 | ["NearRpc_JsonRpc","NetworkSlug","near","HttpProxy","JsonRpcApi"] | HandwrittenTypes | src/sources/NearRpc/JsonRpc/types.ts | no |  |  |
+| ["NearRpc_JsonRpc","NetworkSlug","near","BrowserDirect","JsonRpcApi"] | HandwrittenTypes | src/sources/NearRpc/JsonRpc/types.ts | no |  |  |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Neynar/OpenApi/schema-source.ts | no |  |  |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Neynar/OpenApi/openapi.yaml | no |  |  |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Neynar/OpenApi/openapi.d.ts | yes |  |  |

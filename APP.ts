@@ -106751,32 +106751,37 @@ export const app = {
 				source: Source.NearRpc_JsonRpc,
 				provider: "NearRpc",
 				label: "NEAR JSON-RPC",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "near",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://rpc.mainnet.near.org",
-							corsEnabled: false,
+				bindings: [
+					...[
+						{ locator: "https://rpc.mainnet.near.org", corsEnabled: false, delivery: SourceDelivery.HttpProxy },
+						{ locator: "https://free.rpc.fastnear.com", corsEnabled: true, delivery: SourceDelivery.BrowserDirect },
+					].map(({ locator, corsEnabled, delivery }) => ({
+						target: {
+							kind: SourceTargetKind.NetworkSlug,
+							key: "near",
 						},
-					],
-					wireProtocol: WireProtocol.JsonRpc2,
-					apiFamily: ApiFamily.JsonRpcApi,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/NearRpc/JsonRpc/types.ts",
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator,
+								corsEnabled,
+							},
+						],
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.JsonRpcApi,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NearRpc/JsonRpc/types.ts",
+							},
+						],
+					})),
+				],
 			},
 			{
 				source: Source.NearWalletSelector_WalletApi,
