@@ -190,7 +190,6 @@ const mountMockWalletRuntime = async ({
 	})
 	const deleteConnection = vi.fn()
 	const writeConnection = vi.fn(persistWalletConnection)
-	const writeWallet = vi.fn()
 	const writeWalletRequest = vi.fn(persistWalletRequest)
 	const writeWalletRequestObservation = vi.fn(persistWalletRequestObservation)
 	const writeWalletRequestSubmittedAt = vi.fn(persistWalletRequestSubmittedAt)
@@ -324,7 +323,7 @@ const mountMockWalletRuntime = async ({
 	}))
 	vi.doMock('$/collections/localMutations.ts', () => ({
 		deleteLocalBlockheadWalletConnection: deleteConnection,
-		writeLocalBlockheadWallet: writeWallet,
+		writeLocalBlockheadWallet: vi.fn(),
 		writeLocalBlockheadWalletConnection: writeConnection,
 		writeLocalBlockheadWalletRequest: writeWalletRequest,
 		writeLocalBlockheadWalletRequest_Timestamp: writeWalletRequestObservation,
@@ -476,7 +475,6 @@ const mountMockWalletRuntime = async ({
 		runtime,
 		subscribeConnection,
 		writeConnection,
-		writeWallet,
 		writeWalletRequest,
 		writeWalletRequestObservation,
 		writeWalletRequestSubmittedAt,
@@ -3465,7 +3463,7 @@ describe('wallet connection runtime normalization', () => {
 		]
 		const persistence = Promise.withResolvers<void>()
 		let deferSelectionPersistence = false
-		const { runtime, writeConnection, writeWallet } = await mountMockWalletRuntime({
+		const { runtime, writeConnection } = await mountMockWalletRuntime({
 			persistedWalletId: 'polkadot:polkadotjs',
 			candidateProtocol: WalletProtocol.PolkadotInjectedWeb3,
 			candidateDiscoveryKind: WalletDiscoveryKind.InjectedGlobal,
@@ -3478,7 +3476,6 @@ describe('wallet connection runtime normalization', () => {
 			}],
 			persistWalletConnection: () => deferSelectionPersistence ? persistence.promise : undefined,
 		})
-		expect(writeWallet).not.toHaveBeenCalled()
 		await runtime.connect('polkadot:polkadotjs')
 
 		deferSelectionPersistence = true
