@@ -776,6 +776,45 @@ describe('wallet connection runtime normalization', () => {
 		runtime.destroy()
 	})
 
+	it('records unauditable message-signing responses separately from provider rejection', async () => {
+		const { WalletAdapterResponseAuditFailure } = await import('$/state/wallets/adapters/types.ts')
+		const signMessage = vi.fn(async () => {
+			throw new WalletAdapterResponseAuditFailure('malformed response', ['unexpected'])
+		})
+		const connection = {
+			connectionKey: 'wallet-audit-session',
+			walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected,
+			protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider,
+			scopes: [],
+			accounts: [{
+				namespace: 'eip155',
+				reference: '1',
+				accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+				capabilities: [WalletCapability.SignMessage],
+			}],
+			selected: true,
+		} satisfies WalletConnection
+		const { runtime, writeDispatchEvidence } = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			signMessage,
+		})
+
+		await runtime.connect(connection.walletId)
+		await expect(runtime.signMessage({
+			connectionKey: connection.connectionKey,
+			message: 'Audit this private challenge',
+			authorityPresentation: { submittedAt: 1 },
+		})).rejects.toThrow('malformed response')
+		expect(writeDispatchEvidence.mock.calls.at(-1)?.[2]).toMatchObject({
+			kind: 'response-audit-failure',
+			error: 'malformed response',
+			returnedValueCount: 1,
+		})
+		runtime.destroy()
+	})
+
 	it('binds controlled Sui personal-message authority through dispatch and returned evidence', async () => {
 		vi.spyOn(Date, 'now')
 			.mockReturnValueOnce(100)
