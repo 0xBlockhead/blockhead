@@ -37,6 +37,7 @@
 
 
 	// Components
+	import RssSubscriptionControl from '$/views/RssSubscriptionControl.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -173,6 +174,10 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<section data-column="gap-2">
+			<RssSubscriptionControl {selection} />
+		</section>
 	{/snippet}
 
 	{#snippet Details()}

@@ -83,17 +83,71 @@ const categoriesFromBlock = (block: string) => {
 	return [...new Set(categories)]
 }
 
-const enclosureUrlFromBlock = (block: string) => {
-	for (const pattern of [
-		/<enclosure[^>]+url=['"]([^'"]+)['"]/i,
-		/<link[^>]*\srel=['"]enclosure['"][^>]*href=['"]([^'"]+)['"]/i,
-		/<link[^>]*href=['"]([^'"]+)['"][^>]*\srel=['"]enclosure['"]/i,
-		/<media:content[^>]+url=['"]([^'"]+)['"]/i,
-		/<podcast:alternateEnclosure[\s>][\s\S]*?<podcast:source[^>]+uri=['"]([^'"]+)['"]/i,
-	]) {
-		const match = block.match(pattern)?.[1]
-		if (match?.trim()) return decodeXmlEntities(match)
+const attributeFromTag = (
+	tag: string,
+	attribute: string
+) => {
+	const value = tag.match(new RegExp(`\\s${attribute}\\s*=\\s*['"]([^'"]*)['"]`, 'i'))?.[1]
+	return value?.trim() ? decodeXmlEntities(value) : undefined
+}
+
+const enclosureFromBlock = (block: string) => {
+	const rssEnclosure = block.match(/<enclosure\b[^>]*\/?>/i)?.[0]
+	if (rssEnclosure != null) {
+		const url = attributeFromTag(rssEnclosure, 'url')
+		if (url != null)
+			return {
+				url,
+				...(attributeFromTag(rssEnclosure, 'type') != null && {
+					type: attributeFromTag(rssEnclosure, 'type'),
+				}),
+			}
 	}
+
+	for (const link of block.matchAll(/<link\b[^>]*\/?>/gi)) {
+		const tag = link[0]
+		if (!attributeFromTag(tag, 'rel')?.split(/\s+/).includes('enclosure'))
+			continue
+
+		const url = attributeFromTag(tag, 'href')
+		if (url != null)
+			return {
+				url,
+				...(attributeFromTag(tag, 'type') != null && {
+					type: attributeFromTag(tag, 'type'),
+				}),
+			}
+	}
+
+	const mediaContent = block.match(/<media:content\b[^>]*\/?>/i)?.[0]
+	if (mediaContent != null) {
+		const url = attributeFromTag(mediaContent, 'url')
+		const type = (
+			attributeFromTag(mediaContent, 'type')
+			?? attributeFromTag(mediaContent, 'medium')
+		)
+		if (url != null)
+			return {
+				url,
+				...(type != null && { type }),
+			}
+	}
+
+	const podcastEnclosure = block.match(
+		/<podcast:alternateEnclosure\b[^>]*>[\s\S]*?<\/podcast:alternateEnclosure>/i
+	)?.[0]
+	if (podcastEnclosure != null) {
+		const alternateTag = podcastEnclosure.match(/<podcast:alternateEnclosure\b[^>]*>/i)?.[0]
+		const sourceTag = podcastEnclosure.match(/<podcast:source\b[^>]*\/?>/i)?.[0]
+		const url = sourceTag == null ? undefined : attributeFromTag(sourceTag, 'uri')
+		const type = alternateTag == null ? undefined : attributeFromTag(alternateTag, 'type')
+		if (url != null)
+			return {
+				url,
+				...(type != null && { type }),
+			}
+	}
+
 	return undefined
 }
 
@@ -156,7 +210,8 @@ const parseItemBlock = (
 	:
 		undefined
 	const categories = categoriesFromBlock(block)
-	const enclosureUrl = rssPublicHttpUrl(enclosureUrlFromBlock(block))
+	const enclosure = enclosureFromBlock(block)
+	const enclosureUrl = rssPublicHttpUrl(enclosure?.url)
 	const commentsUrl = rssPublicHttpUrl(commentsUrlFromBlock(block))
 	return {
 		...(guid != null && guid.trim() !== '' && { guid: guid.trim() }),
@@ -172,7 +227,10 @@ const parseItemBlock = (
 		...(publishedAt != null && { publishedAt }),
 		...(updatedAt != null && { updatedAt }),
 		...(categories.length > 0 && { categories }),
-		...(enclosureUrl != null && { enclosureUrl }),
+		...(enclosureUrl != null && {
+			enclosureUrl,
+			...(enclosure?.type != null && { enclosureType: enclosure.type }),
+		}),
 		...(commentsUrl != null && { commentsUrl }),
 	}
 }

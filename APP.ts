@@ -53523,7 +53523,7 @@ export const schema = {
 				},
 			})({
 				"feedUrl": { label: "Feed URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
-				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Local_Internal] },
 				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"siteUrl": { label: "Site URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"language": { label: "Language", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -53585,7 +53585,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "RssFeedsView" },
+					plural: { component: "RssFeedsView", query: { sources: [Source.Constants_Internal, Source.Local_Internal], fields: ["title"] }, row: { title: ["title", "feedUrl"], value: ["feedUrl"] } },
 				},
 			}),
 
@@ -53646,9 +53646,11 @@ export const schema = {
 				"publishedAt": { label: "Published", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"updatedAt": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"categories": { label: "Categories", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "stringArray" },
-				"enclosureUrl": { label: "Enclosure URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"$enclosure": { label: "Enclosure", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
 				"commentsUrl": { label: "Comments URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"$feed": { label: "Feed", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.RssFeed },
+				"isRead": { label: "Read", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Local_Internal] },
+				"isStarred": { label: "Starred", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Local_Internal] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.RssItem_Timestamp },
 			})({
 				selectors: {
@@ -53656,10 +53658,13 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						imports: [
+							{ from: "$/views/RssItemStateControl.svelte", default: "RssItemStateControl" },
+						],
 						query: {
 							sources: [Source.Rss_Rest, Source.Rss2Json_Rest],
 							fields: ["title", "link", "publishedAt"],
-							openFields: ["description", "content", "author", "updatedAt", "categories", "enclosureUrl", "commentsUrl"],
+							openFields: ["description", "content", "author", "updatedAt", "categories", "commentsUrl"],
 						},
 						summary: {
 							title: [{ field: "title" }, { field: "itemIdentity" }],
@@ -53678,8 +53683,22 @@ export const schema = {
 								[{ field: "link", format: "url" }],
 								[{ field: "publishedAt", format: "timestamp" }],
 								[{ field: "updatedAt", format: "timestamp" }],
-								[{ field: "enclosureUrl", format: "url" }],
+								[{ field: "$enclosure" }],
 								[{ field: "commentsUrl", format: "url" }],
+							],
+							blocks: [
+								[
+									{
+										kind: _ViewItemKind.Block,
+										id: "rss-item-state",
+										Content: {
+											...dedent `
+											<RssItemStateControl {selection} />
+											`,
+											references: ["selection"],
+										},
+									},
+								],
 							],
 							lists: [
 								{
@@ -53757,7 +53776,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RssFeed,
-					defaultSources: [Source.Constants_Internal],
+					defaultSources: [Source.Constants_Internal, Source.Local_Internal],
 				},
 			})({
 				selectors: {
@@ -53765,6 +53784,9 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						imports: [
+							{ from: "$/views/RssSubscriptionControl.svelte", default: "RssSubscriptionControl" },
+						],
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
@@ -53780,6 +53802,20 @@ export const schema = {
 								[{ field: "docsUrl", format: "url" }],
 								[{ field: "registryName" }],
 								[{ field: "relationshipModel" }],
+							],
+							blocks: [
+								[
+									{
+										kind: _ViewItemKind.Block,
+										id: "rss-subscriptions",
+										Content: {
+											...dedent `
+											<RssSubscriptionControl {selection} />
+											`,
+											references: ["selection"],
+										},
+									},
+								],
 							],
 						},
 						carousels: [

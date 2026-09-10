@@ -44,6 +44,7 @@ export default entity({
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Constants_Internal,
+			Source.Local_Internal,
 		],
 	},
 })({

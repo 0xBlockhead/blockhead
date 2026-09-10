@@ -6,6 +6,8 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const { binding, getFeed } = vi.hoisted(() => ({
@@ -15,6 +17,8 @@ const { binding, getFeed } = vi.hoisted(() => ({
 		items: [{
 			guid: 'item-1',
 			title: 'Item one',
+			enclosureUrl: 'https://media.example/episode.mp3',
+			enclosureType: 'audio/mpeg',
 		}],
 	}),
 }))
@@ -114,6 +118,15 @@ it('materializes source-owned feed and item observations from successful reads',
 			[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: true,
 		},
 	}])
+	expect(itemResolver.projections.$enclosure(itemSnapshot)).toEqual({
+		[EntityMetaKey.Selector]: {
+			url: 'https://media.example/episode.mp3',
+		},
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Audio,
+			[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+		},
+	})
 	expect(feedResolver.projections.$$items.resolveCount(feedSnapshot)).toBe(1)
 	expect(feedResolver.projections.$$items.select(feedSnapshot)).toEqual([{
 		[EntityMetaKey.Selector]: {
@@ -123,6 +136,15 @@ it('materializes source-owned feed and item observations from successful reads',
 		},
 		[EntityMetaKey.Fields]: {
 			[entityFieldAddressKey(EntityType.RssItem, [], 'title')]: 'Item one',
+			[entityFieldAddressKey(EntityType.RssItem, [], '$enclosure')]: {
+				[EntityMetaKey.Selector]: {
+					url: 'https://media.example/episode.mp3',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Audio,
+					[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+				},
+			},
 			[entityFieldAddressKey(EntityType.RssItem, [], '$feed')]: {
 				[EntityMetaKey.Selector]: {
 					feedUrl: 'https://hnrss.org/frontpage',
@@ -163,6 +185,27 @@ it('rejects duplicate native item identities instead of materializing colliding 
 	await expect(feedResolver.resolve.FeedUrl.resolve({
 		feedUrl: 'https://hnrss.org/frontpage',
 	}, resolverContext)).rejects.toThrow('duplicate feed item identity Guid:item-1')
+})
+
+it('does not infer enclosure media type from a filename', async () => {
+	const itemResolver = rss.resolvers.find(({ entityType }) => entityType === EntityType.RssItem)
+	if (itemResolver == null || !('FeedIdentity' in itemResolver.resolve))
+		throw new Error('Rss_Rest item resolver is missing')
+
+	getFeed.mockResolvedValueOnce({
+		items: [{
+			guid: 'untyped-item',
+			enclosureUrl: 'https://media.example/untyped.mp3',
+		}],
+	})
+
+	const snapshot = await itemResolver.resolve.FeedIdentity.resolve({
+		$feed: { feedUrl: 'https://hnrss.org/frontpage' },
+		itemIdentityKind: 'Guid',
+		itemIdentity: 'untyped-item',
+	}, resolverContext)
+
+	expect(itemResolver.projections.$enclosure(snapshot)).toBeUndefined()
 })
 
 it('does not replay the current feed read at an arbitrary observation timestamp', () => {

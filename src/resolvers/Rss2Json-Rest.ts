@@ -40,6 +40,7 @@ export default rssResolvers({
 				const itemAuthor = optionalNonemptyString(feedItem.author)
 				const itemPublishedAt = rssTimestampMs(feedItem.pubDate)
 				const itemEnclosureUrl = rssPublicHttpUrl(feedItem.enclosure?.[0]?.url)
+				const itemEnclosureType = optionalNonemptyString(feedItem.enclosure?.[0]?.type)
 				return {
 					...(feedItem.guid != null && { guid: feedItem.guid }),
 					...(itemTitle != null && {
@@ -61,7 +62,10 @@ export default rssResolvers({
 					...(feedItem.categories != null && feedItem.categories.length > 0 && {
 						categories: feedItem.categories,
 					}),
-					...(itemEnclosureUrl != null && { enclosureUrl: itemEnclosureUrl }),
+					...(itemEnclosureUrl != null && {
+						enclosureUrl: itemEnclosureUrl,
+						...(itemEnclosureType != null && { enclosureType: itemEnclosureType }),
+					}),
 				}
 			}),
 		}

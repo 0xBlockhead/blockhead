@@ -80,23 +80,27 @@ test('preserves a registered feed URL path, query, and reserved values', async (
 	expect(sourceFetch.mock.calls[0]?.[2]).toBeUndefined()
 })
 
-test('materializes native enclosure URLs across RSS, Atom, Media RSS, and Podcasting 2.0', async () => {
-	for (const [enclosureMarkup, enclosureUrl] of [
+test('preserves native enclosure URLs and source types across RSS, Atom, Media RSS, and Podcasting 2.0', async () => {
+	for (const [enclosureMarkup, enclosureUrl, enclosureType] of [
 		[
 			'<enclosure length="12" type="audio/mpeg" url="https://media.example/rss.mp3" />',
 			'https://media.example/rss.mp3',
+			'audio/mpeg',
 		],
 		[
 			'<link type="audio/mpeg" href="https://media.example/atom.mp3" rel="enclosure" />',
 			'https://media.example/atom.mp3',
+			'audio/mpeg',
 		],
 		[
 			'<media:content medium="audio" url="https://media.example/media-rss.mp3" />',
 			'https://media.example/media-rss.mp3',
+			'audio',
 		],
 		[
 			'<podcast:alternateEnclosure type="audio/mpeg"><podcast:source uri="https://media.example/podcast.mp3" /></podcast:alternateEnclosure>',
 			'https://media.example/podcast.mp3',
+			'audio/mpeg',
 		],
 	] as const) {
 		sourceFetch.mockResolvedValueOnce(new Response(`
@@ -113,6 +117,7 @@ test('materializes native enclosure URLs across RSS, Atom, Media RSS, and Podcas
 		await expect(rssFetchFeed(hnrssBinding, 'https://hnrss.org/frontpage')).resolves.toMatchObject({
 			items: [{
 				enclosureUrl,
+				enclosureType,
 			}],
 		})
 	}
@@ -145,6 +150,7 @@ test('withholds credentialed and non-HTTP feed metadata URLs from visible fields
 	expect(feed.siteUrl).toBeUndefined()
 	expect(feed.imageUrl).toBeUndefined()
 	expect(feed.items[0]?.enclosureUrl).toBeUndefined()
+	expect(feed.items[0]?.enclosureType).toBeUndefined()
 	expect(feed.items[0]?.commentsUrl).toBeUndefined()
 })
 

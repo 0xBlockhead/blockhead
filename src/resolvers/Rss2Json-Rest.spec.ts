@@ -6,6 +6,8 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const { getFeed } = vi.hoisted(() => ({
@@ -95,6 +97,15 @@ it('materializes source-owned feed and item observations from a healthy envelope
 		[EntityMetaKey.Fields]: {
 			[entityFieldAddressKey(EntityType.RssItem, [], 'content')]: '<p>Item one full text</p>',
 			[entityFieldAddressKey(EntityType.RssItem, [], 'categories')]: ['news', 'tech'],
+			[entityFieldAddressKey(EntityType.RssItem, [], '$enclosure')]: {
+				[EntityMetaKey.Selector]: {
+					url: 'https://example.com/audio.mp3',
+				},
+				[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Audio,
+					[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+				},
+			},
 		},
 	})
 })
@@ -122,7 +133,24 @@ it('withholds unsafe visible URLs from mapped metadata', async () => {
 	expect(resolver.projections.siteUrl(snapshot)).toBeUndefined()
 	expect(resolver.projections.imageUrl(snapshot)).toBeUndefined()
 	expect(resolver.projections.$$items.select(snapshot)[0][EntityMetaKey.Fields]).not.toHaveProperty(entityFieldAddressKey(EntityType.RssItem, [], 'link'))
-	expect(resolver.projections.$$items.select(snapshot)[0][EntityMetaKey.Fields]).not.toHaveProperty(entityFieldAddressKey(EntityType.RssItem, [], 'enclosureUrl'))
+	expect(resolver.projections.$$items.select(snapshot)[0][EntityMetaKey.Fields]).not.toHaveProperty(entityFieldAddressKey(EntityType.RssItem, [], '$enclosure'))
+})
+
+it('requires source enclosure type instead of inferring media from the URL', async () => {
+	getFeed.mockResolvedValueOnce({
+		status: 'ok',
+		feed: { url: 'https://example.com/feed.xml' },
+		items: [{
+			guid: 'untyped-item',
+			enclosure: [{ url: 'https://example.com/audio.mp3' }],
+		}],
+	})
+	const resolver = feedResolver()
+	const snapshot = await resolver.resolve.FeedUrl.resolve({ feedUrl: 'https://example.com/feed.xml' }, resolverContext)
+
+	expect(resolver.projections.$$items.select(snapshot)[0][EntityMetaKey.Fields]).not.toHaveProperty(
+		entityFieldAddressKey(EntityType.RssItem, [], '$enclosure')
+	)
 })
 
 it('propagates provider failures instead of materializing a ready-empty feed', async () => {

@@ -9,6 +9,7 @@ export type ParsedRssFeedItem = {
 	updatedAt?: number
 	categories?: string[]
 	enclosureUrl?: string
+	enclosureType?: string
 	commentsUrl?: string
 }
 
