@@ -330,14 +330,52 @@ describe('MevRelay REST resolvers', () => {
 			[EntityMetaKey.Selector]: {
 				timestampMs: expect.any(Number),
 				source: Source.MevRelay_Rest,
+				sampleLimit: 16,
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'deliveredPayloadSampleCount')]: 2,
 				[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'builderSampleCount')]: 2,
 				[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'windowStartSlot')]: 14917871,
 				[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'windowEndSlot')]: 14917880,
-				[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'sampleLimit')]: 16,
 			},
+		})
+	})
+
+	it('keeps independently requested relay sample windows as distinct observations', async () => {
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_000)
+		getProposerPayloadDeliveredForRelayHost.mockResolvedValue([bidTrace])
+
+		const smallWindow = await relayObservationResolver.resolve.EvmNetworkHost.resolve(
+			relay,
+			{
+				...context,
+				pagination: {
+					...context.pagination,
+					limit: 1,
+				},
+			}
+		)
+		const largeWindow = await relayObservationResolver.resolve.EvmNetworkHost.resolve(
+			relay,
+			{
+				...context,
+				pagination: {
+					...context.pagination,
+					limit: 2,
+				},
+			}
+		)
+		dateNow.mockRestore()
+
+		expect(relayObservationResolver.projections.$$timestamps(smallWindow)[0][EntityMetaKey.Selector]).toMatchObject({
+			timestampMs: 1_750_000_000_000,
+			source: Source.MevRelay_Rest,
+			sampleLimit: 1,
+		})
+		expect(relayObservationResolver.projections.$$timestamps(largeWindow)[0][EntityMetaKey.Selector]).toMatchObject({
+			timestampMs: 1_750_000_000_000,
+			source: Source.MevRelay_Rest,
+			sampleLimit: 2,
 		})
 	})
 
@@ -362,6 +400,7 @@ describe('MevRelay REST resolvers', () => {
 			[EntityMetaKey.Selector]: {
 				timestampMs: expect.any(Number),
 				source: Source.MevRelay_Rest,
+				sampleLimit: 200,
 			},
 			[EntityMetaKey.Fields]: {
 				[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredPayloadCount')]: 2,
@@ -369,7 +408,6 @@ describe('MevRelay REST resolvers', () => {
 				[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'relayCount')]: 2,
 				[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowStartSlot')]: 14917871,
 				[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowEndSlot')]: 14917900,
-				[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'sampleLimit')]: 200,
 			},
 		})
 	})
@@ -476,6 +514,9 @@ describe('MevRelay REST resolvers', () => {
 					}),
 				],
 				[entityFieldAddressKey(EntityType.MevBuilder, [], '$$timestamps')]: [expect.objectContaining({
+					[EntityMetaKey.Selector]: expect.objectContaining({
+						sampleLimit: 128,
+					}),
 					[EntityMetaKey.Fields]: expect.objectContaining({
 						[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredPayloadCount')]: 2,
 						[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredValueWei')]: 5_316_647_666_874_703n,
