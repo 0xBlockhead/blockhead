@@ -128,9 +128,10 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 
 	get then(): Promise<Data>['then'] {
 		this.#start()
-		const promise = this.#promise
+		const trackedPromise = this.#promise
+		void trackedPromise
 		return (onFulfilled, onRejected) => (
-			promise
+			this.#promise
 				.then(tick)
 				.then(() => {
 					if (this.#raw === undefined)

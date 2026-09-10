@@ -456,6 +456,39 @@ describe('TanStackLiveQueryResource', () => {
 		fixture.resource.destroy()
 	})
 
+	it('keeps a browser-assimilated repeat read pending with the current source state', async () => {
+		const fixture = createFixture(readySnapshot('first'))
+		await expect(fixture.resource).resolves.toBe('first')
+		expect(fixture.sourceSubscriptionCount).toBe(1)
+
+		const repeatedRead = Promise.resolve(fixture.resource)
+		fixture.setSnapshot(loadingSnapshot)
+		let outcome = 'pending'
+		const observed = repeatedRead.then(
+			(value) => {
+				outcome = 'resolved'
+				return value
+			},
+			() => {
+				outcome = 'rejected'
+				return undefined
+			}
+		)
+
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		const outcomeWhileSourcePending = outcome
+		fixture.setSnapshot(readySnapshot('second'))
+		const result = await observed
+		const queryCount = fixture.queryCount
+		const sourceSubscriptionCount = fixture.sourceSubscriptionCount
+		fixture.resource.destroy()
+
+		expect(outcomeWhileSourcePending).toBe('pending')
+		expect(result).toBe('second')
+		expect(queryCount).toBe(3)
+		expect(sourceSubscriptionCount).toBe(1)
+	})
+
 	it('unsubscribes exactly once even when cleanup reenters destruction', async () => {
 		let subscriptions = 0
 		let unsubscriptions = 0

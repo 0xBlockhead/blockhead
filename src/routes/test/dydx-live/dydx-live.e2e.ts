@@ -28,6 +28,11 @@ test('RemoteLive push updates direct getter and ResourceBoundary DOM', async ({ 
 		markBlockHeightStreamReady = resolve
 	})
 	const openResponses = new Set<ServerResponse>()
+	const activeHeightResponses = new Set<ServerResponse>()
+	let subscriptionAttempts = 0
+	let maxConcurrentHeightStreams = 0
+	const publishedEventDeliveries = new Map<number, number>()
+	let publishedEvent = 0
 	const send = (
 		response: ServerResponse,
 		message: object
@@ -56,6 +61,10 @@ test('RemoteLive push updates direct getter and ResourceBoundary DOM', async ({ 
 			return
 		}
 
+		subscriptionAttempts += 1
+		activeHeightResponses.add(response)
+		maxConcurrentHeightStreams = Math.max(maxConcurrentHeightStreams, activeHeightResponses.size)
+		response.on('close', () => activeHeightResponses.delete(response))
 		send(response, {
 			channel: 'v4_block_height',
 			connection_id: 'height-connection',
@@ -67,17 +76,22 @@ test('RemoteLive push updates direct getter and ResourceBoundary DOM', async ({ 
 			message_id: 0,
 			type: 'subscribed',
 		})
-		publishBlockHeight = () => send(response, {
-			channel: 'v4_block_height',
-			connection_id: 'height-connection',
-			contents: {
-				blockHeight: '9007199254740993',
-				time: '2026-08-05T17:01:00.000Z',
-			},
-			message_id: 1,
-			type: 'channel_data',
-			version: '1.0.0',
-		})
+		publishBlockHeight = () => {
+			publishedEvent += 1
+			publishedEventDeliveries.set(publishedEvent, activeHeightResponses.size)
+			for (const activeResponse of activeHeightResponses)
+				send(activeResponse, {
+					channel: 'v4_block_height',
+					connection_id: 'height-connection',
+					contents: {
+						blockHeight: String(9007199254740992n + BigInt(publishedEvent)),
+						time: publishedEvent === 1 ? '2026-08-05T17:01:00.000Z' : '2026-08-05T17:02:00.000Z',
+					},
+					message_id: publishedEvent,
+					type: 'channel_data',
+					version: '1.0.0',
+				})
+		}
 		markBlockHeightStreamReady()
 	})
 	await new Promise<void>((resolve) => liveServer.listen(0, '127.0.0.1', resolve))
@@ -137,6 +151,13 @@ test('RemoteLive push updates direct getter and ResourceBoundary DOM', async ({ 
 
 		await expect(page.getByTestId('dydx-live-direct-timestamp')).toHaveText(String(Date.parse('2026-08-05T17:01:00.000Z')))
 		await expect(page.getByTestId('dydx-live-boundary-timestamp')).toHaveText(String(Date.parse('2026-08-05T17:01:00.000Z')))
+		publishBlockHeight()
+		await expect(page.getByTestId('dydx-live-direct-timestamp')).toHaveText(String(Date.parse('2026-08-05T17:02:00.000Z')))
+		await expect(page.getByTestId('dydx-live-boundary-timestamp')).toHaveText(String(Date.parse('2026-08-05T17:02:00.000Z')))
+		expect(subscriptionAttempts).toBe(1)
+		expect(maxConcurrentHeightStreams).toBe(1)
+		expect(publishedEventDeliveries.get(1)).toBe(1)
+		expect(publishedEventDeliveries.get(2)).toBe(1)
 		await expect(page.locator('body')).toHaveAttribute('data-dydx-live-route-instance', 'open')
 	} finally {
 		for (const response of openResponses)
