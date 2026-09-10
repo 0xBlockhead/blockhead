@@ -1,17 +1,8 @@
 import { randomBytes } from 'node:crypto'
 
-import {
-	rabbyDriver,
-	rabbyUnsupportedMatrixDriver,
-} from '../../../../scripts/wallet-extensions/Rabby/driver.ts'
-import { rabbyWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Rabby/matrix.ts'
+import { rabbyDriver } from '../../../../scripts/wallet-extensions/Rabby/driver.ts'
 import { exerciseWalletSigningRequest } from '../../../../scripts/wallet-extensions/WalletExtensionHarness.ts'
 import { WalletHarnessEcosystem } from '../../../../scripts/wallet-extensions/ecosystems.ts'
-import {
-	assertWalletMatrixOutcomes,
-	logWalletMatrixResults,
-	runWalletCompatibilityMatrix,
-} from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
 	connectWalletButtonForDriver,
 	disconnectWalletButton,
@@ -24,31 +15,15 @@ import { expect, test } from '../wallet.fixture.ts'
 test.skip(process.env.WALLET_EXTENSIONS_E2E !== '1', 'Real wallet extension tests are opt-in')
 test.setTimeout(420_000)
 
-test('runs the Rabby real-extension matrix shard', async ({
+test('runs the Rabby account, message-signing, and disconnect lifecycle', async ({
 	baseURL,
 	context,
 	extensions,
 	page,
 }) => {
-	if (!process.env.RABBY_EXTENSION_DIR) {
-		const results = await runWalletCompatibilityMatrix({
-			driver: rabbyUnsupportedMatrixDriver(),
-			scenarios: rabbyWalletMatrixScenarios('unavailable'),
-			step: (name, run) => test.step(name, run),
-		})
-		assertWalletMatrixOutcomes(results, ['unsupported'], 'rabby-unsupported-environment')
-		logWalletMatrixResults(results, {
-			label: 'rabby-unsupported-environment',
-			expectedOutcomes: ['unsupported'],
-		})
-		expect(results).toHaveLength(9)
-		expect(results.every(({ evidence }) => evidence.code === 'rabby-extension-dir-unavailable')).toBe(true)
-		return
-	}
-
 	const extension = extensions.find(({ kind }) => kind === 'rabby')
 	if (!extension)
-		throw new Error('RABBY_EXTENSION_DIR did not load a Rabby extension')
+		throw new Error('Requested Rabby artifact was not loaded')
 
 	const password = `Rb!${randomBytes(24).toString('base64url')}`
 	const wallet = await rabbyDriver.createAccounts(
@@ -149,42 +124,6 @@ test('runs the Rabby real-extension matrix shard', async ({
 		})
 		expect(result.decision).toBe(decision)
 	}
-
-	const localRpcUrl = process.env.RABBY_LOCAL_RPC_URL
-	const localCellsAvailable = localRpcUrl != null && /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/.test(localRpcUrl)
-	const matrixResults = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'rabby',
-			run: async (scenario) => ({
-				...(scenario.accountOrdinal <= wallet.addresses.length && {
-					accountAddress: wallet.addresses[scenario.accountOrdinal - 1],
-				}),
-				outcome: (
-					['wallet_switchEthereumChain', 'eth_signTypedData_v4', 'eth_sendTransaction'].includes(scenario.requestMethod)
-					&& !localCellsAvailable ?
-						'unsupported'
-					:
-						'pass'
-				),
-				evidence: {
-					code: (
-						['wallet_switchEthereumChain', 'eth_signTypedData_v4', 'eth_sendTransaction'].includes(scenario.requestMethod)
-						&& !localCellsAvailable ?
-							'loopback-rpc-unavailable'
-						:
-							'rabby-lifecycle-observed'
-					),
-					source: 'real-extension',
-				},
-			}),
-		},
-		scenarios: rabbyWalletMatrixScenarios(extension.manifest.version),
-		step: (name, run) => test.step(name, run),
-	})
-	expect(matrixResults.filter(({ outcome }) => outcome === 'pass')).toHaveLength(6)
-	logWalletMatrixResults(matrixResults, {
-		label: 'rabby-real-extension',
-	})
 
 	await disconnectWalletButton(page).click()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')

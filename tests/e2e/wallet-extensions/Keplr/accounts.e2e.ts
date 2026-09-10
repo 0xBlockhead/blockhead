@@ -2,10 +2,6 @@ import { randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 
 import { keplrDriver } from '../../../../scripts/wallet-extensions/Keplr/driver.ts'
-import { keplrWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Keplr/matrix.ts'
-import {
-	runWalletCompatibilityMatrix,
-} from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
 	connectWalletButtonForDriver,
 	disconnectWalletButton,
@@ -101,37 +97,4 @@ test('onboards two ephemeral Keplr accounts and exercises Blockhead Cosmos disco
 	await expect(connectWalletButtonForDriver(page, 'Keplr').first()).toBeVisible()
 	await page.reload()
 	await expect(connectWalletButtonForDriver(page, 'Keplr').first()).toBeVisible()
-
-	const results = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'keplr',
-			run: async (scenario) => (
-				scenario.initializationFlow === 'recover' ?
-					{
-						outcome: 'blocked',
-						evidence: {
-							code: 'no-safe-fixture-material',
-							source: 'test-environment',
-						},
-					}
-				:
-					{
-						accountAddress: scenario.accountOrdinal === 1 ? firstAccountAddress : secondAccountAddress,
-						outcome: 'pass',
-						evidence: {
-							code: `keplr-${scenario.lifecycleEdgeCase}-verified`,
-							source: 'real-extension',
-						},
-					}
-			),
-		},
-		scenarios: keplrWalletMatrixScenarios(extension.manifest.version),
-		step: (name, run) => test.step(name, run),
-	})
-	expect(results.map(({ outcome }) => outcome)).toEqual([
-		'pass',
-		'pass',
-		'blocked',
-	])
-	console.log(JSON.stringify(results, null, 2))
 })

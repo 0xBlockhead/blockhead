@@ -1,10 +1,5 @@
 import { unisatDriver } from '../../../../scripts/wallet-extensions/UniSat/driver.ts'
-import { unisatWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/UniSat/matrix.ts'
 import { createEphemeralWalletSecret } from '../../../../scripts/wallet-extensions/WalletExtensionHarness.ts'
-import {
-	logWalletMatrixResults,
-	runWalletCompatibilityMatrix,
-} from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
 	connectWalletButtonForDriver,
 	disconnectWalletButton,
@@ -34,7 +29,7 @@ test('creates and switches ephemeral UniSat accounts through Blockhead', async (
 	context,
 	extensions,
 	page,
-}, testInfo) => {
+}) => {
 	const extension = extensions.find(({ kind }) => kind === 'unisat')
 	if (!extension)
 		throw new Error('Declared UniSat wallet journey requires its artifact to be loaded')
@@ -108,50 +103,4 @@ test('creates and switches ephemeral UniSat accounts through Blockhead', async (
 	})).toBeAttached()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
 
-	const addresses = [
-		firstAddress,
-		secondAddress,
-	]
-	const results = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'unisat',
-			run: async (scenario) => (
-				scenario.initializationFlow === 'recover' ?
-					{
-						outcome: 'blocked',
-						evidence: {
-							code: 'fixture-material-not-provided',
-							source: 'test-environment',
-						},
-					}
-				:
-					{
-						accountAddress: addresses[scenario.accountOrdinal - 1],
-						outcome: 'pass',
-						evidence: {
-							code: `unisat-${scenario.lifecycleEdgeCase}-verified`,
-							source: 'real-extension',
-						},
-					}
-			),
-		},
-		scenarios: unisatWalletMatrixScenarios(extension.manifest.version),
-		step: (name, run) => test.step(name, run),
-	})
-	expect(results.map(({ outcome }) => outcome)).toEqual([
-		'pass',
-		'pass',
-		'blocked',
-	])
-	const report = logWalletMatrixResults(results, {
-		label: 'unisat-account-lifecycle-matrix',
-		expectedOutcomes: [
-			'pass',
-			'blocked',
-		],
-	})
-	await testInfo.attach('unisat-account-lifecycle-matrix.json', {
-		body: JSON.stringify(report, null, '\t'),
-		contentType: 'application/json',
-	})
 })

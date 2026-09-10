@@ -1,11 +1,6 @@
 import { randomBytes } from 'node:crypto'
 
 import { petraDriver } from '../../../../scripts/wallet-extensions/Petra/driver.ts'
-import { petraWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Petra/matrix.ts'
-import {
-	logWalletMatrixResults,
-	runWalletCompatibilityMatrix,
-} from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
 	connectWalletButtonForDriver,
 	disconnectWalletButton,
@@ -19,7 +14,7 @@ import { expect, test } from '../wallet.fixture.ts'
 test.skip(process.env.WALLET_EXTENSIONS_E2E !== '1', 'Real Petra extension test is opt-in')
 test.setTimeout(240_000)
 
-test('runs the declarative Petra compatibility matrix', async ({
+test('onboards Petra accounts and exercises its connection surfaces', async ({
 	baseURL,
 	context,
 	extensions,
@@ -29,7 +24,6 @@ test('runs the declarative Petra compatibility matrix', async ({
 	if (!extension)
 		throw new Error('Declared Petra wallet journey requires its artifact to be loaded')
 
-	const scenarios = petraWalletMatrixScenarios(extension.manifest.version)
 	const {
 		addresses,
 	} = await petraDriver.createAccounts(
@@ -77,78 +71,23 @@ test('runs the declarative Petra compatibility matrix', async ({
 
 	const previousPages = new Set(context.pages())
 	const [, rejected] = await Promise.all([
-		connectWalletButtonForDriver(page, 'Petra').first().click().catch(() => undefined),
+		connectWalletButtonForDriver(page, 'Petra').first().click(),
 		petraDriver.decideConnection(context, extension, 'reject', previousPages),
 	])
+	expect(rejected).toBe(true)
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
 
-	let connected = false
-	if (rejected) {
-		const approvePreviousPages = new Set(context.pages())
-		const [, approved] = await Promise.all([
-			connectWalletButtonForDriver(page, 'Petra').first().click(),
-			petraDriver.decideConnection(context, extension, 'approve', approvePreviousPages),
-		])
-		if (approved) {
-			const connection = walletConnectionCard(page, 'Petra')
-			await expect(selectedWalletAccount(connection)).toBeVisible({
-				timeout: 120_000,
-			})
-			await expect(walletConnectionsStatus(page)).toContainText('Active connections: 1.')
-			connected = true
-			await disconnectWalletButton(page).click()
-			await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
-		}
-	}
-
-	const results = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'petra',
-			run: async (scenario) => {
-				if (scenario.initializationFlow !== 'create-new')
-					return {
-						outcome: 'blocked',
-						evidence: {
-							code: 'no-safe-fixture-material',
-							source: 'test-environment',
-						},
-					}
-
-				if (connected)
-					return {
-						accountAddress: addresses[scenario.accountOrdinal - 1],
-						outcome: 'pass',
-						evidence: {
-							code: `petra-${scenario.lifecycleEdgeCase}-verified`,
-							source: 'semantic-selector',
-						},
-					}
-
-				return {
-					accountAddress: addresses[scenario.accountOrdinal - 1],
-					outcome: 'unsupported',
-					evidence: {
-						code: rejected ?
-							'petra-connect-approval-ui-unmapped'
-						:
-							'petra-connect-prompt-not-observed',
-						detail: 'Product Connect Petra is discoverable; headed approval chrome remains unmapped',
-						source: 'wallet-connections',
-					},
-				}
-			},
-		},
-		scenarios,
-		step: (name, run) => test.step(name, run),
+	const approvePreviousPages = new Set(context.pages())
+	const [, approved] = await Promise.all([
+		connectWalletButtonForDriver(page, 'Petra').first().click(),
+		petraDriver.decideConnection(context, extension, 'approve', approvePreviousPages),
+	])
+	expect(approved).toBe(true)
+	const connection = walletConnectionCard(page, 'Petra')
+	await expect(selectedWalletAccount(connection)).toBeVisible({
+		timeout: 120_000,
 	})
-
-	expect(results).toHaveLength(3)
-	expect(results.filter(({ outcome }) => outcome === 'blocked')).toHaveLength(1)
-	expect(results.slice(0, 2).every(({ outcome }) => (
-		outcome === 'pass' || outcome === 'unsupported'
-	))).toBe(true)
-	expect(results.slice(0, 2).every(({ accountAddressHash }) => /^sha256:[0-9a-f]{64}$/.test(accountAddressHash ?? ''))).toBe(true)
-	logWalletMatrixResults(results, {
-		label: 'petra-real-extension',
-	})
+	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 1.')
+	await disconnectWalletButton(page).click()
+	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
 })
