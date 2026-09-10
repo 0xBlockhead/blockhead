@@ -10,6 +10,8 @@ export type WalletExtensionPageCheckpointInput = {
 	buttonNames: readonly string[]
 	headingNames: readonly string[]
 	inputIds: readonly string[]
+	visibleFormCount?: number
+	visibleSubmitButtonCount?: number
 	url: string
 }
 
@@ -18,6 +20,8 @@ export type WalletExtensionPageCheckpoint = {
 	extensionUrl: string
 	headingNames: string[]
 	inputIds: string[]
+	visibleFormCount: number
+	visibleSubmitButtonCount: number
 }
 
 export type WalletExtensionSurfaceCheckpoint = {
@@ -278,11 +282,13 @@ const safeExtensionUrl = (url: string) => {
 export const walletExtensionSurfaceCheckpointFromSnapshots = (
 	extensionPages: readonly WalletExtensionPageCheckpointInput[]
 ): WalletExtensionSurfaceCheckpoint => ({
-	extensionPages: extensionPages.map(({ buttonNames, headingNames, inputIds, url }) => ({
+	extensionPages: extensionPages.map(({ buttonNames, headingNames, inputIds, visibleFormCount = 0, visibleSubmitButtonCount = 0, url }) => ({
 		buttonNames: normalizedVisibleLabels(buttonNames),
 		extensionUrl: safeExtensionUrl(url),
 		headingNames: normalizedVisibleLabels(headingNames),
 		inputIds: normalizedInputIds(inputIds),
+		visibleFormCount,
+		visibleSubmitButtonCount,
 	})),
 })
 
@@ -318,15 +324,19 @@ const visibleInputIds = (page: Page) => (
 export const captureWalletExtensionSurfaceCheckpoint = async (
 	pages: readonly Page[]
 ) => walletExtensionSurfaceCheckpointFromSnapshots(await Promise.all(pages.map(async (page) => {
-	const [buttonNames, headingNames, inputIds] = await Promise.all([
+	const [buttonNames, headingNames, inputIds, visibleFormCount, visibleSubmitButtonCount] = await Promise.all([
 		visibleTexts(page, 'button:visible, [role="button"]:visible'),
 		visibleTexts(page, 'h1:visible, h2:visible, h3:visible, h4:visible, h5:visible, h6:visible, [role="heading"]:visible'),
 		visibleInputIds(page),
+		page.locator('form:visible').count(),
+		page.locator('form:visible button[type="submit"]:visible').count(),
 	])
 	return {
 		buttonNames,
 		headingNames,
 		inputIds,
+		visibleFormCount,
+		visibleSubmitButtonCount,
 		url: page.url(),
 	}
 })))

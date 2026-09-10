@@ -46,6 +46,8 @@ test('captures a redacted request checkpoint without returning page payloads or 
 				'unlock-password',
 				'password',
 			],
+			visibleFormCount: 1,
+			visibleSubmitButtonCount: 1,
 			url: 'chrome-extension://abcdefghijklmnopabcdefghijklmnop/popup.html?message=private-message#approval-secret',
 		}],
 		walletConnectionsText: 'Wallet discovery active. Providers detected: 3. Active connections: 1. Account 0xprivate',
@@ -67,6 +69,8 @@ test('captures a redacted request checkpoint without returning page payloads or 
 				'password',
 				'unlock-password',
 			],
+			visibleFormCount: 1,
+			visibleSubmitButtonCount: 1,
 		}],
 	})
 	const serialized = JSON.stringify(checkpoint)
