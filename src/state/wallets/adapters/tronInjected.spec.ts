@@ -470,5 +470,11 @@ describe('TRON TIP-6963/TIP-1193 adapter', () => {
 				firstAddress,
 			],
 		})
+
+		await expect(adapter.signMessage?.(
+			'tron-tip6963:tronlink',
+			secondAddress,
+			'Sign this TRON challenge'
+		)).rejects.toThrow(/account|authority|connected/i)
 	})
 })

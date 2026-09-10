@@ -4,7 +4,12 @@ import { isJsonObject, type JsonObject, type JsonValue } from '$/typescript/Json
 import { base58 } from '@scure/base'
 import * as Hash from 'ox/Hash'
 import { SvelteMap } from 'svelte/reactivity'
-import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import {
+	WalletAdapterPreDispatchFailure,
+	type WalletAdapter,
+	type WalletCandidate,
+	type WalletConnection,
+} from './types.ts'
 import { personalSign } from './eip1193.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
 
@@ -388,6 +393,10 @@ export const createTronInjectedAdapter = (): WalletAdapter => {
 			const provider = providerByWalletId.get(walletId)
 			if (provider == null)
 				throw new Error('TRON wallet provider is unavailable')
+			if (!stateByWalletId.get(walletId)?.accounts.includes(accountAddress))
+				throw new WalletAdapterPreDispatchFailure(
+					'TRON signing authority does not match a connected account'
+				)
 
 			return personalSign(provider, accountAddress, message)
 		},
