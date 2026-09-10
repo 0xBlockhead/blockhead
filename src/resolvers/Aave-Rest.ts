@@ -540,8 +540,14 @@ export default {
 								borrowApy: reserve.borrowInfo.apy.value,
 							}),
 							supplyApy: reserve.supplyInfo.apy.value,
+							...(reserve.supplyInfo.maxLTV != null && {
+								maxLtv: reserve.supplyInfo.maxLTV.value,
+							}),
 							...(reserve.supplyInfo.liquidationThreshold != null && {
 								liquidationThreshold: reserve.supplyInfo.liquidationThreshold.value,
+							}),
+							...(reserve.supplyInfo.liquidationBonus != null && {
+								liquidationBonus: reserve.supplyInfo.liquidationBonus.value,
 							}),
 							frozen: reserve.isFrozen,
 							paused: reserve.isPaused,
@@ -562,6 +568,8 @@ export default {
 			supplyApy: (reserve) => reserve.supplyApy,
 			borrowApy: (reserve) => reserve.borrowApy,
 			liquidationThreshold: (reserve) => reserve.liquidationThreshold,
+			maxLtv: (reserve) => reserve.maxLtv,
+			liquidationBonus: (reserve) => reserve.liquidationBonus,
 			frozen: (reserve) => reserve.frozen,
 			paused: (reserve) => reserve.paused,
 		}),

@@ -306,6 +306,50 @@
 				{/snippet}
 			</ResourceBoundary>
 
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							maxLtv: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const maxLtv = entity.maxLtv}
+					{#if maxLtv != null}
+						<div>
+							<dt>Max LTV</dt>
+							<dd>
+								{maxLtv}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							liquidationBonus: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const liquidationBonus = entity.liquidationBonus}
+					{#if liquidationBonus != null}
+						<div>
+							<dt>Liquidation bonus</dt>
+							<dd>
+								{liquidationBonus}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<div>
 				<dt>Frozen</dt>
 				<dd>

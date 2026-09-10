@@ -71,10 +71,23 @@ const space = {
 	moderators: [
 		author,
 	],
-	categories: [
-		'protocol',
-	],
-	proposalsCount: 1,
+		categories: [
+			'protocol',
+		],
+		delegationPortal: {
+			delegationType: 'compound-governor',
+			delegationContract: author,
+			delegationNetwork: '1',
+			delegationApi: 'https://api.snapshot.org',
+		},
+		treasuries: [
+			{
+				name: 'ENS DAO',
+				address: author,
+				network: '1',
+			},
+		],
+		proposalsCount: 1,
 	votesCount: 1,
 	followersCount: 42,
 	created: 1_700_000_000,
@@ -270,6 +283,30 @@ describe('Snapshot Hub public governance reads', () => {
 		await expect(getSpace({
 			spaceId,
 		})).rejects.toThrow('space contains duplicate account identity')
+	})
+
+	it('rejects duplicate space treasuries', async () => {
+		vi.spyOn(runtimeHttp, 'sourceFetch').mockResolvedValue(jsonResponse({
+			space: {
+				...space,
+				treasuries: [
+					{
+						name: 'ENS DAO',
+						address: author,
+						network: '1',
+					},
+					{
+						name: 'ENS DAO 2',
+						address: author,
+						network: '1',
+					},
+				],
+			},
+		}))
+
+		await expect(getSpace({
+			spaceId,
+		})).rejects.toThrow('space contains duplicate treasury')
 	})
 
 	it.each([

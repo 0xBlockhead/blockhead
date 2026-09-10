@@ -99,10 +99,23 @@ const space = {
 	moderators: [
 		author,
 	],
-	categories: [
-		'protocol',
-	],
-	proposalsCount: 1,
+		categories: [
+			'protocol',
+		],
+		delegationPortal: {
+			delegationType: 'compound-governor',
+			delegationContract: author,
+			delegationNetwork: '1',
+			delegationApi: 'https://api.snapshot.org',
+		},
+		treasuries: [
+			{
+				name: 'ENS DAO',
+				address: author,
+				network: '1',
+			},
+		],
+		proposalsCount: 1,
 	votesCount: 1,
 	followersCount: 42,
 	created: 1_700_000_000,
@@ -301,6 +314,17 @@ describe('SnapshotHub GraphQL resolvers', () => {
 					},
 				},
 			],
+			delegationType: 'compound-governor',
+			delegationContract: author,
+			delegationNetwork: '1',
+			delegationApi: 'https://api.snapshot.org',
+			treasuries: [
+				{
+					name: 'ENS DAO',
+					address: author,
+					network: '1',
+				},
+			],
 			createdAtMs: 1_700_000_000_000,
 		})
 	})
@@ -335,6 +359,10 @@ describe('SnapshotHub GraphQL resolvers', () => {
 			state: 'closed',
 			snapshotBlock: 19_000_000,
 			quorum: 100_000.25,
+			quorumType: 'default',
+			strategies,
+			scoresByStrategy: proposal.scores_by_strategy,
+			scoresState: 'final',
 			scoresTotal: 100_015.25,
 			scoresTotalValue: 100_015.25,
 			startAtMs: 1_700_000_100_000,

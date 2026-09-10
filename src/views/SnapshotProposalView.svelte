@@ -334,6 +334,72 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							quorumType: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const quorumType = entity.quorumType}
+					{#if quorumType != null}
+						<div>
+							<dt>Quorum type</dt>
+							<dd>
+								{quorumType}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							privacy: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const privacy = entity.privacy}
+					{#if privacy != null}
+						<div>
+							<dt>Privacy</dt>
+							<dd>
+								{privacy}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							snapshotBlock: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const snapshotBlock = entity.snapshotBlock}
+					{#if snapshotBlock != null}
+						<div>
+							<dt>Snapshot block</dt>
+							<dd>
+								{snapshotBlock}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
 				resource={snapshotProposal}
 			>
 				{#snippet children(entity)}
@@ -365,6 +431,50 @@
 							<dt>Scores total</dt>
 							<dd>
 								{scoresTotal}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							scoresTotalValue: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const scoresTotalValue = entity.scoresTotalValue}
+					{#if scoresTotalValue != null}
+						<div>
+							<dt>Scores total value</dt>
+							<dd>
+								{scoresTotalValue}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							scoresUpdatedAtMs: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const scoresUpdatedAtMs = entity.scoresUpdatedAtMs}
+					{#if scoresUpdatedAtMs != null}
+						<div>
+							<dt>Scores updated</dt>
+							<dd>
+								<Timestamp timestamp={scoresUpdatedAtMs} />
 							</dd>
 						</div>
 					{/if}
@@ -421,6 +531,94 @@
 				resource={
 					viewSelection({
 						fields: {
+							strategies: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const strategies = entity.strategies}
+					{#if strategies != null}
+						<div>
+							<dt>Strategies</dt>
+							<dd>
+								{JSON.stringify(strategies)}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							scores: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const scores = entity.scores}
+					{#if scores != null}
+						<div>
+							<dt>Scores</dt>
+							<dd>
+								{scores.join(', ')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							scoresByStrategy: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const scoresByStrategy = entity.scoresByStrategy}
+					{#if scoresByStrategy != null}
+						<div>
+							<dt>Scores by strategy</dt>
+							<dd>
+								{JSON.stringify(scoresByStrategy)}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							scoresState: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const scoresState = entity.scoresState}
+					{#if scoresState != null}
+						<div>
+							<dt>Scores state</dt>
+							<dd>
+								{scoresState}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
 							link: true,
 						},
 					})
@@ -461,6 +659,50 @@
 							<dt>App</dt>
 							<dd>
 								{app}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							ipfs: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const ipfs = entity.ipfs}
+					{#if ipfs != null}
+						<div>
+							<dt>IPFS ID</dt>
+							<dd>
+								{ipfs}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							symbol: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const symbol = entity.symbol}
+					{#if symbol != null}
+						<div>
+							<dt>Symbol</dt>
+							<dd>
+								{symbol}
 							</dd>
 						</div>
 					{/if}

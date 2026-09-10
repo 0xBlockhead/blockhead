@@ -60,6 +60,132 @@ export default entity({
 			Source.SnapshotHub_Graphql,
 		],
 	},
+	cover: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	website: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	twitter: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	github: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	farcaster: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	coingecko: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	discussions: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	terms: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	location: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	domain: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	private: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	strategies: {
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	categories: {
+		primitiveType: type('string').array(),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	delegationType: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	delegationContract: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	delegationNetwork: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	delegationApi: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	treasuries: {
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
 	proposalsCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -84,6 +210,27 @@ export default entity({
 	createdAtMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	$$admins: {
+		entityType: EntityType.EvmNetworkAccount,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	$$members: {
+		entityType: EntityType.EvmNetworkAccount,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	$$moderators: {
+		entityType: EntityType.EvmNetworkAccount,
+		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.SnapshotHub_Graphql,
 		],

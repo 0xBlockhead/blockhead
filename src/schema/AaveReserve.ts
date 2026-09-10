@@ -95,6 +95,20 @@ export default entity({
 			Source.Aave_Rest,
 		],
 	},
+	maxLtv: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Aave_Rest,
+		],
+	},
+	liquidationBonus: {
+		primitiveType: NonNegativeDecimalString,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Aave_Rest,
+		],
+	},
 	frozen: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.One,

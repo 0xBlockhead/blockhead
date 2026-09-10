@@ -37,6 +37,17 @@ export const SnapshotHubSpaceFragment = graphql(`
 		members
 		moderators
 		categories
+		delegationPortal {
+			delegationType
+			delegationContract
+			delegationNetwork
+			delegationApi
+		}
+		treasuries {
+			name
+			address
+			network
+		}
 		proposalsCount
 		votesCount
 		followersCount
@@ -151,6 +162,19 @@ export const snapshotHubStrategyEnvelope = arktype({
 	'params?': 'unknown',
 })
 
+export const snapshotHubDelegationPortalEnvelope = arktype({
+	delegationType: snapshotHubOpaqueIdentity,
+	delegationContract: snapshotHubOpaqueIdentity,
+	delegationNetwork: snapshotHubOpaqueIdentity,
+	delegationApi: snapshotHubOpaqueIdentity,
+})
+
+export const snapshotHubTreasuryEnvelope = arktype({
+	'name?': snapshotHubOptionalString,
+	address: snapshotHubOpaqueIdentity,
+	'network?': snapshotHubOptionalString,
+})
+
 export const snapshotHubSpaceEnvelope = arktype({
 	id: snapshotHubOpaqueIdentity,
 	'name?': snapshotHubOptionalString,
@@ -174,6 +198,8 @@ export const snapshotHubSpaceEnvelope = arktype({
 	'members?': snapshotHubOptionalStringList,
 	'moderators?': snapshotHubOptionalStringList,
 	'categories?': snapshotHubOptionalStringList,
+	'delegationPortal?': snapshotHubDelegationPortalEnvelope.or(arktype('null')),
+	'treasuries?': snapshotHubTreasuryEnvelope.array().or(arktype('null')),
 	'proposalsCount?': snapshotHubOptionalNonNegativeSafeInteger,
 	'votesCount?': snapshotHubOptionalNonNegativeSafeInteger,
 	'followersCount?': snapshotHubOptionalNonNegativeSafeInteger,
