@@ -69,7 +69,6 @@ import {
 	type WalletXrplTransactionRequest,
 } from './adapters/types.ts'
 import {
-	applyWalletConnectionSelection,
 	buildWalletConnection,
 	disconnectWalletConnection,
 	isSelectedWalletConnection,
@@ -145,7 +144,7 @@ type WalletRuntime = {
 	): Promise<void>
 	disconnect(connectionKey: string): Promise<void>
 	remove(connectionKey: string): Promise<void>
-	selectAccount(connectionKey: string, account: WalletAccount): void
+	selectAccount(connectionKey: string, account: WalletAccount): Promise<void>
 	destroy(): void
 }
 
@@ -350,14 +349,26 @@ const createWalletRuntimeState = (
 					const previous = connections.find((candidate) => (
 						walletConnectionKey(candidate) === connectionKey
 					))
+					const next = buildWalletConnection({
+						...nextConnection,
+						connectionKey,
+					})
+					const previousActiveAccount = previous?.activeAccount
+					// Polkadot publishes an account list, not the product's selected account.
+					const refreshedActiveAccount = previousActiveAccount != null
+						&& next.status === BlockheadConnectionStatus.Connected
+						&& next.protocol === WalletProtocol.PolkadotInjectedWeb3 ?
+							next.accounts.find((account) => (
+							account.namespace === previousActiveAccount.namespace
+							&& account.reference === previousActiveAccount.reference
+							&& account.accountAddress === previousActiveAccount.accountAddress
+						))
+						:
+							undefined
+					if (refreshedActiveAccount != null)
+						next.activeAccount = refreshedActiveAccount
 					void upsertConnection(
-						preserveWalletConnectionSelection(
-							previous,
-							buildWalletConnection({
-								...nextConnection,
-								connectionKey,
-							})
-						)
+						preserveWalletConnectionSelection(previous, next)
 					)
 				},
 				connection.connectionKey
@@ -956,6 +967,7 @@ const createWalletRuntimeState = (
 				&& row[EntityMetaKey.ParentSelectorKey] === authorityRequestSelectorKey
 			))
 		)
+		const persistedAccountReferenceKey = `Entity:${entitySelectorKey(schema, entityDefinitionByType[EntityType.Account], accountSelector)}`
 		const assertPersistedAuthority = () => {
 			assertAuthorityStillSelected()
 			const exactPrimitive = (fieldName: string, expected: JsonValue) => {
@@ -972,9 +984,7 @@ const createWalletRuntimeState = (
 			const accountRows = localAuthorityRows('$account')
 			if (
 				accountRows.length !== 1
-					|| stringify(accountRows[0][EntityMetaKey.Value]) !== stringify({
-						[EntityMetaKey.Selector]: accountSelector,
-					})
+				|| accountRows[0].valueKey !== persistedAccountReferenceKey
 			)
 				throw new Error('Persisted wallet authority account changed before dispatch.')
 			if (localAuthorityRows('decision').length !== 0)
@@ -1290,6 +1300,7 @@ const createWalletRuntimeState = (
 				&& row[EntityMetaKey.ParentSelectorKey] === authorityRequestSelectorKey
 			))
 		)
+		const persistedAccountReferenceKey = `Entity:${entitySelectorKey(schema, entityDefinitionByType[EntityType.Account], accountSelector)}`
 		const assertPersistedAuthority = () => {
 			assertAuthorityStillSelected()
 			const exactPrimitive = (fieldName: string, expected: JsonValue) => {
@@ -1302,9 +1313,7 @@ const createWalletRuntimeState = (
 			const accountRows = localAuthorityRows('$account')
 			if (
 				accountRows.length !== 1
-				|| stringify(accountRows[0][EntityMetaKey.Value]) !== stringify({
-					[EntityMetaKey.Selector]: accountSelector,
-				})
+				|| accountRows[0].valueKey !== persistedAccountReferenceKey
 			)
 				throw new Error('Persisted wallet authority account changed before dispatch.')
 			if (
@@ -1804,22 +1813,21 @@ const createWalletRuntimeState = (
 		)
 	}
 
-	const selectAccount = (
+	const selectAccount = async (
 		connectionKey: string,
 		account: WalletAccount
-	) => {
+	): Promise<void> => {
 		const selectedConnection = connections.find((connection) => (
 			walletConnectionKey(connection) === connectionKey
 		))
 		if (selectedConnection == null || selectedConnection.status !== BlockheadConnectionStatus.Connected)
 			return
 
-		connections = applyWalletConnectionSelection(connections, connectionKey, account)
-		for (const connection of connections) {
-			runtimeMutatedConnectionKeys.add(walletConnectionKey(connection))
-			if (connection.status === BlockheadConnectionStatus.Connected)
-				void writeLocalBlockheadWalletConnection(context, connection)
-		}
+		await upsertConnection({
+			...selectedConnection,
+			selected: true,
+			activeAccount: account,
+		})
 	}
 
 	return {

@@ -14,6 +14,7 @@ import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
 import type {
 	WalletAdapter,
+	WalletAccount,
 	WalletCandidate,
 	WalletConnection,
 	WalletTonInternalMessages,
@@ -40,6 +41,7 @@ const mountMockWalletRuntime = async ({
 	candidateAvailable = true,
 	disconnectDuringHydration,
 	connectionResults = [],
+	persistedAccountReferenceMutation,
 	disconnect = vi.fn(),
 	authorityDecisionBeforeOccurrence,
 	persistActionAuthorityRequest = vi.fn(),
@@ -48,6 +50,7 @@ const mountMockWalletRuntime = async ({
 	persistWalletRequest = vi.fn(),
 	persistWalletRequestObservation = vi.fn(),
 	persistWalletRequestSubmittedAt = vi.fn(),
+	persistWalletConnection = vi.fn(),
 	persistedConnections,
 	persistedProtocol = WalletProtocol.Eip6963,
 	persistedStatus,
@@ -73,6 +76,7 @@ const mountMockWalletRuntime = async ({
 	candidateAvailable?: boolean
 	disconnectDuringHydration?: 'resolve' | 'reject'
 	connectionResults?: (Error | WalletConnection)[]
+	persistedAccountReferenceMutation?: 'missing' | 'wrong'
 	disconnect?: (walletId: string, connectionKey?: string) => void | Promise<void>
 	authorityDecisionBeforeOccurrence?: 'denied' | 'cancelled' | 'prepared-without-dispatch'
 	persistActionAuthorityRequest?: (context: object, request: { id: string }) => void | Promise<void>
@@ -89,6 +93,7 @@ const mountMockWalletRuntime = async ({
 		walletRequestSelector: object,
 		submittedAt: number
 	) => void | Promise<void>
+	persistWalletConnection?: (context: object, connection: WalletConnection) => void | Promise<void>
 	persistedConnections?: {
 		connectionKey: string
 		walletId: string
@@ -184,7 +189,7 @@ const mountMockWalletRuntime = async ({
 		return () => {}
 	})
 	const deleteConnection = vi.fn()
-	const writeConnection = vi.fn()
+	const writeConnection = vi.fn(persistWalletConnection)
 	const writeWalletRequest = vi.fn(persistWalletRequest)
 	const writeWalletRequestObservation = vi.fn(persistWalletRequestObservation)
 	const writeWalletRequestSubmittedAt = vi.fn(persistWalletRequestSubmittedAt)
@@ -206,16 +211,34 @@ const mountMockWalletRuntime = async ({
 			entityDefinitionByType[EntityType.BlockheadActionAuthorityRequest],
 			{ id: request.id }
 		)
-		for (const [fieldName, value] of [
+		for (const [fieldName, value, valueKey] of [
 			['envelope', request.envelope],
 			['envelopeHash', request.envelopeHash],
-			['$account', { [EntityMetaKey.Selector]: request.account }],
+			['$account', {
+				[EntityMetaKey.Selector]: request.account,
+				[EntityMetaKey.SelectorKey]: entitySelectorKey(schema, entityDefinitionByType[EntityType.Account], request.account),
+			}, `Entity:${entitySelectorKey(schema, entityDefinitionByType[EntityType.Account], request.account)}`],
 		] as const)
 			authorityRowsByField.set(fieldName, [{
 				[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
 				[EntityMetaKey.Source]: Source.Local_Internal,
 				[EntityMetaKey.Value]: value,
+				...(valueKey !== undefined && { valueKey }),
 			}])
+		if (persistedAccountReferenceMutation != null) {
+			const accountRow = authorityRowsByField.get('$account')?.[0]
+			if (accountRow != null)
+				if (persistedAccountReferenceMutation === 'missing')
+					delete accountRow.valueKey
+				else
+					accountRow.valueKey = `Entity:${entitySelectorKey(schema, entityDefinitionByType[EntityType.Account], {
+						caip10: {
+							namespace: 'eip155',
+							reference: '1',
+							accountAddress: '0x0000000000000000000000000000000000000001',
+						},
+					})}`
+		}
 		if (authorityDecisionBeforeOccurrence)
 			authorityDecisionRows.push({
 				[EntityMetaKey.ParentSelectorKey]: entitySelectorKey(
@@ -581,6 +604,25 @@ describe('wallet connection runtime normalization', () => {
 		accountsChanged?.([])
 
 		expect(observedAccounts).toEqual([[]])
+	})
+
+	it.each(['missing', 'wrong'] as const)('refuses message dispatch when persisted account reference is %s', async (mutation) => {
+		const signMessage = vi.fn(async () => '0xsigned')
+		const { runtime, hydration, writeDispatchOccurrenceStart } = await mountMockWalletRuntime({
+			persistedStatus: BlockheadConnectionStatus.Connected,
+			persistedAccountReferenceMutation: mutation,
+			candidateCapabilities: [WalletCapability.Connect, WalletCapability.SignMessage],
+			signMessage,
+		})
+		await hydration
+		await expect(runtime.signMessage({
+			connectionKey: 'persisted-session',
+			message: 'Verify the persisted authority before signing',
+			authorityPresentation: { submittedAt: 1 },
+		})).rejects.toThrow('Persisted wallet authority account changed before dispatch.')
+		expect(signMessage).not.toHaveBeenCalled()
+		expect(writeDispatchOccurrenceStart).not.toHaveBeenCalled()
+		runtime.destroy()
 	})
 
 	it('persists message-signing request lifecycle as hashes without claiming chain finality', async () => {
@@ -3347,6 +3389,138 @@ describe('wallet connection runtime normalization', () => {
 		runtime.destroy()
 	})
 
+	it('preserves product-selected Polkadot accounts while refreshing their capabilities', async () => {
+		const accounts: WalletAccount[] = [
+			{
+				namespace: 'polkadot',
+				reference: '91b171bb158e2d3848fa23a9f1c25182f',
+				accountAddress: '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5',
+				capabilities: [WalletCapability.Connect],
+			},
+			{
+				namespace: 'polkadot',
+				reference: '91b171bb158e2d3848fa23a9f1c25182f',
+				accountAddress: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+				capabilities: [WalletCapability.Connect, WalletCapability.SignMessage],
+			},
+		]
+		const { runtime, updateConnection } = await mountMockWalletRuntime({
+			persistedWalletId: 'polkadot:polkadotjs',
+			candidateProtocol: WalletProtocol.PolkadotInjectedWeb3,
+			candidateDiscoveryKind: WalletDiscoveryKind.InjectedGlobal,
+			candidateTransportKind: WalletTransportKind.InjectedSigner,
+			connectionResults: [{
+				connectionKey: 'polkadot-session', walletId: 'polkadot:polkadotjs',
+				status: BlockheadConnectionStatus.Connected, protocol: WalletProtocol.PolkadotInjectedWeb3,
+				transportKind: WalletTransportKind.InjectedSigner, scopes: [], accounts,
+				activeAccount: accounts[1], selected: true,
+			}],
+		})
+		await runtime.connect('polkadot:polkadotjs')
+		await runtime.selectAccount('polkadot-session', accounts[1])
+		// Polkadot's account list has no native active-account field; Blockhead selection is authoritative.
+		const refreshedAccounts = accounts.map((account) => ({ ...account, capabilities: [WalletCapability.Connect] }))
+		updateConnection({
+			connectionKey: 'polkadot-session', walletId: 'polkadot:polkadotjs',
+			status: BlockheadConnectionStatus.Connected, protocol: WalletProtocol.PolkadotInjectedWeb3,
+			transportKind: WalletTransportKind.InjectedSigner, scopes: [], accounts: refreshedAccounts,
+			activeAccount: refreshedAccounts[0], selected: true,
+		})
+		await vi.waitFor(() => expect(runtime.connections[0]?.activeAccount?.accountAddress).toBe(accounts[1].accountAddress))
+		await vi.waitFor(() => expect(runtime.connections[0]?.activeAccount?.capabilities).toEqual([WalletCapability.Connect]))
+		updateConnection({
+			connectionKey: 'polkadot-session', walletId: 'polkadot:polkadotjs',
+			status: BlockheadConnectionStatus.Connected, protocol: WalletProtocol.PolkadotInjectedWeb3,
+			transportKind: WalletTransportKind.InjectedSigner, scopes: [], accounts: [accounts[0]],
+			activeAccount: accounts[0], selected: true,
+		})
+		await vi.waitFor(() => expect(runtime.connections[0]?.activeAccount?.accountAddress).toBe(accounts[0].accountAddress))
+		updateConnection({
+			connectionKey: 'polkadot-session', walletId: 'polkadot:polkadotjs',
+			status: BlockheadConnectionStatus.Disconnected, protocol: WalletProtocol.PolkadotInjectedWeb3,
+			transportKind: WalletTransportKind.InjectedSigner, scopes: [], accounts: [accounts[0]],
+			selected: false,
+		})
+		await vi.waitFor(() => expect(runtime.connections[0]?.status).toBe(BlockheadConnectionStatus.Disconnected))
+		await vi.waitFor(() => expect(runtime.connections[0]?.activeAccount).toBeUndefined())
+		runtime.destroy()
+	})
+
+	it('does not publish selected Polkadot account until durable persistence completes', async () => {
+		const accounts: WalletAccount[] = [
+			{
+				namespace: 'polkadot',
+				reference: '91b171bb158e2d3848fa23a9f1c25182f',
+				accountAddress: '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5',
+				capabilities: [WalletCapability.Connect],
+			},
+			{
+				namespace: 'polkadot',
+				reference: '91b171bb158e2d3848fa23a9f1c25182f',
+				accountAddress: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
+				capabilities: [WalletCapability.Connect],
+			},
+		]
+		const persistence = Promise.withResolvers<void>()
+		let deferSelectionPersistence = false
+		const { runtime, writeConnection } = await mountMockWalletRuntime({
+			persistedWalletId: 'polkadot:polkadotjs',
+			candidateProtocol: WalletProtocol.PolkadotInjectedWeb3,
+			candidateDiscoveryKind: WalletDiscoveryKind.InjectedGlobal,
+			candidateTransportKind: WalletTransportKind.InjectedSigner,
+			connectionResults: [{
+				connectionKey: 'polkadot-session', walletId: 'polkadot:polkadotjs',
+				status: BlockheadConnectionStatus.Connected, protocol: WalletProtocol.PolkadotInjectedWeb3,
+				transportKind: WalletTransportKind.InjectedSigner, scopes: [], accounts,
+				activeAccount: accounts[0], selected: true,
+			}],
+			persistWalletConnection: () => deferSelectionPersistence ? persistence.promise : undefined,
+		})
+		await runtime.connect('polkadot:polkadotjs')
+
+		deferSelectionPersistence = true
+		const selection = runtime.selectAccount('polkadot-session', accounts[1])
+		expect(selection).toBeInstanceOf(Promise)
+		expect(runtime.connections[0]?.activeAccount?.accountAddress).toBe(accounts[0].accountAddress)
+		expect(writeConnection).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+		activeAccount: accounts[1],
+	}))
+
+		persistence.resolve()
+		await selection
+		expect(runtime.connections[0]?.activeAccount?.accountAddress).toBe(accounts[1].accountAddress)
+		const persistenceFailure = new Error('selection persistence failed')
+		writeConnection.mockRejectedValueOnce(persistenceFailure)
+		await expect(runtime.selectAccount('polkadot-session', accounts[0])).rejects.toBe(persistenceFailure)
+		expect(runtime.connections[0]?.activeAccount?.accountAddress).toBe(accounts[1].accountAddress)
+		runtime.destroy()
+	})
+
+	it('lets an explicit EIP adapter account switch win while the prior account remains listed', async () => {
+		const accounts: WalletAccount[] = [
+			{ namespace: 'eip155', reference: '1', accountAddress: '0x0000000000000000000000000000000000000001', capabilities: [WalletCapability.Connect] },
+			{ namespace: 'eip155', reference: '1', accountAddress: '0x0000000000000000000000000000000000000002', capabilities: [WalletCapability.Connect] },
+		]
+		const { runtime, updateConnection } = await mountMockWalletRuntime({
+			connectionResults: [{
+				connectionKey: 'eip6963-session', walletId: 'eip6963:com.example.wallet',
+				status: BlockheadConnectionStatus.Connected, protocol: WalletProtocol.Eip6963,
+				transportKind: WalletTransportKind.InjectedProvider, scopes: [], accounts,
+				activeAccount: accounts[0], selected: true,
+			}],
+		})
+		await runtime.connect('eip6963:com.example.wallet')
+		await runtime.selectAccount('eip6963-session', accounts[0])
+		updateConnection({
+			connectionKey: 'eip6963-session', walletId: 'eip6963:com.example.wallet',
+			status: BlockheadConnectionStatus.Connected, protocol: WalletProtocol.Eip6963,
+			transportKind: WalletTransportKind.InjectedProvider, scopes: [], accounts,
+			activeAccount: accounts[1], selected: true,
+		})
+		await vi.waitFor(() => expect(runtime.connections[0]?.activeAccount?.accountAddress).toBe(accounts[1].accountAddress))
+		runtime.destroy()
+	})
+
 	it('keeps exactly one selected Connected row across successive connects', async () => {
 		const account = {
 			namespace: 'eip155',
@@ -3542,6 +3716,19 @@ describe('wallet connection runtime normalization', () => {
 			persistedProtocol: WalletProtocol.TonConnect,
 			persistedStatus: BlockheadConnectionStatus.Connected,
 			...options,
+		})
+
+		it.each(['missing', 'wrong'] as const)('refuses TON dispatch when persisted account reference is %s', async (mutation) => {
+			const signTonInternalMessages = vi.fn(async () => 'te6ccgEBAQEB')
+			const { runtime, hydration, writeDispatchOccurrenceStart } = await mountTon({ persistedAccountReferenceMutation: mutation, signTonInternalMessages })
+			await hydration
+			await expect(runtime.signTonInternalMessages({
+				connectionKey: 'persisted-session',
+				request: tonRequest(),
+				authorityPresentation: { submittedAt: 1 },
+			})).rejects.toThrow('Persisted wallet authority account changed before dispatch.')
+			expect(signTonInternalMessages).not.toHaveBeenCalled()
+			expect(writeDispatchOccurrenceStart).not.toHaveBeenCalled()
 		})
 
 		it('persists the protocol envelope, dispatches once, and records the internal BOC hash', async () => {

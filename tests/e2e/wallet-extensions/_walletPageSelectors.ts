@@ -1,6 +1,7 @@
-import type {
-	Locator,
-	Page,
+import {
+	expect,
+	type Locator,
+	type Page,
 } from '@playwright/test'
 
 
@@ -19,6 +20,7 @@ export const walletConnectNameByDriver = {
 	Lace: 'Lace',
 	MetaMask: 'MetaMask',
 	Petra: 'Petra',
+	Phantom: 'Phantom',
 	PolkadotJs: 'polkadot-js',
 	Rabby: 'Rabby',
 	Taho: 'Taho',
@@ -41,11 +43,20 @@ export const walletConnectionsStatusById = (page: Page) => (
 	page.locator('#wallet-connections')
 )
 
+export const waitForWalletPageReady = async (
+	page: Page,
+	timeout = 45_000
+) => {
+	const walletSurface = walletConnectionsStatusById(page)
+	const routeFailure = page.locator('main [role="alert"]')
+	await expect(walletSurface.or(routeFailure)).toBeVisible({ timeout })
+	if (await routeFailure.isVisible())
+		throw new Error('Wallet route failed before provider discovery; inspect structural diagnostics')
+	return walletSurface
+}
+
 export const connectWalletButton = (page: Page, walletName: string) => (
-	page.getByRole('button', {
-		name: `Connect ${walletName}`,
-		exact: true,
-	})
+	page.locator(`[data-wallet-name="${walletName}"][data-wallet-state="candidate"] [data-wallet-action="connect"]`)
 )
 
 export const connectWalletButtonForDriver = (
@@ -56,22 +67,11 @@ export const connectWalletButtonForDriver = (
 )
 
 export const walletCandidateCard = (page: Page, walletName: string) => (
-	page.getByRole('article').filter({
-		has: connectWalletButton(page, walletName),
-	})
+	page.locator(`[data-wallet-name="${walletName}"][data-wallet-state="candidate"]`)
 )
 
 export const walletConnectionCard = (page: Page, walletName: string) => (
-	page.getByRole('article').filter({
-		has: page.getByRole('link', {
-			name: walletName,
-			exact: true,
-		}).and(page.locator('[href*="/~/wallets/connections/"]')),
-	}).filter({
-		has: page.getByRole('group', {
-			name: 'Active account and network',
-		}).or(page.getByRole('radio')),
-	})
+	page.locator(`[data-wallet-name="${walletName}"][data-wallet-state="connection"]`)
 )
 
 export const walletConnectionCardByNameFallback = (page: Page, walletName: string) => (
@@ -84,13 +84,11 @@ export const walletConnectionCardByNameFallback = (page: Page, walletName: strin
 )
 
 export const selectedWalletAccount = (connection: Locator) => (
-	connection.getByRole('radio', {
-		checked: true,
-	})
+	connection.locator('[data-wallet-action="select-account"]:checked')
 )
 
 export const selectedWalletAccountLabel = (connection: Locator) => (
-	connection.locator('label:has(input[type="radio"]:checked)')
+	connection.locator('label:has([data-wallet-action="select-account"]:checked)')
 )
 
 export const walletAccountRadio = (connection: Locator, accountLabel: string | RegExp) => (
@@ -100,26 +98,19 @@ export const walletAccountRadio = (connection: Locator, accountLabel: string | R
 )
 
 export const retryConnectionButton = (page: Page) => (
-	page.getByRole('button', {
-		name: /^Retry (?:connection|connect)$/,
-	})
+	page.locator('[data-wallet-action="retry"]')
 )
 
 export const disconnectWalletButton = (scope: Page | Locator) => (
-	scope.getByRole('button', {
-		name: /Disconnect (?:wallet|from Blockhead)/,
-	})
+	scope.locator('[data-wallet-action="disconnect"]')
 )
 
 export const messageToSignInput = (connection: Locator) => (
-	connection.getByLabel('Message to sign')
+	connection.locator('[data-wallet-action="sign-message"] input[name="message"]')
 )
 
 export const signMessageButton = (connection: Locator) => (
-	connection.getByRole('button', {
-		name: 'Sign message',
-		exact: true,
-	})
+	connection.locator('button[data-wallet-action="sign-message"]')
 )
 
 export const walletRequestHistory = (page: Page) => (

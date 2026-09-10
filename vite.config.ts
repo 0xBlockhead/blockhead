@@ -1,4 +1,5 @@
 import devtoolsJson from 'vite-plugin-devtools-json'
+import { realpathSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
@@ -95,6 +96,13 @@ export default defineConfig({
 		devtoolsJson(),
 	],
 	server: {
+		fs: {
+			allow: [
+				import.meta.dirname,
+				realpathSync(resolve(import.meta.dirname, 'node_modules')),
+				realpathSync(resolve(import.meta.dirname, 'node_modules/.pnpm')),
+			],
+		},
 		strictPort: true,
 		watch: {
 			ignored: [

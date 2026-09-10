@@ -1,6 +1,8 @@
 import type {
 	BrowserContext,
 	Page,
+	Request,
+	Response,
 } from 'playwright'
 
 
@@ -32,6 +34,175 @@ export type WalletExtensionRequestCheckpoint = WalletExtensionSurfaceCheckpoint 
 	}
 }
 
+export type WalletExtensionStructuralTelemetry = {
+	events: Array<{ elapsedMilliseconds: number; kind: 'http-error' | 'page-crash' | 'page-error' | 'request-failed'; page: string; resourceType?: string; classification: string }>
+	pageControls: Array<{ page: string; buttons: number; disabledButtons: number; inputs: number; dialogs: number; alerts: number }>
+	pageErrors: string[]
+	networkFailures: Array<{ path: string; status: number | null; classification: string }>
+	controls: {
+		buttons: number
+		disabledButtons: number
+		inputs: number
+		dialogs: number
+		alerts: number
+	}
+}
+
+const telemetryLimit = 32
+const diagnosticPaths = new Set([
+	'/', '/index.html', '/popup.html', '/notification.html',
+	'/tonconnect-manifest.json', '/favicon.png', '/json', '/~/wallets',
+])
+
+const diagnosticNetworkLocation = (url: string) => {
+	try {
+		const parsed = new URL(url)
+		if (parsed.protocol === 'about:') return 'about:blank'
+		const path = diagnosticPaths.has(parsed.pathname) ? parsed.pathname : '/[redacted]'
+		return `${parsed.protocol}//${parsed.host}${path}`
+	} catch {
+		return 'unparseable'
+	}
+}
+
+export type WalletExtensionStructuralTelemetryController = {
+	capture: () => Promise<WalletExtensionStructuralTelemetry & { surface: WalletExtensionSurfaceCheckpoint }>
+	dispose: () => void
+}
+
+export const attachWalletExtensionStructuralTelemetry = (
+	context: BrowserContext
+): WalletExtensionStructuralTelemetryController => {
+	const pageErrors: string[] = []
+	const networkFailures: Array<{ url: string; status: number | null; errorText?: string }> = []
+	const events: WalletExtensionStructuralTelemetry['events'] = []
+	const startedAt = Date.now()
+	const listeners = new Map<Page, Array<() => void>>()
+	const boundedPush = <_Value>(values: _Value[], value: _Value) => {
+		values.push(value)
+		if (values.length > telemetryLimit) values.shift()
+	}
+	const attach = (page: Page) => {
+		if (listeners.has(page)) return
+		const record = (event: Omit<WalletExtensionStructuralTelemetry['events'][number], 'elapsedMilliseconds' | 'page'>) => boundedPush(events, {
+			...event,
+			elapsedMilliseconds: Date.now() - startedAt,
+			page: diagnosticNetworkLocation(page.url()),
+		})
+		const onPageError = (error: Error) => {
+			const classification = safeErrorClassification(error.message)
+			boundedPush(pageErrors, classification)
+			record({ kind: 'page-error', classification })
+		}
+		const onCrash = () => {
+			boundedPush(pageErrors, 'page-crash')
+			record({ kind: 'page-crash', classification: 'page-crash' })
+		}
+		const onRequestFailed = (request: Request) => {
+			const classification = safeErrorClassification(request.failure()?.errorText ?? 'network')
+			boundedPush(networkFailures, { url: diagnosticNetworkLocation(request.url()), status: null, errorText: classification })
+			record({ kind: 'request-failed', classification, resourceType: request.resourceType() })
+		}
+		const onResponse = (response: Response) => {
+			if (response.status() >= 400) {
+				boundedPush(networkFailures, { url: diagnosticNetworkLocation(response.url()), status: response.status() })
+				record({ kind: 'http-error', classification: `http-${response.status()}`, resourceType: response.request().resourceType() })
+			}
+		}
+		page.on('pageerror', onPageError)
+		page.on('crash', onCrash)
+		page.on('requestfailed', onRequestFailed)
+		page.on('response', onResponse)
+		listeners.set(page, [
+			() => page.off('pageerror', onPageError),
+			() => page.off('crash', onCrash),
+			() => page.off('requestfailed', onRequestFailed),
+			() => page.off('response', onResponse),
+		])
+	}
+	const onPage = (page: Page) => attach(page)
+	context.on('page', onPage)
+	for (const page of context.pages()) attach(page)
+	return {
+		capture: async () => {
+			const pages = context.pages()
+			const extensionPages = pages.filter((page) => page.url().startsWith('chrome-extension://'))
+			const surface = await captureWalletExtensionSurfaceCheckpoint(extensionPages)
+			const controls = await Promise.all(pages.map(async (page) => ({
+				buttons: await page.locator('button:visible, [role="button"]:visible').count(),
+				disabledButtons: await page.locator('button:visible:disabled, [role="button"][aria-disabled="true"]:visible').count(),
+				inputs: await page.locator('input:visible').count(),
+				dialogs: await page.locator('dialog:visible, [role="dialog"]:visible').count(),
+				alerts: await page.locator('[role="alert"]:visible').count(),
+			})))
+			const telemetry = walletExtensionStructuralTelemetryFromSnapshot({
+				...controls.reduce((total, next) => ({
+					buttons: total.buttons + next.buttons,
+					disabledButtons: total.disabledButtons + next.disabledButtons,
+					inputs: total.inputs + next.inputs,
+					dialogs: total.dialogs + next.dialogs,
+					alerts: total.alerts + next.alerts,
+				}), { buttons: 0, disabledButtons: 0, inputs: 0, dialogs: 0, alerts: 0 }),
+				pageErrors,
+				networkFailures,
+			})
+			return {
+				...telemetry,
+				events: [...events],
+				pageControls: controls.map((control, index) => ({ ...control, page: diagnosticNetworkLocation(pages[index]?.url() ?? '') })),
+				networkFailures: networkFailures.map(({ url, status, errorText }) => ({ path: url, status, classification: errorText ?? 'network' })),
+				surface,
+			}
+		},
+		dispose: () => {
+			context.off('page', onPage)
+			for (const [page, remove] of listeners) {
+				for (const listener of remove) listener()
+				listeners.delete(page)
+			}
+		},
+	}
+}
+
+const safeErrorClassification = (message: string) => {
+	if (message === 'page-crash') return 'page-crash'
+	if (['net::ERR_ABORTED', 'net::ERR_CONNECTION_REFUSED', 'net::ERR_NAME_NOT_RESOLVED', 'net::ERR_FAILED'].includes(message))
+		return message
+	const normalized = message.toLowerCase()
+	if (normalized.includes('timeout')) return 'timeout'
+	if (normalized.includes('network') || normalized.includes('fetch')) return 'network'
+	if (normalized.includes('permission') || normalized.includes('denied')) return 'permission'
+	return 'page-error'
+}
+
+export const walletExtensionStructuralTelemetryFromSnapshot = ({
+	buttons,
+	disabledButtons,
+	inputs,
+	dialogs,
+	alerts,
+	pageErrors,
+	networkFailures,
+}: {
+	buttons: number
+	disabledButtons: number
+	inputs: number
+	dialogs: number
+	alerts: number
+	pageErrors: readonly string[]
+	networkFailures: readonly { url: string; status: number | null; errorText?: string }[]
+}): WalletExtensionStructuralTelemetry => ({
+	events: [],
+	pageControls: [],
+	controls: { buttons, disabledButtons, inputs, dialogs, alerts },
+	pageErrors: [...new Set(pageErrors.map(safeErrorClassification))],
+	networkFailures: networkFailures.map(({ url, status, errorText }) => ({
+		path: diagnosticNetworkLocation(url),
+		status,
+		classification: safeErrorClassification(errorText ?? (status != null && status >= 400 ? 'network failure' : 'network')),
+	})),
+})
+
 export type WalletExtensionPhaseSample<_OwnedSurface> = {
 	checkpoint: WalletExtensionSurfaceCheckpoint
 	ownedSurface: _OwnedSurface | null
@@ -46,6 +217,7 @@ const safeVisibleLabels = new Set([
 	'cancel',
 	'confirm',
 	'connect to blockhead',
+	'connect to blockhead?',
 	'connect wallet',
 	'continue',
 	'enter password',
@@ -57,7 +229,7 @@ const safeVisibleLabels = new Set([
 ])
 
 const normalizedVisibleLabels = (labels: readonly string[]) => (
-	[...new Set(labels.map((label) => label.trim()).filter(Boolean).map((label) => (
+	[...new Set(labels.map((label) => label.trim().replace(/\s+/g, ' ')).filter(Boolean).map((label) => (
 		safeVisibleLabels.has(label.toLowerCase()) ? label : '[redacted]'
 	)))]
 )
@@ -202,7 +374,7 @@ export const waitForWalletExtensionPhase = async <_OwnedSurface>({
 		const captureTimeout = new AbortController()
 		const sampleOrTimeout = await Promise.race([
 			capture(),
-			clock.wait(remainingMilliseconds, captureTimeout.signal).then(() => phaseCaptureTimeout),
+			clock.wait(remainingMilliseconds, captureTimeout.signal).then((): typeof phaseCaptureTimeout => phaseCaptureTimeout),
 		]).finally(() => captureTimeout.abort())
 		if (sampleOrTimeout === phaseCaptureTimeout)
 			throw new WalletExtensionPhaseTimeoutError(phase, lastCheckpoint)

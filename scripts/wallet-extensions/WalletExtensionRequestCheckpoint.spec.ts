@@ -6,6 +6,7 @@ import {
 	WalletExtensionPhaseTimeoutError,
 	walletExtensionRequestCheckpointFromSnapshots,
 	walletExtensionSurfaceCheckpointFromSnapshots,
+	walletExtensionStructuralTelemetryFromSnapshot,
 } from './WalletExtensionRequestCheckpoint.ts'
 
 
@@ -171,4 +172,54 @@ test('reports a missing Blockhead wallet surface instead of treating it as zero 
 		extensionPages: [],
 		walletConnectionsText: null,
 	}).blockhead.walletSurfacePresent, false)
+})
+
+test('redacts structural telemetry while preserving changed error classes and safe paths', () => {
+	const telemetry = walletExtensionStructuralTelemetryFromSnapshot({
+		buttons: 4,
+		disabledButtons: 2,
+		inputs: 1,
+		dialogs: 1,
+		alerts: 0,
+		pageErrors: ['Permission denied for seed phrase private-value', 'Permission denied for seed phrase private-value', 'render timeout token=secret'],
+		networkFailures: [{
+			url: 'https://wallet.example/request?seed=private',
+			status: 403,
+			errorText: 'permission denied secret',
+		}],
+	})
+	assert.deepEqual(telemetry, {
+		events: [],
+		pageControls: [],
+		controls: { buttons: 4, disabledButtons: 2, inputs: 1, dialogs: 1, alerts: 0 },
+		pageErrors: ['permission', 'timeout'],
+		networkFailures: [{ path: 'https://wallet.example/[redacted]', status: 403, classification: 'permission' }],
+	})
+	assert.equal(JSON.stringify(telemetry).includes('private'), false)
+})
+
+test('distinguishes missing controls from disabled controls without inferring refusal', () => {
+	const missing = walletExtensionStructuralTelemetryFromSnapshot({ buttons: 0, disabledButtons: 0, inputs: 0, dialogs: 0, alerts: 0, pageErrors: [], networkFailures: [] })
+	const disabled = walletExtensionStructuralTelemetryFromSnapshot({ buttons: 2, disabledButtons: 2, inputs: 1, dialogs: 1, alerts: 0, pageErrors: [], networkFailures: [] })
+	assert.deepEqual(missing.controls, { buttons: 0, disabledButtons: 0, inputs: 0, dialogs: 0, alerts: 0 })
+	assert.deepEqual(disabled.controls, { buttons: 2, disabledButtons: 2, inputs: 1, dialogs: 1, alerts: 0 })
+})
+
+test('retains known browser transport failures without echoing arbitrary error messages', () => {
+	const errors = ['net::ERR_ABORTED', 'net::ERR_CONNECTION_REFUSED', 'net::ERR_NAME_NOT_RESOLVED', 'net::ERR_FAILED']
+	const telemetry = walletExtensionStructuralTelemetryFromSnapshot({
+		buttons: 0,
+		disabledButtons: 0,
+		inputs: 0,
+		dialogs: 0,
+		alerts: 0,
+		pageErrors: [],
+		networkFailures: [...errors, 'net::ERR_ABORTED private-value'].map((errorText) => ({
+			url: 'https://wallet.example/?secret=private-value',
+			status: null,
+			errorText,
+		})),
+	})
+	assert.deepEqual(telemetry.networkFailures.map(({ classification }) => classification), [...errors, 'page-error'])
+	assert.equal(JSON.stringify(telemetry).includes('private-value'), false)
 })
