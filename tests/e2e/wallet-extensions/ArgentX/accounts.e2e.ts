@@ -8,6 +8,7 @@ import {
 	selectedWalletAccount,
 	walletConnectionCard,
 	walletConnectionsStatus,
+	waitForWalletPageReady,
 } from '../_walletPageSelectors.ts'
 import { expect, test } from '../wallet.fixture.ts'
 
@@ -24,7 +25,6 @@ test('exercises the Argent X account and connection lifecycle', async ({
 	baseURL,
 	context,
 	extensions,
-	page,
 }) => {
 	const extension = extensions.find(({ kind }) => kind === 'argent-x')
 	if (!extension)
@@ -43,9 +43,12 @@ test('exercises the Argent X account and connection lifecycle', async ({
 		extension,
 		randomBytes(24).toString('base64url')
 	)
+	const page = await context.newPage()
 	await page.goto(`${baseURL ?? 'http://127.0.0.1:5173'}/~/wallets`, {
-		waitUntil: 'load',
+		timeout: 60_000,
+		waitUntil: 'domcontentloaded',
 	})
+	await waitForWalletPageReady(page, 60_000)
 	await expect(walletConnectionsStatus(page)).toContainText(/Wallet discovery active\..*Providers detected: [1-9]/, {
 		timeout: 60_000,
 	})

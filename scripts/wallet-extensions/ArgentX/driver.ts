@@ -148,11 +148,16 @@ export const argentXDriver = {
 		page: Page,
 		accountOrdinal: 1 | 2
 	) => {
-		const accountNames = page.getByTestId('account-name')
-		if (await accountNames.count() !== 2)
+		const accountRows = page.getByTestId('account-name').locator('xpath=ancestor::button[1]')
+		if (await accountRows.count() !== 2)
 			await click(page, 'Show account list')
 
-		await accountNames.nth(accountOrdinal - 1).click()
+		await expect(accountRows, 'Argent X account list did not expose two selectable account rows').toHaveCount(2, {
+			timeout: 15_000,
+		})
+		const accountRow = accountRows.nth(accountOrdinal - 1)
+		await expect(accountRow, `Argent X account selection phase could not find ordinal ${accountOrdinal}`).toBeVisible()
+		await accountRow.click()
 	},
 } as const satisfies {
 	kind: 'argent-x'
