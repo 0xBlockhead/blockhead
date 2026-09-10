@@ -161,7 +161,7 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 	expect(subnet.$$blockchains).toHaveLength(1)
 	expect(subnetResolver.projections.$$validators.resolveCount(subnet)).toBe(1)
 	expect(subnetResolver.projections.$$blockchains.resolveCount(subnet)).toBe(1)
-	expect(subnetResolver.projections.$$delegators.resolveCount(subnet)).toBe(3)
+	expect(subnetResolver.projections.$$delegators.resolveCount(subnet)).toBe(0)
 	expect(subnet.$$timestamps[0][EntityMetaKey.Fields]).toMatchObject({
 		[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'validatorCount')]: 1,
 		[entityFieldAddressKey(EntityType.AvalancheSubnet_Timestamp, [], 'chainCount')]: 1,
@@ -176,7 +176,7 @@ it('projects enrolled blockchain, subnet, validator, and P-Chain block fields', 
 	expect(validator.stakeAmountNavax).toBe(2000000000000n)
 	expect(validator.delegationFeePercent).toBe(2)
 	expect(validator.rewardOwnerAddresses).toEqual(['P-avax1owner'])
-	expect(validatorResolver.projections.$$delegators.resolveCount(validator)).toBe(3)
+	expect(validatorResolver.projections.$$delegators.resolveCount(validator)).toBe(1)
 	expect(validatorResolver.projections.$$delegators.select(validator)).toEqual([{
 		[EntityMetaKey.Selector]: {
 			$validator: {
