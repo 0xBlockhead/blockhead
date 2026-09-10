@@ -2799,7 +2799,7 @@ describe('local mutation authority journal', () => {
 			'$$timestamps'
 		)]?.toArray).toEqual([
 			expect.objectContaining({
-				[EntityMetaKey.Value]: 1,
+				[EntityMetaKey.Value]: 2,
 			}),
 		])
 		const readinessCheck = {
