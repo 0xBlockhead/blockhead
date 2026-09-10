@@ -79,12 +79,7 @@ export const tahoDriver = {
 			timeout: 30_000,
 		})
 	},
-	approveConnection: async (page: Page) => {
-		await clickFirstVisible(page, [
-			/Connect/i,
-			/Approve/i,
-		])
-	},
+	approveConnection: (page: Page) => approveTahoRequest(page),
 	rejectConnection: async (page: Page) => {
 		await clickFirstVisible(page, [
 			/Reject/i,
@@ -125,6 +120,16 @@ const clickFirstVisible = async (page: Page, names: RegExp[]) => {
 	}
 
 	throw new Error(`Taho did not show any expected action: ${names.map(String).join(', ')}`)
+}
+
+const approveTahoRequest = async (page: Page) => {
+	const defaultWalletPopoverBackdrop = page.locator('section.highlighted button.void_space')
+	if (await defaultWalletPopoverBackdrop.isVisible().catch(() => false))
+		await defaultWalletPopoverBackdrop.click()
+	const grantPermission = page.locator('#grantPermission')
+	await expect(grantPermission).toHaveCount(1)
+	await expect(grantPermission).toBeEnabled()
+	await grantPermission.click()
 }
 
 const fillPasswordFields = async (page: Page, password: string) => {
@@ -236,19 +241,26 @@ export const createTahoWallet = async (
 	}
 }
 
-export const approveTahoConnection = async (context: BrowserContext, extensionId: string) => {
+export const approveTahoConnection = async (
+	context: BrowserContext,
+	extensionId: string,
+	previousPages: ReadonlySet<Page>
+) => {
 	const approval = (
-		context.pages().find((page) => isTahoPopupPageUrl(page.url(), extensionId))
+		context.pages().find((page) => (
+			!previousPages.has(page)
+			&& isTahoPopupPageUrl(page.url(), extensionId)
+		))
 		?? await context.waitForEvent('page', {
-			predicate: (page) => isTahoPopupPageUrl(page.url(), extensionId),
+			predicate: (page) => (
+				!previousPages.has(page)
+				&& isTahoPopupPageUrl(page.url(), extensionId)
+			),
 			timeout: 15_000,
 		})
 	)
 	await approval.waitForLoadState('domcontentloaded')
-	await clickFirstVisible(approval, [
-		/Connect/i,
-		/Approve/i,
-	])
+	await approveTahoRequest(approval)
 	await approval.waitForEvent('close').catch(() => undefined)
 }
 
