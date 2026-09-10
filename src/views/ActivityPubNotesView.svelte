@@ -28,14 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					content: true,
-					localStatusId: true,
-					createdAt: true,
-					sensitive: true,
-					spoilerText: true,
-				},
+			fields: {
+				content: true,
+				localStatusId: true,
+				createdAt: true,
+				sensitive: true,
+				spoilerText: true,
 			},
 		})
 	}

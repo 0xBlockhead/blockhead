@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					modality: true,
-					resolvedIntentType: true,
-					createdAt: true,
-				},
+			fields: {
+				modality: true,
+				resolvedIntentType: true,
+				createdAt: true,
 			},
 		})
 	}

@@ -1,7 +1,8 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
@@ -10,13 +11,6 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const solanaJsonRpcArtifacts = [
-	{
-		kind: SourceArtifactKind.HandwrittenTypes,
-		path: 'src/sources/Solana/JsonRpc/types.ts',
-	},
-] as const
 
 export default indexSourceBindings([
 	{
@@ -34,10 +28,17 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.SolanaJsonRpc,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
-		artifacts: solanaJsonRpcArtifacts,
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Solana/JsonRpc/types.ts',
+			},
+		],
 	},
 	{
 		source: Source.Solana_JsonRpc,
@@ -58,6 +59,11 @@ export default indexSourceBindings([
 		],
 		delivery: SourceDelivery.RemoteLive,
 		credentials: [],
-		artifacts: solanaJsonRpcArtifacts,
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Solana/JsonRpc/types.ts',
+			},
+		],
 	},
 ])

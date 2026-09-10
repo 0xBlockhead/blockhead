@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -21,15 +22,7 @@ vi.mock('$/sources/Reddit/Rest/queries.ts', () => ({
 	listSubredditLinks: vi.fn(),
 }))
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe('Reddit_Rest listing continuation', () => {
 	it('uses the canonical subreddit owner for popular discovery', async () => {
@@ -146,9 +139,10 @@ describe('Reddit_Rest listing continuation', () => {
 })
 
 describe('Reddit_Rest hub tip observations', () => {
-	it('projects popular:hot window counts onto _GlobalRedditNetwork.$$timestamps', async () => {
-		vi.spyOn(Date, 'now').mockReturnValue(1_750_000_000_000)
-		vi.mocked(listSubredditLinks).mockResolvedValue({
+	it('preserves successive current observations without claiming history count', async () => {
+		const now = vi.spyOn(Date, 'now')
+		now.mockReturnValueOnce(1_750_000_000_000).mockReturnValueOnce(1_750_000_000_001)
+		vi.mocked(listSubredditLinks).mockResolvedValueOnce({
 			kind: 'Listing',
 			data: {
 				children: [
@@ -197,6 +191,30 @@ describe('Reddit_Rest hub tip observations', () => {
 				[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'reachable')]: true,
 				[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'listingWindowKind')]: 'popular:hot',
 			},
+		}])
+		expect(hubTimestamps.projections.$$timestamps).not.toHaveProperty('resolveCount')
+
+		vi.mocked(listSubredditLinks).mockResolvedValueOnce({
+			kind: 'Listing',
+			data: {
+				children: [{
+					kind: 't3',
+					data: { name: 't3_c', subreddit: 'bitcoin', title: 'C' },
+				}],
+			},
+		})
+		const second = await hubTimestamps.resolve.Scope.resolve({
+			scope: '_GlobalRedditNetwork',
+		}, resolverContext)
+		expect(second.$$timestamps).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$hub: { scope: '_GlobalRedditNetwork' },
+				timestampMs: 1_750_000_000_001,
+				source: Source.Reddit_Rest,
+			},
+			[EntityMetaKey.Fields]: expect.objectContaining({
+				[entityFieldAddressKey(EntityType._GlobalRedditNetwork_Timestamp, [], 'observedLinkCount')]: 1,
+			}),
 		}])
 		for (const entityType of [
 			EntityType.RedditSubreddit_Timestamp,

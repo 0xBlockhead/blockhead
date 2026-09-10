@@ -6,20 +6,13 @@ import {
 } from '../_e2eBrowserHelpers.ts'
 import { nostrNetworkSeedRelays } from '$/constants/Social/Nostr.ts'
 import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
+import { installRouteViewSqliteIsolation } from './_routeViewFixtures.ts'
 
 
 test.setTimeout(240_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-runtime-provenance-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `blockhead-runtime-provenance-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

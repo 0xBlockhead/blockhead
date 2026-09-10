@@ -26,9 +26,12 @@ const fetchMock = vi.fn<typeof fetch>()
 const moneroMainnetBinding = bindings[Source.MoneroDaemonRpc_JsonRpc].find(({ target }) => (
 	target.kind === SourceTargetKind.Caip2Network
 ))
+const moneroLocalBinding = bindings[Source.MoneroDaemonRpc_JsonRpc].find(({ target }) => (
+	target.kind === SourceTargetKind.LocalDevice
+))
 
-if (moneroMainnetBinding == null)
-	throw new Error('MoneroDaemonRpc queries spec missing mainnet binding')
+if (moneroMainnetBinding == null || moneroLocalBinding == null)
+	throw new Error('MoneroDaemonRpc queries spec missing mainnet or local binding')
 
 const proxyPath = (url: string) => (
 	`/api-proxy/${encodeURIComponent(sourceBindingId(moneroMainnetBinding))}/0/${encodeURIComponent(url)}`
@@ -299,5 +302,17 @@ describe('Monero daemon JSON-RPC queries', () => {
 		expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
 			proxyPath('https://xmr-node.cakewallet.com:18081/json_rpc')
 		)
+	})
+
+	it('executes the local daemon binding directly instead of silently substituting mainnet', async () => {
+		vi.unstubAllGlobals()
+		vi.stubGlobal('fetch', fetchMock)
+		fetchMock.mockResolvedValueOnce(rpcResponse(infoEnvelope))
+
+		await expect(getInfo(moneroLocalBinding)).resolves.toMatchObject({
+			height: infoEnvelope.height,
+		})
+		expect(fetchMock).toHaveBeenCalledOnce()
+		expect(String(fetchMock.mock.calls[0]?.[0])).toBe('http://127.0.0.1:18081/json_rpc')
 	})
 })

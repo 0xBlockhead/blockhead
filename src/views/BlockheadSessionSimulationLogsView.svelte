@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					logIndex: true,
-					address: true,
-					callPath: true,
-				},
+			fields: {
+				logIndex: true,
+				address: true,
+				callPath: true,
 			},
 		})
 	}

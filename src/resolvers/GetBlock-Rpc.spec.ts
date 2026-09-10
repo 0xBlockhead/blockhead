@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { readFileSync } from 'node:fs'
 import {
 	beforeEach,
@@ -65,15 +66,7 @@ const network = {
 		reference: '1',
 	},
 }
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 describe('GetBlock RPC transaction source', () => {
 	beforeEach(() => vi.clearAllMocks())
 

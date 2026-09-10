@@ -745,7 +745,6 @@ export default {
 			},
 			$$timestamps: {
 				select: (snapshot) => snapshot.$$timestamps,
-				resolveCount: (snapshot) => snapshot.$$timestamps.length,
 			},
 		}),
 

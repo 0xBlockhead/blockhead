@@ -26,12 +26,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					likeCount: true,
-					replyCount: true,
-				},
+			fields: {
+				timestampMs: true,
+				likeCount: true,
+				replyCount: true,
 			},
 		})
 	}

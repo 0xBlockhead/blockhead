@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					callPath: true,
-					callType: true,
-					depth: true,
-				},
+			fields: {
+				callPath: true,
+				callType: true,
+				depth: true,
 			},
 		})
 	}

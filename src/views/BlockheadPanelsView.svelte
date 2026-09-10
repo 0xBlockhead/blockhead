@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					kind: true,
-					entityType: true,
-					indexInParent: true,
-				},
+			fields: {
+				kind: true,
+				entityType: true,
+				indexInParent: true,
 			},
 		})
 	}

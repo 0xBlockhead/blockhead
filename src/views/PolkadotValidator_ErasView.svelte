@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					eraIndex: true,
-					active: true,
-					source: true,
-				},
+			fields: {
+				eraIndex: true,
+				active: true,
+				source: true,
 			},
 		})
 	}

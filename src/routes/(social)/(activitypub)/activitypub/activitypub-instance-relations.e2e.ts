@@ -15,6 +15,7 @@ import {
 	SourceTargetKind,
 	sourceBindingId,
 } from '$/sources/SourceBinding.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const mastodonPublicTimelineBinding = bindings[Source.Mastodon_Rest].find(({ target }) => (
@@ -48,15 +49,7 @@ test('ActivityPub hub renders settled directory and observation-owned instances'
 	} = setupRouteViewSmokePage(page)
 
 	try {
-		await page.addInitScript(({ name, schemaVersion }) => {
-			window.__blockheadClientProbeEnabled = true
-			window.__blockheadWaSqliteDatabaseNameOverride = name
-			window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-			window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-		}, {
-			name: `blockhead-activitypub-hub-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-			schemaVersion: Date.now(),
-		})
+		await installRouteViewSqliteIsolation(page, `blockhead-activitypub-hub-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 		await installChainlistRpcsJsonStub(page)
 		await page.route(mastodonPublicTimelineProxyRoute, async (route) => {
 			const providerUrl = new URL(decodeURIComponent(

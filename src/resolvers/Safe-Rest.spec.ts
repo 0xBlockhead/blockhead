@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import * as Address from 'ox/Address'
 
@@ -50,15 +51,10 @@ const safeField = (
 ) => entityFieldAddressKey(EntityType.SafeMultisigTransaction, [], name)
 
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 16,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 describe('Safe Transaction Service resolver module', () => {

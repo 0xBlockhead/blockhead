@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -23,15 +24,7 @@ vi.mock('$/sources/BitTorrent/Dht/queries.ts', async (importOriginal) => ({
 const { default: bitTorrentDht } = await import('$/resolvers/BitTorrent-Dht.ts')
 const [metainfoResolver] = bitTorrentDht.resolvers
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const torrentSelector = {
 	infoHash: 'a'.repeat(40),

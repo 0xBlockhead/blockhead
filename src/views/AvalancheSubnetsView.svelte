@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					label: true,
-					threshold: true,
-					subnetId: true,
-				},
+			fields: {
+				label: true,
+				threshold: true,
+				subnetId: true,
 			},
 		})
 	}

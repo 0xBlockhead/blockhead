@@ -12,6 +12,7 @@ import {
 import bindings from '$/sources/Mastodon/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const instanceOrigin = 'https://mastodon.social'
@@ -23,7 +24,8 @@ const notePath = `/activitypub/note/${encodeURIComponent(instanceOrigin)}/${loca
 const threadPath = `${notePath}/thread`
 const profileUrl = `${instanceOrigin}/@protocolgardener`
 const activityStreamsUri = `${instanceOrigin}/users/protocolgardener`
-const mastodonSocialProxyRoute = new RegExp(`/api-proxy/${encodeURIComponent(sourceBindingId(bindings[Source.Mastodon_Rest][0]))}/0/`)
+const mastodonSocialProxyBindingId = encodeURIComponent(sourceBindingId(bindings[Source.Mastodon_Rest][0]))
+const mastodonSocialProxyRoute = new RegExp(`/api-proxy/${mastodonSocialProxyBindingId}/0/`)
 
 const account = {
 	id: localAccountId,
@@ -56,15 +58,7 @@ const status = {
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-activitypub-actor-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `blockhead-activitypub-actor-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 
@@ -291,6 +285,207 @@ test('Mastodon note context renders canonical thread observations in the native 
 		const main = page.locator('#main')
 		await step(expect(main.locator('[data-error], [role="alert"]')).toHaveCount(0))
 		await step(expect(main).not.toContainText('[object Object]'))
+		expect(unexpectedProviderRequests).toEqual([])
+		expect(consoleErrors).toEqual([])
+		expect(pageErrors).toEqual([])
+	}
+	catch (error) {
+		await flushArtifacts(testInfo)
+		throw error
+	}
+})
+
+test('direct ActivityStreams URI routes preserve canonical identity and configured source origin', async ({ page }, testInfo) => {
+	const {
+		diagnostics,
+		flushArtifacts,
+		step,
+	} = setupRouteViewSmokePage(page)
+	const actorUriPath = `/activitypub/actor/${encodeURIComponent(activityStreamsUri)}`
+	const noteUri = status.uri
+	const noteUriPath = `/activitypub/note/${encodeURIComponent(noteUri)}`
+	const providerRequests: string[] = []
+	const contextRequests: Array<{
+		method: string
+		bindingId: string
+		origin: string
+		pathname: string
+		search: string
+		localStatusId: string
+		activityStreamsUri: string
+	}> = []
+	const unexpectedProviderRequests: string[] = []
+	const consoleErrors: string[] = []
+	const pageErrors: string[] = []
+	page.on('console', (message) => {
+		if (message.type() === 'error')
+			consoleErrors.push(message.text())
+	})
+	page.on('pageerror', (error) => pageErrors.push(error.message))
+	await page.route(new RegExp('/api-proxy/[^/]+/0/'), async (route) => {
+		const proxyRequestUrl = new URL(route.request().url())
+		const proxyBindingId = proxyRequestUrl.pathname.split('/')[2]
+		expect(route.request().method()).toBe('GET')
+		if (proxyBindingId !== mastodonSocialProxyBindingId) {
+			unexpectedProviderRequests.push(`binding:${proxyBindingId ?? ''}`)
+			await route.fulfill({
+				status: 501,
+				contentType: 'application/json',
+				json: { error: `Unexpected Mastodon source binding: ${proxyBindingId ?? ''}` },
+			})
+			return
+		}
+		const providerUrl = new URL(decodeURIComponent(proxyRequestUrl.pathname.split('/').at(-1) ?? ''))
+		if (providerUrl.origin !== instanceOrigin) {
+			unexpectedProviderRequests.push(providerUrl.toString())
+			await route.fulfill({
+				status: 501,
+				contentType: 'application/json',
+				json: { error: `Unexpected Mastodon origin: ${providerUrl.origin}` },
+			})
+			return
+		}
+		if (providerUrl.pathname === `/api/v1/statuses/${localStatusId}/context`) {
+			contextRequests.push({
+				method: route.request().method(),
+				bindingId: proxyBindingId ?? '',
+				origin: providerUrl.origin,
+				pathname: providerUrl.pathname,
+				search: providerUrl.search,
+				localStatusId: providerUrl.pathname.split('/')[4] ?? '',
+				activityStreamsUri: status.uri,
+			})
+			await route.fulfill({
+				contentType: 'application/json',
+				json: {
+					ancestors: [{
+						id: '112233445565',
+						uri: 'https://remote.example/users/protocolparent/statuses/112233445565',
+						content: '<p>Portable identity keeps the thread connected.</p>',
+						created_at: '2026-07-20T18:29:00.000Z',
+						sensitive: false,
+						spoiler_text: '',
+						account: {
+							id: 'remote-parent-cache',
+							uri: 'https://remote.example/users/protocolparent',
+							acct: 'protocolparent@remote.example',
+						},
+						favourites_count: 2,
+					}],
+					descendants: [{
+						id: '112233445567',
+						uri: `${activityStreamsUri}/statuses/112233445567`,
+						content: '<p>And the reply carries its source observation.</p>',
+						created_at: '2026-07-20T18:31:00.000Z',
+						sensitive: false,
+						spoiler_text: '',
+						account: {
+							id: 'local-reply-cache',
+							uri: `${instanceOrigin}/users/protocolreply`,
+							acct: 'protocolreply',
+						},
+						replies_count: 1,
+					}],
+				},
+			})
+			return
+		}
+		providerRequests.push(providerUrl.toString())
+
+		if (providerUrl.pathname === '/api/v2/search') {
+			const query = providerUrl.searchParams.get('q')
+			const type = providerUrl.searchParams.get('type')
+			expect(providerUrl.searchParams.get('resolve')).toBe('true')
+			if (type === 'accounts') {
+				expect(query).toBe(activityStreamsUri)
+				await route.fulfill({
+					contentType: 'application/json',
+					json: { accounts: [account], hashtags: [], statuses: [] },
+				})
+				return
+			}
+			if (type === 'statuses') {
+				expect(query).toBe(noteUri)
+				await route.fulfill({
+					contentType: 'application/json',
+					json: { accounts: [], hashtags: [], statuses: [status] },
+				})
+				return
+			}
+		}
+
+		if (providerUrl.pathname === `/api/v1/accounts/${localAccountId}/statuses`) {
+			await route.fulfill({
+				contentType: 'application/json',
+				json: [status],
+			})
+			return
+		}
+
+		unexpectedProviderRequests.push(providerUrl.toString())
+		await route.fulfill({
+			status: 501,
+			contentType: 'application/json',
+			json: { error: `Unexpected Mastodon operation: ${providerUrl.pathname}` },
+		})
+	})
+
+	try {
+		await step(page.goto(actorUriPath, {
+			waitUntil: 'load',
+			timeout: routeViewSmokeTimeoutsMs.goto,
+		}))
+		await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
+		await step(assertMainSettled(
+			page,
+			routeViewSmokeTimeoutsMs.mainSelector,
+			diagnostics,
+			{ requiredText: ['Protocol Gardener', 'ActivityStreams URI'], minimumEntityRows: 1 }
+		))
+		await step(expect(page).toHaveURL(actorUriPath))
+		await step(expect(page.locator(`#main a[href="${activityStreamsUri}"]`)).toHaveCount(1))
+
+		// Tear down the actor page's live subscriptions before starting the independent note ingress.
+		await step(page.goto('about:blank', {
+			waitUntil: 'load',
+			timeout: routeViewSmokeTimeoutsMs.goto,
+		}))
+		await step(page.goto(noteUriPath, {
+			waitUntil: 'load',
+			timeout: routeViewSmokeTimeoutsMs.goto,
+		}))
+		await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
+		await step(assertMainSettled(
+			page,
+			routeViewSmokeTimeoutsMs.mainSelector,
+			diagnostics,
+			{ requiredText: ['ActivityPub works best when identity remains portable.'], minimumEntityRows: 1 }
+		))
+		await step(expect(page).toHaveURL(noteUriPath))
+		await step(expect(page.locator(`#main a[href="${noteUri}"]`)).toHaveCount(1))
+
+		await step(expect.poll(
+			() => [
+				providerRequests.some((request) => request.includes(`/api/v2/search?q=${encodeURIComponent(activityStreamsUri)}`)),
+				providerRequests.some((request) => request.includes(`/api/v2/search?q=${encodeURIComponent(noteUri)}`)),
+			],
+			{ timeout: routeViewSmokeTimeoutsMs.mainSelector }
+		).toEqual([true, true]))
+		const contextRequestCount = contextRequests.length
+		testInfo.annotations.push({
+			type: 'source39-repeated-subscription',
+			description: `observed ${contextRequestCount} valid Mastodon context request(s); duplicate cardinality remains diagnostic evidence, not a route-contract requirement`,
+		})
+		expect(contextRequestCount).toBeGreaterThan(0)
+		expect(contextRequests.every((request) => (
+			request.method === 'GET'
+			&& request.bindingId === mastodonSocialProxyBindingId
+			&& request.origin === instanceOrigin
+			&& request.pathname === `/api/v1/statuses/${localStatusId}/context`
+			&& request.search === ''
+			&& request.localStatusId === localStatusId
+			&& request.activityStreamsUri === noteUri
+		))).toBe(true)
 		expect(unexpectedProviderRequests).toEqual([])
 		expect(consoleErrors).toEqual([])
 		expect(pageErrors).toEqual([])

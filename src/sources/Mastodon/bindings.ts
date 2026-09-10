@@ -1,41 +1,20 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
-const mastodonRestEndpoints = [
-	{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://fosstodon.org',
-		corsEnabled: false,
-	},
-] as const
-
-const mastodonRestBindingAxes = {
-	source: Source.Mastodon_Rest,
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: genericReadOperationGroups,
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [],
-	artifacts: [
-		{
-			kind: SourceArtifactKind.HandwrittenTypes,
-			path: 'src/sources/Mastodon/Rest/types.ts',
-		},
-	],
-} as const
-
 export default indexSourceBindings([
 	{
-		...mastodonRestBindingAxes,
+		source: Source.Mastodon_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'mastodon-instance:https://mastodon.social',
@@ -47,21 +26,72 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Mastodon/Rest/types.ts',
+			},
+		],
 	},
 	{
-		...mastodonRestBindingAxes,
+		source: Source.Mastodon_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
 			key: 'mastodon-instance:https://fosstodon.org',
 		},
-		endpoints: mastodonRestEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://fosstodon.org',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Mastodon/Rest/types.ts',
+			},
+		],
 	},
 	{
-		...mastodonRestBindingAxes,
+		source: Source.Mastodon_Rest,
 		target: {
 			kind: SourceTargetKind.Feed,
 			key: 'mastodon-public-timeline:https://fosstodon.org',
 		},
-		endpoints: mastodonRestEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://fosstodon.org',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Mastodon/Rest/types.ts',
+			},
+		],
 	},
 ])

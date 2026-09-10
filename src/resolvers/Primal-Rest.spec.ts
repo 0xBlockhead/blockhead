@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { schnorr } from '@noble/curves/secp256k1.js'
 import * as Hex from 'ox/Hex'
 
@@ -33,16 +34,11 @@ vi.mock('$/sources/Primal/Rest/queries.ts', async (importOriginal) => {
 const { default: primalRest } = await import('$/resolvers/Primal-Rest.ts')
 
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 16,
 		offset: 0,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const resolver = (

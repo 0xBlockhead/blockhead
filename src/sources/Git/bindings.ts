@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -9,11 +11,6 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const gitRepositoryContentsRepositoryMetadataOperationGroups = [
-	SourceOperationGroup.GitRepositoryContents,
-	SourceOperationGroup.RepositoryMetadata,
-] as const
 
 export default indexSourceBindings([
 	{
@@ -30,7 +27,10 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Git,
 		apiFamily: ApiFamily.GitObject,
-		operationGroups: gitRepositoryContentsRepositoryMetadataOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GitRepositoryContents,
+			SourceOperationGroup.RepositoryMetadata,
+		],
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{
@@ -53,7 +53,10 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Git,
 		apiFamily: ApiFamily.GitObject,
-		operationGroups: gitRepositoryContentsRepositoryMetadataOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GitRepositoryContents,
+			SourceOperationGroup.RepositoryMetadata,
+		],
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [
 			{

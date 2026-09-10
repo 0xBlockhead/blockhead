@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -34,15 +35,10 @@ const baseNetwork = {
 }
 
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 16,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const compoundCometResolver = compoundRest.resolvers.find((resolver) => (
@@ -609,6 +605,28 @@ describe('Compound Rest resolver module', () => {
 				cometAddress: baseCometAddress,
 			}, context)
 		).rejects.toThrow(`${Source.Compound_Rest}: invalid configuration response envelope`)
+	})
+
+	it('omits an unavailable collateral feed while preserving collateral identity', async () => {
+		if (compoundCometAssetResolver == null)
+			throw new Error('missing CompoundCometAsset resolver')
+
+		const { priceFeed: _feed, ...withoutFeed } = baseConfiguration.assets.WETH
+		sourceGetJson
+			.mockResolvedValueOnce({ ...baseConfiguration, assets: { WETH: withoutFeed } })
+			.mockResolvedValueOnce(baseRoots)
+		const asset = await compoundCometAssetResolver.resolve.CometAssetSymbol.resolve({
+			$comet: {
+				$network: baseNetwork,
+				cometAddress: baseCometAddress,
+			},
+			symbol: 'WETH',
+		}, context)
+		expect(asset).not.toHaveProperty('priceFeedAddress')
+		expect(compoundCometAssetResolver.projections.priceFeedAddress(asset)).toBeUndefined()
+		expect(compoundCometAssetResolver.projections.tokenAddress(asset)).toBe(
+			'0x4200000000000000000000000000000000000006'
+		)
 	})
 
 	it('resolves a Compound Comet collateral asset by comet and symbol', async () => {

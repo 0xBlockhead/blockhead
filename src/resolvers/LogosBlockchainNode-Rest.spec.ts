@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -48,15 +49,7 @@ const walletKeyState = {
 	$nodeState: nodeState,
 	publicKey,
 }
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 const lib = '2'.repeat(64)
 const tip = '3'.repeat(64)
 

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
@@ -79,15 +80,10 @@ const network = {
 }
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 describe('BitcoinCashNode UTXO', () => {

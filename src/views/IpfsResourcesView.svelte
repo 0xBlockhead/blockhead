@@ -27,12 +27,8 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					canonicalUri: true,
-					contentType: true,
-					displayType: true,
-				},
+			fields: {
+				canonicalUri: true,
 			},
 		})
 	}
@@ -64,10 +60,6 @@
 		>
 			{#snippet Title()}
 				{ipfsResource.canonicalUri || 'IPFS resource'}
-			{/snippet}
-
-			{#snippet Value()}
-				{[(ipfsResource.contentType ?? ''), ipfsResource.displayType].filter(Boolean).join(' ')}
 			{/snippet}
 		</EntityView>
 	{/snippet}

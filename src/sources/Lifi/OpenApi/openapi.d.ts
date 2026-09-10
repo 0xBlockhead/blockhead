@@ -2387,16 +2387,16 @@ export interface components {
          *                       "logoURI": ""
          *                     },
          *                     "amount": "500000000000000",
-         *                     "amountUSD": "22737686383756.59"
+         *                     "amountUSD": "0.00"
          *                   }
          *                 ],
          *                 "gasCosts": [
          *                   {
          *                     "type": "SEND",
-         *                     "price": "1.26",
+         *                     "price": "1260000000",
          *                     "estimate": "140000",
          *                     "limit": "175000",
-         *                     "amount": "176400",
+         *                     "amount": "176400000000000",
          *                     "amountUSD": "0.00",
          *                     "token": {
          *                       "address": "0x0000000000000000000000000000000000000000",
@@ -2510,10 +2510,10 @@ export interface components {
          *                 "gasCosts": [
          *                   {
          *                     "type": "SEND",
-         *                     "price": "1.26",
+         *                     "price": "1260000000",
          *                     "estimate": "252364",
          *                     "limit": "315455",
-         *                     "amount": "317979",
+         *                     "amount": "317978640000000",
          *                     "amountUSD": "0.00",
          *                     "token": {
          *                       "address": "0x0000000000000000000000000000000000000000",
@@ -2651,10 +2651,10 @@ export interface components {
          *                 "gasCosts": [
          *                   {
          *                     "type": "SEND",
-         *                     "price": "1.26",
+         *                     "price": "1260000000",
          *                     "estimate": "140000",
          *                     "limit": "175000",
-         *                     "amount": "176400",
+         *                     "amount": "176400000000000",
          *                     "amountUSD": "0.00",
          *                     "token": {
          *                       "address": "0x0000000000000000000000000000000000000000",
@@ -2735,10 +2735,10 @@ export interface components {
          *                 "gasCosts": [
          *                   {
          *                     "type": "SEND",
-         *                     "price": "129",
+         *                     "price": "129000000000",
          *                     "estimate": "549386",
          *                     "limit": "686733",
-         *                     "amount": "70870794",
+         *                     "amount": "70870794000000000",
          *                     "amountUSD": "0.10",
          *                     "token": {
          *                       "address": "0x0000000000000000000000000000000000000000",
@@ -2967,17 +2967,17 @@ export interface components {
          *                   "logoURI": ""
          *                 },
          *                 "amount": "500000000000000",
-         *                 "amountUSD": "22737686383756.59",
+         *                 "amountUSD": "0.00",
          *                 "included": true
          *               }
          *             ],
          *             "gasCosts": [
          *               {
          *                 "type": "SEND",
-         *                 "price": "1.26",
+         *                 "price": "1260000000",
          *                 "estimate": "140000",
          *                 "limit": "175000",
-         *                 "amount": "176400",
+         *                 "amount": "176400000000000",
          *                 "amountUSD": "0.00",
          *                 "token": {
          *                   "address": "0x0000000000000000000000000000000000000000",
@@ -3158,10 +3158,10 @@ export interface components {
          *         "gasCosts": [
          *           {
          *             "type": "SEND",
-         *             "price": "1",
+         *             "price": "1000000000",
          *             "estimate": "252364",
          *             "limit": "315455",
-         *             "amount": "252364",
+         *             "amount": "252364000000000",
          *             "amountUSD": "0.00",
          *             "token": {
          *               "address": "0x0000000000000000000000000000000000000000",
@@ -3481,17 +3481,17 @@ export interface components {
          *               "logoURI": ""
          *             },
          *             "amount": "500000000000000",
-         *             "amountUSD": "22737686383756.59",
+         *             "amountUSD": "0.00",
          *             "included": true
          *           }
          *         ],
          *         "gasCosts": [
          *           {
          *             "type": "SEND",
-         *             "price": "1.26",
+         *             "price": "1260000000",
          *             "estimate": "140000",
          *             "limit": "175000",
-         *             "amount": "176400",
+         *             "amount": "176400000000000",
          *             "amountUSD": "0.00",
          *             "token": {
          *               "address": "0x0000000000000000000000000000000000000000",
@@ -3653,191 +3653,179 @@ export interface components {
         };
         /**
          * Root Type for FeeCost
-         * @description Fees included in the transfer
+         * @description A protocol, integrator, or execution fee charged on the transfer. Fee costs cover everything that is charged as a fee rather than paid as network gas by the sender, including destination execution costs that a bridge or solver bills as a fee. See [Gas costs and fee costs](https://docs.li.fi/guides/gas-and-fee-costs) for how to read and display these values.
          * @example {
-         *       "name": "Gas Fee",
-         *       "description": "Covers gas expense for sending funds to user on receiving chain.",
-         *       "percentage": "0",
+         *       "name": "Relayer Gas fee",
+         *       "description": "Relay bridge gas fee",
+         *       "percentage": "0.0000",
          *       "token": {
-         *         "address": "0x63e62989d9eb2d37dfdb1f93a22f063635b07d51",
-         *         "symbol": "MIVA",
-         *         "decimals": 18,
-         *         "chainId": 100,
-         *         "name": "Minerva Wallet SuperToken",
-         *         "coinKey": "MIVA",
-         *         "priceUSD": "0.0455272371751059",
-         *         "logoURI": ""
+         *         "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+         *         "symbol": "USDC",
+         *         "decimals": 6,
+         *         "chainId": 1,
+         *         "name": "USD Coin",
+         *         "coinKey": "USDC",
+         *         "priceUSD": "0.999578177",
+         *         "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png"
          *       },
-         *       "amount": "0",
-         *       "amountUSD": "0.00"
+         *       "amount": "1116",
+         *       "amountUSD": "0.0011",
+         *       "included": true
          *     }
          */
         FeeCost: {
-            /** @description Name of the fee */
+            /** @description Human-readable name of the fee, for example `LIFI Fixed Fee` or `Relayer Gas fee`. Names are tool-specific free text and are not a stable enum. Do not branch on this value. */
             name: string;
             /** @description Description of the fee costs */
             description?: string;
-            /** @description Percentage of how much fees are taken */
+            /** @description The fee expressed as a fraction of the transferred amount, for example `0.0025` for 0.25%. A fee whose name contains `Fixed` may still report a non-zero fraction; do not infer the fee model from `name` or assume fixed-fee entries report `0`. */
             percentage: string;
-            /** @description The `Token` in which the fees are taken */
+            /** @description The `Token` the fee is denominated in. `token.chainId` identifies the chain of that token, not necessarily the chain where the underlying work happens. A destination execution fee is commonly denominated in the source-chain token the user is already sending. */
             token: components["schemas"]["Token"];
-            /** @description The amount of fees */
+            /** @description The fee amount in the smallest unit of `token`, before decimals are applied. Divide by `10 ** token.decimals` for a human-readable amount. */
             amount?: string;
             /** @description The amount of fees in USD */
             amountUSD: string;
-            /** @description Whether fee is included into transfer's `fromAmount` */
+            /** @description `true` means the fee is already accounted for in the quoted amounts and must not be added again as a separate user payment. `false` means the user pays it on top of `fromAmount`. */
             included: boolean;
         };
         /**
          * Root Type for GasCost
-         * @description Gas costs included in the transfer
+         * @description An estimate of the network gas the sender pays for a transaction. Gas costs are always denominated in the native gas token of the chain the transaction is sent on. See [Gas costs and fee costs](https://docs.li.fi/guides/gas-and-fee-costs) for how gas costs relate to `feeCosts` and to destination-chain execution.
          * @example {
          *       "type": "SEND",
-         *       "price": "1.22",
-         *       "estimate": "140000",
-         *       "limit": "175000",
-         *       "amount": "170800",
-         *       "amountUSD": "0.00",
+         *       "price": "128468782",
+         *       "estimate": "459000",
+         *       "limit": "596700",
+         *       "amount": "58967170938000",
+         *       "amountUSD": "0.1156",
          *       "token": {
          *         "address": "0x0000000000000000000000000000000000000000",
-         *         "symbol": "xDai",
+         *         "symbol": "ETH",
          *         "decimals": 18,
-         *         "chainId": 100,
-         *         "name": "xDai",
-         *         "coinKey": "xDai",
-         *         "priceUSD": "1",
-         *         "logoURI": "https://static.debank.com/image/xdai_token/logo_url/xdai/1207e67652b691ef3bfe04f89f4b5362.png"
+         *         "chainId": 1,
+         *         "name": "ETH",
+         *         "coinKey": "ETH",
+         *         "priceUSD": "1959.83",
+         *         "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png"
          *       }
          *     }
          */
         GasCost: {
-            /** @description Can be one of `SUM`, `APPROVE` or `SEND` */
-            type: string;
-            /** @description Suggested current standard price for the chain */
+            /**
+             * @description The kind of gas cost this entry represents.
+             *
+             *     - `SEND`: estimated network gas for the transaction the sender submits, normally on the source chain. This is the only value the API currently returns.
+             *     - `APPROVE`: estimated network gas for a separate ERC-20 approval transaction. Reserved; approval gas is not currently returned as its own entry.
+             *     - `FEE`: an execution cost charged as a fee rather than as a transaction the user signs. Reserved; such costs are currently reported in `feeCosts` instead.
+             *     - `SUM`: an aggregate of the other entries. Reserved and not currently returned.
+             *
+             *     Treat `APPROVE`, `FEE`, and `SUM` as forward-compatible values: handle them if they appear, but do not build a flow that depends on them.
+             * @example SEND
+             * @enum {string}
+             */
+            type: "SUM" | "APPROVE" | "SEND" | "FEE";
+            /** @description Gas price used for the estimate, in the smallest unit of the gas token per unit of gas (wei per gas on EVM chains). */
             price?: string;
-            /** @description Estimation how much gas will be needed */
+            /** @description Estimated units of gas the transaction consumes */
             estimate?: string;
-            /** @description Suggested gas limit */
+            /** @description Suggested gas limit: `estimate` plus a safety buffer. Use this value when submitting the transaction, not `estimate`. */
             limit?: string;
-            /** @description Amount of the gas cost */
+            /** @description The estimated total gas cost in the smallest unit of the gas token. For EVM entries this is `estimate` multiplied by `price`. Other ecosystems may use chain-specific units and rounding, so consumers should treat `amount` as authoritative rather than reconstructing it from the other fields. Divide by `10 ** token.decimals` for a human-readable amount. */
             amount: string;
             /** @description Amount of the gas cost in USD */
             amountUSD?: string;
-            /** @description The used gas token */
+            /** @description The native gas token of the chain the transaction is sent on. `token.chainId` is the chain that consumes the gas. */
             token: components["schemas"]["Token"];
         };
         /**
          * Root Type for Estimate
          * @description An estimate for the current transfer
          * @example {
-         *       "fromAmount": "1000000000000000000",
-         *       "toAmount": "999500000000000000",
-         *       "toAmountMin": "999500000000000000",
-         *       "tool": "allbridge",
-         *       "executionDuration": 60,
-         *       "approvalAddress": "0x115909BDcbaB21954bEb4ab65FC2aBEE9866fa93",
+         *       "tool": "relaydepository",
+         *       "fromAmount": "50000000",
+         *       "fromAmountUSD": "49.9789",
+         *       "toAmount": "76673",
+         *       "toAmountMin": "76290",
+         *       "toAmountUSD": "50.0577",
+         *       "executionDuration": 2,
+         *       "approvalAddress": "0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE",
          *       "feeCosts": [
          *         {
-         *           "name": "Gas Fee",
-         *           "description": "Covers gas expense for sending funds to user on receiving chain.",
-         *           "percentage": "0",
+         *           "name": "LIFI Fixed Fee",
+         *           "description": "Fixed LIFI fee, independent of any other fee",
+         *           "percentage": "0.0025",
          *           "token": {
-         *             "address": "0x63e62989d9eb2d37dfdb1f93a22f063635b07d51",
-         *             "symbol": "MIVA",
-         *             "decimals": 18,
-         *             "chainId": 100,
-         *             "name": "Minerva Wallet SuperToken",
-         *             "coinKey": "MIVA",
-         *             "priceUSD": "0.0455272371751059",
-         *             "logoURI": ""
+         *             "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+         *             "symbol": "USDC",
+         *             "decimals": 6,
+         *             "chainId": 1,
+         *             "name": "USD Coin",
+         *             "coinKey": "USDC",
+         *             "priceUSD": "0.999578177",
+         *             "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png"
          *           },
-         *           "amount": "0",
-         *           "amountUSD": "0.00",
+         *           "amount": "125000",
+         *           "amountUSD": "0.1249",
          *           "included": true
          *         },
          *         {
-         *           "name": "Relay Fee",
-         *           "description": "Covers gas expense for claiming user funds on receiving chain.",
-         *           "percentage": "0",
+         *           "name": "Relayer Gas fee",
+         *           "description": "Relay bridge gas fee",
+         *           "percentage": "0.0000",
          *           "token": {
-         *             "address": "0x63e62989d9eb2d37dfdb1f93a22f063635b07d51",
-         *             "symbol": "MIVA",
-         *             "decimals": 18,
-         *             "chainId": 100,
-         *             "name": "Minerva Wallet SuperToken",
-         *             "coinKey": "MIVA",
-         *             "priceUSD": "0.0455272371751059",
-         *             "logoURI": ""
+         *             "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+         *             "symbol": "USDC",
+         *             "decimals": 6,
+         *             "chainId": 1,
+         *             "name": "USD Coin",
+         *             "coinKey": "USDC",
+         *             "priceUSD": "0.999578177",
+         *             "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png"
          *           },
-         *           "amount": "0",
-         *           "amountUSD": "0.00",
+         *           "amount": "1116",
+         *           "amountUSD": "0.0011",
          *           "included": true
          *         },
          *         {
-         *           "name": "Router Fee",
-         *           "description": "Router service fee.",
-         *           "percentage": "0.0005",
+         *           "name": "Relayer Service fee",
+         *           "description": "Relay bridge service fee",
+         *           "percentage": "0.0011",
          *           "token": {
-         *             "address": "0x63e62989d9eb2d37dfdb1f93a22f063635b07d51",
-         *             "symbol": "MIVA",
-         *             "decimals": 18,
-         *             "chainId": 100,
-         *             "name": "Minerva Wallet SuperToken",
-         *             "coinKey": "MIVA",
-         *             "priceUSD": "0.0455272371751059",
-         *             "logoURI": ""
+         *             "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+         *             "symbol": "USDC",
+         *             "decimals": 6,
+         *             "chainId": 1,
+         *             "name": "USD Coin",
+         *             "coinKey": "USDC",
+         *             "priceUSD": "0.999578177",
+         *             "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png"
          *           },
-         *           "amount": "500000000000000",
-         *           "amountUSD": "22763618587552.95",
+         *           "amount": "53822",
+         *           "amountUSD": "0.0538",
          *           "included": true
          *         }
          *       ],
          *       "gasCosts": [
          *         {
          *           "type": "SEND",
-         *           "price": "1.22",
-         *           "estimate": "140000",
-         *           "limit": "175000",
-         *           "amount": "170800",
-         *           "amountUSD": "0.00",
+         *           "price": "128468782",
+         *           "estimate": "459000",
+         *           "limit": "596700",
+         *           "amount": "58967170938000",
+         *           "amountUSD": "0.1156",
          *           "token": {
          *             "address": "0x0000000000000000000000000000000000000000",
-         *             "symbol": "xDai",
+         *             "symbol": "ETH",
          *             "decimals": 18,
-         *             "chainId": 100,
-         *             "name": "xDai",
-         *             "coinKey": "xDai",
-         *             "priceUSD": "1",
-         *             "logoURI": "https://static.debank.com/image/xdai_token/logo_url/xdai/1207e67652b691ef3bfe04f89f4b5362.png"
+         *             "chainId": 1,
+         *             "name": "ETH",
+         *             "coinKey": "ETH",
+         *             "priceUSD": "1959.83",
+         *             "logoURI": "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png"
          *           }
          *         }
-         *       ],
-         *       "data": {
-         *         "bid": {
-         *           "user": "0x10fBFF9b9450D3A2d9d1612d6dE3726fACD8809E",
-         *           "router": "0xeE2Ef40F688607CB23618d9312d62392786d13EB",
-         *           "initiator": "0x10fBFF9b9450D3A2d9d1612d6dE3726fACD8809E",
-         *           "sendingChainId": 100,
-         *           "sendingAssetId": "0x63e62989d9eb2d37dfdb1f93a22f063635b07d51",
-         *           "amount": "1000000000000000000",
-         *           "receivingChainId": 137,
-         *           "receivingAssetId": "0xc0b2983a17573660053beeed6fdb1053107cf387",
-         *           "amountReceived": "999500000000000000",
-         *           "receivingAddress": "0x10fBFF9b9450D3A2d9d1612d6dE3726fACD8809E",
-         *           "transactionId": "0x9f54c1764e19367c44706f4a6253941b81e9ec524af5590091aa8ae67e7644ed",
-         *           "expiry": 1643369368,
-         *           "callDataHash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
-         *           "callTo": "0x0000000000000000000000000000000000000000",
-         *           "encryptedCallData": "0x",
-         *           "sendingChainTxManagerAddress": "0x115909BDcbaB21954bEb4ab65FC2aBEE9866fa93",
-         *           "receivingChainTxManagerAddress": "0x6090De2EC76eb1Dc3B5d632734415c93c44Fd113",
-         *           "bidExpiry": 1643110469
-         *         },
-         *         "gasFeeInReceivingToken": "0",
-         *         "totalFee": "500000000000000",
-         *         "metaTxRelayerFee": "0",
-         *         "routerFee": "500000000000000"
-         *       }
+         *       ]
          *     }
          */
         Estimate: {
@@ -3855,9 +3843,11 @@ export interface components {
             toAmountUSD?: string;
             /** @description The contract address for the approval */
             approvalAddress: string;
-            /** @description Fees included in the transfer */
+            /** @description Optional flag indicating that this step needs no token approval, because the executing contract moves funds under the authorization already carried by the signed transaction or message. */
+            skipApproval?: boolean;
+            /** @description Fees charged on the transfer. On a `lifi` step this array is the concatenation of the fee costs of every entry in `includedSteps`, so it already contains them. Do not add both together. */
             feeCosts?: components["schemas"]["FeeCost"][];
-            /** @description Gas costs included in the transfer */
+            /** @description Estimated network gas for the transfer. On a `lifi` step this is a single estimate for the transaction that is actually submitted. It aggregates raw gas costs from source-chain entries in `includedSteps` and, for EVM transactions, adds estimated LI.FI contract overhead. It may differ from and often exceed the sum of the source-chain per-step entries. Raw destination-chain gas costs are not added directly. Do not add the top-level and included-step arrays together. */
             gasCosts?: components["schemas"]["GasCost"][];
             /** @description The time needed to complete the following step */
             executionDuration: number;

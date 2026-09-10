@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -29,15 +30,7 @@ vi.mock('$/sources/Coingecko/Rest/queries.ts', async (importOriginal) => ({
 
 const { default: coingecko } = await import('$/resolvers/Coingecko-Rest.ts')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe('CoinGecko resolver collapse', () => {
 	it('retains each unique REST and derivative projection under one source', () => {

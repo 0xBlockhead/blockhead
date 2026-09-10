@@ -21,7 +21,7 @@
 		cid: params.cid,
 	}, {
 		sources: [
-			Source.Local_Internal,
+			Source.CodexNode_Rest,
 		],
 		fields: {
 			filename: true,

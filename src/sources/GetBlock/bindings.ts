@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -11,19 +13,6 @@ import {
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
-const getBlockEndpoints = [
-	{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
-		corsEnabled: false,
-	},
-] as const
-const getBlockCredentials = [
-	{
-		scope: SourceCredentialScope.RuntimeSecret,
-	},
-] as const
-
 export default indexSourceBindings([
 	{
 		source: Source.GetBlockRpc_JsonRpc,
@@ -31,14 +20,24 @@ export default indexSourceBindings([
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1',
 		},
-		endpoints: getBlockEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
+				corsEnabled: false,
+			},
+		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.EvmExecutionJsonRpc,
 		operationGroups: [
 			SourceOperationGroup.EvmRpcCore,
 		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: getBlockCredentials,
+		credentials: [
+			{
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GenerationManifest,
@@ -56,14 +55,24 @@ export default indexSourceBindings([
 			kind: SourceTargetKind.Caip2Network,
 			key: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 		},
-		endpoints: getBlockEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
+				corsEnabled: false,
+			},
+		],
 		wireProtocol: WireProtocol.Grpc,
 		apiFamily: ApiFamily.GrpcService,
 		operationGroups: [
 			SourceOperationGroup.GenericSubscribe,
 		],
 		delivery: SourceDelivery.RemoteLive,
-		credentials: getBlockCredentials,
+		credentials: [
+			{
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,

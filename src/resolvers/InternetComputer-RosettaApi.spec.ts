@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -120,15 +121,10 @@ const parentHash = 'd'.repeat(64)
 const transactionHash = 'e'.repeat(64)
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const blockWire = {

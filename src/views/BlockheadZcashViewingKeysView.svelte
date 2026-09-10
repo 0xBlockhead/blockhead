@@ -29,12 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					keyFingerprint: true,
-					keyKind: true,
-					$network: true,
-				},
+			fields: {
+				keyFingerprint: true,
+				keyKind: true,
+				$network: true,
 			},
 		})
 	}

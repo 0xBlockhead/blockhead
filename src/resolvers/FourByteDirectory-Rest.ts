@@ -21,7 +21,7 @@ export default {
 				Hex: {
 					resolve: async ({ hex }) => {
 						const { getFunctionEntries } = await import('$/sources/FourByteDirectory/Rest/queries.ts')
-						const signatures = (await getFunctionEntries({ hex })).map((entry) => entry.text_signature)
+						const signatures = [...new Set((await getFunctionEntries({ hex })).map((entry) => entry.text_signature))]
 						return { signatures }
 					},
 				},
@@ -36,7 +36,7 @@ export default {
 				Hex: {
 					resolve: async ({ hex }) => {
 						const { getEventEntries } = await import('$/sources/FourByteDirectory/Rest/queries.ts')
-						const signatures = (await getEventEntries({ hex })).map((entry) => entry.text_signature)
+						const signatures = [...new Set((await getEventEntries({ hex })).map((entry) => entry.text_signature))]
 						return { signatures }
 					},
 				},
@@ -51,9 +51,11 @@ export default {
 				Hex: {
 					resolve: async ({ hex }) => {
 						const { getFunctionEntries } = await import('$/sources/FourByteDirectory/Rest/queries.ts')
-						const signatures = (
-							await getFunctionEntries({ hex })
-						).map((entry) => entry.text_signature).filter(isErrorSignature)
+						const signatures = [...new Set(
+							(await getFunctionEntries({ hex }))
+								.map((entry) => entry.text_signature)
+								.filter(isErrorSignature)
+						)]
 						return { signatures }
 					},
 				},

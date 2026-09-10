@@ -12,7 +12,10 @@ export const httpUrl = (
 	path = '',
 	query?: Record<string, string | number | boolean | undefined>
 ) => {
-	const url = new URL(path, firstHttpUrlForBinding(binding))
+	const baseUrl = new URL(firstHttpUrlForBinding(binding))
+	if (path !== '' && !path.startsWith('?') && !path.startsWith('#') && !baseUrl.pathname.endsWith('/'))
+		baseUrl.pathname += '/'
+	const url = new URL(path, baseUrl)
 	for (const [key, value] of Object.entries(query ?? {}))
 		if (value != null)
 			url.searchParams.set(key, String(value))

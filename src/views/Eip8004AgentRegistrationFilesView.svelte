@@ -27,11 +27,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					fileUrl: true,
-					$registration: true,
-				},
+			fields: {
+				fileUrl: true,
+				$registration: true,
 			},
 		})
 	}

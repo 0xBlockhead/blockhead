@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$transaction: true,
-					pegOutIndex: true,
-					$transparentOutput: true,
-				},
+			fields: {
+				$transaction: true,
+				pegOutIndex: true,
+				$transparentOutput: true,
 			},
 		})
 	}

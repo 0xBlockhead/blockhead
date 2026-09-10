@@ -5,13 +5,16 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 const graphql = vi.hoisted(() => vi.fn())
 const getAccountPositions = vi.hoisted(() => vi.fn())
+const getUserMarketState = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/_shared/wire/Graphql/client.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/_shared/wire/Graphql/client.ts')>(),
@@ -20,6 +23,7 @@ vi.mock('$/sources/_shared/wire/Graphql/client.ts', async (importOriginal) => ({
 vi.mock('$/sources/Aave/Rest/queries.ts', async (importOriginal) => ({
 	...await importOriginal<typeof import('$/sources/Aave/Rest/queries.ts')>(),
 	getAccountPositions,
+	getUserMarketState,
 }))
 
 const { default: aaveRest } = await import('$/resolvers/Aave-Rest.ts')
@@ -29,18 +33,13 @@ const ethereumNetwork = {
 		namespace: 'eip155',
 		reference: '1',
 	},
-}
+} as const
 
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 16,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const aaveMarketResolver = aaveRest.resolvers.find((resolver) => (
@@ -57,6 +56,13 @@ const networkAaveMarketsResolver = aaveRest.resolvers.find((resolver) => (
 const evmNetworkAccountResolver = aaveRest.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EvmNetworkAccount
 	&& '$$aaveReservePositions' in resolver.projections
+))
+const accountAaveMarketsResolver = aaveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.EvmNetworkAccount
+	&& '$$aaveAccountMarkets' in resolver.projections
+))
+const aaveAccountMarketResolver = aaveRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.AaveAccountMarket
 ))
 
 const ethereumMarket = {
@@ -112,6 +118,268 @@ describe('Aave Rest resolver module', () => {
 	beforeEach(() => {
 		graphql.mockReset()
 		getAccountPositions.mockReset()
+		getUserMarketState.mockReset()
+	})
+
+	it('binds the capture publisher to actual generated account-market identities', () => {
+		expect(aaveAccountMarketResolver?.entityType).toBe('AaveAccountMarket')
+		expect(schema.find(({ entityType }) => String(entityType) === 'AaveAccountMarket')).toBeDefined()
+		expect(schema.find(({ entityType }) => String(entityType) === 'AaveAccountMarket_Timestamp')).toBeDefined()
+	})
+
+	it('publishes distinct evidenced Aave markets for an account with independent pagination', async () => {
+		if (accountAaveMarketsResolver == null)
+			throw new Error('missing account Aave markets resolver')
+
+		const accountSelector = {
+			$network: ethereumNetwork,
+			$actor: {
+				address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
+			},
+		}
+		getAccountPositions.mockResolvedValue([
+			{
+				protocol: 'Aave V3',
+				kind: 'supply',
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				symbol: 'USDC',
+				decimals: 6,
+				balance: '1000.5',
+				balanceUsd: '1000.5',
+				apy: '0.03',
+				isCollateral: true,
+				canBeCollateral: true,
+			},
+			{
+				protocol: 'Aave V3',
+				kind: 'borrow',
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				underlyingTokenAddress: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+				symbol: 'WETH',
+				decimals: 18,
+				debt: '2.5',
+				debtUsd: '5000',
+				apy: '0.05',
+			},
+			{
+				protocol: 'Aave V3',
+				kind: 'supply',
+				chainId: 1,
+				account: accountSelector.$actor.address,
+				poolAddress: '0xc13e21b648a5ee794902342038ff3adab66be987',
+				underlyingTokenAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+				symbol: 'USDT',
+				decimals: 6,
+				balance: '100',
+				balanceUsd: '100',
+				apy: '0.02',
+				isCollateral: false,
+				canBeCollateral: true,
+			},
+		])
+
+		const snapshot = await accountAaveMarketsResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			{
+				...context,
+				pagination: {
+					limit: 1,
+				},
+			}
+		)
+		expect(accountAaveMarketsResolver.projections.$$aaveAccountMarkets.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: accountSelector,
+				$market: {
+					$network: ethereumNetwork,
+					poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+				},
+			},
+		}])
+		expect(accountAaveMarketsResolver.projections.$$aaveAccountMarkets.resolveCount(snapshot)).toBe(2)
+		expect(accountAaveMarketsResolver.projections.$$aaveAccountMarkets.continuation(snapshot)).toEqual({
+			operation: 'account-aave-markets',
+			target: 'aave',
+			terminal: false,
+			token: '1',
+		})
+		expect(accountAaveMarketsResolver.projections.$$aaveReservePositions.resolveCount(snapshot)).toBe(3)
+		const secondPage = await accountAaveMarketsResolver.resolve.EvmNetworkEvmAccount.resolve(
+			accountSelector,
+			{
+				...context,
+				pagination: { limit: 1 },
+				providerContinuationToken: '1',
+			}
+		)
+		expect(accountAaveMarketsResolver.projections.$$aaveAccountMarkets.select(secondPage)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$account: accountSelector,
+				$market: {
+					$network: ethereumNetwork,
+					poolAddress: '0xc13e21b648a5ee794902342038ff3adab66be987',
+				},
+			},
+		}])
+		expect(accountAaveMarketsResolver.projections.$$aaveAccountMarkets.continuation(secondPage)).toEqual({
+			operation: 'account-aave-markets',
+			target: 'aave',
+			terminal: true,
+		})
+		expect(accountAaveMarketsResolver.projections.$$aaveReservePositions.continuation(secondPage)).toEqual({
+			operation: 'account-aave-reserve-positions',
+			target: 'aave',
+			terminal: false,
+			token: '2',
+		})
+		expect(getUserMarketState).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		['1.2345', { [entityFieldAddressKey('AaveAccountMarket_Timestamp', [], 'healthFactor')]: '1.2345' }],
+		[null, {}],
+	])('publishes one complete response-time health observation for %s', async (healthFactor, expectedFields) => {
+		if (aaveAccountMarketResolver == null)
+			throw new Error('missing Aave account market resolver')
+
+		getUserMarketState.mockResolvedValue({
+			healthFactor,
+			observedAtMs: 1_777_777_777_000,
+			currentLiquidationThreshold: '0.85',
+			ltv: '0.75',
+			totalCollateralBase: '6000',
+			totalDebtBase: '0',
+			availableBorrowsBase: '1500',
+			netApy: '-0.025',
+		})
+		const accountSelector = {
+			$network: ethereumNetwork,
+			$actor: {
+				address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',
+			},
+		}
+		const marketSelector = {
+			$network: ethereumNetwork,
+			poolAddress: '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
+		}
+		const snapshot = await aaveAccountMarketResolver.resolve.AccountMarket.resolve({
+			$account: accountSelector,
+			$market: marketSelector,
+		})
+
+		expect(aaveAccountMarketResolver.projections.$$timestamps.select(snapshot)).toEqual([{
+			[EntityMetaKey.Selector]: {
+				$accountMarket: {
+					$account: accountSelector,
+					$market: {
+						$network: ethereumNetwork,
+						poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+					},
+				},
+				timestampMs: 1_777_777_777_000,
+				source: Source.Aave_Rest,
+			},
+			[EntityMetaKey.Fields]: {
+				...expectedFields,
+				[entityFieldAddressKey('AaveAccountMarket_Timestamp', [], 'currentLiquidationThreshold')]: '0.85',
+				[entityFieldAddressKey('AaveAccountMarket_Timestamp', [], 'ltv')]: '0.75',
+				[entityFieldAddressKey('AaveAccountMarket_Timestamp', [], 'totalCollateralBase')]: '6000',
+				[entityFieldAddressKey('AaveAccountMarket_Timestamp', [], 'totalDebtBase')]: '0',
+				[entityFieldAddressKey('AaveAccountMarket_Timestamp', [], 'availableBorrowsBase')]: '1500',
+				[entityFieldAddressKey('AaveAccountMarket_Timestamp', [], 'netApy')]: '-0.025',
+			},
+		}])
+		expect(aaveAccountMarketResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
+		expect(getUserMarketState).toHaveBeenCalledWith({
+			chainId: 1,
+			poolAddress: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2',
+			account: accountSelector.$actor.address,
+		})
+		expect(getUserMarketState).toHaveBeenCalledTimes(1)
+	})
+
+	it('materializes response-time observations without a second timestamp resolver', () => {
+		expect(aaveRest.resolvers.map(({ entityType }) => String(entityType))).not.toContain(
+			EntityType.AaveAccountMarket_Timestamp
+		)
+	})
+
+	it.each([
+		{ accountChain: '1', marketChain: '10', namespace: 'eip155', poolAddress: ethereumMarket.address, error: 'account and market chain mismatch' },
+		{ accountChain: '999999', marketChain: '999999', namespace: 'eip155', poolAddress: ethereumMarket.address, error: 'unsupported chain id' },
+		{ accountChain: '1', marketChain: '1', namespace: 'cosmos', poolAddress: ethereumMarket.address, error: 'eip155 CAIP-2 namespace' },
+		{ accountChain: '1', marketChain: '1', namespace: 'eip155', poolAddress: 'invalid', error: 'invalid pool address' },
+	])('rejects account-market scope before capture: $error', async ({ accountChain, marketChain, namespace, poolAddress, error }) => {
+		if (aaveAccountMarketResolver == null)
+			throw new Error('missing Aave account market resolver')
+		await expect(aaveAccountMarketResolver.resolve.AccountMarket.resolve({
+			$account: {
+				$network: { caip2: { namespace, reference: accountChain } },
+				$actor: { address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c' },
+			},
+			$market: {
+				$network: { caip2: { namespace, reference: marketChain } },
+				poolAddress,
+			},
+		})).rejects.toThrow(error)
+		expect(getUserMarketState).not.toHaveBeenCalled()
+	})
+
+	it('refreshes under the completed response clock and preserves the prior capture on failure', async () => {
+		if (aaveAccountMarketResolver == null)
+			throw new Error('missing Aave account market resolver')
+		const selector = {
+			$account: {
+				$network: ethereumNetwork,
+				$actor: { address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c' },
+			},
+			$market: {
+				$network: ethereumNetwork,
+				poolAddress: ethereumMarket.address,
+			},
+		}
+		const state = {
+			healthFactor: '1.5',
+			observedAtMs: 1000,
+			currentLiquidationThreshold: '0.8',
+			ltv: '0.7',
+			totalCollateralBase: '10',
+			totalDebtBase: '5',
+			availableBorrowsBase: '2',
+			netApy: '-0.01',
+		}
+		getUserMarketState.mockResolvedValueOnce(state)
+		const first = await aaveAccountMarketResolver.resolve.AccountMarket.resolve(selector)
+		const original = structuredClone(first)
+		getUserMarketState.mockResolvedValueOnce({ ...state, observedAtMs: 2000, healthFactor: '1.25' })
+		const second = await aaveAccountMarketResolver.resolve.AccountMarket.resolve(selector)
+		expect(aaveAccountMarketResolver.projections.$$timestamps.select(second)[0]).toMatchObject({
+			[EntityMetaKey.Selector]: { timestampMs: 2000, source: Source.Aave_Rest },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey('AaveAccountMarket_Timestamp', [], 'healthFactor')]: '1.25',
+			},
+		})
+		const failure = new Error('Aave_Rest GraphQL: unavailable')
+		getUserMarketState.mockRejectedValueOnce(failure)
+		await expect(aaveAccountMarketResolver.resolve.AccountMarket.resolve(selector)).rejects.toBe(failure)
+		expect(first).toEqual(original)
+		expect(getUserMarketState).toHaveBeenCalledTimes(3)
+	})
+
+	it('propagates failed discovery rather than publishing an empty market list', async () => {
+		if (accountAaveMarketsResolver == null)
+			throw new Error('missing account Aave markets resolver')
+		const failure = new Error('Aave_Rest GraphQL: unavailable')
+		getAccountPositions.mockRejectedValueOnce(failure)
+		await expect(accountAaveMarketsResolver.resolve.EvmNetworkEvmAccount.resolve({
+			$network: ethereumNetwork,
+			$actor: { address: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c' },
+		}, context)).rejects.toBe(failure)
 	})
 
 	it('publishes Aave account positions onto $$aaveReservePositions', async () => {
@@ -286,6 +554,14 @@ describe('Aave Rest resolver module', () => {
 		}, context)
 		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.select(account)).toEqual([])
 		expect(evmNetworkAccountResolver.projections.$$aaveReservePositions.resolveCount(account)).toBe(0)
+		expect(evmNetworkAccountResolver.projections.$$aaveAccountMarkets.select(account)).toEqual([])
+		expect(evmNetworkAccountResolver.projections.$$aaveAccountMarkets.resolveCount(account)).toBe(0)
+		expect(evmNetworkAccountResolver.projections.$$aaveAccountMarkets.continuation(account)).toEqual({
+			operation: 'account-aave-markets',
+			target: 'aave',
+			terminal: true,
+		})
+		expect(getUserMarketState).not.toHaveBeenCalled()
 	})
 
 	it('registers under Aave_Rest for markets, reserves, and Network.$$aaveMarkets', () => {

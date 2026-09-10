@@ -296,26 +296,19 @@
         "x-opensea-auth-scopes" : [ "write:wallets" ]
       }
     },
-    "/api/v2/accounts/wallets/{wallet}/agent" : {
+    "/api/v2/accounts/agent" : {
       "put" : {
         "tags" : [ "Account Endpoints" ],
-        "summary" : "Mark a registered wallet as an agent wallet",
-        "operationId" : "mark_wallet_as_agent",
-        "parameters" : [ {
-          "name" : "wallet",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
+        "summary" : "Declare the authenticated account an agent",
+        "description" : "Self-reported and not OpenSea verification. Independent of ownership: an agent nobody owns is valid.",
+        "operationId" : "declare_agent_account",
         "responses" : {
           "200" : {
             "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/WalletAgentStatusResponse"
+                  "$ref" : "#/components/schemas/AgentAccountStatusResponse"
                 }
               }
             }
@@ -330,23 +323,15 @@
       },
       "delete" : {
         "tags" : [ "Account Endpoints" ],
-        "summary" : "Remove a registered wallet's agent designation",
-        "operationId" : "remove_wallet_agent_designation",
-        "parameters" : [ {
-          "name" : "wallet",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
+        "summary" : "Withdraw the authenticated account's agent declaration",
+        "operationId" : "withdraw_agent_account_declaration",
         "responses" : {
           "200" : {
             "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/WalletAgentStatusResponse"
+                  "$ref" : "#/components/schemas/AgentAccountStatusResponse"
                 }
               }
             }
@@ -1272,6 +1257,75 @@
         "x-opensea-auth-scopes" : [ "write:orders" ]
       }
     },
+    "/api/v2/orders/chain/{chain}/protocol/{protocol_address}/{order_hash}/cancel/actions" : {
+      "post" : {
+        "tags" : [ "Order Endpoints" ],
+        "summary" : "Get order cancellation actions",
+        "description" : "Returns the blockchain actions needed to cancel an order onchain, for orders that cannot be cancelled offchain through the cancel endpoint. A Solana order is always cancelled this way, because it lives onchain from the moment it is created. The order is addressed by the same identifier the get-order endpoint uses, and only its maker may cancel it.",
+        "operationId" : "create_cancel_order_actions",
+        "parameters" : [ {
+          "name" : "chain",
+          "in" : "path",
+          "description" : "The blockchain on which to filter the results",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/ChainIdentifier"
+          },
+          "example" : "ethereum"
+        }, {
+          "name" : "protocol_address",
+          "in" : "path",
+          "description" : "Protocol contract address",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "order_hash",
+          "in" : "path",
+          "description" : "Order identifier, as returned by the get-order endpoint: a Seaport order hash on EVM chains, and a creation signature paired with the order state account on Solana.",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CancelOrderActionsRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Cancellation actions retrieved successfully",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CancelOrderActionsResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "The request is invalid. Possible reasons: order not found, invalid address, or the address is not the order's maker.",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CancelOrderActionsResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "$ref" : "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
     "/api/v2/offers" : {
       "post" : {
         "tags" : [ "Offer Endpoints" ],
@@ -1351,6 +1405,49 @@
         }
       }
     },
+    "/api/v2/offers/fulfillment/actions" : {
+      "post" : {
+        "tags" : [ "Offer Endpoints" ],
+        "summary" : "Get offer fulfillment actions",
+        "description" : "Returns the blockchain actions a seller needs to accept an offer, for offers that cannot be accepted with Seaport calldata. A Solana offer is always accepted this way, because it settles through an onchain program rather than a signed order. The offer is addressed by the same identifier the get-order endpoint uses, and a criteria offer additionally requires a consideration naming the token being sold.\n\nOn Solana two fields on the returned action are load-bearing. When `partially_signed_transaction` is present the transaction is already cosigned: append your signature to those exact bytes and broadcast them, and do not rebuild the message from `instructions`, which invalidates the cosigner signature. When `sponsored_fee_payer` is present an OpenSea relayer pays the fee and your wallet is only a co-signer; when it is absent you pay your own fee.\n\nAccepting fewer units than an offer's remaining quantity leaves the offer live, so a successful fill does not imply the offer is consumed.",
+        "operationId" : "create_offer_fulfillment_actions",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FullfillmentDataRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Offer fulfillment actions retrieved successfully",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FulfillmentActionsResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "The request is invalid. Possible reasons: order not found, order not valid, order is not an offer, consideration missing for a criteria offer, or no actions could be composed.",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FulfillmentActionsResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "$ref" : "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
     "/api/v2/offers/build" : {
       "post" : {
         "tags" : [ "Offer Endpoints" ],
@@ -1380,6 +1477,49 @@
           },
           "400" : {
             "$ref" : "#/components/responses/BadRequest"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v2/offers/actions" : {
+      "post" : {
+        "tags" : [ "Offer Endpoints" ],
+        "summary" : "Get offer creation actions",
+        "description" : "Returns the blockchain actions needed to offer on an NFT, the offer-side counterpart of the listing actions endpoint. On EVM chains these are payment approvals followed by a Seaport order to sign, which the signature endpoints then accept. On Solana the actions instead carry an unsigned bid transaction to sign and submit onchain; there is no order to post back to OpenSea afterwards.",
+        "operationId" : "create_offer_actions",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateOfferActionsRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Offer creation actions retrieved successfully",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CreateOfferActionsResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "The request is invalid. Possible reasons: invalid addresses, item not found, invalid currency, or price/quantity not positive.",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CreateOfferActionsResponse"
+                }
+              }
+            }
           },
           "500" : {
             "$ref" : "#/components/responses/InternalError"
@@ -1427,7 +1567,7 @@
       "post" : {
         "tags" : [ "Listing Endpoints" ],
         "summary" : "Sweep buy items from a collection",
-        "description" : "Buy up to N items from a collection using any payment token, including cross-chain. If a requested item becomes unavailable, the system can automatically substitute it with the next cheapest listing from the same collection (enabled by default). Returns an ordered list of transactions to execute.",
+        "description" : "Buy up to N items from a collection using any payment token, including cross-chain. If a requested item becomes unavailable, the system can automatically substitute it with the next cheapest listing from the same collection (enabled by default). Returns an ordered list of transactions to execute. Collections on EVM chains only; a collection on any other chain is rejected.",
         "operationId" : "sweep_collection",
         "requestBody" : {
           "content" : {
@@ -1509,11 +1649,54 @@
         }
       }
     },
+    "/api/v2/listings/fulfillment/actions" : {
+      "post" : {
+        "tags" : [ "Listing Endpoints" ],
+        "summary" : "Get listing fulfillment actions",
+        "description" : "Returns the blockchain actions needed to fulfill a listing, for listings that cannot be fulfilled with Seaport calldata. A Solana listing is always fulfilled this way, because it settles through an onchain program rather than a signed order. The listing is addressed by the same identifier the get-order endpoint uses.",
+        "operationId" : "create_listing_fulfillment_actions",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/FullfillListingRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Listing fulfillment actions retrieved successfully",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FulfillmentActionsResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "The request is invalid. Possible reasons: order not found, order not valid, order is not a listing, or no actions could be composed.",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FulfillmentActionsResponse"
+                }
+              }
+            }
+          },
+          "500" : {
+            "$ref" : "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
     "/api/v2/listings/cross_chain_fulfillment_data" : {
       "post" : {
         "tags" : [ "Listing Endpoints" ],
         "summary" : "Fulfill a listing using a different token",
-        "description" : "Get fulfillment data to buy one or more listings using a token on a different chain or a different token on the same chain. Supports cross-chain purchases and same-chain token swaps via the Relay protocol. Returns an ordered list of transactions to execute.",
+        "description" : "Get fulfillment data to buy one or more listings using a token on a different chain or a different token on the same chain. Supports cross-chain purchases and same-chain token swaps via the Relay protocol. Returns an ordered list of transactions to execute. Listings on EVM chains only; a listing on any other chain is rejected.",
         "operationId" : "generate_cross_chain_listing_fulfillment_data",
         "requestBody" : {
           "content" : {
@@ -1636,7 +1819,7 @@
       "post" : {
         "tags" : [ "Drops Endpoints" ],
         "summary" : "Update Creator Studio drop edits",
-        "description" : "Update an existing ERC-721 SeaDrop V1 drop and its stages.",
+        "description" : "Update an existing ERC-721 SeaDrop V1 drop and its stages.\n\nSaves a Creator Studio draft. It does not change the live drop: SeaDrop stages are onchain contract state, so the draft has to be published separately before buyers see it. A 200 here means the draft was accepted, not that the drop changed.\n\n`stages` replaces the whole set rather than merging, so send every stage the drop should end up with, including ones you are not changing. Reuse an existing stage uuid to update it, supply a new UUID to add one, and omit a stage to delete it.\n\nThe stage list has four rules, and rules 2 and 4 interact in a way worth reading before the first attempt:\n\n1. Exactly one stage must be `public_sale`.\n2. That public stage must be first in the array.\n3. The presales, meaning every stage after the first, must be contiguous among themselves: each one starts exactly when the previous presale ended. The first presale start time is not constrained.\n4. The last presale must end exactly when the public stage starts.\n\nTogether, 2 and 4 mean array order is not chronological order: the public stage is listed first and runs last, with the presales running in array order before it. A drop with two allowlist stages therefore sends `[public, presale1, presale2]` while time runs presale1, then presale2, then public. Rule 3 does not tie presale1 back to the public stage, which is why the chain reads forward from presale1 rather than from the array head.\n\nPer-wallet mint limits are cumulative across stages, so `max_total_mintable_by_wallet` on a later stage is a running total for the wallet rather than a fresh allowance.",
         "operationId" : "save_drop_edits",
         "parameters" : [ {
           "name" : "slug",
@@ -2162,7 +2345,7 @@
       "post" : {
         "tags" : [ "Drops Endpoints" ],
         "summary" : "Upload drop allowlist",
-        "description" : "This response starts a three-step upload flow. First, request this context from OpenSea. Second, call the returned method at the returned URL. For POST, add every fields entry unchanged as a multipart text field, then add a file part containing the bytes. The file part must be last. Let the HTTP library generate the multipart boundary; do not set the overall multipart Content-Type header yourself. POST storage uploads normally return 204. For PUT, upload the raw bytes, use only headers explicitly required by the endpoint, and expect 200. Treat any 2xx storage response as success. The URL and fields are short-lived sensitive credentials. Do not log, persist, alter, or put them in tickets. Third, after storage succeeds, pass the returned token to the documented OpenSea API endpoint. Do not use the token before the storage upload succeeds. Pass the token as allowlist_file_token to POST /api/v2/drops/{slug}/allowlist/validate.",
+        "description" : "The file is CSV with a header row, and the wallet column must be named address or walletaddress. Optional per-row columns are a custom mint limit and a custom price. This response starts a three-step upload flow. First, request this context from OpenSea. Second, call the returned method at the returned URL. For POST, add every fields entry unchanged as a multipart text field, then add a file part containing the bytes. The file part must be last. Let the HTTP library generate the multipart boundary; do not set the overall multipart Content-Type header yourself. POST storage uploads normally return 204. For PUT, upload the raw bytes, use only headers explicitly required by the endpoint, and expect 200. Treat any 2xx storage response as success. The URL and fields are short-lived sensitive credentials. Do not log, persist, alter, or put them in tickets. Third, after storage succeeds, pass the returned token to the documented OpenSea API endpoint. Do not use the token before the storage upload succeeds. Pass the token as allowlist_file_token to POST /api/v2/drops/{slug}/allowlist/validate, which returns a different token. That second token is the one a stage takes: send it as allowlist_file_token on the stage in POST /api/v2/drops/{slug}, or the uploaded file is never attached to anything. The presigned upload expires about a minute after it is issued, so request the context and upload in one go rather than requesting it ahead of time.",
         "operationId" : "upload_drop_allowlist",
         "parameters" : [ {
           "name" : "slug",
@@ -2571,7 +2754,7 @@
       "post" : {
         "tags" : [ "Auth Endpoints" ],
         "summary" : "Create an instant API key",
-        "description" : "Creates a free-tier API key instantly without authentication. The key can be used immediately for all API endpoints. Rate limited to 2 keys per hour per IP. Keys expire after 30 days.",
+        "description" : "Creates a free-tier API key instantly without authentication. The key can be used immediately for all API endpoints. Keys expire after 7 days.",
         "operationId" : "create_instant_api_key",
         "responses" : {
           "201" : {
@@ -2841,6 +3024,140 @@
           },
           "500" : {
             "$ref" : "#/components/responses/InternalError"
+          }
+        },
+        "security" : [ {
+          "ApiKeyAuth" : [ ],
+          "WalletAuth" : [ "write:wallets" ]
+        } ],
+        "x-opensea-auth-required" : true,
+        "x-opensea-auth-scopes" : [ "write:wallets" ]
+      }
+    },
+    "/api/v2/accounts/agent-relationships" : {
+      "get" : {
+        "tags" : [ "Account Endpoints" ],
+        "summary" : "List the authenticated account's agent relationships",
+        "description" : "Includes proposals still awaiting either party. Pending relationships appear here only; they are never shown on a public profile. Truncated to the 100 most recent confirmed relationships and the 50 most recent live proposals, bounded separately so unanswered proposals cannot displace confirmed relationships. No total is returned. Confirming or revoking names the counterparty address, so neither needs a relationship to appear here.",
+        "operationId" : "list_own_agent_relationships",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AgentRelationshipListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "ApiKeyAuth" : [ ],
+          "WalletAuth" : [ "read:wallets" ]
+        } ],
+        "x-opensea-auth-required" : true,
+        "x-opensea-auth-scopes" : [ "read:wallets" ]
+      },
+      "post" : {
+        "tags" : [ "Account Endpoints" ],
+        "summary" : "Propose an agent ownership relationship",
+        "description" : "Both accounts must agree. Proposing a relationship that is already awaiting you confirms it, so a client that cannot tell who moved first can simply propose.",
+        "operationId" : "propose_agent_relationship",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProposeAgentRelationshipRequestBody"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AgentRelationshipMutationResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "ApiKeyAuth" : [ ],
+          "WalletAuth" : [ "write:wallets" ]
+        } ],
+        "x-opensea-auth-required" : true,
+        "x-opensea-auth-scopes" : [ "write:wallets" ]
+      },
+      "delete" : {
+        "tags" : [ "Account Endpoints" ],
+        "summary" : "Withdraw a proposal or revoke a confirmed agent relationship",
+        "description" : "Either party may remove the relationship at any point.",
+        "operationId" : "revoke_agent_relationship",
+        "parameters" : [ {
+          "name" : "counterparty_address",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "caller_role",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AgentRelationshipRemovalResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "ApiKeyAuth" : [ ],
+          "WalletAuth" : [ "write:wallets" ]
+        } ],
+        "x-opensea-auth-required" : true,
+        "x-opensea-auth-scopes" : [ "write:wallets" ]
+      }
+    },
+    "/api/v2/accounts/agent-relationships/confirm" : {
+      "post" : {
+        "tags" : [ "Account Endpoints" ],
+        "summary" : "Confirm an agent relationship proposed to the authenticated account",
+        "operationId" : "confirm_agent_relationship",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ProposeAgentRelationshipRequestBody"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AgentRelationshipMutationResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -3281,6 +3598,55 @@
           },
           "500" : {
             "$ref" : "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v2/traits/{slug}/floors" : {
+      "get" : {
+        "tags" : [ "Collection Endpoints" ],
+        "summary" : "Get trait floor prices",
+        "description" : "Get the cheapest active listing for every trait value in a collection, in one request. Trait values with no active listing are omitted. Results are ordered by trait type, then value, then price.\n\nOnly traits with text values are included. A numeric trait has no enumerable set of values, so it is reported as a min/max range by 'GET /api/v2/traits/{slug}' rather than as a floor per value here.\n\nPrices come from each item's best listing across every marketplace OpenSea aggregates, the same basis as 'floor_price' in 'GET /api/v2/collections/{slug}/stats'. A floor can therefore be below the cheapest listing fulfillable through this API, because 'GET /api/v2/listings/collection/{slug}/best' serves only the OpenSea order book.\n\nPrices are not converted to a common currency: a trait value listed in more than one currency appears once per currency, and prices are only comparable within the same 'payment_token_symbol'.",
+        "operationId" : "get_collection_trait_floors",
+        "parameters" : [ {
+          "name" : "slug",
+          "in" : "path",
+          "description" : "Unique identifier for the specific collection",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "doodles-official"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TraitFloorsResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/BadRequest"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/NotFound"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/InternalError"
+          },
+          "503" : {
+            "description" : "Aggregation timed out; the collection is too large to serve",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/V1ErrorWrapper"
+                }
+              }
+            }
           }
         }
       }
@@ -4599,6 +4965,16 @@
           },
           "500" : {
             "$ref" : "#/components/responses/InternalError"
+          },
+          "503" : {
+            "description" : "Trait filter query timed out; try a more selective filter",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/V1ErrorWrapper"
+                }
+              }
+            }
           }
         }
       }
@@ -5323,7 +5699,7 @@
       "get" : {
         "tags" : [ "Collection Endpoints", "Analytics Endpoints" ],
         "summary" : "Get collection stats",
-        "description" : "Get comprehensive statistics for a collection including volume, floor price, and trading metrics.",
+        "description" : "Get statistics for a collection including volume, floor price, and trading metrics. Each currency-denominated figure carries its own symbol: volume is reported in the currency named by volume_symbol, and the floor in the currency named by floor_price_symbol. The two can differ, so read each number against its own symbol.",
         "operationId" : "get_collection_stats",
         "parameters" : [ {
           "name" : "slug",
@@ -6204,7 +6580,7 @@
       "get" : {
         "tags" : [ "Token Endpoints" ],
         "summary" : "Get token trading activity stats",
-        "description" : "Get materialized trade count, USD volume, and average trade size for a token. Windows with no swaps are omitted; an omitted requested key means zero trades in that window. Each window ends at its own materialized snapshot; computed_at is the oldest snapshot among the returned windows and can precede request time because the response is cached.",
+        "description" : "Get materialized trade count, USD volume, and average trade size for a token. Windows with no swaps are omitted; an omitted requested key means zero trades in that window. Each window ends at its own materialized snapshot; computed_at is the oldest snapshot among the returned windows and can precede request time because the response is cached. The 1h and 24h windows also carry unique_buyer_count and unique_seller_count, which are null when the counts are unavailable for that token; 5m and 4h never carry them.",
         "operationId" : "get_token_activity_stats",
         "parameters" : [ {
           "name" : "chain",
@@ -6936,7 +7312,7 @@
       "get" : {
         "tags" : [ "Account Endpoints" ],
         "summary" : "Get public agent ownership relationships for a profile",
-        "description" : "Returns an agent wallet's public owner profile or an account profile's public agent wallets. Private wallet relationships are omitted. Standard API-key quotas and an additional 30-per-hour per-profile limit apply.",
+        "description" : "Returns the account confirmed to own this one as its agent, and the accounts it is the confirmed owner of. Only relationships both accounts confirmed appear; a proposal one side has not accepted is visible to the two parties alone. Ownership is a declaration and not an authorization, and is self-reported rather than verified by OpenSea. Standard API-key quotas and an additional 30-per-hour per-profile limit apply.",
         "operationId" : "get_agent_profile_relationships",
         "parameters" : [ {
           "name" : "address_or_username",
@@ -7285,6 +7661,18 @@
             "description" : "Timeframe for portfolio analytics queries",
             "enum" : [ "HOUR", "DAY", "WEEK", "MONTH" ]
           }
+        }, {
+          "name" : "chains",
+          "in" : "query",
+          "description" : "Comma-separated chains to restrict the portfolio to (e.g. ethereum,base). When omitted, all supported chains are included. Returns 400 if all specified chains are unsupported.",
+          "required" : false,
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ChainIdentifier"
+            }
+          },
+          "example" : "ethereum,base"
         } ],
         "responses" : {
           "200" : {
@@ -8191,6 +8579,12 @@
             "maxLength" : 1000,
             "minLength" : 0
           },
+          "animation_url" : {
+            "type" : "string",
+            "description" : "Animated media for the item, alongside its image. Omit to leave the stored value alone; send an empty string to remove it.",
+            "maxLength" : 1000,
+            "minLength" : 0
+          },
           "traits" : {
             "type" : "array",
             "description" : "Item traits",
@@ -8215,17 +8609,17 @@
         },
         "required" : [ "address", "is_private" ]
       },
-      "WalletAgentStatusResponse" : {
+      "AgentAccountStatusResponse" : {
         "type" : "object",
         "properties" : {
-          "address" : {
-            "type" : "string"
-          },
           "is_agent" : {
+            "type" : "boolean"
+          },
+          "changed" : {
             "type" : "boolean"
           }
         },
-        "required" : [ "address", "is_agent" ]
+        "required" : [ "changed", "is_agent" ]
       },
       "WatchlistRequest" : {
         "type" : "object",
@@ -8921,6 +9315,75 @@
         },
         "required" : [ "address", "from_assets", "to_assets" ]
       },
+      "SvmInstructionAccountResponse" : {
+        "type" : "object",
+        "description" : "An account referenced by a Solana instruction",
+        "properties" : {
+          "pubkey" : {
+            "type" : "string",
+            "description" : "Base58-encoded account address",
+            "example" : "So11111111111111111111111111111111111111112"
+          },
+          "signer" : {
+            "type" : "boolean",
+            "description" : "Whether the account must sign the transaction"
+          },
+          "writable" : {
+            "type" : "boolean",
+            "description" : "Whether the instruction writes to the account"
+          }
+        },
+        "required" : [ "pubkey", "signer", "writable" ]
+      },
+      "SvmInstructionResponse" : {
+        "type" : "object",
+        "description" : "A Solana instruction to include in the transaction",
+        "properties" : {
+          "program_id" : {
+            "type" : "string",
+            "description" : "Base58-encoded program address the instruction invokes",
+            "example" : "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+          },
+          "accounts" : {
+            "type" : "array",
+            "description" : "Accounts the instruction reads or writes, in order",
+            "items" : {
+              "$ref" : "#/components/schemas/SvmInstructionAccountResponse"
+            }
+          },
+          "data" : {
+            "type" : "string",
+            "description" : "Hex-encoded instruction payload, optionally 0x-prefixed",
+            "example" : "01020304"
+          }
+        },
+        "required" : [ "accounts", "program_id" ]
+      },
+      "SvmTransactionDetailsResponse" : {
+        "type" : "object",
+        "description" : "Everything needed to compile and sign a Solana v0 transaction. The client supplies a recent blockhash.",
+        "properties" : {
+          "from" : {
+            "type" : "string",
+            "description" : "Base58-encoded address the transaction is built for"
+          },
+          "instructions" : {
+            "type" : "array",
+            "description" : "Instructions to include, in order",
+            "items" : {
+              "$ref" : "#/components/schemas/SvmInstructionResponse"
+            }
+          },
+          "address_lookup_tables" : {
+            "type" : "array",
+            "description" : "Base58-encoded address lookup tables the compiled message must reference to stay under the transaction size limit",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "address_lookup_tables", "from", "instructions" ]
+      },
       "SwapCostResponse" : {
         "type" : "object",
         "description" : "A cost component of the swap",
@@ -8928,7 +9391,7 @@
           "type" : {
             "type" : "string",
             "description" : "The type of cost",
-            "enum" : [ "GAS", "PROVIDER", "PROTOCOL", "SWAP", "MARKETPLACE", "CREATOR", "MEV_PROTECTION" ],
+            "enum" : [ "GAS", "PROVIDER", "PROTOCOL", "SWAP", "MARKETPLACE", "CREATOR", "MEV_PROTECTION", "EXECUTION" ],
             "example" : "GAS"
           },
           "usd" : {
@@ -9076,6 +9539,14 @@
           "value_hex" : {
             "type" : "string",
             "description" : "The native token value to send with the transaction (hex, 0x-prefixed)"
+          },
+          "svm" : {
+            "$ref" : "#/components/schemas/SvmTransactionDetailsResponse",
+            "description" : "Structured Solana transaction contents. Set for SVM chains only; `data` is a lossy summary of the same instructions."
+          },
+          "gas_limit" : {
+            "type" : "string",
+            "description" : "Gas limit for the transaction, in gas units. Already includes a safety buffer over the estimate — use it as-is (or take the max of this and your own buffered estimate) and do not shrink it. Null when no reliable estimate is available."
           }
         },
         "required" : [ "chain", "data" ]
@@ -9337,12 +9808,6 @@
             "example" : "ethereum",
             "maxLength" : 100,
             "minLength" : 0
-          },
-          "collectionSlug" : {
-            "type" : "string",
-            "description" : "Collection slug of the NFT",
-            "maxLength" : 200,
-            "minLength" : 0
           }
         },
         "required" : [ "chain", "contractAddress", "tokenId" ]
@@ -9600,7 +10065,8 @@
           "type" : "object",
           "properties" : {
             "order_hash" : {
-              "type" : "string"
+              "type" : "string",
+              "description" : "Seaport order hash, a 0x-prefixed 32-byte value. Absent on an order that settles through a Solana marketplace program, which has no Seaport identity and carries `svm_order` instead. Every EVM order has one."
             },
             "chain" : {
               "type" : "string"
@@ -9622,6 +10088,14 @@
               "type" : "integer",
               "format" : "int64"
             },
+            "protocol" : {
+              "type" : "string",
+              "description" : "Marketplace protocol a Solana order settles through, which is what tells you which identity shape the order uses. Absent on a Seaport order, whose payload is unchanged. Only orders we can build fulfillment for carry a value here."
+            },
+            "svm_order" : {
+              "$ref" : "#/components/schemas/SvmOrderIdentity",
+              "description" : "Identity of a Solana order, present in place of `order_hash`. A client that assumes `order_hash` is always set should read this field first and fall back to `order_hash`."
+            },
             "criteria" : {
               "$ref" : "#/components/schemas/Criteria"
             },
@@ -9634,13 +10108,14 @@
             }
           }
         } ],
-        "required" : [ "chain", "order_hash", "price", "remaining_quantity", "status" ]
+        "required" : [ "chain", "price", "remaining_quantity", "status" ]
       },
       "Order" : {
         "type" : "object",
         "properties" : {
           "order_hash" : {
-            "type" : "string"
+            "type" : "string",
+            "description" : "Seaport order hash, a 0x-prefixed 32-byte value. Absent on an order that settles through a Solana marketplace program, which has no Seaport identity and carries `svm_order` instead. Every EVM order has one."
           },
           "chain" : {
             "type" : "string"
@@ -9661,9 +10136,17 @@
           "order_created_at" : {
             "type" : "integer",
             "format" : "int64"
+          },
+          "protocol" : {
+            "type" : "string",
+            "description" : "Marketplace protocol a Solana order settles through, which is what tells you which identity shape the order uses. Absent on a Seaport order, whose payload is unchanged. Only orders we can build fulfillment for carry a value here."
+          },
+          "svm_order" : {
+            "$ref" : "#/components/schemas/SvmOrderIdentity",
+            "description" : "Identity of a Solana order, present in place of `order_hash`. A client that assumes `order_hash` is always set should read this field first and fall back to `order_hash`."
           }
         },
-        "required" : [ "chain", "order_hash", "remaining_quantity" ]
+        "required" : [ "chain", "remaining_quantity" ]
       },
       "OrderAsset" : {
         "type" : "object",
@@ -9755,6 +10238,34 @@
         },
         "required" : [ "parameters" ]
       },
+      "SvmOrderIdentity" : {
+        "type" : "object",
+        "description" : "Identity of an order that settles through a Solana marketplace program. Such an order has no Seaport order hash, so `order_hash` is absent from its payload and it is addressed instead by `id`, the transaction signature that created it joined to the onchain state account holding it. Pass that `id` wherever an endpoint takes an order hash.",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "`creation_signature:order_state`. This is what an endpoint expecting an order hash takes for a Solana order, for example `GET /api/v2/orders/chain/solana/protocol/{protocol_address}/{order_hash}`. Base58 and case-sensitive; do not lowercase it.",
+            "example" : "5j7s1QzqC8sT4Kz1oB9dYnUZ4qHnKX6h9YmZ6Zt7Zb3Q:CvhyBLWDcNwMatkNvMYuHALvbG1NzYrGw32dGzREaQKc"
+          },
+          "order_state" : {
+            "type" : "string",
+            "description" : "Address of the onchain account holding the order's state. The second half of `id`."
+          },
+          "creation_signature" : {
+            "type" : "string",
+            "description" : "Signature of the transaction that created the order. The first half of `id`."
+          },
+          "asset_id" : {
+            "type" : "string",
+            "description" : "Mint of the asset the order is for, where the program records one. Absent otherwise."
+          },
+          "maker" : {
+            "type" : "string",
+            "description" : "Wallet that created the order."
+          }
+        },
+        "required" : [ "creation_signature", "id", "maker", "order_state" ]
+      },
       "TraitData" : {
         "type" : "object",
         "properties" : {
@@ -9774,7 +10285,8 @@
           "type" : "object",
           "properties" : {
             "order_hash" : {
-              "type" : "string"
+              "type" : "string",
+              "description" : "Seaport order hash, a 0x-prefixed 32-byte value. Absent on an order that settles through a Solana marketplace program, which has no Seaport identity and carries `svm_order` instead. Every EVM order has one."
             },
             "chain" : {
               "type" : "string"
@@ -9796,6 +10308,14 @@
               "type" : "integer",
               "format" : "int64"
             },
+            "protocol" : {
+              "type" : "string",
+              "description" : "Marketplace protocol a Solana order settles through, which is what tells you which identity shape the order uses. Absent on a Seaport order, whose payload is unchanged. Only orders we can build fulfillment for carry a value here."
+            },
+            "svm_order" : {
+              "$ref" : "#/components/schemas/SvmOrderIdentity",
+              "description" : "Identity of a Solana order, present in place of `order_hash`. A client that assumes `order_hash` is always set should read this field first and fall back to `order_hash`."
+            },
             "price" : {
               "$ref" : "#/components/schemas/ListingPrice"
             },
@@ -9808,7 +10328,7 @@
             }
           }
         } ],
-        "required" : [ "chain", "order_hash", "price", "remaining_quantity", "status", "type" ]
+        "required" : [ "chain", "price", "remaining_quantity", "status", "type" ]
       },
       "ListingPrice" : {
         "type" : "object",
@@ -9836,6 +10356,33 @@
         },
         "required" : [ "last_signature_issued_valid_until" ]
       },
+      "CancelOrderActionsRequest" : {
+        "type" : "object",
+        "description" : "Request to get order cancellation actions",
+        "properties" : {
+          "address" : {
+            "type" : "string",
+            "description" : "Maker wallet address that owns the order",
+            "example" : "0x..."
+          }
+        },
+        "required" : [ "address" ]
+      },
+      "CancelOrderActionsResponse" : {
+        "type" : "object",
+        "description" : "Response containing blockchain actions to execute for order cancellation",
+        "properties" : {
+          "steps" : {
+            "type" : "array",
+            "description" : "Ordered list of blockchain actions to execute. May include approval actions (e.g. setApprovalForAll) and a createListingsAction containing the Seaport order to sign. Serialized using proto3 JSON format — fields with default values (empty string, 0, false) may be omitted.",
+            "items" : {
+              "$ref" : "#/components/schemas/JsonNode"
+            }
+          }
+        },
+        "required" : [ "steps" ]
+      },
+      "JsonNode" : { },
       "CollectionCriteria" : {
         "type" : "object",
         "properties" : {
@@ -10605,6 +11152,20 @@
           }
         }
       },
+      "FulfillmentActionsResponse" : {
+        "type" : "object",
+        "description" : "Response containing blockchain actions to execute to fulfill an order",
+        "properties" : {
+          "steps" : {
+            "type" : "array",
+            "description" : "Ordered list of blockchain actions to execute. May include approval actions (e.g. setApprovalForAll) and a createListingsAction containing the Seaport order to sign. Serialized using proto3 JSON format — fields with default values (empty string, 0, false) may be omitted.",
+            "items" : {
+              "$ref" : "#/components/schemas/JsonNode"
+            }
+          }
+        },
+        "required" : [ "steps" ]
+      },
       "BuildOfferRequest" : {
         "type" : "object",
         "properties" : {
@@ -10734,6 +11295,99 @@
           }
         },
         "required" : [ "consideration", "zone", "zoneHash" ]
+      },
+      "CreateOfferActionItem" : {
+        "type" : "object",
+        "description" : "An item to make an offer on",
+        "properties" : {
+          "chain" : {
+            "type" : "string",
+            "description" : "Chain of the item (e.g. 'ethereum', 'base')",
+            "example" : "ethereum"
+          },
+          "contract" : {
+            "type" : "string",
+            "description" : "Contract address of the NFT",
+            "example" : "0x..."
+          },
+          "token_id" : {
+            "type" : "string",
+            "description" : "Token ID of the NFT",
+            "example" : 1234
+          }
+        },
+        "required" : [ "chain", "contract", "token_id" ]
+      },
+      "CreateOfferActionsRequest" : {
+        "type" : "object",
+        "description" : "Request to get offer creation actions",
+        "properties" : {
+          "item" : {
+            "$ref" : "#/components/schemas/CreateOfferActionItem",
+            "description" : "Item to make an offer on"
+          },
+          "address" : {
+            "type" : "string",
+            "description" : "Maker (buyer) wallet address",
+            "example" : "0x..."
+          },
+          "quantity" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Quantity to offer on (use 1 for ERC-721)",
+            "example" : 1
+          },
+          "price" : {
+            "$ref" : "#/components/schemas/ListingPriceInput",
+            "description" : "Price per item"
+          },
+          "start_time" : {
+            "type" : "string",
+            "description" : "Offer start time in ISO 8601 format. Defaults to now.",
+            "example" : "2026-05-01T00:00:00Z"
+          },
+          "end_time" : {
+            "type" : "string",
+            "description" : "Offer end time in ISO 8601 format. Defaults to 30 days from start.",
+            "example" : "2026-06-01T00:00:00Z"
+          },
+          "use_creator_fee" : {
+            "type" : "boolean",
+            "description" : "Whether to include optional creator fees. Defaults to false."
+          }
+        },
+        "required" : [ "address", "item", "price", "quantity" ]
+      },
+      "ListingPriceInput" : {
+        "type" : "object",
+        "description" : "Price for a listing item",
+        "properties" : {
+          "amount" : {
+            "type" : "string",
+            "description" : "Price amount in the currency's unit (e.g. '5.0' for 5 ETH)",
+            "example" : 5.0
+          },
+          "currency" : {
+            "type" : "string",
+            "description" : "Contract address of the payment currency (use 0x0000000000000000000000000000000000000000 for native token)",
+            "example" : "0x0000000000000000000000000000000000000000"
+          }
+        },
+        "required" : [ "amount", "currency" ]
+      },
+      "CreateOfferActionsResponse" : {
+        "type" : "object",
+        "description" : "Response containing blockchain actions to execute for offer creation",
+        "properties" : {
+          "steps" : {
+            "type" : "array",
+            "description" : "Ordered list of blockchain actions to execute. May include approval actions (e.g. setApprovalForAll) and a createListingsAction containing the Seaport order to sign. Serialized using proto3 JSON format — fields with default values (empty string, 0, false) may be omitted.",
+            "items" : {
+              "$ref" : "#/components/schemas/JsonNode"
+            }
+          }
+        },
+        "required" : [ "steps" ]
       },
       "BatchNftsRequest" : {
         "type" : "object",
@@ -11094,7 +11748,6 @@
         },
         "required" : [ "buyer", "collection_slug", "max_items", "max_price_per_item", "payment" ]
       },
-      "JsonNode" : { },
       "SweepCollectionResponse" : {
         "type" : "object",
         "description" : "Response containing ordered blockchain actions to execute for a collection sweep",
@@ -11278,23 +11931,6 @@
         },
         "required" : [ "chain", "contract", "price", "quantity", "token_id" ]
       },
-      "ListingPriceInput" : {
-        "type" : "object",
-        "description" : "Price for a listing item",
-        "properties" : {
-          "amount" : {
-            "type" : "string",
-            "description" : "Price amount in the currency's unit (e.g. '5.0' for 5 ETH)",
-            "example" : 5.0
-          },
-          "currency" : {
-            "type" : "string",
-            "description" : "Contract address of the payment currency (use 0x0000000000000000000000000000000000000000 for native token)",
-            "example" : "0x0000000000000000000000000000000000000000"
-          }
-        },
-        "required" : [ "amount", "currency" ]
-      },
       "CreateListingActionsResponse" : {
         "type" : "object",
         "description" : "Response containing blockchain actions to execute for listing creation",
@@ -11341,7 +11977,7 @@
         "properties" : {
           "stages" : {
             "type" : "array",
-            "description" : "Drop stages to save",
+            "description" : "The drop's complete stage set, replacing any existing stages rather than merging with them. Exactly one stage must be `public_sale` and it must be first in this array. The presales that follow must be contiguous among themselves, each starting exactly when the previous presale ended, and the last must end exactly when the public stage starts. The first presale start time is not constrained. Array order is therefore not chronological: the public stage is listed first and runs last.",
             "items" : {
               "$ref" : "#/components/schemas/SaveDropEditsStageRequest"
             },
@@ -11355,6 +11991,11 @@
           "creator_payout_address" : {
             "type" : "string",
             "description" : "Creator payout address"
+          },
+          "launch_date_pending" : {
+            "type" : "boolean",
+            "default" : false,
+            "description" : "Set when saving a configuration the creator has not chosen a launch date for. Stage start and end times are still required, but they are held as a placeholder rather than a schedule: the whole stage set is shifted so the earliest stage opens at the Unix epoch, preserving each stage's duration and the gaps between them, and publishing the drop is refused until a launch date is set. Omit it to leave the drop scheduled; an explicit null is rejected."
           }
         },
         "required" : [ "stages" ]
@@ -11365,12 +12006,13 @@
         "properties" : {
           "uuid" : {
             "type" : "string",
-            "description" : "Stage UUID"
+            "description" : "Stage UUID. Reuse an existing stage UUID to update that stage, or supply a new one to add a stage. Because `stages` replaces the whole set, omitting a stage deletes it."
           },
           "stage_type" : {
             "type" : "string",
-            "description" : "Stage type",
-            "example" : "public_sale"
+            "description" : "Stage type. `public_sale` for the open stage, `signed_presale` for an allowlist stage. `merkle_presale` exists in the underlying enum but is rejected: no drop has ever used one and mints against such a stage fail.",
+            "enum" : [ "public_sale", "signed_presale" ],
+            "example" : "signed_presale"
           },
           "start_time" : {
             "type" : "string",
@@ -11390,7 +12032,7 @@
           },
           "max_total_mintable_by_wallet" : {
             "type" : "string",
-            "description" : "Maximum tokens mintable per wallet as a decimal string"
+            "description" : "Maximum tokens mintable per wallet as a decimal string. Cumulative across stages rather than per stage, so this is a running total for the wallet. A wallet that has already reached a later stage's cap cannot mint on it."
           },
           "max_token_supply_for_stage" : {
             "type" : "string",
@@ -11537,6 +12179,12 @@
           "external_url" : {
             "type" : "string",
             "description" : "External URL",
+            "maxLength" : 1000,
+            "minLength" : 0
+          },
+          "animation_url" : {
+            "type" : "string",
+            "description" : "Animated media for the item, alongside its image. Blank is treated as no animation, the same as omitting the field.",
             "maxLength" : 1000,
             "minLength" : 0
           },
@@ -11979,12 +12627,12 @@
           "read" : {
             "type" : "string",
             "description" : "Read rate limit",
-            "example" : "60/m"
+            "example" : "600/h"
           },
           "write" : {
             "type" : "string",
             "description" : "Write rate limit",
-            "example" : "5/m"
+            "example" : "30/h"
           },
           "fulfillment" : {
             "type" : "string",
@@ -12094,6 +12742,69 @@
           }
         },
         "required" : [ "linkedWalletAddress" ]
+      },
+      "ProposeAgentRelationshipRequestBody" : {
+        "type" : "object",
+        "properties" : {
+          "counterparty_address" : {
+            "type" : "string"
+          },
+          "caller_role" : {
+            "type" : "string",
+            "description" : "Which side of the relationship the caller is on",
+            "enum" : [ "AGENT", "OWNER" ]
+          }
+        },
+        "required" : [ "caller_role", "counterparty_address" ]
+      },
+      "AgentRelationshipMutationResponse" : {
+        "type" : "object",
+        "properties" : {
+          "relation" : {
+            "$ref" : "#/components/schemas/AgentRelationshipResponse"
+          },
+          "created" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "created", "relation" ]
+      },
+      "AgentRelationshipResponse" : {
+        "type" : "object",
+        "properties" : {
+          "initiator_address" : {
+            "type" : "string"
+          },
+          "counterparty_address" : {
+            "type" : "string"
+          },
+          "agent_account_id" : {
+            "type" : "string"
+          },
+          "owner_account_id" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "initiated_by" : {
+            "type" : "string"
+          },
+          "awaiting_confirmation_from" : {
+            "type" : "string"
+          },
+          "created_at" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Unix timestamp in seconds, including fractional seconds"
+          },
+          "confirmed_at" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Unix timestamp in seconds, including fractional seconds"
+          }
+        },
+        "required" : [ "agent_account_id", "created_at", "initiated_by", "owner_account_id", "status" ]
       },
       "UpdateProfileSettingsRequest" : {
         "type" : "object",
@@ -12279,6 +12990,10 @@
             "type" : "string",
             "description" : "External URL"
           },
+          "animation_url" : {
+            "type" : "string",
+            "description" : "Animated media for the item, alongside its image"
+          },
           "chain" : {
             "type" : "string",
             "description" : "Chain identifier"
@@ -12308,6 +13023,12 @@
           "external_url" : {
             "type" : "string",
             "description" : "External URL"
+          },
+          "animation_url" : {
+            "type" : "string",
+            "description" : "Animated media for the item, alongside its image. Omit to leave the stored value alone; send an empty string to remove it.",
+            "maxLength" : 1000,
+            "minLength" : 0
           },
           "description" : {
             "type" : "string",
@@ -12981,6 +13702,48 @@
           }
         },
         "required" : [ "token" ]
+      },
+      "TraitFloorResponse" : {
+        "type" : "object",
+        "description" : "Floor price for one trait value in one payment currency",
+        "properties" : {
+          "trait_type" : {
+            "type" : "string",
+            "description" : "Trait category, for example Background"
+          },
+          "value" : {
+            "type" : "string",
+            "description" : "Trait value, for example Purple"
+          },
+          "floor_price" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Price of the cheapest listing carrying this trait value, across every marketplace OpenSea aggregates. This matches the basis of the collection's floor_price and may be below the cheapest listing fulfillable through this API."
+          },
+          "payment_token_symbol" : {
+            "type" : "string",
+            "description" : "Payment token this floor is denominated in, on the response's chain. Floors are not converted to a common currency, so a trait value listed in more than one currency appears once per currency and prices are only comparable within the same symbol."
+          }
+        },
+        "required" : [ "floor_price", "payment_token_symbol", "trait_type", "value" ]
+      },
+      "TraitFloorsResponse" : {
+        "type" : "object",
+        "description" : "Floor price per trait value for a collection",
+        "properties" : {
+          "chain" : {
+            "type" : "string",
+            "description" : "Chain every floor in this response is denominated on. A collection lives on one chain, so the payment token is identified by this plus 'payment_token_symbol'."
+          },
+          "floors" : {
+            "type" : "array",
+            "description" : "One entry per text trait value and payment currency that has at least one active listing, ordered by trait type, then value, then price. Numeric traits are not enumerated here; see GET /api/v2/traits/{slug} for their min/max range.",
+            "items" : {
+              "$ref" : "#/components/schemas/TraitFloorResponse"
+            }
+          }
+        },
+        "required" : [ "chain", "floors" ]
       },
       "ToolListItemResponse" : {
         "type" : "object",
@@ -14350,7 +15113,13 @@
           },
           "max_per_wallet" : {
             "type" : "string",
-            "description" : "Max tokens mintable per wallet in this stage"
+            "description" : "Ceiling on the wallet's mints for the whole drop, not this stage alone. Cumulative: SeaDrop checks it against the wallet's lifetime minted count on the contract, so caps on different stages do not add together. Matches max_total_mintable_by_wallet on the eligibility response."
+          },
+          "allowlist_wallet_count" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Wallets on this stage's allowlist when the drop service last synced it. Null when the stage has no synced allowlist, which includes every public sale stage; that is distinct from 0, which means the allowlist is empty. Equivalent to allowlistMemberCount on the GraphQL DropStage.",
+            "example" : 1200
           }
         },
         "required" : [ "end_time", "max_per_wallet", "price_currency_address", "stage_type", "start_time", "uuid" ]
@@ -14454,11 +15223,11 @@
           },
           "max_total_mintable_by_wallet" : {
             "type" : "string",
-            "description" : "Max tokens the wallet can mint in this stage across all tokens"
+            "description" : "Ceiling on the wallet's mints for the whole drop, all token ids included, as a decimal string. Cumulative rather than per stage: SeaDrop checks it against the wallet's lifetime minted count on the contract, so caps on different stages do not add together, and a wallet that has already reached a later stage's cap cannot mint on it."
           },
           "max_total_mintable_by_wallet_per_token" : {
             "type" : "string",
-            "description" : "Max tokens the wallet can mint per token in this stage (ERC-1155)"
+            "description" : "The same ceiling for a single token id (ERC-1155), as a decimal string. Also a lifetime total for that token id rather than a per-stage allowance."
           }
         },
         "required" : [ "is_eligible", "stage_uuid" ]
@@ -14705,43 +15474,63 @@
         "type" : "object",
         "properties" : {
           "interval" : {
-            "type" : "string"
+            "type" : "string",
+            "description" : "Window the stats cover",
+            "example" : "one_day"
           },
           "volume" : {
             "type" : "number",
-            "format" : "double"
+            "format" : "double",
+            "description" : "Trading volume over the interval, denominated in the currency named by volume_symbol"
+          },
+          "volume_symbol" : {
+            "type" : "string",
+            "description" : "Currency that volume is denominated in. Empty when the conversion rate was unavailable and the unit could not be determined.",
+            "example" : "ETH"
           },
           "sales" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int32",
+            "description" : "Number of sales over the interval"
           }
         },
-        "required" : [ "interval", "sales", "volume" ]
+        "required" : [ "interval", "sales", "volume", "volume_symbol" ]
       },
       "Total" : {
         "type" : "object",
         "properties" : {
           "volume" : {
             "type" : "number",
-            "format" : "double"
+            "format" : "double",
+            "description" : "All-time trading volume, denominated in the currency named by volume_symbol. This is not necessarily the currency of floor_price."
+          },
+          "volume_symbol" : {
+            "type" : "string",
+            "description" : "Currency that volume is denominated in. Empty when the conversion rate was unavailable and the unit could not be determined.",
+            "example" : "ETH"
           },
           "sales" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int32",
+            "description" : "All-time number of sales"
           },
           "num_owners" : {
             "type" : "integer",
-            "format" : "int64"
+            "format" : "int64",
+            "description" : "Number of distinct addresses holding an item in the collection"
           },
           "floor_price" : {
             "type" : "number",
-            "format" : "double"
+            "format" : "double",
+            "description" : "Price of the cheapest current listing, denominated in the currency named by floor_price_symbol. 0 when the collection has no listing."
           },
           "floor_price_symbol" : {
-            "type" : "string"
+            "type" : "string",
+            "description" : "Currency that floor_price is denominated in. Empty when there is no listing.",
+            "example" : "ETH"
           }
         },
-        "required" : [ "floor_price", "floor_price_symbol", "num_owners", "sales", "volume" ]
+        "required" : [ "floor_price", "floor_price_symbol", "num_owners", "sales", "volume", "volume_symbol" ]
       },
       "BidderResponse" : {
         "type" : "object",
@@ -15338,6 +16127,18 @@
             "description" : "Average USD volume per trade",
             "example" : 232.92,
             "pattern" : "^[0-9]+(?:\\.[0-9]+)?$"
+          },
+          "unique_buyer_count" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Distinct wallets that bought this token during the window. Only populated for the 1h and 24h windows; always null for 5m and 4h, which have no materialized source. Null also means the value is unavailable or not yet authoritative for this token, which remains a valid runtime state. Zero is an authoritative zero, so do not treat null as 0.",
+            "example" : 412
+          },
+          "unique_seller_count" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Distinct wallets that sold this token during the window. Only populated for the 1h and 24h windows; always null for 5m and 4h, which have no materialized source. Null also means the value is unavailable or not yet authoritative for this token, which remains a valid runtime state. Zero is an authoritative zero, so do not treat null as 0.",
+            "example" : 377
           }
         },
         "required" : [ "average_trade_usd", "trades", "volume_usd" ]
@@ -15457,7 +16258,7 @@
           },
           "is_agent" : {
             "type" : "boolean",
-            "description" : "Whether the account owner has designated at least one registered wallet as an agent wallet. This is self-declared and is not OpenSea verification."
+            "description" : "Whether this account has declared itself an agent. Self-declared and not OpenSea verification, and the declaration on its own confers nothing: see GET /api/v2/accounts/{address_or_username}/agent-relationships for the ownership relationship, which is likewise a declaration rather than an authorization."
           },
           "follower_count" : {
             "type" : "integer",
@@ -15572,17 +16373,19 @@
         "type" : "object",
         "description" : "Public agent ownership relationships for a profile",
         "properties" : {
-          "agent_owner_profile" : {
-            "$ref" : "#/components/schemas/AgentProfileSummaryResponse"
+          "agent_owner" : {
+            "$ref" : "#/components/schemas/AgentProfileSummaryResponse",
+            "description" : "The account confirmed to own this one as its agent. Null when there is none, which is ordinary rather than exceptional: an agent nobody declared is a valid agent account. Only a relationship both accounts confirmed appears here."
           },
-          "public_agent_wallets" : {
+          "agents" : {
             "type" : "array",
+            "description" : "The accounts this one is the confirmed owner of, newest relationship first. Empty when there are none.",
             "items" : {
               "$ref" : "#/components/schemas/AgentProfileSummaryResponse"
             }
           }
         },
-        "required" : [ "public_agent_wallets" ]
+        "required" : [ "agents" ]
       },
       "AgentProfileSummaryResponse" : {
         "type" : "object",
@@ -15626,6 +16429,18 @@
           }
         },
         "required" : [ "address" ]
+      },
+      "AgentRelationshipListResponse" : {
+        "type" : "object",
+        "properties" : {
+          "relationships" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AgentRelationshipResponse"
+            }
+          }
+        },
+        "required" : [ "relationships" ]
       },
       "TokenBalancePaginatedResponse" : {
         "type" : "object",
@@ -15753,10 +16568,6 @@
           "type" : "object",
           "properties" : {
             "validate" : {
-              "type" : "boolean",
-              "writeOnly" : true
-            },
-            "skipLowercase" : {
               "type" : "boolean",
               "writeOnly" : true
             }
@@ -16437,16 +17248,25 @@
         },
         "required" : [ "success" ]
       },
+      "AgentRelationshipRemovalResponse" : {
+        "type" : "object",
+        "properties" : {
+          "removed" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "removed" ]
+      },
       "AuthScope" : {
         "type" : "string",
         "description" : "OAuth-style scope recognized by the OpenSea API for wallet-authenticated requests",
-        "enum" : [ "read:eligibility", "read:favorites", "read:social", "read:tools", "write:favorites", "write:social", "write:tools", "write:orders", "write:drops", "write:collections", "write:profile", "write:wallets" ],
+        "enum" : [ "read:eligibility", "read:favorites", "read:social", "read:tools", "read:wallets", "write:favorites", "write:social", "write:tools", "write:orders", "write:drops", "write:collections", "write:profile", "write:wallets" ],
         "example" : "read:favorites",
-        "x-enum-descriptions" : [ "Check drop eligibility for authenticated wallet", "View favorites and watchlist for authenticated account", "View follows, watches, followers, and following for the authenticated account", "View saved tools and toolkits for the authenticated account", "Add and remove favorites and watchlist entries for authenticated account", "Follow, unfollow, watch, and unwatch profiles for the authenticated account", "Save and remove tools and manage toolkits for the authenticated account", "Cancel orders on behalf of authenticated account", "Manage Creator Studio drops for authenticated account", "Modify collection metadata for authenticated account", "Modify profile settings for authenticated account", "Link, unlink, and manage wallet visibility for the authenticated account" ],
-        "x-enum-display-names" : [ "Check drop eligibility", "View favorites and watchlist", "View social relationships", "View saved tools and toolkits", "Manage favorites and watchlist", "Manage social relationships", "Manage saved tools and toolkits", "Cancel orders", "Creator Studio drop management", "Collection metadata editing", "Profile editing", "Manage linked wallets" ],
-        "x-enum-groups" : [ "read", "read", "read", "read", "write", "write", "write", "write", "write", "write", "write", "write" ],
-        "x-enum-endpoints" : [ [ "/api/v2/drops/{slug}/eligibility" ], [ "/api/v2/account/{address}/favorites", "/api/v2/account/{address}/token_watchlist", "/api/v2/account/{address}/perpetual_watchlist" ], [ "/api/v2/accounts/{address_or_username}/relationship", "/api/v2/accounts/{address_or_username}/followers", "/api/v2/accounts/{address_or_username}/following" ], [ "/api/v2/saved-tools", "/api/v2/toolkits", "/api/v2/toolkits/{toolkit_slug}" ], [ "/api/v2/watchlist" ], [ "/api/v2/accounts/{address_or_username}/follow", "/api/v2/accounts/{address_or_username}/watch" ], [ "/api/v2/saved-tools", "/api/v2/toolkits", "/api/v2/toolkits/{toolkit_id}/save" ], [ "/api/v2/orders/chain/{chain}/protocol/{protocol_address}/{order_hash}/cancel" ], [ "/api/v2/drops/{slug}", "/api/v2/drops/{slug}/allowlist", "/api/v2/drops/{slug}/allowlist/validate", "/api/v2/drops/{slug}/prereveal-item", "/api/v2/drops/{slug}/items", "/api/v2/drops/{slug}/items/media", "/api/v2/drops/{slug}/items/media/save", "/api/v2/drops/{slug}/items/{token_id}" ], [ "/api/v2/collections/{slug}", "/api/v2/collections/{slug}/metadata", "/api/v2/collections/{slug}/visibility", "/api/v2/collections/{slug}/images/{image_type}" ], [ "/api/v2/profile", "/api/v2/profile/username", "/api/v2/profile/images", "/api/v2/profile/nft-pfp", "/api/v2/profile/shelves", "/api/v2/profile/shelves/{shelf_id}" ], [ "/api/v2/accounts/wallets/siwx", "/api/v2/accounts/wallets/{wallet}", "/api/v2/accounts/wallets/{wallet}/agent", "/api/v2/accounts/wallets/{wallet}/private" ] ],
-        "x-enum-mcp-tools" : [ [ "check_drop_eligibility" ], [ "get_favorites" ], [ "view_social_graph" ], [ "list_saved_tools", "list_toolkits", "get_toolkit" ], [ "manage_watchlist" ], [ "manage_social_graph" ], [ "save_tool", "unsave_tool", "create_toolkit", "save_toolkit", "unsave_toolkit" ], [ "cancel_orders" ], [ "manage_drops" ], [ "manage_collections" ], [ "manage_profile" ], [ "manage_wallets" ] ]
+        "x-enum-descriptions" : [ "Check drop eligibility for authenticated wallet", "View favorites and watchlist for authenticated account", "View follows, watches, followers, and following for the authenticated account", "View saved tools and toolkits for the authenticated account", "View wallet state for the authenticated account, currently agent ownership relationships including pending proposals", "Add and remove favorites and watchlist entries for authenticated account", "Follow, unfollow, watch, and unwatch profiles, and link or unlink an X account, for the authenticated account", "Save and remove tools and manage toolkits for the authenticated account", "Cancel orders on behalf of authenticated account", "Manage Creator Studio drops for authenticated account", "Modify collection metadata for authenticated account", "Modify profile settings for authenticated account", "Link, unlink, manage wallet visibility, and declare agent relationships for the authenticated account" ],
+        "x-enum-display-names" : [ "Check drop eligibility", "View favorites and watchlist", "View social relationships", "View saved tools and toolkits", "View linked wallets and agent relationships", "Manage favorites and watchlist", "Manage social relationships", "Manage saved tools and toolkits", "Cancel orders", "Creator Studio drop management", "Collection metadata editing", "Profile editing", "Manage linked wallets" ],
+        "x-enum-groups" : [ "read", "read", "read", "read", "read", "write", "write", "write", "write", "write", "write", "write", "write" ],
+        "x-enum-endpoints" : [ [ "/api/v2/drops/{slug}/eligibility" ], [ "/api/v2/account/{address}/favorites", "/api/v2/account/{address}/token_watchlist", "/api/v2/account/{address}/perpetual_watchlist" ], [ "/api/v2/accounts/{address_or_username}/relationship", "/api/v2/accounts/{address_or_username}/followers", "/api/v2/accounts/{address_or_username}/following" ], [ "/api/v2/saved-tools", "/api/v2/toolkits", "/api/v2/toolkits/{toolkit_slug}" ], [ "/api/v2/accounts/agent-relationships" ], [ "/api/v2/watchlist" ], [ "/api/v2/accounts/{address_or_username}/follow", "/api/v2/accounts/{address_or_username}/watch", "/api/v2/accounts/social/x/link", "/api/v2/accounts/social/x/link/{link_id}", "/api/v2/accounts/social/x" ], [ "/api/v2/saved-tools", "/api/v2/toolkits", "/api/v2/toolkits/{toolkit_id}/save" ], [ "/api/v2/orders/chain/{chain}/protocol/{protocol_address}/{order_hash}/cancel" ], [ "/api/v2/drops/{slug}", "/api/v2/drops/{slug}/allowlist", "/api/v2/drops/{slug}/allowlist/validate", "/api/v2/drops/{slug}/prereveal-item", "/api/v2/drops/{slug}/items", "/api/v2/drops/{slug}/items/media", "/api/v2/drops/{slug}/items/media/save", "/api/v2/drops/{slug}/items/{token_id}" ], [ "/api/v2/collections/{slug}", "/api/v2/collections/{slug}/metadata", "/api/v2/collections/{slug}/visibility", "/api/v2/collections/{slug}/images/{image_type}" ], [ "/api/v2/profile", "/api/v2/profile/username", "/api/v2/profile/images", "/api/v2/profile/nft-pfp", "/api/v2/profile/shelves", "/api/v2/profile/shelves/{shelf_id}" ], [ "/api/v2/accounts/agent", "/api/v2/accounts/agent-relationships", "/api/v2/accounts/agent-relationships/confirm", "/api/v2/accounts/wallets/siwx", "/api/v2/accounts/wallets/{wallet}", "/api/v2/accounts/wallets/{wallet}/private" ] ],
+        "x-enum-mcp-tools" : [ [ "check_drop_eligibility" ], [ "get_favorites" ], [ "view_social_graph" ], [ "list_saved_tools", "list_toolkits", "get_toolkit" ], [ "get_agent_relationships" ], [ "manage_watchlist" ], [ "manage_social_graph", "link_x_account" ], [ "save_tool", "unsave_tool", "create_toolkit", "save_toolkit", "unsave_toolkit" ], [ "cancel_orders" ], [ "manage_drops" ], [ "manage_collections" ], [ "manage_profile" ], [ "manage_wallets", "manage_agent_account" ] ]
       }
     },
     "responses" : {

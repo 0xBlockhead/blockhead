@@ -27,10 +27,8 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					caip10: true,
-				},
+			fields: {
+				caip10: true,
 			},
 		})
 	}

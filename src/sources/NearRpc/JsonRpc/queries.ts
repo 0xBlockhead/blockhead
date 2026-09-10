@@ -2,6 +2,7 @@ import { TransportType } from '$/constants/TransportType.ts'
 import { jsonRpc2 } from '$/sources/_shared/wire/JsonRpc2/client.ts'
 import bindings from '$/sources/NearRpc/bindings.ts'
 import { Source } from '$/sources/Source.ts'
+import type { SourceBinding } from '$/sources/SourceBinding.ts'
 import type {
 	NearRpcAccount,
 	NearRpcAccessKey,
@@ -276,8 +277,9 @@ const assertEnvelope = <_Value>(
 	}
 }
 
-export const nearRpc = (() => {
-	const binding = bindings[Source.NearRpc_JsonRpc][0]
+export const nearRpcForBinding = (
+	binding: SourceBinding<Source.NearRpc_JsonRpc>
+) => {
 	const getBlock = async ({
 	blockId,
 }: {
@@ -528,4 +530,6 @@ export const nearRpc = (() => {
 		viewAccount,
 		viewState,
 	}
-})()
+}
+
+export const nearRpc = nearRpcForBinding(bindings[Source.NearRpc_JsonRpc][0])

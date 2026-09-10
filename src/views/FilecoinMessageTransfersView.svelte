@@ -28,13 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					transferType: true,
-					valueAttoFil: true,
-					$from: true,
-					$to: true,
-				},
+			fields: {
+				transferType: true,
+				valueAttoFil: true,
+				$from: true,
+				$to: true,
 			},
 		})
 	}

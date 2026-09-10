@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bindings from '$/sources/Avail/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceDelivery } from '$/sources/SourceBinding.ts'
 import {
 	getBlock,
 	getBlockHash,
@@ -52,9 +51,34 @@ describe('Avail mainnet read-only JSON-RPC contracts', () => {
 		jsonRpc2Mock.mockReset()
 	})
 
-	it('delivers the non-CORS public endpoint through the HTTP proxy', () => {
-		expect(binding.delivery).toBe(SourceDelivery.HttpProxy)
-		expect(binding.endpoints[0].corsEnabled).toBe(false)
+	it('delivers server block-hash reads to the configured endpoint', async () => {
+		const actualRpc = await vi.importActual<typeof import('$/sources/_shared/wire/JsonRpc2/client.ts')>(
+			'$/sources/_shared/wire/JsonRpc2/client.ts'
+		)
+		jsonRpc2Mock.mockImplementationOnce(actualRpc.jsonRpc2)
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+			jsonrpc: '2.0',
+			id: 1,
+			result: hash,
+		})))
+		vi.stubGlobal('fetch', fetchMock)
+		try {
+			await expect(getBlockHash(publicEnv)).resolves.toBe(hash)
+			expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+				'https://example.com',
+				expect.objectContaining({
+					method: 'POST',
+					body: JSON.stringify({
+						jsonrpc: '2.0',
+						id: 1,
+						method: 'chain_getBlockHash',
+						params: [],
+					}),
+				})
+			)
+		} finally {
+			vi.unstubAllGlobals()
+		}
 	})
 
 	it('pins mainnet identity to chain name and genesis hash', async () => {

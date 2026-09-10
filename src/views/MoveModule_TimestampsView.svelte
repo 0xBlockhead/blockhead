@@ -28,13 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					ledgerVersion: true,
-					packageVersion: true,
-					source: true,
-				},
+			fields: {
+				timestampMs: true,
+				ledgerVersion: true,
+				packageVersion: true,
+				source: true,
 			},
 		})
 	}

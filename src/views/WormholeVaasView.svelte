@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					digest: true,
-					emitterChain: true,
-					sequence: true,
-				},
+			fields: {
+				digest: true,
+				emitterChain: true,
+				sequence: true,
 			},
 		})
 	}

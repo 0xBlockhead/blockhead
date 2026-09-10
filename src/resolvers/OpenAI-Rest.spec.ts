@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -28,15 +29,7 @@ const $provider = {
 	providerId: 'openai',
 }
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const model = {
 	id: 'gpt-test',

@@ -29,12 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					authenticationId: true,
-					protocol: true,
-					verified: true,
-				},
+			fields: {
+				authenticationId: true,
+				protocol: true,
+				verified: true,
 			},
 		})
 	}

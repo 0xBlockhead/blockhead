@@ -28,17 +28,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					changeKind: true,
-					changeIndex: true,
-					$transaction: {
-						fields: {
-							hash: true,
-							transactionKind: true,
-							version: true,
-							sender: true,
-						},
+			fields: {
+				changeKind: true,
+				changeIndex: true,
+				$transaction: {
+					fields: {
+						hash: true,
+						transactionKind: true,
+						version: true,
+						sender: true,
 					},
 				},
 			},

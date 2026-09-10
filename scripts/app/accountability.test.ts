@@ -6,7 +6,9 @@ import {
 	classifyMappedSelector,
 	classifySourceClaim,
 	compileObservationTimeAccountability,
+	compileSourceClaimBindingCoverage,
 	countBy,
+	dualBindingDeclarationGaps,
 	indexAccountabilityAuthority,
 	MappedSelectorAccountability,
 	ObservationTimeProvenance,
@@ -14,6 +16,7 @@ import {
 	observationTimeWriterManifest,
 	publicColdReadGaps,
 	SourceAccess,
+	SourceBindingTargetMatch,
 	SourceClaimDemand,
 	SourceClaimExecutability,
 	sourceClaimAccountabilityKey,
@@ -125,6 +128,61 @@ test('classifies a source claim by declared route demand, delivery, and resolver
 	)
 })
 
+test('keeps target matches distinct from unverified applicability evidence', () => {
+	const authority = indexAccountabilityAuthority({
+		sourceBindings: [
+			{
+				source: 'NetworkRest',
+				delivery: 'BrowserDirect',
+				target: { kind: 'Caip2Network', key: 'bitcoin:mainnet' },
+			},
+			{
+				source: 'NetworkRest',
+				delivery: 'BrowserDirect',
+				target: { kind: 'Caip2Network', key: 'bitcoin:testnet' },
+			},
+		],
+		resolverModules: [{ source: 'NetworkRest' }],
+		fieldSourcedEntityTypes: new Set(),
+		referenceMaterializedEntityTypes: new Set(),
+	})
+
+	const unscoped = classifySourceClaim({
+		source: 'NetworkRest',
+		entityType: 'NetworkEntity',
+		selectorName: 'Network',
+		facetPath: [],
+		publicRoute: '/network/[network]',
+	}, authority)
+	assert.equal(unscoped.bindingEvidence.length, 2)
+	assert.deepEqual(unscoped.bindingEvidence.map(({ targetMatch, verification }) => [targetMatch, verification]), [
+		[SourceBindingTargetMatch.Unknown, 'Unverified'],
+		[SourceBindingTargetMatch.Unknown, 'Unverified'],
+	])
+
+	const mainnet = classifySourceClaim({
+		source: 'NetworkRest',
+		entityType: 'NetworkEntity',
+		selectorName: 'Network',
+		facetPath: [],
+		publicRoute: '/network/[network]',
+		target: { kind: 'Caip2Network', key: 'bitcoin:mainnet' },
+	}, authority)
+	assert.deepEqual(mainnet.bindingEvidence.map(({ targetMatch, verification }) => [targetMatch, verification]), [
+		[SourceBindingTargetMatch.Matches, 'Unverified'],
+		[SourceBindingTargetMatch.Differs, 'Unverified'],
+	])
+	assert.equal(mainnet.bindingEvidence.every(({ verification }) => verification === 'Unverified'), true)
+	assert.equal(mainnet.bindingEvidence.every(({ deliverySupportsExecution }) => deliverySupportsExecution), true)
+	const unknownDelivery = classifySourceClaim({ ...fixtureClaim, source: 'UnknownDelivery' }, indexAccountabilityAuthority({
+		sourceBindings: [{ source: 'UnknownDelivery', delivery: 'FutureTransport' }],
+		resolverModules: [],
+		fieldSourcedEntityTypes: new Set(),
+		referenceMaterializedEntityTypes: new Set(),
+	})).bindingEvidence[0]
+	assert.equal(unknownDelivery?.deliverySupportsExecution, false)
+})
+
 test('keys source claims without aliasing route punctuation or omitted coordinates', () => {
 	const routeClaim = {
 		source: 'ProxiedRest',
@@ -142,6 +200,54 @@ test('keys source claims without aliasing route punctuation or omitted coordinat
 
 	assert.notEqual(sourceClaimAccountabilityKey(routeClaim), sourceClaimAccountabilityKey(fieldClaim))
 	assert.notEqual(sourceClaimAccountabilityKey({ ...routeClaim, selectorName: undefined }), sourceClaimAccountabilityKey(routeClaim))
+	assert.notEqual(
+		sourceClaimAccountabilityKey(routeClaim),
+		sourceClaimAccountabilityKey({
+			...routeClaim,
+			conditions: [{ field: 'network', equals: 'eip155:1' }],
+		})
+	)
+})
+
+test('measures two executable bindings per exact field or conditioned route coordinate', () => {
+	const authority = indexAccountabilityAuthority({
+		sourceBindings: [
+			{ source: 'Primary', delivery: 'BrowserDirect' },
+			{ source: 'Secondary', delivery: 'HttpProxy' },
+			{ source: 'Retired', delivery: 'Unsupported' },
+		],
+		resolverModules: [{ source: 'Primary' }, { source: 'Secondary' }],
+		fieldSourcedEntityTypes: new Set(),
+		referenceMaterializedEntityTypes: new Set(),
+	})
+	const coordinate = {
+		entityType: 'FixtureEntity',
+		facetPath: ['Network'],
+		fieldName: 'height',
+	}
+	const rows = compileSourceClaimBindingCoverage([
+		classifySourceClaim({ ...coordinate, source: 'Primary' }, authority),
+		classifySourceClaim({ ...coordinate, source: 'Secondary' }, authority),
+		classifySourceClaim({ ...coordinate, source: 'Retired' }, authority),
+		classifySourceClaim({
+			...coordinate,
+			source: 'Primary',
+			conditions: [{ field: 'network', equals: 'eip155:1' }],
+		}, authority),
+	])
+
+	assert.equal(rows.length, 2)
+	const unconditional = rows.find(({ conditions }) => conditions == null)
+	const conditioned = rows.find(({ conditions }) => conditions != null)
+	assert.deepEqual(unconditional == null ? undefined : {
+		declaredExecutableBindings: unconditional.declaredExecutableBindings,
+		sources: unconditional.sources,
+	}, { declaredExecutableBindings: 2, sources: ['Primary', 'Retired', 'Secondary'] })
+	assert.deepEqual(conditioned == null ? undefined : {
+		declaredExecutableBindings: conditioned.declaredExecutableBindings,
+		sources: conditioned.sources,
+	}, { declaredExecutableBindings: 1, sources: ['Primary'] })
+	assert.deepEqual(dualBindingDeclarationGaps(rows), [conditioned])
 })
 
 test('keeps generated observation clocks unclassified until a writer proves their provenance', () => {
@@ -217,7 +323,7 @@ test('derives writer evidence only from a typed writer used to emit an observati
 test('re-derives the complete observation-time writer denominator without blessing unknown clocks', () => {
 	const rows = compiledApp.observationTimeAccountability
 
-	assert.equal(rows.length, 351)
+	assert.equal(rows.length, 353)
 	assert.deepEqual(compiledApp.observationTimeWriterManifest.map((writer) => ({ ...writer })), [
 		{
 			entityType: '_GlobalActivityPubNetwork_Timestamp',
@@ -236,6 +342,12 @@ test('re-derives the complete observation-time writer denominator without blessi
 			selectorName: 'HubTimestampMsSource',
 			source: 'Swarm_Rest',
 			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: 'AaveAccountMarket_Timestamp',
+			selectorName: 'AccountMarketTimestampMsSource',
+			source: 'Aave_Rest',
+			provenance: 'HttpResponse',
 		},
 		{
 			entityType: 'ActivityPubActor_Timestamp',
@@ -274,6 +386,12 @@ test('re-derives the complete observation-time writer denominator without blessi
 			provenance: 'LocalRefresh',
 		},
 		{
+			entityType: 'IpfsResource_Timestamp',
+			selectorName: 'ResourceTimestampMsSource',
+			source: 'Ipfs_Rest',
+			provenance: 'HttpResponse',
+		},
+		{
 			entityType: 'NetworkEndpointObservation_Timestamp',
 			selectorName: 'NetworkEndpointUrlEndpointKindTimestampMsSource',
 			source: 'Beacon_Rest',
@@ -285,12 +403,14 @@ test('re-derives the complete observation-time writer denominator without blessi
 		['_GlobalActivityPubNetwork_Timestamp', 'HubTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['_GlobalIpfsAccess_Timestamp', 'HubTimestampMsSource', 'Ipfs_Rest', ObservationTimeProvenance.LocalRefresh],
 		['_GlobalSwarmAccess_Timestamp', 'HubTimestampMsSource', 'Swarm_Rest', ObservationTimeProvenance.LocalRefresh],
+		['AaveAccountMarket_Timestamp', 'AccountMarketTimestampMsSource', 'Aave_Rest', ObservationTimeProvenance.HttpResponse],
 		['ActivityPubActor_Timestamp', 'ActivityPubActorTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['ActivityPubInstance_Timestamp', 'InstanceTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['ActivityPubNote_Timestamp', 'ActivityPubNoteTimestampMsSource', 'Mastodon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['BeaconBlock_Timestamp', 'BlockTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['BeaconDataColumn_Timestamp', 'DataColumnTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
 		['BeaconExecutionPayloadEnvelope_Timestamp', 'EnvelopeTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.LocalRefresh],
+		['IpfsResource_Timestamp', 'ResourceTimestampMsSource', 'Ipfs_Rest', ObservationTimeProvenance.HttpResponse],
 		['NetworkEndpointObservation_Timestamp', 'NetworkEndpointUrlEndpointKindTimestampMsSource', 'Beacon_Rest', ObservationTimeProvenance.HttpResponse],
 	])
 	assert.equal(rows.filter((row) => row.provenance === ObservationTimeProvenance.Unclassified).length, 341)
@@ -392,10 +512,15 @@ test('classifies a mapped selector by route sources, authored page, and inherite
 })
 
 test('accounts for every compiled claim and mapped selector of the current app', () => {
-	const { claims, mappedSelectors } = compiledSourceAccountability
+	const { bindingCoverage, claims, mappedSelectors } = compiledSourceAccountability
 
 	assert.ok(claims.length > 0)
 	assert.ok(mappedSelectors.length > 0)
+	assert.ok(bindingCoverage.length > 0)
+	assert.equal(
+		bindingCoverage.length,
+		compileSourceClaimBindingCoverage(claims).length
+	)
 	assert.equal(claims.length, compiledSourceAccountability.claims.length)
 	assert.deepEqual(
 		claims.filter((row) => row.access === SourceAccess.Undeclared),
@@ -410,6 +535,12 @@ test('accounts for every compiled claim and mapped selector of the current app',
 		countBy(mappedSelectors, (row) => row.accountability)
 			.reduce((total, [, count]) => total + count, 0),
 		mappedSelectors.length
+	)
+	assert.equal(claims.flatMap((row) => row.bindingEvidence).every(({ verification }) => verification === 'Unverified'), true)
+	assert.ok(claims.some((row) => row.bindingEvidence.some(({ target }) => target != null)))
+	assert.equal(
+		claims.flatMap((row) => row.bindingEvidence).some(({ targetMatch }) => targetMatch === SourceBindingTargetMatch.Unknown),
+		true
 	)
 	assert.equal(
 		mappedSelectors.filter((row) => (

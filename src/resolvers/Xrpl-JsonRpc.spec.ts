@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -160,15 +161,7 @@ const accountTransactions = {
 
 const binding = bindings[Source.Xrpl_Rippled][0]
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const jsonRpcResponse = (result: object) => new Response(JSON.stringify({
 	jsonrpc: '2.0',

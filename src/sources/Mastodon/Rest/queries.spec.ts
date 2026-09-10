@@ -535,7 +535,7 @@ describe('Mastodon instance moderated domains', () => {
 		])
 	})
 
-	it('rejects an unknown domain-block severity', async () => {
+	it('omits an unknown domain-block severity', async () => {
 		mastodonFetch.mockResolvedValueOnce(new Response(JSON.stringify([
 			{
 				domain: 'blocked.example',
@@ -544,9 +544,40 @@ describe('Mastodon instance moderated domains', () => {
 			},
 		])))
 
-		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).rejects.toThrow(
-			'unknown severity'
-		)
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).resolves.toEqual([])
+	})
+
+	it('keeps supported domain blocks in a mixed list and rejects malformed wire rows', async () => {
+		const supported = {
+			domain: 'blocked.example',
+			digest: 'a'.repeat(64),
+			severity: 'silence',
+		}
+		const unsupported = {
+			domain: 'future.example',
+			digest: 'b'.repeat(64),
+			severity: 'future',
+		}
+		mastodonFetch.mockResolvedValueOnce(new Response(JSON.stringify([
+			unsupported,
+			supported,
+		])))
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).resolves.toEqual([supported])
+		mastodonFetch.mockResolvedValueOnce(new Response(JSON.stringify([
+			unsupported,
+			{
+				...supported,
+				digest: 'invalid',
+			},
+		])))
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).rejects.toThrow()
+		mastodonFetch.mockResolvedValueOnce(new Response(JSON.stringify([
+			{
+				...unsupported,
+				severity: null,
+			},
+		])))
+		await expect(listInstanceModeratedDomains(mastodonSocialBinding, 'https://mastodon.social')).rejects.toThrow()
 	})
 
 	it('rejects duplicate domain-block digests and domains', async () => {

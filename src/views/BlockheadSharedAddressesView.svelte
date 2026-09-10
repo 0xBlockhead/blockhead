@@ -31,11 +31,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$account: true,
-					sharedAt: true,
-				},
+			fields: {
+				$account: true,
+				sharedAt: true,
 			},
 		})
 	}

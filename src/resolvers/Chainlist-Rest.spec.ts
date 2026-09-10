@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -24,15 +25,7 @@ if (networkResolver == null || !('Caip2' in networkResolver.resolve))
 
 const resolveNetwork = networkResolver.resolve.Caip2.resolve
 const projectRpcUrls = networkResolver.projections.Evm.$$rpcUrls
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 describe('Chainlist REST network RPC projection', () => {
 	it('keeps a listed network applicable when it has no RPC endpoints', async () => {

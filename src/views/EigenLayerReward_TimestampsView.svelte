@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$earner: true,
-					rewardContextKey: true,
-					rewardToken: true,
-				},
+			fields: {
+				$earner: true,
+				rewardContextKey: true,
+				rewardToken: true,
 			},
 		})
 	}

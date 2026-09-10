@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import {
 	entityFieldAddressKey,
@@ -26,15 +27,10 @@ const globalNetworkResolvers = fxEmbedResolvers.resolvers.filter((resolver) => (
 ))
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 describe('X FxEmbed global network', () => {

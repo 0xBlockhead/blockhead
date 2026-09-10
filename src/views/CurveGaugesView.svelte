@@ -28,16 +28,14 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					name: true,
-					gaugeAddress: true,
-					relativeWeight: true,
-					gaugeCrvApyMin: true,
-					gaugeCrvApyMax: true,
-					$network: true,
-					$pool: true,
-				},
+			fields: {
+				name: true,
+				gaugeAddress: true,
+				relativeWeight: true,
+				gaugeCrvApyMin: true,
+				gaugeCrvApyMax: true,
+				$network: true,
+				$pool: true,
 			},
 		})
 	}

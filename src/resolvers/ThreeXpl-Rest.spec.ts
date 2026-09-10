@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -74,15 +75,10 @@ if (nearBlockResolver == null)
 	throw new Error('ThreeXpl-Rest spec missing NearBlock resolver')
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 const timestamp = '2026-07-30T12:00:00.000Z'
 const timestampMs = Date.parse(timestamp)

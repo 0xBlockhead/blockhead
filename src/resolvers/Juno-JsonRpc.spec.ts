@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { EntityMetaKey } from '$/schema/$schema.ts'
 
@@ -32,13 +33,10 @@ const { default: juno } = await import('$/resolvers/Juno-JsonRpc.ts')
 const network = { slug: 'starknet' }
 const starknetNetwork = { $network: network }
 const context = {
-	filters: [],
-	sorts: [],
-	pagination: { limit: 2 },
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
+	...createResolverContext(),
+	pagination: {
+		limit: 2,
+	},
 }
 
 const resolver = (entityType: string, predicate: (candidate: (typeof juno.resolvers)[number]) => boolean) => {

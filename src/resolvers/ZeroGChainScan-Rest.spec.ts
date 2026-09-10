@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -20,15 +21,7 @@ vi.mock('$/sources/ZeroG/ChainScan/Rest/queries.ts', () => queries)
 
 const { default: zeroGChainScan } = await import('$/resolvers/ZeroGChainScan-Rest.ts')
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const network = {
 	slug: '0g',

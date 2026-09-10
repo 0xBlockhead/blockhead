@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					slot: true,
-					status: true,
-				},
+			fields: {
+				slot: true,
+				status: true,
 			},
 		})
 	}

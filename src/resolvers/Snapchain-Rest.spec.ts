@@ -145,6 +145,7 @@ describe('Snapchain Farcaster direct replies', () => {
 		}, context)
 		if (typeof directRepliesResolver.projections.$$directReplies === 'function')
 			throw new Error('Snapchain direct replies require a paginated projection')
+		expect(directRepliesResolver.projections.$$directReplies).not.toHaveProperty('resolveCount')
 		const directReplies = directRepliesResolver.projections.$$directReplies.select(
 			snapshot,
 			{
@@ -379,6 +380,39 @@ describe('Snapchain Farcaster cast identity', () => {
 })
 
 describe('Snapchain Farcaster observations', () => {
+	it('keeps successive cast counts as distinct captures without a history total', async () => {
+		const resolver = snapchainResolvers.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.FarcasterCast
+			&& '$$timestamps' in candidate.projections
+		))
+		if (resolver == null || !('FidHash' in resolver.resolve))
+			throw new Error('Missing cast observation resolver')
+		const clock = vi.spyOn(Date, 'now')
+		try {
+			for (const [timestampMs, likeCount] of [[1_700_000_000_000, 0], [1_700_000_001_000, 2]]) {
+				clock.mockReturnValue(timestampMs)
+				getCastById.mockResolvedValueOnce(reply({ fid: 42, hash: parentHash }))
+				getCastEngagementCountsForCast.mockResolvedValueOnce({ likeCount, recastCount: 0, replyCount: 1 })
+				const snapshot = await resolver.resolve.FidHash.resolve({ fid: 42, hash: parentHash })
+				expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([{
+					[EntityMetaKey.Selector]: {
+						$cast: { fid: 42, hash: parentHash },
+						timestampMs,
+						source: Source.Snapchain_Rest,
+					},
+					[EntityMetaKey.Fields]: {
+						[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'likeCount')]: likeCount,
+						[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'recastCount')]: 0,
+						[entityFieldAddressKey(EntityType.FarcasterCast_Timestamp, [], 'replyCount')]: 1,
+					},
+				}])
+			}
+			expect(resolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
+		} finally {
+			clock.mockRestore()
+		}
+	})
+
 	it('materializes zero counts with source identity without arbitrary timestamp replay', async () => {
 		countLinksByTargetFid.mockResolvedValueOnce(0)
 		countLinksByFid.mockResolvedValueOnce(0)
@@ -398,7 +432,9 @@ describe('Snapchain Farcaster observations', () => {
 			timestampMs: expect.any(Number),
 			source: Source.Snapchain_Rest,
 		}))
-		expect(userTimestampsResolver.projections.$$timestamps.resolveCount(timestamps)).toBe(1)
+		expect(userTimestampsResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
+		expect(userTimestampsResolver.projections.$$timestamps.select(timestamps)).toEqual(timestamps)
+		expect(userCastsResolver.projections.$$casts).not.toHaveProperty('resolveCount')
 		expect(countLinksByTargetFid).toHaveBeenCalledWith({
 			targetFid: 42,
 			linkType: 'follow',
@@ -432,6 +468,7 @@ describe('Snapchain Farcaster observations', () => {
 			{ parentUrl },
 			context
 		)).toEqual([])
+		expect(channelCastsResolver.projections.$$casts).not.toHaveProperty('resolveCount')
 		expect(getCastsByParent).toHaveBeenCalledWith({
 			url: parentUrl,
 			pageSize: 2,

@@ -1,5 +1,6 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
+	type ProviderContinuation,
 	resolverContextRowLimit,
 	type ResolverContext,
 } from '$/resolvers/$resolvers.ts'
@@ -7,8 +8,10 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
+import { defineObservationTimeWriter } from '$/resolvers/observationTimeWriter.ts'
 import {
 	EntityMetaKey,
+	entityFieldAddressKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -21,10 +24,18 @@ import type {
 import { Source } from '$/sources/Source.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+type AaveAccountMarketId = EntitySelector<typeof schema, EntityType.AaveAccountMarket>
 type AaveMarketId = EntitySelector<typeof schema, EntityType.AaveMarket>
 type AaveReserveId = EntitySelector<typeof schema, EntityType.AaveReserve>
 type AaveReservePositionId = EntitySelector<typeof schema, EntityType.AaveReservePosition>
 type EvmNetworkAccountId = EntitySelector<typeof schema, EntityType.EvmNetworkAccount>
+
+const aaveAccountMarketTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.AaveAccountMarket_Timestamp,
+	selectorName: 'AccountMarketTimestampMsSource',
+	source: Source.Aave_Rest,
+	provenance: 'HttpResponse',
+})
 
 const aavePaginationOffset = (
 	context: ResolverContext
@@ -38,6 +49,30 @@ const aavePaginationOffset = (
 
 	return offset
 }
+
+const aaveOffsetContinuation = ({
+	operation,
+	nextOffset,
+	totalCount,
+}: {
+	operation: string
+	nextOffset: number
+	totalCount: number
+}): ProviderContinuation => (
+	nextOffset >= totalCount ?
+		{
+			operation,
+			target: 'aave',
+			terminal: true,
+		}
+	:
+		{
+			operation,
+			target: 'aave',
+			terminal: false,
+			token: String(nextOffset),
+		}
+)
 
 const eip155ChainId = (network: NetworkId) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'eip155')
@@ -124,7 +159,20 @@ const mergeAaveReservePositions = (
 	}
 
 	const rows = [...merged.values()]
+	const poolAddresses = [...new Set(positions.map((position) => position.poolAddress))]
 	return {
+		accountMarkets: poolAddresses
+			.slice(offset, offset + limit)
+			.map((poolAddress) => ({
+				[EntityMetaKey.Selector]: {
+					$account,
+					$market: {
+						$network: $account.$network,
+						poolAddress,
+					},
+				},
+			})),
+		accountMarketCount: poolAddresses.length,
 		positions: rows
 			.slice(offset, offset + limit)
 			.map((position) => ({
@@ -225,20 +273,97 @@ export default {
 				},
 			},
 		})({
+			$$aaveAccountMarkets: {
+				select: (snapshot) => snapshot.accountMarkets,
+				resolveCount: (snapshot) => snapshot.accountMarketCount,
+				continuation: (snapshot) => {
+					const nextOffset = snapshot.offset + snapshot.accountMarkets.length
+					return aaveOffsetContinuation({
+						operation: 'account-aave-markets',
+						nextOffset,
+						totalCount: snapshot.accountMarketCount,
+					})
+				},
+			},
 			$$aaveReservePositions: {
 				select: (snapshot) => snapshot.positions,
 				resolveCount: (snapshot) => snapshot.positionCount,
 				continuation: (snapshot) => {
 					const nextOffset = snapshot.offset + snapshot.positions.length
-					const terminal = nextOffset >= snapshot.positionCount
-
-					return {
+					return aaveOffsetContinuation({
 						operation: 'account-aave-reserve-positions',
-						target: 'aave',
-						terminal,
-						...(!terminal && { token: String(nextOffset) }),
-					}
+						nextOffset,
+						totalCount: snapshot.positionCount,
+					})
 				},
+			},
+		}),
+
+		defineResolver({
+			entityType: EntityType.AaveAccountMarket,
+			resolve: {
+				AccountMarket: {
+					resolve: async ({ $account, $market }: AaveAccountMarketId) => {
+						const accountChainId = eip155ChainId($account.$network)
+						const marketChainId = eip155ChainId($market.$network)
+						if (marketChainId !== accountChainId)
+							throw new Error(`${Source.Aave_Rest}: account and market chain mismatch`)
+
+						const { aaveChainByChainId } = await import('$/sources/Aave/Rest/constants.ts')
+						if (aaveChainByChainId[accountChainId] == null)
+							throw new Error(`${Source.Aave_Rest}: unsupported chain id ${String(accountChainId)}`)
+
+						const poolAddress = hexLowerOfByteSize($market.poolAddress, 20)
+						if (poolAddress == null)
+							throw new Error(`${Source.Aave_Rest}: invalid pool address ${$market.poolAddress}`)
+
+						const { getUserMarketState } = await import('$/sources/Aave/Rest/queries.ts')
+						const state = await getUserMarketState({
+							chainId: accountChainId,
+							poolAddress,
+							account: $account.$actor.address,
+						})
+						const accountMarket = {
+							$account,
+							$market: {
+								$network: $market.$network,
+								poolAddress,
+							},
+						}
+						return {
+							$account: {
+								[EntityMetaKey.Selector]: $account,
+							},
+							$market: {
+								[EntityMetaKey.Selector]: accountMarket.$market,
+							},
+							$$timestamps: [aaveAccountMarketTimestampWriter.write(
+								{
+									$accountMarket: accountMarket,
+									timestampMs: state.observedAtMs,
+									source: Source.Aave_Rest,
+								},
+								{
+									...(state.healthFactor != null && {
+										[entityFieldAddressKey(EntityType.AaveAccountMarket_Timestamp, [], 'healthFactor')]: state.healthFactor,
+									}),
+									[entityFieldAddressKey(EntityType.AaveAccountMarket_Timestamp, [], 'currentLiquidationThreshold')]: state.currentLiquidationThreshold,
+									[entityFieldAddressKey(EntityType.AaveAccountMarket_Timestamp, [], 'ltv')]: state.ltv,
+									[entityFieldAddressKey(EntityType.AaveAccountMarket_Timestamp, [], 'totalCollateralBase')]: state.totalCollateralBase,
+									[entityFieldAddressKey(EntityType.AaveAccountMarket_Timestamp, [], 'totalDebtBase')]: state.totalDebtBase,
+									[entityFieldAddressKey(EntityType.AaveAccountMarket_Timestamp, [], 'availableBorrowsBase')]: state.availableBorrowsBase,
+									[entityFieldAddressKey(EntityType.AaveAccountMarket_Timestamp, [], 'netApy')]: state.netApy,
+								}
+							)],
+						}
+					},
+				},
+			},
+		})({
+			$account: (snapshot) => snapshot.$account,
+			$market: (snapshot) => snapshot.$market,
+			$$timestamps: {
+				select: (snapshot) => snapshot.$$timestamps,
 			},
 		}),
 

@@ -294,7 +294,7 @@ input AccountManagerAddedNotificationFilter {
 input AccountManagerChallengeRequest {
   """
   The App you intend to authenticate with.
-  
+
   It MUST be a valid App address.
   Note: On the testnet, it will default to the playground app.
   This is to make it easier if you forget to set it. This may change in the future.
@@ -405,7 +405,7 @@ type AccountOwned {
 input AccountOwnerChallengeRequest {
   """
   The App you intend to authenticate with.
-  
+
   It MUST be a valid App address.
   Note: On the testnet, it will default to the playground app.
   This is to make it easier if you forget to set it. This may change in the future.
@@ -2003,7 +2003,7 @@ union EnablePostActionResult = EnablePostActionResponse | SponsoredTransactionRe
 
 union EnableSignlessResult = SponsoredTransactionRequest | SelfFundedTransactionRequest | TransactionWillFail
 
-input EntitySelector @oneOf {
+input EntityId @oneOf {
   account: EvmAddress
   graph: EvmAddress
   feed: EvmAddress
@@ -3301,28 +3301,28 @@ type LoggedInAccountOperations {
 
   """
   Check if the target account is followed by the authenticated account.
-  
+
   If a graph is not specified it defaults to using the Global Graph
   """
   isFollowedByMe(request: IsFollowedByMeRequest): Boolean!
 
   """
   Check if the authenticated account is following the target account.
-  
+
   If a graph is not specified it defaults to using the Global Graph
   """
   isFollowingMe(request: IsFollowingMeRequest): Boolean!
 
   """
   Check if the authenticated account can follow the target account.
-  
+
   If a graph is not specified it defaults to using the Global Graph
   """
   canFollow(request: CanFollowRequest): AccountFollowOperationValidationOutcome!
 
   """
   Check if the authenticated account can unfollow the target account.
-  
+
   If a graph is not specified it defaults to using the Global Graph
   """
   canUnfollow(request: CanUnfollowRequest): AccountFollowOperationValidationOutcome!
@@ -3796,84 +3796,84 @@ input MlinternalForYouRequest {
 type Mutation {
   """
   Create a new app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   createApp(request: CreateAppRequest!): CreateAppResult!
 
   """
   Add an app authorization endpoint.
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   addAppAuthorizationEndpoint(request: AddAppAuthorizationEndpointRequest!): Void!
 
   """
   Remove an app authorization endpoint.
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   removeAppAuthorizationEndpoint(request: RemoveAppAuthorizationEndpointRequest!): Void!
 
   """
   Add feeds to an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   addAppFeeds(request: AddAppFeedsRequest!): AddAppFeedsResult!
 
   """
   Add groups to an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   addAppGroups(request: AddAppGroupsRequest!): AddAppGroupsResult!
 
   """
   Add signers to an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   addAppSigners(request: AddAppSignersRequest!): AddAppSignersResult!
 
   """
   Remove feeds to an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   removeAppFeeds(request: RemoveAppFeedsRequest!): RemoveAppFeedsResult!
 
   """
   Remove groups to an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   removeAppGroups(request: RemoveAppGroupsRequest!): RemoveAppGroupsResult!
 
   """
   Remove signers to an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   removeAppSigners(request: RemoveAppSignersRequest!): RemoveAppSignersResult!
 
   """
   Set graph for an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   setAppGraph(request: SetAppGraphRequest!): SetAppGraphResult!
 
   """
   Set default feed for an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   setDefaultAppFeed(request: SetDefaultAppFeedRequest!): SetDefaultAppFeedResult!
 
   """
   Set metadata for an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   setAppMetadata(request: SetAppMetadataRequest!): SetAppMetadataResult!
@@ -3882,112 +3882,112 @@ type Mutation {
   Set if the app verification is enabled
   App needs to have authorization endpoint enabled
   App needs to return `verification_endpoint` from the authorization endpoint
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   setAppVerification(request: SetAppVerificationRequest!): SetAppVerificationResult!
 
   """
   Set sponsorship for an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   setAppSponsorship(request: SetAppSponsorshipRequest!): SetAppSponsorshipResult!
 
   """
   Set treasury for an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   setAppTreasury(request: SetAppTreasuryRequest!): SetAppTreasuryResult!
 
   """
   Set username namespace for an app
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   setAppUsernameNamespace(request: SetAppUsernameNamespaceRequest!): SetAppUsernameNamespaceResult!
 
   """
   Generate a new app server side api key
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   generateNewAppServerApiKey(request: GenerateNewAppServerApiKeyRequest!): ServerAPIKey!
 
   """
   Report an account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   reportAccount(request: ReportAccountRequest!): Void!
 
   """
   Hides an account from the list of managed accounts.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   hideManagedAccount(request: HideManagedAccountRequest!): Void!
 
   """
   Undo the hiding of an account from the list of managed accounts.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   unhideManagedAccount(request: UnhideManagedAccountRequest!): Void!
 
   """
   Set the metadata for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   setAccountMetadata(request: SetAccountMetadataRequest!): SetAccountMetadataResult!
 
   """
   Block an account with the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   block(request: BlockRequest!): BlockResult!
 
   """
   Unblock an account with the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   unblock(request: UnblockRequest!): UnblockResult!
 
   """
   Recommend an account from the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   recommendAccount(request: RecommendAccount!): Void!
 
   """
   Undo recommended account from the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   undoRecommendedAccount(request: UndoRecommendedAccount!): Void!
 
   """
   Mute an account for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   mute(request: MuteRequest!): Void!
 
   """
   Unmute an account for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   unmute(request: MuteRequest!): Void!
 
   """
   Create a new Lens Account (without a Username).
-  
+
   Use only if you understand the implications or were instructed by the Lens team.
   You MUST be authenticated to use this mutation.
   """
@@ -3995,21 +3995,21 @@ type Mutation {
 
   """
   Create a new Lens Account with the specified Username.
-  
+
   You MUST be authenticated to use this mutation.
   """
   createAccountWithUsername(request: CreateAccountWithUsernameRequest!): CreateAccountWithUsernameResult!
 
   """
   Add an account manager to the authenticated account.
-  
+
   You MUST be authenticated as Account Owner to use this mutation.
   """
   addAccountManager(request: AddAccountManagerRequest!): AddAccountManagerResult!
 
   """
   Remove an account manager from the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   Note: Account Managers can only remove themselves.
   """
@@ -4017,70 +4017,70 @@ type Mutation {
 
   """
   Enables Signless experience for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner to use this mutation.
   """
   enableSignless: EnableSignlessResult!
 
   """
   Remove Signless experience for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner to use this mutation.
   """
   removeSignless: RemoveSignlessResult!
 
   """
   Update the Account Manager Permissions for a given Account Manager.
-  
+
   You MUST be authenticated as Account Owner to use this mutation.
   """
   updateAccountManager(request: UpdateAccountManagerRequest!): UpdateAccountManagerResult!
 
   """
   Update account follow rules
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   updateAccountFollowRules(request: UpdateAccountFollowRulesRequest!): UpdateAccountFollowRulesResult!
 
   """
   Configure the given account action for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   configureAccountAction(request: ConfigureAccountActionRequest!): ConfigureAccountActionResult!
 
   """
   Set the given account action for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   disableAccountAction(request: DisableAccountActionRequest!): DisableAccountActionResult!
 
   """
   Set the given account action for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   enableAccountAction(request: EnableAccountActionRequest!): EnableAccountActionResult!
 
   """
   Execute the given account action for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   executeAccountAction(request: ExecuteAccountActionRequest!): ExecuteAccountActionResult!
 
   """
   Creates a withdrawal transaction request for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation
   """
   withdraw(request: WithdrawRequest!): WithdrawResult!
 
   """
   Creates a deposit transaction request for the authenticated account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation
   """
   deposit(request: DepositRequest!): DepositResult!
@@ -4090,7 +4090,7 @@ type Mutation {
   to their ERC20 equivalent. For example:
   - Mainnet: GHO -> WGHO
   - Testnet: GRASS -> WGRASS
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation
   """
   wrapTokens(request: WrapTokensRequest!): WrapTokensResult!
@@ -4100,14 +4100,14 @@ type Mutation {
   Lens Account to their unwrapped version. For example:
   - Mainnet: WGHO -> GHO
   - Testnet: WGRASS -> GRASS
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation
   """
   unwrapTokens(request: UnwrapTokensRequest!): UnwrapTokensResult!
 
   """
   Creates an unlimited ERC20 approval of account spending signer tokens
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation
   """
   prepareSignerErc20Approval(request: PrepareSignerErc20ApprovalRequest!): PrepareSignerErc20ApprovalResult!
@@ -4117,15 +4117,15 @@ type Mutation {
 
   """
   Generates a new authentication challenge for the specified address and app.
-  
+
   Users must sign the challenge to authenticate.
-  
+
   The issued challenge can be for authentication credentials for different roles:
   - AccountOwner: The `address` is a Lens Account, and the `signed_by` is the Account Owner.
   - AccountManager: The `address` is a Lens Account, and the `signed_by` is an Account Manager for it.
   - OnboardingUser: The `address` is an EOA that needs to create their Lens Account.
   - Builder: The `address` is the EOA of a Builder that needs to use configuration and management features.
-  
+
   The HTTP Origin header MUST be present and match the app's domain.
   """
   challenge(request: ChallengeRequest!): AuthenticationChallenge!
@@ -4135,17 +4135,17 @@ type Mutation {
 
   """
   Revoke an authentication.
-  
+
   You MUST be authenticated to use this mutation.
   """
   revokeAuthentication(request: RevokeAuthenticationRequest!): Void!
 
   """
   Issue new authentication tokens from a valid Lens API v2 refresh token.
-  
+
   Use this to seamlessly transition your users from Lens API v2 to Lens API v3 without
   requiring them to re-authenticate.
-  
+
   The HTTP Origin header MUST be present and match the app's domain.
   """
   legacyRolloverRefresh(request: RolloverRefreshRequest!): RefreshResult!
@@ -4160,42 +4160,42 @@ type Mutation {
 
   """
   Create a new post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   post(request: CreatePostRequest!): PostResult!
 
   """
   Repost a post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   repost(request: CreateRepostRequest!): PostResult!
 
   """
   Delete a post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   deletePost(request: DeletePostRequest!): DeletePostResult!
 
   """
   Edit a post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   editPost(request: EditPostRequest!): PostResult!
 
   """
   Bookmark a post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   bookmarkPost(request: BookmarkPostRequest!): Void!
 
   """
   Undo bookmark.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   undoBookmarkPost(request: BookmarkPostRequest!): Void!
@@ -4204,35 +4204,35 @@ type Mutation {
 
   """
   React to a post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   addReaction(request: AddReactionRequest!): AddReactionResult!
 
   """
   Undo reaction to a post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   undoReaction(request: UndoReactionRequest!): UndoReactionResult!
 
   """
   Report a post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   reportPost(request: ReportPostRequest!): Void!
 
   """
   Update post rules
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   updatePostRules(request: UpdatePostRulesRequest!): UpdatePostRulesResult!
 
   """
   Configure the given post action for the given post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager of the Account
   that authored this Post to use this mutation.
   """
@@ -4240,7 +4240,7 @@ type Mutation {
 
   """
   Disable the given post action for the given post.
-  
+
   You MUST be authenticated as the Owner or Manager of the account that made this post to use
   this mutation.
   """
@@ -4248,7 +4248,7 @@ type Mutation {
 
   """
   Enable the given post action for the authenticated post.
-  
+
   You MUST be authenticated as Account Owner or Account Manager of the Account
   that authored this Post to use this mutation.
   """
@@ -4256,70 +4256,70 @@ type Mutation {
 
   """
   Execute the given post action.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   executePostAction(request: ExecutePostActionRequest!): ExecutePostActionResult!
 
   """
   Add a post not interested.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   addPostNotInterested(request: PostNotInterestedRequest!): Void!
 
   """
   Undo a post not interested.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   undoPostNotInterested(request: PostNotInterestedRequest!): Void!
 
   """
   Follow an Account on the global Graph or a specific Graph.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   follow(request: CreateFollowRequest!): FollowResult!
 
   """
   Unfollow an Account on the global Graph or a specific Graph.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   unfollow(request: CreateUnfollowRequest!): UnfollowResult!
 
   """
   Create a new graph
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   createGraph(request: CreateGraphRequest!): CreateGraphResult!
 
   """
   Update graph rules
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   updateGraphRules(request: UpdateGraphRulesRequest!): UpdateGraphRulesResult!
 
   """
   Set metadata for a graph
-  
+
   You MUST be authenticated to use this mutation.
   """
   setGraphMetadata(request: SetGraphMetadataRequest!): SetGraphMetadataResult!
 
   """
   Create a new username namespace aka deploying a new username contract
-  
+
   You MUST be authenticated to use this mutation.
   """
   createUsernameNamespace(request: CreateUsernameNamespaceRequest!): CreateUsernameNamespaceResult!
 
   """
   Create a username.
-  
+
   You MUST be authenticated as Account Owner, Account Manager, or Onboarding User to use this
   mutation.
   """
@@ -4327,44 +4327,44 @@ type Mutation {
 
   """
   Assign a username to an account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   assignUsernameToAccount(request: AssignUsernameToAccountRequest!): AssignUsernameToAccountResult!
 
   """
   Unassign a username from the logged-in user's Account.
-  
+
   Defaults to the Lens namespace if no request is provided.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   unassignUsernameFromAccount(request: UnassignUsernameFromAccountRequest!): UnassignUsernameToAccountResult!
 
   """
   Set metadata for a namespace
-  
+
   You MUST be authenticated to use this mutation.
   """
   setNamespaceMetadata(request: SetNamespaceMetadataRequest!): SetNamespaceMetadataResult!
 
   """
   Update namespace rules
-  
+
   You MUST be authenticated to use this mutation.
   """
   updateNamespaceRules(request: UpdateNamespaceRulesRequest!): UpdateNamespaceRulesResult!
 
   """
   Update reserved usernames
-  
+
   You MUST be authenticated to use this mutation.
   """
   updateReservedUsernames(request: UpdateReservedUsernamesRequest!): UpdateReservedUsernamesResult!
 
   """
   Add admins to a graph/app/sponsor/feed/username/group.
-  
+
   You MUST be authenticated as Builder, Account Manager, or Account Owner.
   In case of Account Manager or Account Owner, the Lens Account needs to be the owner or an
   admin of the primitive.
@@ -4373,7 +4373,7 @@ type Mutation {
 
   """
   Remove admins from a graph/app/sponsor/feed/username/group.
-  
+
   You MUST be authenticated as Builder, Account Manager, or Account Owner.
   In case of Account Manager or Account Owner, the Lens Account needs to be the owner or an
   admin of the primitive.
@@ -4382,7 +4382,7 @@ type Mutation {
 
   """
   Transfer primitive ownership for the graph/app/sponsor/feed/username/group.
-  
+
   You MUST be authenticated as Builder, Account Manager, or Account Owner.
   In case of Account Manager or Account Owner, the Lens Account needs to be the owner of the
   primitive.
@@ -4394,21 +4394,21 @@ type Mutation {
 
   """
   sign a frame action with the lens account manager
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   signFrameAction(request: FrameEIP712Request!): FrameLensManagerSignatureResult!
 
   """
   Create a new feed
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   createFeed(request: CreateFeedRequest!): CreateFeedResult!
 
   """
   Set metadata for a feed
-  
+
   You MUST be authenticated as:
   - Builder and be the owner/admin of the feed
   - Account Manager or Account Owner for a Lens Account that is the owner/admin of the feed
@@ -4417,7 +4417,7 @@ type Mutation {
 
   """
   Update feed rules
-  
+
   You MUST be authenticated as:
   - Builder and be the owner/admin of the feed
   - Account Manager or Account Owner for a Lens Account that is the owner/admin of the feed
@@ -4426,7 +4426,7 @@ type Mutation {
 
   """
   Create a new group
-  
+
   You MUST be authenticated as Builder, Account Manager, or Account Owner.
   In case of Account Manager or Account Owner, the Lens Account becomes the owner of the
   group.
@@ -4435,7 +4435,7 @@ type Mutation {
 
   """
   Update group rules
-  
+
   You MUST be authenticated as:
   - Builder and be the owner/admin of the group
   - Account Manager or Account Owner for a Lens Account that is the owner/admin of the group
@@ -4444,21 +4444,21 @@ type Mutation {
 
   """
   Join a group
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   joinGroup(request: JoinGroupRequest!): JoinGroupResult!
 
   """
   Leave a group
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   leaveGroup(request: LeaveGroupRequest!): LeaveGroupResult!
 
   """
   Set metadata for a group
-  
+
   You MUST be authenticated as:
   - Builder and be the owner/admin of the group
   - Account Manager or Account Owner for a Lens Account that is the owner/admin of the group
@@ -4467,7 +4467,7 @@ type Mutation {
 
   """
   Remove group members
-  
+
   You MUST be authenticated as:
   - Builder and be the owner/admin of the group
   - Account Manager or Account Owner for a Lens Account that is the owner/admin of the group
@@ -4476,21 +4476,21 @@ type Mutation {
 
   """
   Request to join a group
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   requestGroupMembership(request: RequestGroupMembershipRequest!): RequestGroupMembershipResult!
 
   """
   Cancel group membership request
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this mutation.
   """
   cancelGroupMembershipRequest(request: CancelGroupMembershipRequestRequest!): CancelGroupMembershipRequestResult!
 
   """
   Approve group members
-  
+
   You MUST be authenticated as:
   - Builder and be the owner/admin of the group
   - Account Manager or Account Owner for a Lens Account that is the owner/admin of the group
@@ -4499,7 +4499,7 @@ type Mutation {
 
   """
   Reject group membership requests
-  
+
   You MUST be authenticated as:
   - Builder and be the owner/admin of the group
   - Account Manager or Account Owner for a Lens Account that is the owner/admin of the group
@@ -4509,7 +4509,7 @@ type Mutation {
   """
   Ban accounts to join a group.
   If the banned account(s) already joined the group, they will be removed from the group.
-  
+
   You MUST be authenticated as:
   - Builder and be the owner/admin of the group
   - Account Manager or Account Owner for a Lens Account that is the owner/admin of the group
@@ -4518,7 +4518,7 @@ type Mutation {
 
   """
   Unban accounts
-  
+
   You MUST be authenticated as:
   - Builder and be the owner/admin of the group
   - Account Manager or Account Owner for a Lens Account that is the owner/admin of the group
@@ -4529,49 +4529,49 @@ type Mutation {
 
   """
   Create a new sponsorship.
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   createSponsorship(request: CreateSponsorshipRequest!): CreateSponsorshipResult!
 
   """
   Pause a sponsorship.
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   pauseSponsorship(request: PausingRequest!): PausingResult!
 
   """
   Unpause a sponsorship.
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   unpauseSponsorship(request: PausingRequest!): PausingResult!
 
   """
   Set metadata for a sponsorship
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   setSponsorshipMetadata(request: SetSponsorshipMetadataRequest!): SetSponsorshipMetadataResult!
 
   """
   Update a sponsorship rate limits.
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   updateSponsorshipLimits(request: UpdateSponsorshipLimitsRequest!): UpdateSponsorshipLimitsResult!
 
   """
   Update a sponsorship exclusion list from the rate limits.
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   updateSponsorshipExclusionList(request: UpdateSponsorshipExclusionListRequest!): UpdateSponsorshipExclusionListResult!
 
   """
   Update a sponsorship signers list.
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   updateSponsorshipSigners(request: UpdateSponsorshipSignersRequest!): UpdateSponsorshipSignersResult!
@@ -4865,7 +4865,7 @@ enum NotificationType {
 input OnboardingUserChallengeRequest {
   """
   The App you intend to authenticate with.
-  
+
   It MUST be a valid App address.
   Note: On the testnet, it will default to the playground app.
   This is to make it easier if you forget to set it. This may change in the future.
@@ -5436,7 +5436,7 @@ input PostReferencesRequest {
 
   """
   The relevancy filter to apply.
-  
+
   This filter is only applicable for `CommentOn` and `QuoteOf` reference types.
   """
   relevancyFilter: ReferenceRelevancyFilter! = ALL
@@ -5570,7 +5570,7 @@ type PostStats {
 input PostStatsParams {
   """
   Set whether to include stats from accounts that have been flagged by moderators.
-  
+
   Defaults to false.
   """
   includeModeratorFlagged: Boolean!
@@ -5758,14 +5758,14 @@ type Query {
 
   """
   Get native and/or ERC20 token balances in bulk for the authenticated Account.
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this query.
   """
   accountBalances(request: AccountBalancesRequest!): [AnyAccountBalance!]! @deprecated(reason: "Use `balancesBulk` query")
 
   """
   Account information for the authenticated account.
-  
+
   You MUST be authenticated to use this query.
   """
   me: MeResult!
@@ -5784,7 +5784,7 @@ type Query {
 
   """
   Accounts blocked for the authenticated account.
-  
+
   You MUST be authenticated to use this query.
   """
   accountsBlocked(request: AccountsBlockedRequest!): PaginatedAccountsBlockedResult!
@@ -5794,7 +5794,7 @@ type Query {
 
   """
   Account manager for the authenticated account.
-  
+
   You MUST be authenticated to use this query.
   """
   accountManagers(request: AccountManagersRequest!): PaginatedAccountManagersResult!
@@ -5827,21 +5827,21 @@ type Query {
 
   """
   Get the server side API key for the app you must be the owner of the app to see it.
-  
+
   You MUST be authenticated as a Builder to use this mutation.
   """
   appServerApiKey(request: AppServerApiKeyRequest!): String
 
   """
   List all active authenticated sessions for the current account.
-  
+
   You MUST be authenticated to use this query.
   """
   authenticatedSessions(request: AuthenticatedSessionsRequest!): PaginatedActiveAuthenticationsResult!
 
   """
   Get the current authenticated session for the current account.
-  
+
   You MUST be authenticated to use this query.
   """
   currentSession: AuthenticatedSession!
@@ -5903,14 +5903,14 @@ type Query {
 
   """
   Get native and/or ERC20 token balances in bulk for the specified address
-  
+
   You MUST be authenticated as Account Owner or Account Manager to use this query.
   """
   balancesBulk(request: BalancesBulkRequest!): [AnyBalance!]!
 
   """
   Get account timeline.
-  
+
   You MUST be authenticated to use this query.
   """
   timeline(request: TimelineRequest!): PaginatedTimelineResult!
@@ -5920,7 +5920,7 @@ type Query {
 
   """
   Get account notifications.
-  
+
   You MUST be authenticated to use this query.
   """
   notifications(request: NotificationRequest!): PaginatedNotificationResult!
@@ -5943,7 +5943,7 @@ type Query {
 
   """
   Checks if the given username can be created by the account
-  
+
   You MUST be authenticated to use this mutation.
   """
   canCreateUsername(request: CanCreateUsernameRequest!): CanCreateUsernameResult!
@@ -6049,7 +6049,7 @@ input ReferralCut {
 
 input RefreshMetadataRequest {
   """The entity to refresh metadata for."""
-  entity: EntitySelector!
+  entity: EntityId!
 
   """Used only when trying to refresh app-specific account metadata"""
   app: EvmAddress
@@ -6255,7 +6255,7 @@ enum SelfFundedFallbackReason {
 type SelfFundedTransactionRequest {
   """
   The raw transaction request object.
-  
+
   Use this object if your library does not have a parser for the encoded transaction data.
   """
   raw: Eip1559TransactionRequest!
@@ -6673,7 +6673,7 @@ enum SponsoredFallbackReason {
 type SponsoredTransactionRequest {
   """
   The raw transaction request object.
-  
+
   Use this object if your library does not have a parser for the encoded transaction data.
   """
   raw: Eip712TransactionRequest!
@@ -6691,7 +6691,7 @@ type Sponsorship {
 
   """
   The native token balance of the sponsorship contract.
-  
+
   This value is cached for up to 2 minutes for each sponsorship contract.
   """
   balance: BigDecimal!
@@ -8221,7 +8221,7 @@ input UpdateSponsorshipSignersRequest {
   Indicates whether the Lens API is authorized as the sponsorship signer
   to sponsor end-user social operations (e.g., posts, comments, follows)
   performed through the Lens API for apps associated with this sponsorship.
-  
+
   If not provided, it won't affect the current configuration.
   """
   allowLensAccess: Boolean

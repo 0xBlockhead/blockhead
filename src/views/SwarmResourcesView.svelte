@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					canonicalUri: true,
-					contentType: true,
-					displayType: true,
-				},
+			fields: {
+				canonicalUri: true,
+				contentType: true,
+				displayType: true,
 			},
 		})
 	}

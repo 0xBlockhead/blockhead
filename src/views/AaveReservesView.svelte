@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$image: true,
-					symbol: true,
-					name: true,
-				},
+			fields: {
+				$image: true,
+				symbol: true,
+				name: true,
 			},
 		})
 	}

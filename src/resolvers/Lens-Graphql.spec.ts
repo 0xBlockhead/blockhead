@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -68,15 +69,7 @@ vi.mock('$/sources/Lens/Graphql/queries.ts', () => ({
 
 const { default: lensGraphql } = await import('$/resolvers/Lens-Graphql.ts')
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 describe('Lens_Graphql reading relationships', () => {
 	beforeEach(() => {

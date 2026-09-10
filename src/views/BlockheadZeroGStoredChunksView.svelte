@@ -29,12 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					dataRoot: true,
-					chunkIndex: true,
-					present: true,
-				},
+			fields: {
+				dataRoot: true,
+				chunkIndex: true,
+				present: true,
 			},
 		})
 	}

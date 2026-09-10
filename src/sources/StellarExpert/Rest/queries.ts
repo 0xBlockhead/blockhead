@@ -71,6 +71,31 @@ const assertLedgerDomain = (
 		throw new Error('StellarExpert: ledger date does not match timestamp')
 }
 
+const normalizeLedgerTimestamp = (
+	timestamp: number | string
+) => {
+	if (typeof timestamp === 'number' || /^\d+$/.test(timestamp)) {
+		const numericTimestamp = Number(timestamp)
+		if (!Number.isSafeInteger(numericTimestamp) || numericTimestamp < 0)
+			throw new Error('StellarExpert: invalid timestamp')
+		return numericTimestamp
+	}
+
+	const match = /^(\d{4})-(\d{2})-(\d{2})T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/i.exec(timestamp)
+	if (match == null)
+		throw new Error('StellarExpert: invalid timestamp')
+	const year = Number(match[1])
+	const month = Number(match[2])
+	const day = Number(match[3])
+	const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
+	if (month < 1 || month > 12 || day < 1 || day > daysInMonth)
+		throw new Error('StellarExpert: invalid timestamp')
+	const numericTimestamp = Date.parse(timestamp) / 1_000
+	if (!Number.isFinite(numericTimestamp) || numericTimestamp < 0)
+		throw new Error('StellarExpert: invalid timestamp')
+	return numericTimestamp
+}
+
 const assertAssetPageDomain = (
 	page: StellarExpertAssetPage,
 	limit?: number,
@@ -203,6 +228,7 @@ export const getSequenceFromTimestamp = async (
 	}
 ) => {
 	assertNetwork(network)
+	const requestedTimestamp = normalizeLedgerTimestamp(timestamp)
 	const ledger = assertEnvelope(
 		'ledger sequence-from-timestamp',
 		stellarExpertLedgerTimestampSequenceWire,
@@ -214,6 +240,8 @@ export const getSequenceFromTimestamp = async (
 		)
 	)
 	assertLedgerDomain(ledger)
+	if (ledger.timestamp > requestedTimestamp)
+		throw new Error('StellarExpert: ledger timestamp is after the requested timestamp')
 	return ledger
 }
 

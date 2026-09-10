@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import {
 	materializeResolverOutput,
@@ -33,15 +34,10 @@ vi.mock('$/lib/http.ts', async (importOriginal) => ({
 const { default: cosmosSdk } = await import('$/resolvers/CosmosSdk-Rest.ts')
 
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const latestBlock = {

@@ -28,13 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					proposalKind: true,
-					governanceActionId: true,
-					proposalTxHash: true,
-					proposalIndex: true,
-				},
+			fields: {
+				proposalKind: true,
+				governanceActionId: true,
+				proposalTxHash: true,
+				proposalIndex: true,
 			},
 		})
 	}

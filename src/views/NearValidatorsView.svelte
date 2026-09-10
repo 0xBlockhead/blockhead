@@ -29,15 +29,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.NearRpc_JsonRpc,
-				],
-				fields: {
-					accountId: true,
-					stakeYoctoNear: true,
-					isSlashed: true,
-				},
+			sources: selection.sources ?? [
+				Source.NearRpc_JsonRpc,
+			],
+			fields: {
+				accountId: true,
+				stakeYoctoNear: true,
+				isSlashed: true,
 			},
 		})
 	}

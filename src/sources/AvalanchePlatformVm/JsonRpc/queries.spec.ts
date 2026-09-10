@@ -15,6 +15,7 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 }))
 
 const {
+	avalanchePlatformVmForBinding,
 	getBalance,
 	getBlock,
 	getBlockByHeight,
@@ -30,6 +31,18 @@ const binding = bindings[Source.AvalanchePlatformVm_JsonRpc][0]
 
 beforeEach(() => {
 	jsonRpc2.mockReset()
+})
+
+it('executes the query contract through public and local PlatformVM bindings', async () => {
+	const platformBindings = bindings[Source.AvalanchePlatformVm_JsonRpc]
+	expect(platformBindings).toHaveLength(2)
+	jsonRpc2.mockResolvedValue({ height: '42' })
+
+	for (const platformBinding of platformBindings)
+		await expect(avalanchePlatformVmForBinding(platformBinding).getHeight()).resolves.toEqual({ height: '42' })
+
+	expect(jsonRpc2.mock.calls.map(([usedBinding]) => usedBinding)).toEqual(platformBindings)
+	expect(platformBindings.map(({ delivery }) => delivery)).toEqual(['HttpProxy', 'LocalOnly'])
 })
 
 it('uses official named parameters for exact account, stake, validator, subnet, and transaction reads', async () => {

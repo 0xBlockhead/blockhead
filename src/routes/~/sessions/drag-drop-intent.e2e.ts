@@ -5,20 +5,13 @@ import {
 	expectMainAttached,
 	setupPageRuntimeDiagnostics,
 } from '../../../../tests/_e2eBrowserHelpers.ts'
+import { installRouteViewSqliteIsolation } from '../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 test.setTimeout(180_000)
 
 test('turns typed account selection into one reviewable persisted draft', async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-session-intent-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `blockhead-session-intent-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	const diagnostics = setupPageRuntimeDiagnostics(page)
 	await diagnostics.step(page.goto('/~/sessions'))
 	await expectMainAttached(page, 120_000, diagnostics)

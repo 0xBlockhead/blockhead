@@ -2611,7 +2611,7 @@ test('validates facet fields through the canonical facet traversal', () => {
 test('rejects declarative artifacts that are not resolved string fields', () => {
 	const invalidArtifactApp = structuredClone(app)
 	const ipfsResource = invalidArtifactApp.schema.entities.find((entity) => (
-		entity.entityType === EntityType.IpfsResource
+		entity.entityType === EntityType.IpfsResource_Timestamp
 	))
 	assert.ok(ipfsResource?.views.singular?.artifacts)
 	Object.defineProperty(ipfsResource.views.singular.artifacts[0], 'field', {
@@ -2621,7 +2621,7 @@ test('rejects declarative artifacts that are not resolved string fields', () => 
 
 	assert.throws(
 		() => compileApp(invalidArtifactApp),
-		/IpfsResource artifact field \$media must be primitive/
+		/IpfsResource_Timestamp artifact field \$media must be primitive/
 	)
 })
 
@@ -3992,13 +3992,13 @@ test('gates Elements confidential UTXO commitments on UtxoOutput Confidential fa
 test('emits every source-axis enum and only valid enum references in provider rows', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
 	const sourceBinding = generatedFiles.find((generatedFile) => generatedFile.path === 'src/sources/SourceBinding.ts')
-	const sourceProviders = generatedFiles.find((generatedFile) => generatedFile.path === 'src/sources/$sourceProviders.ts')
+	const generatedSourceProviders = generatedFiles.find((generatedFile) => generatedFile.path === 'src/sources/$sourceProviders.ts')
 
 	assert.ok(sourceBinding)
-	assert.ok(sourceProviders)
+	assert.ok(generatedSourceProviders)
 
 	const renderedSourceBinding = renderGeneratedFile(sourceBinding)
-	const renderedSourceProviders = renderGeneratedFile(sourceProviders)
+	const renderedSourceProviders = renderGeneratedFile(generatedSourceProviders)
 	assert.match(renderedSourceProviders, /import \{[\s\S]*?mergeSourceBindingIndexes,[\s\S]*?sourceBindingId,[\s\S]*?type CompleteSourceBindingIndex,[\s\S]*?type SourceBinding,[\s\S]*?\} from '\.\/SourceBinding\.ts'/)
 	assert.match(renderedSourceProviders, /Object\.values\(sourceBindingsBySource\)\n\t\.flatMap\(\(bindings\): readonly SourceBinding\[\] => bindings\)/)
 	assert.match(renderedSourceProviders, /export const sourceBindingIdsBySource = Object\.fromEntries/)
@@ -4064,10 +4064,55 @@ test('emits every source-axis enum and only valid enum references in provider ro
 	const generatedProviderBindingFiles = generatedFiles.filter(({ path }) => (
 		/^src\/sources\/[^/]+\/bindings\.ts$/.test(path)
 	))
-	assert.equal(generatedProviderBindingFiles.length, 0)
-	assert.doesNotMatch(readFileSync(path.join(root, 'scripts/app/generate.ts'), 'utf8'), /generateProvider(?:Bindings|Index)File/)
+	const expectedProviderBindingPaths = sourceProviders
+		.filter(({ bindings }) => Object.keys(bindings).length > 0)
+		.map(({ provider }) => `src/sources/${provider}/bindings.ts`)
+		.toSorted((left, right) => left.localeCompare(right, 'en'))
+	assert.deepEqual(
+		generatedProviderBindingFiles.map(({ path }) => path).toSorted((left, right) => left.localeCompare(right, 'en')),
+		expectedProviderBindingPaths
+	)
+	for (const providerBindingFile of generatedProviderBindingFiles) {
+		const renderedProviderBindings = renderGeneratedFile(providerBindingFile)
+		assert.match(renderedProviderBindings, /\/\/ Generated from APP\.ts\./)
+		assert.match(renderedProviderBindings, /indexSourceBindings\(\[/)
+		assert.doesNotMatch(renderedProviderBindings, /\bSourceProvider\b|\bprovider:/)
+	}
+	for (const provider of ['Ipfs', 'Reddit', 'Voltaire']) {
+		const renderedProviderBindings = renderGeneratedFile(generatedFiles.find(({ path }) => path === `src/sources/${provider}/bindings.ts`) ?? (() => {
+			throw new Error(`missing generated ${provider} binding file`)
+		})())
+		assert.match(renderedProviderBindings, /SourceTargetKind\./)
+		assert.match(renderedProviderBindings, /SourceEndpointKind\./)
+		assert.match(renderedProviderBindings, /SourceDelivery\./)
+	}
+	for (const { source, provider, binding } of app.sources.sources.flatMap((candidate) => [
+		...(candidate.binding == null ? [] : [{ source: candidate.source, provider: candidate.provider, binding: candidate.binding }]),
+		...(candidate.bindings ?? []).map((binding) => ({ source: candidate.source, provider: candidate.provider, binding })),
+	])) {
+		assert.ok(provider)
+		const renderedProviderBindings = renderGeneratedFile(generatedFiles.find(({ path }) => path === `src/sources/${provider}/bindings.ts`) ?? (() => {
+			throw new Error(`missing generated ${provider} binding file`)
+		})())
+		assert.match(renderedProviderBindings, new RegExp(`Source\\.${source}`))
+		assert.match(renderedProviderBindings, new RegExp(`key: '${binding.target.key.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`))
+		for (const endpoint of binding.endpoints) {
+			assert.match(renderedProviderBindings, new RegExp(`locator: '${endpoint.locator.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`))
+			if (endpoint.corsEnabled != null)
+				assert.match(renderedProviderBindings, new RegExp(`corsEnabled: ${String(endpoint.corsEnabled)}`))
+		}
+		for (const credential of binding.credentials) {
+			assert.match(renderedProviderBindings, new RegExp(`scope: SourceCredentialScope\\.${credential.scope}`))
+			if ('env' in credential && credential.env != null)
+				for (const key of credential.env.keys) {
+					assert.match(renderedProviderBindings, new RegExp(`${key.name}: '${key.type.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`))
+					assert.match(renderedProviderBindings, /env: arktype\(\{/)
+				}
+		}
+		for (const artifact of binding.artifacts ?? [])
+			assert.match(renderedProviderBindings, new RegExp(`path: '${artifact.path.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`))
+	}
 })
-
 
 test('keeps authored provider bindings semantically equal to the runtime index', () => {
 	const flattenedProviderBindings = sourceProviders.flatMap(({ bindings }) => Object.values(bindings).flat())
@@ -5581,7 +5626,6 @@ test('derives disjoint CAIP-2 and slug domains from structured value types', () 
 	assert.ok(networkSchema)
 	assert.ok(renderGeneratedFile(networkSchema).includes("type('string').matching('^[abcdefghijklmnopqrstuvwxyz0123456789\\\\-]+$').atLeastLength(1)"))
 	assert.doesNotMatch(renderGeneratedFile(networkSchema), /networkBySlug/)
-	assert.doesNotThrow(() => compileApp(app))
 })
 
 test('emits selector names only in each entity schema selector definition', () => {
@@ -6995,6 +7039,7 @@ test('compiles selector-owned IPFS and Swarm path variants without duplicate map
 		renderGeneratedFile(generatedFile),
 	]))
 	const ipfsResourceView = renderedFileByPath.get('src/views/IpfsResourceView.svelte')
+	const ipfsCaptureView = renderedFileByPath.get('src/views/IpfsResource_TimestampView.svelte')
 	const arweaveResourceTimestampView = renderedFileByPath.get('src/views/ArweaveResource_TimestampView.svelte')
 	const swarmResourceView = renderedFileByPath.get('src/views/SwarmResourceView.svelte')
 	const ipfsBasePath = 'src/routes/(explore)/(ipfs)/[namespace=ipfsNamespace]/[target=stringSegment]'
@@ -7025,9 +7070,9 @@ test('compiles selector-owned IPFS and Swarm path variants without duplicate map
 	assert.doesNotMatch(ipfsResourceView ?? '', /contentPath !== ''/)
 	assert.doesNotMatch(swarmResourceView ?? '', /contentPath !== ''/)
 	assert.doesNotMatch(ipfsResourceView ?? '', /resolve\(`/)
-	assert.match(ipfsResourceView ?? '', /href=\{`data:text\/plain;charset=utf-8,\$\{encodeURIComponent\(artifactContent\)\}`\}/)
-	assert.match(ipfsResourceView ?? '', /download='ipfs-resource\.txt'/)
-	assert.match(ipfsResourceView ?? '', />\s*Download resolved text\s*<\/a>/)
+	assert.match(ipfsCaptureView ?? '', /href=\{`data:text\/plain;charset=utf-8,\$\{encodeURIComponent\(artifactContent\)\}`\}/)
+	assert.match(ipfsCaptureView ?? '', /download='ipfs-resource\.txt'/)
+	assert.match(ipfsCaptureView ?? '', />\s*Download resolved text\s*<\/a>/)
 	assert.match(arweaveResourceTimestampView ?? '', /download='arweave-resource\.txt'/)
 	assert.match(swarmResourceView ?? '', /href=\{`data:text\/plain;charset=utf-8,\$\{encodeURIComponent\(artifactContent\)\}`\}/)
 	assert.match(swarmResourceView ?? '', /download='swarm-resource\.txt'/)
@@ -7931,7 +7976,7 @@ test('emits environment schemas only on binding credentials', () => {
 	assert.doesNotMatch(sourceProviderDefinitions, /\benv:|from 'arktype'/)
 	assert.doesNotMatch(sourceBindingDefinitions, /env: arktype\(\{\n\s+'\[string\]': 'string',\n\s+\}\)/)
 	assert.doesNotMatch(sourceBindingDefinitions, /env: arktype\(\{\n\s*\}\)/)
-	assert.match(sourceBindingDefinitions, /'PUBLIC_ALLIUM_API_KEY': 'string > 0'/)
+	assert.match(sourceBindingDefinitions, /'?PUBLIC_ALLIUM_API_KEY'?: 'string > 0'/)
 })
 
 test('emits runtime secret configuration from authored binding identities', () => {

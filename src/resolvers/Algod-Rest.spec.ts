@@ -4,6 +4,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	entityFieldAddressKey,
@@ -163,15 +164,7 @@ it('materializes source-clocked application box content and fails closed on stal
 	})).rejects.toThrow('application box round mismatch')
 })
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 beforeEach(() => {
 	getParticipationKey.mockReset()

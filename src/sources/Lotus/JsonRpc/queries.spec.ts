@@ -342,7 +342,12 @@ describe('Lotus JSON-RPC state queries', () => {
 				jsonrpc: '2.0',
 				id: 1,
 				method: 'Filecoin.StateSearchMsg',
-				params: [{ '/': 'bafy-message' }],
+				params: [
+					null,
+					{ '/': 'bafy-message' },
+					-1,
+					true,
+				],
 			},
 			{
 				jsonrpc: '2.0',
@@ -354,6 +359,41 @@ describe('Lotus JSON-RPC state queries', () => {
 				],
 			},
 		])
+	})
+
+	it('distinguishes missing, malformed, and replaced message lookups', async () => {
+		fetchMock
+			.mockResolvedValueOnce(rpcResponse(null))
+			.mockResolvedValueOnce(rpcResponse({ Message: { '/': 'bafy-message' } }))
+			.mockResolvedValueOnce(rpcResponse({
+				Message: { '/': 'bafy-replacement' },
+				Receipt: {
+					ExitCode: 0,
+					Return: '',
+					GasUsed: 10,
+				},
+				TipSet: tipsetKey,
+				Height: 100,
+			}))
+
+		await expect(searchMessage({ messageCid: 'bafy-message' })).rejects.toThrow('was not found on chain')
+		await expect(searchMessage({ messageCid: 'bafy-message' })).rejects.toThrow('message lookup')
+		await expect(searchMessage({ messageCid: 'bafy-message' })).rejects.toThrow('message lookup identity does not match request')
+	})
+
+	it('propagates message search RPC and transport failures', async () => {
+		fetchMock.mockResolvedValueOnce(Response.json({
+			jsonrpc: '2.0',
+			id: 1,
+			error: {
+				code: -32000,
+				message: 'lookup unavailable',
+			},
+		}))
+		await expect(searchMessage({ messageCid: 'bafy-message' })).rejects.toThrow('lookup unavailable')
+		const failure = new Error('connection closed')
+		fetchMock.mockRejectedValueOnce(failure)
+		await expect(searchMessage({ messageCid: 'bafy-message' })).rejects.toBe(failure)
 	})
 
 	it('rejects duplicate sector numbers for a miner', async () => {

@@ -27,18 +27,16 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					artifactType: true,
-					mediaType: true,
-					providerArtifactId: true,
-					ociDigest: true,
-					ipfsCid: true,
-					arweaveId: true,
-					gitObject: true,
-					digest: true,
-					size: true,
-				},
+			fields: {
+				artifactType: true,
+				mediaType: true,
+				providerArtifactId: true,
+				ociDigest: true,
+				ipfsCid: true,
+				arweaveId: true,
+				gitObject: true,
+				digest: true,
+				size: true,
 			},
 		})
 	}

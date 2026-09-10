@@ -28,15 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$asset: {
-						fields: {
-							fingerprint: true,
-						},
+			fields: {
+				$asset: {
+					fields: {
+						fingerprint: true,
 					},
-					quantity: true,
 				},
+				quantity: true,
 			},
 		})
 	}

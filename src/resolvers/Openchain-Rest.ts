@@ -67,7 +67,7 @@ export default {
 					resolve: async ({ hex }) => {
 						const observation = await getFunctionObservation(hex)
 						return {
-							signatures: observation.signatures,
+							signatures: [...new Set(observation.signatures)],
 						}
 					},
 				},
@@ -83,7 +83,7 @@ export default {
 					resolve: async ({ hex }) => {
 						const observation = await getEventObservation(hex)
 						return {
-							signatures: observation.signatures,
+							signatures: [...new Set(observation.signatures)],
 						}
 					},
 				},
@@ -99,7 +99,7 @@ export default {
 					resolve: async ({ hex }) => {
 						const observation = await getErrorObservation(hex)
 						return {
-							signatures: observation.signatures,
+							signatures: [...new Set(observation.signatures)],
 						}
 					},
 				},

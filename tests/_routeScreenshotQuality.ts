@@ -21,11 +21,52 @@ export type RouteScreenshotQuality = {
 	warnings: string[]
 }
 
+export type RouteScreenshotFixture = {
+	pathname: string
+	overlay: {
+		routeTitle?: string
+		entityType?: string
+		required?: readonly string[]
+		requiredDt?: readonly string[]
+		minDt?: number
+		minLinks?: number
+		minEntityRows?: number
+	}
+}
+
 const screenshotBoundaryFailureKinds = new Set([
 	'console-failed',
 	'console-uncaught',
 	'dom-failed',
 ])
+
+export const routeScreenshotArtifactName = (pathname: string, suffix: string) => {
+	const routeSlug = pathname.replace(/^\//u, '').replace(/[^a-z0-9]+/giu, '-').replace(/^-|-$/gu, '')
+	return `${routeSlug || 'root'}-${suffix}`
+}
+
+export const routeScreenshotCorpusFailures = (
+	fixtures: readonly RouteScreenshotFixture[],
+): string[] => {
+	const failures: string[] = []
+	const pathnames = new Set(fixtures.map(({ pathname }) => pathname))
+	if (pathnames.size < 2)
+		failures.push('representative corpus must contain at least two distinct fixtures')
+	for (const { pathname, overlay } of fixtures) {
+		const hasVisibleOracle = Boolean(
+			overlay.routeTitle
+			|| overlay.entityType
+			|| overlay.required?.length
+			|| overlay.requiredDt?.length
+			|| overlay.minDt
+			|| overlay.minLinks
+			|| overlay.minEntityRows,
+		)
+		if (!hasVisibleOracle)
+			failures.push(`${pathname} has no visible-content oracle`)
+	}
+	return failures
+}
 
 /** Shared visual contract for the route screenshot corpus and its representative E2E suite. */
 export const routeScreenshotQuality = ({

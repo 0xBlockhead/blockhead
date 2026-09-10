@@ -28,21 +28,19 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					indexInEnvelope: true,
-					amountGwei: true,
-					$envelope: {
-						fields: {
-							blockNumber: true,
-							transactionCount: true,
-							$beaconBlock: {
-								fields: {
-									version: true,
-									$slot: {
-										fields: {
-											$epoch: true,
-										},
+			fields: {
+				indexInEnvelope: true,
+				amountGwei: true,
+				$envelope: {
+					fields: {
+						blockNumber: true,
+						transactionCount: true,
+						$beaconBlock: {
+							fields: {
+								version: true,
+								$slot: {
+									fields: {
+										$epoch: true,
 									},
 								},
 							},

@@ -6,6 +6,7 @@ import {
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../../../../tests/_e2eBrowserHelpers.ts'
+import { installRouteViewSqliteIsolation } from '../../../../tests/e2e/_routeViewFixtures.ts'
 import { nostrNetworkSeedNotes } from '$/constants/Social/Nostr.ts'
 import { nostrEventId } from '../../../sources/NostrRelay/Nip01/event.ts'
 
@@ -35,15 +36,7 @@ const signedRelayNote = (content: string, createdAt: number) => {
 test.setTimeout(240_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `bh-nostr-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `bh-nostr-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

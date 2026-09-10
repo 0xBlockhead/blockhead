@@ -58,6 +58,7 @@ const resolverLoaderEntries = [
 	[Source.CircleCctpContracts_Solana, () => import('./CircleCctpContracts-Solana.ts')],
 	[Source.CircleCctpContracts_Stellar, () => import('./CircleCctpContracts-Stellar.ts')],
 	[Source.CircleCctpIris, () => import('./CircleCctp-Rest.ts')],
+	[Source.CodexNode_Rest, () => import('./CodexNode-Rest.ts')],
 	[Source.Coingecko_Rest, () => import('./Coingecko-Rest.ts')],
 	[Source.CoinMarketCap_Rest, () => import('./CoinMarketCap-Rest.ts')],
 	[Source.Coinpaprika_Rest, () => import('./Coinpaprika-Rest.ts')],

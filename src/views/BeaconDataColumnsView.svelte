@@ -30,18 +30,16 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					columnIndex: true,
-					forkVersion: true,
-					columnCount: true,
-					$block: {
-						fields: {
-							version: true,
-							$slot: {
-								fields: {
-									$epoch: true,
-								},
+			fields: {
+				columnIndex: true,
+				forkVersion: true,
+				columnCount: true,
+				$block: {
+					fields: {
+						version: true,
+						$slot: {
+							fields: {
+								$epoch: true,
 							},
 						},
 					},

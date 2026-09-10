@@ -207,6 +207,7 @@ export enum Source {
 	CircleCctpContracts_Stellar = "CircleCctpContracts_Stellar",
 	CircleCctpIris = "CircleCctpIris",
 	CodexNetworkPresets_Github = "CodexNetworkPresets_Github",
+	CodexNode_Rest = "CodexNode_Rest",
 	Cohere_Rest = "Cohere_Rest",
 	Coingecko_Rest = "Coingecko_Rest",
 	CoinMarketCap_Rest = "CoinMarketCap_Rest",
@@ -491,6 +492,7 @@ export enum SourceProvider {
 	Chainlist = "Chainlist",
 	CircleCctp = "CircleCctp",
 	CodexNetworkPresets = "CodexNetworkPresets",
+	CodexNode = "CodexNode",
 	Cohere = "Cohere",
 	Coingecko = "Coingecko",
 	CoinMarketCap = "CoinMarketCap",
@@ -740,6 +742,8 @@ export enum EntityType {
 	A2aTask = "A2aTask",
 	A2aTask_Timestamp = "A2aTask_Timestamp",
 	A2aTaskEvent = "A2aTaskEvent",
+	AaveAccountMarket = "AaveAccountMarket",
+	AaveAccountMarket_Timestamp = "AaveAccountMarket_Timestamp",
 	AaveMarket = "AaveMarket",
 	AaveReserve = "AaveReserve",
 	AaveReservePosition = "AaveReservePosition",
@@ -1382,6 +1386,7 @@ export enum EntityType {
 	IcpSubnetCanisterRange_Timestamp = "IcpSubnetCanisterRange_Timestamp",
 	IpfsProtocol = "IpfsProtocol",
 	IpfsResource = "IpfsResource",
+	IpfsResource_Timestamp = "IpfsResource_Timestamp",
 	IssuerAction = "IssuerAction",
 	IssuerPower = "IssuerPower",
 	KaspaAcceptedTransaction = "KaspaAcceptedTransaction",
@@ -3538,14 +3543,14 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.AtprotoActor,
-					defaultSources: [Source.Constants_Internal, Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
+					defaultSources: [Source.Constants_Internal, Source.Atproto_BskySocial_Xrpc],
 				},
 				"$$observedPosts": {
 					label: "Recent posts",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.AtprotoPost,
-					defaultSources: [Source.Constants_Internal, Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
+					defaultSources: [Source.Constants_Internal, Source.Atproto_BskySocial_Xrpc],
 				},
 				"$$timestamps": {
 					label: "Observations",
@@ -5119,6 +5124,66 @@ export const schema = {
 						content: { dl: [["$task", "sequence", "eventKind", { field: "timestampMs", format: "timestamp" }, "state", "final", "$artifact"]] },
 					},
 					plural: { component: "A2aTaskEventsView", title: "A2A task events", },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.AaveAccountMarket,
+				labels: {
+					singular: "Aave account market",
+					plural: "Aave account markets",
+				},
+				description: "One EVM account's provider-observed state within an Aave V3 market.",
+			})({
+				"$account": { label: "Account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetworkAccount },
+				"$market": { label: "Market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AaveMarket },
+				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveAccountMarket_Timestamp, defaultSources: [Source.Aave_Rest] },
+			})({
+				selectors: {
+					"AccountMarket": ["$account", "$market"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Aave_Rest] },
+						summary: { title: ["$market"], HeadingAfter: ["$account"] },
+						closed: ["$account", "$market"],
+						content: { dl: [["$account", "$market"]] },
+						lists: [{ field: "$$timestamps", component: "AaveAccountMarket_TimestampsView", label: "Market state observations", emptyText: "No Aave account market observations." }],
+					},
+					plural: { component: "AaveAccountMarketsView", title: "Aave account markets" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.AaveAccountMarket_Timestamp,
+				labels: {
+					singular: "Aave account market observation",
+					plural: "Aave account market observations",
+				},
+				description: "A provider-observed Aave account health, liquidation, LTV, collateral/debt bases, and net APY at the completed response time.",
+			})({
+				"$accountMarket": { label: "Account market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AaveAccountMarket },
+				"timestampMs": { label: "Timestamp", description: "The completed provider response time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"healthFactor": { label: "Health factor", description: "The nullable account health factor reported by Aave for this market.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"currentLiquidationThreshold": { label: "Liquidation threshold", description: "The account's current liquidation threshold for this market at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"ltv": { label: "LTV", description: "The account's current loan-to-value for this market at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"totalCollateralBase": { label: "Total collateral", description: "The account's total collateral in the market price feed's base currency at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"totalDebtBase": { label: "Total debt", description: "The account's total debt in the market price feed's base currency at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"availableBorrowsBase": { label: "Available borrows", description: "The account's remaining borrow capacity in the market price feed's base currency at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"netApy": { label: "Net APY", description: "The account's net APY across positions in this market, at the completed response time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "DecimalString", defaultSources: [Source.Aave_Rest] },
+			})({
+				selectors: {
+					"AccountMarketTimestampMsSource": ["$accountMarket", "timestampMs", "source"],
+				},
+				views: {
+					singular: {
+						query: { sources: [Source.Aave_Rest], openFields: ["healthFactor", "currentLiquidationThreshold", "ltv", "totalCollateralBase", "totalDebtBase", "availableBorrowsBase", "netApy"] },
+						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["healthFactor", "ltv", "totalCollateralBase", "totalDebtBase"] },
+						closed: ["$accountMarket", { field: "timestampMs", format: "timestamp" }, "source"],
+						content: { dl: [["$accountMarket", { field: "timestampMs", format: "timestamp" }, "source", "healthFactor", "currentLiquidationThreshold", "ltv", "totalCollateralBase", "totalDebtBase", "availableBorrowsBase", "netApy"]] },
+					},
+					plural: { component: "AaveAccountMarket_TimestampsView", title: "Aave account market observations" },
 				},
 			}),
 
@@ -10346,10 +10411,10 @@ export const schema = {
 				"timestampMs": { label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"validatorCount": { label: "validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
-				"delegatorCount": { label: "delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"delegatorCount": { label: "delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"totalStakeNavax": { label: "total stake navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
-				"chainCount": { label: "chain count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
-				"pendingValidatorCount": { label: "pending validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"chainCount": { label: "chain count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"pendingValidatorCount": { label: "pending validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 			})({
 				selectors: {
 					"SubnetTimestampMsSource": ["$subnet", "timestampMs", "source"],
@@ -10435,7 +10500,7 @@ export const schema = {
 				"uptimePercent": { label: "uptime percent", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"validatorSetKind": { label: "validator set kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 				"observedStakeNavax": { label: "observed stake navax", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
-				"observedDelegatorCount": { label: "observed delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
+				"observedDelegatorCount": { label: "observed delegator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger", defaultSources: [Source.AvalanchePlatformVm_JsonRpc] },
 			})({
 				selectors: {
 					"ValidatorTimestampMsSource": ["$validator", "timestampMs", "source"],
@@ -14567,7 +14632,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.CodexNode_Rest],
 							openFields: ["endpoint", "signedPeerRecord"],
 						},
 						summary: { title: ["peerId"], value: ["connectionId"], HeadingAfter: [{ field: "endpoint", format: "url" }] },
@@ -14645,7 +14710,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.CodexNode_Rest],
 							openFields: ["firstSeenAt"],
 						},
 						summary: { title: ["cid"], value: ["$nodeState"], HeadingAfter: [{ field: "firstSeenAt", format: "timestamp" }] },
@@ -23349,7 +23414,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Local_Internal],
+							sources: [Source.CodexNode_Rest],
 							openFields: ["treeCid", "datasetSizeBytes", "blockSizeBytes", "filename", "mimetype"],
 						},
 						summary: { title: ["filename"], titleFallback: ["cid"], value: ["mimetype"], HeadingAfter: [{ field: "datasetSizeBytes", format: "number" }] },
@@ -23849,7 +23914,7 @@ export const schema = {
 				"$comet": { label: "Comet market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CompoundComet },
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"tokenAddress": { label: "Token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
-				"priceFeedAddress": { label: "Price feed address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
+				"priceFeedAddress": { label: "Price feed address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress", defaultSources: [Source.Compound_Rest] },
 				"decimals": { label: "Decimals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
 				"borrowCF": { label: "Borrow collateral factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
 				"liquidateCF": { label: "Liquidation collateral factor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number", defaultSources: [Source.Compound_Rest] },
@@ -29813,6 +29878,7 @@ export const schema = {
 				"$$ownedCoins": { label: "owned coins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkActorCoinBalance, defaultSources: [Source.Allium_Rest, Source.Blockscout_Rest, Source.GoldRushFoundational_Rest] },
 				"$$nfts": { label: "NFTs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNft, defaultSources: [Source.OpenSea_Rest] },
 				"$$erc20TokenAllowances": { label: "erc20 token allowances", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmActorCoinAllowance },
+				"$$aaveAccountMarkets": { label: "Aave account markets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveAccountMarket, defaultSources: [Source.Aave_Rest] },
 				"$$aaveReservePositions": { label: "Aave reserve positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.AaveReservePosition, defaultSources: [Source.Aave_Rest] },
 				"$$compoundPositions": { label: "Compound positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CompoundPosition, defaultSources: [Source.Compound_Rest] },
 				"$$eulerEvkVaultPositions": { label: "Euler EVK vault positions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EulerEvkVaultPosition, defaultSources: [Source.Euler_Rest] },
@@ -29874,6 +29940,7 @@ export const schema = {
 								label: "DeFi positions",
 								className: "network-view-collapsible-defi-positions",
 								sections: [
+									{ id: "evm-network-account-aave-markets", field: "$$aaveAccountMarkets", List: "AaveAccountMarketsView", label: "Aave market health", emptyText: "No Aave account markets.", selection: { sources: [Source.Aave_Rest], limit: 32 } },
 									{ id: "evm-network-account-aave-reserve-positions", field: "$$aaveReservePositions", List: "AaveReservePositionsView", label: "Aave", emptyText: "No Aave reserve positions.", selection: { sources: [Source.Aave_Rest], limit: 32 } },
 									{ id: "evm-network-account-compound-positions", field: "$$compoundPositions", List: "CompoundPositionsView", label: "Compound", emptyText: "No Compound positions.", selection: { sources: [Source.Compound_Rest], limit: 32 } },
 									{ id: "evm-network-account-euler-evk-vault-positions", field: "$$eulerEvkVaultPositions", List: "EulerEvkVaultPositionsView", label: "Euler", emptyText: "No Euler vault positions.", selection: { sources: [Source.Euler_Rest], limit: 32 } },
@@ -39361,6 +39428,10 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						closed: ["$network", "txHash"],
+						lists: [{ field: "$$timestamps", component: "HyperliquidTransaction_TimestampsView", label: "Observations", emptyText: "No Hyperliquid transaction observations." }],
+					},
 					plural: { component: "HyperliquidTransactionsView" },
 				},
 			}),
@@ -39457,6 +39528,10 @@ export const schema = {
 					],
 				},
 				views: {
+					singular: {
+						closed: ["$network", "validator"],
+						lists: [{ field: "$$timestamps", component: "HyperliquidValidator_TimestampsView", label: "Observations", emptyText: "No Hyperliquid validator observations." }],
+					},
 					plural: { component: "HyperliquidValidatorsView" },
 				},
 			}),
@@ -41576,6 +41651,48 @@ export const schema = {
 				"target": { label: "Target", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"contentPath": { label: "Content path", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "routeContentPath" },
 				"canonicalUri": { label: "Canonical URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
+				"cidVersion": { label: "CID version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"cidMultibase": { label: "CID multibase", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"cidMulticodecCode": { label: "CID multicodec code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"cidMultihashCode": { label: "CID multihash code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"cidMultihashDigestHex": { label: "CID multihash digest hex", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"isCidSubdomainSafe": { label: "CID subdomain safe", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"$$timestamps": { label: "Captures", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.IpfsResource_Timestamp, defaultSources: [Source.Ipfs_Rest] },
+			})({
+				selectors: {
+					"ResourceAddress": ["namespace", "target", "contentPath"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Ipfs_Rest],
+							fields: ["canonicalUri"],
+							openFields: ["cidVersion", "cidMultibase", "cidMulticodecCode", "cidMultihashCode", "cidMultihashDigestHex", "isCidSubdomainSafe"],
+						},
+						summary: { title: [{ field: "canonicalUri", format: "truncated" }] },
+						content: {
+							dl: [
+								["namespace", { field: "target", format: "truncated" }, "contentPath", { field: "canonicalUri", format: "url" }],
+								["cidVersion", "cidMultibase", "cidMulticodecCode", "cidMultihashCode", "cidMultihashDigestHex", "isCidSubdomainSafe"],
+							],
+						},
+						latest: [{ field: "$$timestamps", label: "Latest capture", query: { sources: [Source.Ipfs_Rest], limit: 1 }, fields: ["timestampMs", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred", "text", "$media"], sort: "timestampMs", direction: "desc", view: "IpfsResource_TimestampView" }],
+						lists: [{ field: "$$timestamps", component: "IpfsResource_TimestampsView", emptyText: "No captures yet." }],
+					},
+					plural: { component: "IpfsResourcesView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.IpfsResource_Timestamp,
+				labels: {
+					singular: "IPFS resource capture",
+					plural: "IPFS resource captures",
+				},
+			})({
+				"$resource": { label: "Resource", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.IpfsResource },
+				"timestampMs": { label: "Captured", description: "Local completion time after the HTTP response body was read and parsed; not a provider event time.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"gatewayOrigin": { label: "Gateway origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"gatewayUrl": { label: "Gateway URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 				"fileName": { label: "File name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -41586,15 +41703,9 @@ export const schema = {
 				"isContentTypeInferred": { label: "Content type inferred", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
 				"text": { label: "Text", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"$media": { label: "Media", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
-				"cidVersion": { label: "CID version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"cidMultibase": { label: "CID multibase", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"cidMulticodecCode": { label: "CID multicodec code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"cidMultihashCode": { label: "CID multihash code", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"cidMultihashDigestHex": { label: "CID multihash digest hex", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"isCidSubdomainSafe": { label: "CID subdomain safe", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 			})({
 				selectors: {
-					"ResourceAddress": ["namespace", "target", "contentPath"],
+					"ResourceTimestampMsSource": ["$resource", "timestampMs", "source"],
 				},
 				views: {
 					singular: {
@@ -41608,25 +41719,43 @@ export const schema = {
 						],
 						query: {
 							sources: [Source.Ipfs_Rest],
-							fields: ["canonicalUri", "gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],
-							openFields: ["text", "cidVersion", "cidMultibase", "cidMulticodecCode", "cidMultihashCode", "cidMultihashDigestHex", "isCidSubdomainSafe"],
+							fields: ["gatewayOrigin", "gatewayUrl", "fileName", "extension", "contentType", "contentLength", "displayType", "isContentTypeInferred"],
+							openFields: ["text"],
 						},
 						summary: {
-							title: [{ field: "canonicalUri", format: "truncated" }],
+							title: [{ field: "timestampMs", format: "timestamp" }],
 							value: [{ field: "contentType" }, { field: "displayType" }],
 						},
 						closed: [
-							{ field: "canonicalUri", format: "truncated" },
+							"source",
 							"displayType",
 							"contentType",
 						],
 						content: {
 							dl: [
 								[
-									"namespace",
-									{ field: "target", format: "truncated" },
-									"contentPath",
-									{ field: "canonicalUri", format: "url" },
+									{
+										kind: _ViewItemKind.Block,
+										id: "capturedResourceIdentity",
+										Content: dedent `
+												<div>
+													<dt>Namespace</dt>
+													<dd>{selection.entitySelector.$resource.namespace}</dd>
+												</div>
+
+												<div>
+													<dt>Target</dt>
+													<dd>{selection.entitySelector.$resource.target}</dd>
+												</div>
+
+												<div>
+													<dt>Content path</dt>
+													<dd>{selection.entitySelector.$resource.contentPath}</dd>
+												</div>
+										`,
+									},
+									{ field: "timestampMs", format: "timestamp" },
+									"source",
 									{ field: "gatewayUrl", format: "url" },
 								],
 								[
@@ -41639,19 +41768,11 @@ export const schema = {
 									"isContentTypeInferred",
 									"$media",
 								],
-								[
-									{ field: "cidVersion", format: "number" },
-									"cidMultibase",
-									{ field: "cidMulticodecCode", format: "number" },
-									{ field: "cidMultihashCode", format: "number" },
-									{ field: "cidMultihashDigestHex", format: "truncated" },
-									"isCidSubdomainSafe",
-								],
 							],
 							body: { field: "text", format: "longText" },
 						},
 					},
-					plural: { component: "IpfsResourcesView",
+					plural: { component: "IpfsResource_TimestampsView",
 					},
 				},
 			}),
@@ -42685,7 +42806,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest],
+							sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql],
 							fields: ["shortChannelId", "fundingTransactionId", "fundingOutputIndex"],
 							openFields: ["openedAtMs"],
 						},
@@ -48408,8 +48529,8 @@ export const schema = {
 									label: "Network graph",
 									className: "network-view-collapsible-network-graph",
 									sections: [
-										{ id: "lightning-network-observations", field: ["Lightning", "$$timestamps"], List: "LightningNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.LightningMempoolSpace_Rest], limit: 16 } },
-										{ id: "lightning-network-nodes", field: ["Lightning", "$$nodes"], List: "LightningNodesView", label: "Nodes", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
+										{ id: "lightning-network-observations", field: ["Lightning", "$$timestamps"], List: "LightningNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
+										{ id: "lightning-network-nodes", field: ["Lightning", "$$nodes"], List: "LightningNodesView", label: "Nodes", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest, Source.Amboss_Graphql], limit: 16 } },
 									],
 								},
 							],
@@ -53406,7 +53527,8 @@ export const schema = {
 				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"reachable": { label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
-				"observedItemCount": { label: "Observed items", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				// A failed read does not determine how many items the feed contains.
+				"observedItemCount": { label: "Observed items", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
 				"error": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
 				selectors: {
@@ -53509,7 +53631,8 @@ export const schema = {
 				"$item": { label: "Item", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.RssItem },
 				"timestampMs": { label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
 				"source": { label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"observed": { label: "Observed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
+				// A failed feed read cannot establish whether the requested item was observed.
+				"observed": { label: "Observed", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				"reachable": { label: "Feed reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean" },
 				"error": { label: "Error", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 			})({
@@ -64892,6 +65015,10 @@ export const schema = {
 					"NetworkAddress": ["$network", "address"],
 				},
 				views: {
+					singular: {
+						closed: ["$network", "address"],
+						lists: [{ field: "$$timestamps", component: "TronWitness_TimestampsView", label: "Observations", emptyText: "No Tron witness observations." }],
+					},
 					plural: { component: "TronWitnessesView", },
 				},
 			}),
@@ -74562,6 +74689,55 @@ export const routes = defineRoutes(schema)({
 						},
 						"[namespace]": {
 							children: {
+								"captures": {
+									children: {
+										"[target]": {
+											params: { "target": ["string"] },
+											children: {
+												"[timestampMs]": {
+													children: {
+														"[source]": {
+															selectors: {
+																[EntityType.IpfsResource_Timestamp]: {
+																	"ResourceTimestampMsSource": {
+																		params: { "timestampMs": ["timestampMs"], "source": ["source"] },
+																		derivations: {
+																			"$resource": { kind: "object", fields: [
+																				{ name: "namespace", value: { kind: "param", name: "namespace" } },
+																				{ name: "target", value: { kind: "param", name: "target" } },
+																				{ name: "contentPath", value: { kind: "literal", value: "" } },
+																			] },
+																		},
+																		page: {},
+																	},
+																},
+															},
+															children: {
+																"path": {
+																	children: {
+																		"[...contentPath]": {
+																			params: { "contentPath": ["string"] },
+																			selectorVariant: {
+																				derivations: {
+																					"$resource": { kind: "object", fields: [
+																						{ name: "namespace", value: { kind: "param", name: "namespace" } },
+																						{ name: "target", value: { kind: "param", name: "target" } },
+																						{ name: "contentPath", value: { kind: "param", name: "contentPath" } },
+																					] },
+																				},
+																				href: { conditions: [{ field: "$resource.contentPath", notEquals: "" }] },
+																			},
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
 								"[target]": {
 									selectors: {
 										[EntityType.IpfsResource]: {
@@ -76108,7 +76284,48 @@ export const routes = defineRoutes(schema)({
 																"aave-market": {
 																	children: {
 																		"[poolAddress]": {
+																			selectors: {
+																				[EntityType.AaveAccountMarket]: {
+																					"AccountMarket": {
+																						when: { path: ["namespace"], is: "Evm" },
+																						projection: { entityType: EntityType.Network, facetPath: ["Evm"] },
+																						derivations: {
+																							"$market": {
+																								kind: "selector",
+																								entity: EntityType.AaveMarket,
+																								selector: "NetworkPoolAddress",
+																								params: [
+																									{ field: "$network", value: { kind: "property", value: { kind: "field", name: "$account" }, property: "$network" } },
+																									{ field: "poolAddress", param: "poolAddress" },
+																								],
+																							},
+																						},
+																						page: {},
+																					},
+																				},
+																			},
 																			children: {
+																				"observations": {
+																					children: {
+																						"[timestampMs]": {
+																							params: { "timestampMs": ["NonNegativeInteger"] },
+																							children: {
+																								"[source]": {
+																									params: { "source": ["string"] },
+																									selectors: {
+																										[EntityType.AaveAccountMarket_Timestamp]: {
+																											"AccountMarketTimestampMsSource": {
+																												params: {},
+																												derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
+																												page: {},
+																											},
+																										},
+																									},
+																								},
+																							},
+																						},
+																					},
+																				},
 																				"reserve": {
 																					children: {
 																						"[underlyingTokenAddress]": {
@@ -92089,7 +92306,7 @@ export const routes = defineRoutes(schema)({
 												"$$observedActors"
 											],
 											query: {
-												sources: [Source.Constants_Internal, Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
+												sources: [Source.Constants_Internal, Source.Atproto_BskySocial_Xrpc],
 											},
 											derivations: {
 												"scope": { kind: "literal", value: "_GlobalAtprotoNetwork" }
@@ -92109,7 +92326,7 @@ export const routes = defineRoutes(schema)({
 												"$$observedPosts"
 											],
 											query: {
-												sources: [Source.Constants_Internal, Source.Atproto_Xrpc, Source.Atproto_BskySocial_Xrpc],
+												sources: [Source.Constants_Internal, Source.Atproto_BskySocial_Xrpc],
 											},
 											derivations: {
 												"scope": { kind: "literal", value: "_GlobalAtprotoNetwork" }
@@ -98189,6 +98406,10 @@ export const app = {
 				label: "Codex network presets",
 			},
 			{
+				provider: "CodexNode",
+				label: "Codex node",
+			},
+			{
 				provider: "Cohere",
 				label: "Cohere",
 			},
@@ -99490,7 +99711,7 @@ export const app = {
 					endpoints: [
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://bsky.social",
+							locator: "https://api.bsky.app",
 							corsEnabled: false,
 						},
 					],
@@ -99592,6 +99813,46 @@ export const app = {
 						delivery: SourceDelivery.RemoteLive,
 						credentials: [],
 					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "atproto-plc-directory",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://plc.directory",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Global,
+							key: "atproto-did-web",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://{did-web-host}",
+								corsEnabled: false,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.RemoteQuery,
+						credentials: [],
+					},
 				],
 			},
 			{
@@ -99660,7 +99921,8 @@ export const app = {
 				source: Source.AvalanchePlatformVm_JsonRpc,
 				provider: "AvalanchePlatformVm",
 				label: "Avalanche PlatformVM JSON-RPC",
-				binding: {
+				bindings: [
+				{
 					target: {
 						kind: SourceTargetKind.NetworkSlug,
 						key: "avalanche-p-chain",
@@ -99680,6 +99942,31 @@ export const app = {
 					delivery: SourceDelivery.HttpProxy,
 					credentials: [],
 				},
+				{
+					target: {
+						kind: SourceTargetKind.LocalDevice,
+						key: "local-avalanche-platform-vm",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "http://127.0.0.1:9650/ext/bc/P",
+							corsEnabled: false,
+						},
+					],
+					wireProtocol: WireProtocol.JsonRpc2,
+					apiFamily: ApiFamily.JsonRpcApi,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.LocalOnly,
+					credentials: [
+						{
+							scope: SourceCredentialScope.LocalSecret,
+						},
+					],
+				},
+				],
 			},
 			{
 				source: Source.AwsBedrock_Rest,
@@ -99882,12 +100169,12 @@ export const app = {
 					{
 						target: {
 							kind: SourceTargetKind.Eip155Chain,
-							key: "17000",
+							key: "560048",
 						},
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://ethereum-holesky-beacon-api.publicnode.com",
+								locator: "https://ethereum-hoodi-beacon-api.publicnode.com",
 								corsEnabled: true,
 							},
 						],
@@ -100341,7 +100628,19 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.UdpAddress,
-								locator: "udp://{bootstrap-node}:{port}",
+								locator: "udp://router.bittorrent.com:6881",
+							},
+							{
+								endpointKind: SourceEndpointKind.UdpAddress,
+								locator: "udp://router.utorrent.com:6881",
+							},
+							{
+								endpointKind: SourceEndpointKind.UdpAddress,
+								locator: "udp://dht.transmissionbt.com:6881",
+							},
+							{
+								endpointKind: SourceEndpointKind.UdpAddress,
+								locator: "udp://dht.libtorrent.org:25401",
 							},
 						],
 						wireProtocol: WireProtocol.Bencode,
@@ -101617,6 +101916,48 @@ export const app = {
 					],
 					delivery: SourceDelivery.BrowserDirect,
 					credentials: [],
+				},
+			},
+			{
+				source: Source.CodexNode_Rest,
+				provider: "CodexNode",
+				label: "Codex node REST",
+				binding: {
+					target: {
+						kind: SourceTargetKind.LocalDevice,
+						key: "codex-node",
+					},
+					endpoints: [
+						{
+							endpointKind: SourceEndpointKind.HttpUrl,
+							locator: "http://127.0.0.1:8080",
+							corsEnabled: false,
+						},
+					],
+					wireProtocol: WireProtocol.HttpRest,
+					apiFamily: ApiFamily.OpenApiHttp,
+					operationGroups: [
+						SourceOperationGroup.GenericRead,
+					],
+					delivery: SourceDelivery.LocalOnly,
+					credentials: [],
+					artifacts: [
+						{
+							kind: SourceArtifactKind.GenerationManifest,
+							path: "src/sources/CodexNode/OpenApi/schema-source.ts",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiSpec,
+							path: "src/sources/CodexNode/OpenApi/openapi.yaml",
+							generated: true,
+							officialUrl: "https://raw.githubusercontent.com/logos-storage/logos-storage-nim/master/openapi.yaml",
+						},
+						{
+							kind: SourceArtifactKind.OpenApiTypes,
+							path: "src/sources/CodexNode/OpenApi/openapi.d.ts",
+							generated: true,
+						},
+					],
 				},
 			},
 			{
@@ -103356,6 +103697,26 @@ export const app = {
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
 								locator: "https://blockstream.info/api",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "bip122:000000000933ea01ad0ee984209779ba",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://blockstream.info/testnet/api",
 								corsEnabled: true,
 							},
 						],
@@ -105901,26 +106262,48 @@ export const app = {
 				source: Source.MempoolSpace_Rest,
 				provider: "MempoolSpace",
 				label: "mempool.space REST",
-				binding: {
-					target: {
-						kind: SourceTargetKind.Caip2Network,
-						key: "bip122:000000000019d6689c085ae165831e93",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://mempool.space/api",
-							corsEnabled: true,
+				bindings: [
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "bip122:000000000019d6689c085ae165831e93",
 						},
-					],
-					wireProtocol: WireProtocol.HttpRest,
-					apiFamily: ApiFamily.RestJson,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.BrowserDirect,
-					credentials: [],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://mempool.space/api",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+					},
+					{
+						target: {
+							kind: SourceTargetKind.Caip2Network,
+							key: "bip122:000000000933ea01ad0ee984209779ba",
+						},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator: "https://mempool.space/testnet/api",
+								corsEnabled: true,
+							},
+						],
+						wireProtocol: WireProtocol.HttpRest,
+						apiFamily: ApiFamily.RestJson,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery: SourceDelivery.BrowserDirect,
+						credentials: [],
+					},
+				],
 			},
 			{
 				source: Source.MetadataVision_Rest,
@@ -106394,32 +106777,37 @@ export const app = {
 				source: Source.NearRpc_JsonRpc,
 				provider: "NearRpc",
 				label: "NEAR JSON-RPC",
-				binding: {
-					target: {
-						kind: SourceTargetKind.NetworkSlug,
-						key: "near",
-					},
-					endpoints: [
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://rpc.mainnet.near.org",
-							corsEnabled: false,
+				bindings: [
+					...[
+						{ locator: "https://rpc.mainnet.near.org", corsEnabled: false, delivery: SourceDelivery.HttpProxy },
+						{ locator: "https://free.rpc.fastnear.com", corsEnabled: true, delivery: SourceDelivery.BrowserDirect },
+					].map(({ locator, corsEnabled, delivery }) => ({
+						target: {
+							kind: SourceTargetKind.NetworkSlug,
+							key: "near",
 						},
-					],
-					wireProtocol: WireProtocol.JsonRpc2,
-					apiFamily: ApiFamily.JsonRpcApi,
-					operationGroups: [
-						SourceOperationGroup.GenericRead,
-					],
-					delivery: SourceDelivery.HttpProxy,
-					credentials: [],
-					artifacts: [
-						{
-							kind: SourceArtifactKind.HandwrittenTypes,
-							path: "src/sources/NearRpc/JsonRpc/types.ts",
-						},
-					],
-				},
+						endpoints: [
+							{
+								endpointKind: SourceEndpointKind.HttpUrl,
+								locator,
+								corsEnabled,
+							},
+						],
+						wireProtocol: WireProtocol.JsonRpc2,
+						apiFamily: ApiFamily.JsonRpcApi,
+						operationGroups: [
+							SourceOperationGroup.GenericRead,
+						],
+						delivery,
+						credentials: [],
+						artifacts: [
+							{
+								kind: SourceArtifactKind.HandwrittenTypes,
+								path: "src/sources/NearRpc/JsonRpc/types.ts",
+							},
+						],
+					})),
+				],
 			},
 			{
 				source: Source.NearWalletSelector_WalletApi,
@@ -106709,6 +107097,7 @@ export const app = {
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayPublish,
 							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.RemoteLive,
@@ -106735,6 +107124,7 @@ export const app = {
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayPublish,
 							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.RemoteLive,
@@ -106761,6 +107151,7 @@ export const app = {
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayPublish,
 							SourceOperationGroup.NostrRelayRead,
 							SourceOperationGroup.NostrSearch,
 						],
@@ -106788,6 +107179,7 @@ export const app = {
 						apiFamily: ApiFamily.NostrRelay,
 						operationGroups: [
 							SourceOperationGroup.GenericSubscribe,
+							SourceOperationGroup.NostrRelayPublish,
 							SourceOperationGroup.NostrRelayRead,
 						],
 						delivery: SourceDelivery.RemoteLive,
@@ -107250,6 +107642,7 @@ export const app = {
 						{ key: "56", locator: "https://binance.llamarpc.com" },
 						{ key: "143", locator: "https://rpc.monad.xyz" },
 						{ key: "146", locator: "https://rpc.soniclabs.com" },
+						{ key: "196", locator: "https://rpc.xlayer.tech" },
 						{ key: "999", locator: "https://hyperliquid.drpc.org" },
 						{ key: "5000", locator: "https://rpc.mantle.xyz" },
 						{ key: "8453", locator: "https://mainnet.base.org" },
@@ -115241,6 +115634,10 @@ export const app = {
 			{
 				source: Source.CircleCctpIris,
 				path: "src/resolvers/CircleCctp-Rest.ts",
+			},
+			{
+				source: Source.CodexNode_Rest,
+				path: "src/resolvers/CodexNode-Rest.ts",
 			},
 			{
 				source: Source.Coingecko_Rest,

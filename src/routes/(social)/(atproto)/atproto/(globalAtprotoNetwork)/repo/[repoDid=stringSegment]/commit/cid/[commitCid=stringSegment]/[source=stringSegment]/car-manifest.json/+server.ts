@@ -1,23 +1,26 @@
 import { error, json } from '@sveltejs/kit'
 
 import type { RequestHandler } from './$types.ts'
-import {
-	defaultAtprotoSyncRelayOrigin,
-	getBlocks,
-} from '$/sources/AtprotoSync/Xrpc/queries.ts'
+import { getBlocks } from '$/sources/AtprotoSync/Xrpc/queries.ts'
+import { getCurrentPdsOrigin } from '$/sources/AtprotoSync/Xrpc/identity.ts'
 import { projectAtprotoRepoCommitBlock } from '$/sources/AtprotoSync/Xrpc/commit.ts'
 import { Source } from '$/sources/Source.ts'
 
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, request }) => {
 	if (params.source !== Source.AtprotoSync_Xrpc)
 		error(404, 'This CAR manifest is only available from AT Protocol sync')
 
+	const serviceOrigin = await getCurrentPdsOrigin({
+		did: params.repoDid,
+		signal: request.signal,
+	})
 	const commit = await projectAtprotoRepoCommitBlock({
 		car: await getBlocks({
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			serviceOrigin,
 			did: params.repoDid,
 			cids: [params.commitCid],
+			signal: request.signal,
 		}),
 		repoDid: params.repoDid,
 		commitCid: params.commitCid,
@@ -28,7 +31,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		artifact: 'decoded-car-commit-manifest',
 		provenance: {
 			source: Source.AtprotoSync_Xrpc,
-			serviceOrigin: defaultAtprotoSyncRelayOrigin,
+			serviceOrigin,
 		},
 		request: {
 			repoDid: params.repoDid,

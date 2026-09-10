@@ -27,6 +27,8 @@ export const parseAcpLocalJsonRpcResponse = (payload: string, requestId: string)
 	const response = responseType(parsed)
 	if (response instanceof type.errors)
 		throw new Error(`AcpLocal_JsonRpc: malformed response: ${response.summary}`)
+	if (('result' in response) === ('error' in response))
+		throw new Error('AcpLocal_JsonRpc: response must contain exactly one of result or error')
 	if (response.id !== requestId)
 		throw new Error(`AcpLocal_JsonRpc: response id mismatch`)
 	return response

@@ -21,7 +21,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
-			Source.Local_Internal,
+			Source.CodexNode_Rest,
 		],
 	}))
 	const codexDataset = $derived(viewSelection({

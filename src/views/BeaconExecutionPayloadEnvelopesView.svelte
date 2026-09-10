@@ -28,17 +28,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					blockNumber: true,
-					transactionCount: true,
-					$beaconBlock: {
-						fields: {
-							version: true,
-							$slot: {
-								fields: {
-									$epoch: true,
-								},
+			fields: {
+				blockNumber: true,
+				transactionCount: true,
+				$beaconBlock: {
+					fields: {
+						version: true,
+						$slot: {
+							fields: {
+								$epoch: true,
 							},
 						},
 					},

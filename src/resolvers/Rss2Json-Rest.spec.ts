@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { expect, it, vi } from 'vitest'
 
 import {
@@ -14,17 +15,28 @@ const { getFeed } = vi.hoisted(() => ({
 vi.mock('$/sources/Rss2Json/Rest/queries.ts', () => ({ getFeed }))
 
 const { default: rss2Json } = await import('$/resolvers/Rss2Json-Rest.ts')
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
+
+it.each([
+	{ label: 'empty feed', count: 0, items: [] },
+	{ label: 'identity-less item', count: 0, items: [{ title: 'No identity' }] },
+	{ label: 'limited addressable items', count: 3, items: [{ guid: '1' }, { guid: '2' }, { guid: '3' }, { title: 'No identity' }] },
+])('counts the returned snapshot: $label', async ({ count, items }) => {
+	getFeed.mockResolvedValueOnce({ status: 'ok', feed: { url: 'https://hnrss.org/frontpage' }, items })
+	const resolver = feedResolver()
+	const snapshot = await resolver.resolve.FeedUrl.resolve({ feedUrl: 'https://hnrss.org/frontpage' }, {
+		...resolverContext,
+		pagination: { limit: 1 },
+	})
+	expect(resolver.projections.$$items.select(snapshot)).toHaveLength(Math.min(count, 1))
+	expect(resolver.projections.$$items.resolveCount(snapshot)).toBe(count)
+	expect(resolver.projections.$$timestamps(snapshot)[0][EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'reachable')]: true,
+		[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'observedItemCount')]: items.length,
+	})
+})
 const feedResolver = () => {
-	const resolver = rss2Json.resolvers.find(({ entityType }) => entityType === EntityType.RssFeed)
+	const resolver = rss2Json.resolvers.find((resolver) => resolver.entityType === EntityType.RssFeed)
 	if (resolver == null || !('FeedUrl' in resolver.resolve))
 		throw new Error('Rss2Json_Rest feed resolver is missing')
 	return resolver
@@ -114,6 +126,43 @@ it('withholds unsafe visible URLs from mapped metadata', async () => {
 })
 
 it('propagates provider failures instead of materializing a ready-empty feed', async () => {
-	getFeed.mockRejectedValueOnce(new Error('Rss2Json_Rest: upstream unavailable'))
-	await expect(feedResolver().resolve.FeedUrl.resolve({ feedUrl: 'https://example.com/feed.xml' }, resolverContext)).rejects.toThrow('Rss2Json_Rest: upstream unavailable')
+	const failure = new Error('Rss2Json_Rest: upstream unavailable')
+	getFeed.mockRejectedValueOnce(failure)
+	const resolver = feedResolver()
+	const snapshot = await resolver.resolve.FeedUrl.resolve({ feedUrl: 'https://example.com/feed.xml' }, resolverContext)
+	for (const project of [resolver.projections.title, resolver.projections.$$items.select, resolver.projections.$$items.resolveCount]) {
+		try {
+			project(snapshot)
+			throw new Error('projection did not fail')
+		} catch (error) {
+			expect(error).toBe(failure)
+		}
+	}
+	expect(resolver.projections.$$timestamps(snapshot)[0][EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'reachable')]: false,
+		[entityFieldAddressKey(EntityType.RssFeed_Timestamp, [], 'error')]: failure.message,
+	})
+})
+
+it('preserves the original item error alongside its failed observation', async () => {
+	const failure = new Error('item read unavailable')
+	getFeed.mockRejectedValueOnce(failure)
+	const resolver = rss2Json.resolvers.find((resolver) => resolver.entityType === EntityType.RssItem)
+	if (resolver == null || !('FeedIdentity' in resolver.resolve))
+		throw new Error('missing item resolver')
+	const snapshot = await resolver.resolve.FeedIdentity.resolve({
+		$feed: { feedUrl: 'https://example.com/feed.xml' },
+		itemIdentityKind: 'Guid',
+		itemIdentity: 'item-1',
+	})
+	try {
+		resolver.projections.title(snapshot)
+		throw new Error('projection did not fail')
+	} catch (error) {
+		expect(error).toBe(failure)
+	}
+	expect(resolver.projections.$$timestamps(snapshot)[0][EntityMetaKey.Fields]).toMatchObject({
+		[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: false,
+		[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'error')]: failure.message,
+	})
 })

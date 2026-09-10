@@ -242,7 +242,6 @@ export default {
 			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
 			$$timestamps: {
 				select: (snapshot) => snapshot.$$timestamps,
-				resolveCount: (snapshot) => snapshot.$$timestamps.length,
 			},
 		}),
 

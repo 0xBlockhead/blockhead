@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { materializeField } from '../../tests/materializeField.ts'
 
 import {
 	EntityMetaKey,
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { MediaTransport } from '$/schema/MediaTransport.ts'
+import { MediaType } from '$/schema/MediaType.ts'
 import bindings from '$/sources/Swarm/bindings.ts'
 import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
 import { Source } from '$/sources/Source.ts'
@@ -69,7 +72,7 @@ describe('Swarm access hub + timestamp resolvers', () => {
 			[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'observedResourceCount')]: 1,
 			[entityFieldAddressKey(EntityType._GlobalSwarmAccess_Timestamp, [], 'seededExampleCount')]: 1,
 		})
-		expect(accessHubResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(accessHubResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		expect(accessHubResolver.projections.$$observedResources.select(snapshot)).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
@@ -124,5 +127,23 @@ describe('Swarm resource gateway reads', () => {
 			text: 'hello swarm',
 		})
 		expect(sourceFetch).toHaveBeenCalledTimes(2)
+	})
+
+	it('materializes an image media reference through the registered schema', async () => {
+		const reference = '8b6ca499eb6f3f7e5ee242f08f1de2e7e6bb1728d7f4ee5ec22091b048f34ff1'
+		sourceFetch.mockResolvedValueOnce(new Response(new Uint8Array([1, 2, 3]), {
+			headers: { 'content-type': 'image/png', 'content-length': '3' },
+		}))
+		const snapshot = await resourceResolver.resolve.ResourceAddress.resolve({ reference, contentPath: 'image.png' }, {})
+		const selector = { reference, contentPath: 'image.png' }
+		const media = snapshot.$media
+		expect(media).toMatchObject({
+			[EntityMetaKey.Selector]: { url: 'https://gateway.ethswarm.org/bzz/' + reference + '/image.png' },
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.Media, [], 'type')]: MediaType.Image,
+				[entityFieldAddressKey(EntityType.Media, [], 'transport')]: MediaTransport.Http,
+			},
+		})
+		expect(materializeField(EntityType.SwarmResource, selector, '$media', media, Source.Swarm_Rest)).toHaveLength(1)
 	})
 })

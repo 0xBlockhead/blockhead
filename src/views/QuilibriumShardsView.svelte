@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					shardKey: true,
-					$network: true,
-					shardKind: true,
-				},
+			fields: {
+				shardKey: true,
+				$network: true,
+				shardKind: true,
 			},
 		})
 	}

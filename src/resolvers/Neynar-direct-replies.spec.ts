@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -30,15 +31,7 @@ if (!('FidHash' in directRepliesResolve))
 if (!('ClientUrl' in directRepliesResolve))
 	throw new Error('Neynar spec missing ClientUrl direct replies resolver')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 describe('Neynar Farcaster direct replies', () => {
 	const conversation = {

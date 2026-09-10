@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug, NetworkLedgerModel } from '$/constants/Network.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
@@ -124,15 +125,10 @@ if (inputResolver == null || outputResolver == null || outputSpentResolver == nu
 const [bitcoinBinding, bitcoinTestnetBinding] = bindings[Source.MempoolSpace_Rest]
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 1,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 const network = {
 	caip2: networkBySlug.bitcoin.caip2,

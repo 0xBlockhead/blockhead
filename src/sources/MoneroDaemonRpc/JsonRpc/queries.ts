@@ -93,7 +93,7 @@ const requestMoneroDaemonJsonRpc = async <_Result>(
 	method: string,
 	params?: Readonly<Record<string, unknown>>
 ) => {
-	const response = await sourceFetch(moneroMainnetBinding, moneroDaemonUrl(endpoint, 'json_rpc'), {
+	const response = await sourceFetch(binding, moneroDaemonUrl(endpoint, 'json_rpc'), {
 		method: 'POST',
 		headers: jsonRpcHeaders,
 		body: JSON.stringify({
@@ -126,18 +126,20 @@ const moneroTransactionWithDecodedJson = (transaction: MoneroRpcTransactionWire)
 }
 
 export const getBlock = ({
+	binding = moneroMainnetBinding,
 	height,
 }: {
+	binding?: MoneroDaemonRpcBinding
 	height: bigint
 }) => {
 	if (height < 0n || height > BigInt(Number.MAX_SAFE_INTEGER))
 		throw new Error('MoneroDaemonRpc_JsonRpc: block height exceeds lossless JSON integer range')
-	return queryMoneroBinding(moneroMainnetBinding, async (endpoint) => {
+	return queryMoneroBinding(binding, async (endpoint) => {
 		const block = assertEnvelope(
 			'block',
 			MoneroRpcBlock,
 			await requestMoneroDaemonJsonRpc(
-				moneroMainnetBinding,
+				binding,
 				endpoint,
 				'get_block',
 				{
@@ -152,11 +154,13 @@ export const getBlock = ({
 }
 
 export const getTransactions = ({
+	binding = moneroMainnetBinding,
 	txHashes,
 }: {
+	binding?: MoneroDaemonRpcBinding
 	txHashes: readonly string[]
-}) => queryMoneroBinding(moneroMainnetBinding, async (endpoint) => {
-	const response = await sourceFetch(moneroMainnetBinding, moneroDaemonUrl(endpoint, 'get_transactions'), {
+}) => queryMoneroBinding(binding, async (endpoint) => {
+	const response = await sourceFetch(binding, moneroDaemonUrl(endpoint, 'get_transactions'), {
 		method: 'POST',
 		headers: {
 			'content-type': 'application/json',
@@ -179,12 +183,14 @@ export const getTransactions = ({
 	}
 })
 
-export const getInfo = () => queryMoneroBinding(moneroMainnetBinding, async (endpoint) => (
+export const getInfo = (
+	binding: MoneroDaemonRpcBinding = moneroMainnetBinding
+) => queryMoneroBinding(binding, async (endpoint) => (
 	assertEnvelope(
 		'info',
 		MoneroRpcInfo,
 		await requestMoneroDaemonJsonRpc(
-			moneroMainnetBinding,
+			binding,
 			endpoint,
 			'get_info',
 			{}
@@ -193,16 +199,18 @@ export const getInfo = () => queryMoneroBinding(moneroMainnetBinding, async (end
 ))
 
 export const getOuts = ({
+	binding = moneroMainnetBinding,
 	outputs,
 	getTxid = false,
 }: {
+	binding?: MoneroDaemonRpcBinding
 	outputs: readonly {
 		amount: number
 		index: number | bigint
 	}[]
 	getTxid?: boolean
-}) => queryMoneroBinding(moneroMainnetBinding, async (endpoint) => {
-	const response = await sourceFetch(moneroMainnetBinding, moneroDaemonUrl(endpoint, 'get_outs'), {
+}) => queryMoneroBinding(binding, async (endpoint) => {
+	const response = await sourceFetch(binding, moneroDaemonUrl(endpoint, 'get_outs'), {
 		method: 'POST',
 		headers: {
 			'content-type': 'application/json',

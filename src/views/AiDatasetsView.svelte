@@ -27,15 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					label: true,
-					modality: true,
-					datasetUri: true,
-					datasetName: true,
-					huggingFaceDatasetId: true,
-					license: true,
-				},
+			fields: {
+				label: true,
+				modality: true,
+				datasetUri: true,
+				datasetName: true,
+				huggingFaceDatasetId: true,
+				license: true,
 			},
 		})
 	}

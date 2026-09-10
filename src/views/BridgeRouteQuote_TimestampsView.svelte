@@ -27,15 +27,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					fromChainId: true,
-					toChainId: true,
-					timestampMs: true,
-					source: true,
-					estimatedCostUsd: true,
-					estimatedDurationSeconds: true,
-				},
+			fields: {
+				fromChainId: true,
+				toChainId: true,
+				timestampMs: true,
+				source: true,
+				estimatedCostUsd: true,
+				estimatedDurationSeconds: true,
 			},
 		})
 	}

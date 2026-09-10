@@ -30,11 +30,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					stashAccountId: true,
-					$network: true,
-				},
+			fields: {
+				stashAccountId: true,
+				$network: true,
 			},
 		})
 	}

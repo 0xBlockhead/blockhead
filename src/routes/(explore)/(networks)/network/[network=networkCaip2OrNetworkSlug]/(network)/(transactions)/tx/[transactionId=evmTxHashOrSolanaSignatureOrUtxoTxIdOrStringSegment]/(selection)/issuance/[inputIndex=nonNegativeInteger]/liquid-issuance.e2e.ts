@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 import { expectMainVisible } from '../../../../../../../../../../../../../tests/_e2eBrowserHelpers.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../../../../../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const transactionId = 'c'.repeat(64)
@@ -12,15 +13,7 @@ const issuancePath = `/network/liquid/tx/${transactionId}/issuance/0`
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-liquid-issuance-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `blockhead-liquid-issuance-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 })
 
 

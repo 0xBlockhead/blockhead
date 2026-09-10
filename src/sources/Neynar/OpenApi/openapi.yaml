@@ -6,7 +6,7 @@ info:
     url: https://neynar.com/
   description: The Neynar API allows you to interact with the Farcaster protocol among other things. See the [Neynar docs](https://docs.neynar.com/reference) for more details.
   title: Neynar API
-  version: 3.177.0
+  version: 3.184.0
 servers:
   - url: https://api.neynar.com
 security:
@@ -1662,14 +1662,12 @@ paths:
             Choices are:
             - `desc_chron` - All casts sorted by time in a descending order (default)
             - `chron` - All casts sorted by time in ascending order
-            - `algorithmic` - Casts sorted by engagement and time
           in: query
           name: sort_type
           schema:
             enum:
               - desc_chron
               - chron
-              - algorithmic
             example: desc_chron
             type: string
         - description: Fid of the user whose casts you want to search
@@ -2489,7 +2487,7 @@ paths:
             example: filter
             title: FeedType
             type: string
-        - description: Used when feed_type=filter. Options include fids (requires fids), parent_url (requires parent_url), channel_id (requires channel_id), embed_url (requires embed_url), embed_types (requires embed_types), or global_trending.
+        - description: Used when feed_type=filter. Options include fids (requires fids), parent_url (requires parent_url), channel_id (requires channel_id), embed_url (requires embed_url), or embed_types (requires embed_types).
           in: query
           name: filter_type
           schema:
@@ -2499,7 +2497,6 @@ paths:
               - channel_id
               - embed_url
               - embed_types
-              - global_trending
             example: fids
             title: FilterType
             type: string
@@ -2763,70 +2760,6 @@ paths:
       summary: Following
       tags:
         - Feed
-  /v2/farcaster/feed/for_you/:
-    get:
-      description: Fetch a personalized For You feed for a user
-      externalDocs:
-        url: https://docs.neynar.com/reference/fetch-feed-for-you
-      operationId: fetch-feed-for-you
-      parameters:
-        - $ref: '#/components/parameters/NeynarExperimentalHeader'
-        - description: FID of user whose feed you want to create
-          in: query
-          name: fid
-          required: true
-          schema:
-            minimum: 1
-            type: integer
-        - description: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-          in: query
-          name: viewer_fid
-          schema:
-            example: 3
-            minimum: 1
-            type: integer
-        - description: The provider of the For You feed.
-          in: query
-          name: provider
-          schema:
-            default: neynar
-            enum:
-              - neynar
-            type: string
-        - description: Number of results to fetch
-          in: query
-          name: limit
-          schema:
-            default: 25
-            example: 30
-            format: int32
-            maximum: 50
-            minimum: 1
-            type: integer
-          x-is-limit-param: true
-        - description: Pagination cursor.
-          in: query
-          name: cursor
-          schema:
-            type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FeedResponse'
-          description: Success
-        '400':
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ZodError'
-                  - $ref: '#/components/schemas/ErrorRes'
-          description: Bad Request
-      summary: For you
-      tags:
-        - Feed
   /v2/farcaster/feed/parent_urls/:
     get:
       description: Fetch feed based on parent URLs
@@ -2956,100 +2889,6 @@ paths:
                 $ref: '#/components/schemas/ErrorRes'
           description: Server Error
       summary: By topic
-      tags:
-        - Feed
-  /v2/farcaster/feed/trending/:
-    get:
-      description: Fetch trending casts or on the global feed or channels feeds. 7d time window available for channel feeds only.
-      externalDocs:
-        url: https://docs.neynar.com/reference/fetch-trending-feed
-      operationId: fetch-trending-feed
-      parameters:
-        - $ref: '#/components/parameters/NeynarExperimentalHeader'
-        - description: Number of results to fetch
-          in: query
-          name: limit
-          schema:
-            default: 10
-            example: 10
-            format: int32
-            maximum: 10
-            minimum: 1
-            type: integer
-          x-is-limit-param: true
-        - description: Pagination cursor
-          in: query
-          name: cursor
-          schema:
-            type: string
-        - description: Providing this will return a feed that respects this user's mutes and blocks and includes `viewer_context`.
-          in: query
-          name: viewer_fid
-          schema:
-            minimum: 1
-            type: integer
-        - description: Time window for trending casts (7d window for channel feeds only)
-          in: query
-          name: time_window
-          schema:
-            default: 24h
-            enum:
-              - 1h
-              - 6h
-              - 12h
-              - 24h
-              - 7d
-            example: 24h
-            type: string
-        - description: Channel ID to filter trending casts. Less active channels might have no casts in the time window selected. Provide either `channel_id` or `parent_url`, not both.
-          in: query
-          name: channel_id
-          schema:
-            example: neynar
-            type: string
-        - description: Parent URL to filter trending casts. Less active channels might have no casts in the time window selected. Provide either `channel_id` or `parent_url`, not both.
-          in: query
-          name: parent_url
-          schema:
-            example: chain://eip155:1/erc721:0xd4498134211baad5846ce70ce04e7c4da78931cc
-            type: string
-        - description: The provider of the trending casts feed.
-          in: query
-          name: provider
-          schema:
-            default: neynar
-            enum:
-              - neynar
-            example: neynar
-            type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FeedResponse'
-          description: Success
-        '400':
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/ZodError'
-                  - $ref: '#/components/schemas/ErrorRes'
-          description: Bad Request
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorRes'
-          description: Resource not found
-        '500':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorRes'
-          description: Server Error
-      summary: Trending feeds
       tags:
         - Feed
   /v2/farcaster/feed/user/casts/:
@@ -4241,12 +4080,18 @@ paths:
         url: https://docs.neynar.com/reference/fetch-fungible-trades
       operationId: fetch-fungible-trades
       parameters:
-        - in: query
+        - description: A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum", "robinhood"
+          in: query
           name: network
           required: true
           schema:
             enum:
+              - ethereum
+              - optimism
               - base
+              - arbitrum
+              - robinhood
+            title: Network
             type: string
         - description: Contract address
           in: query
@@ -4375,12 +4220,18 @@ paths:
         url: https://docs.neynar.com/reference/fetch-trending-fungibles
       operationId: fetch-trending-fungibles
       parameters:
-        - in: query
+        - description: A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum", "robinhood"
+          in: query
           name: network
           required: true
           schema:
             enum:
+              - ethereum
+              - optimism
               - base
+              - arbitrum
+              - robinhood
+            title: Network
             type: string
         - description: Time window for trending calculations e.g. "1h", "6h", "12h", "24h", "7d"
           in: query
@@ -4520,7 +4371,8 @@ paths:
         - Onchain
   /v2/farcaster/login/authorize/:
     get:
-      description: Fetch authorization url (Fetched authorized url useful for SIWN login operation)
+      deprecated: true
+      description: 'Fetch authorization url (Fetched authorized url useful for SIWN login operation) DEPRECATED: Sign In With Neynar is being retired. Use Neynar-managed signers instead: https://docs.neynar.com/docs/integrate-managed-signers'
       externalDocs:
         url: https://docs.neynar.com/reference/fetch-authorization-url
       operationId: fetch-authorization-url
@@ -4558,6 +4410,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorRes'
           description: Unauthorized
+        '410':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRes'
+          description: Gone
       summary: Fetch authorization url
       tags:
         - Signer
@@ -6378,13 +6236,13 @@ paths:
           required: true
           schema:
             items:
-              description: A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum"
+              description: A blockchain network supported for user balance queries e.g. "ethereum", "optimism", "base", "arbitrum"
               enum:
                 - ethereum
                 - optimism
                 - base
                 - arbitrum
-              title: Network
+              title: UserBalanceSupportedNetwork
               type: string
             type: array
       responses:
@@ -7544,7 +7402,7 @@ paths:
         url: https://docs.neynar.com/reference/get-wallet-balances
       operationId: get-wallet-balances
       parameters:
-        - description: Comma-separated list of networks to query. Each value must be a valid network (ethereum, optimism, base, arbitrum).
+        - description: Comma-separated list of networks to query. Each value must be a valid network (ethereum, optimism, base, arbitrum, robinhood).
           in: query
           name: networks
           required: true
@@ -7671,7 +7529,7 @@ paths:
         url: https://docs.neynar.com/reference/get-token-metadata
       operationId: get-token-metadata
       parameters:
-        - description: A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum"
+        - description: A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum", "robinhood"
           in: query
           name: network
           required: true
@@ -7681,6 +7539,7 @@ paths:
               - optimism
               - base
               - arbitrum
+              - robinhood
             title: Network
             type: string
         - description: Token contract address
@@ -7844,7 +7703,7 @@ paths:
         url: https://docs.neynar.com/reference/batch-get-token-metadata
       operationId: batch-get-token-metadata
       parameters:
-        - description: Comma-separated list of blockchain networks. Each value must be a valid network (ethereum, optimism, base, arbitrum).
+        - description: Comma-separated list of blockchain networks. Each value must be a valid network (ethereum, optimism, base, arbitrum, robinhood).
           in: query
           name: networks
           required: true
@@ -8786,7 +8645,7 @@ paths:
       tags:
         - studio
     post:
-      description: 'Creates and deploys an instance of the miniapp generator for a user. Requires authentication via API key in the request header. Note: Studio CU is tracked based on LLM token usage, not per API call.'
+      description: 'Creates and deploys an instance of the miniapp generator for a user. Requires authentication via API key in the request header. Note: app creation is disabled as Neynar Studio is being discontinued; this endpoint now returns 403. Note: Studio CU is tracked based on LLM token usage, not per API call.'
       externalDocs:
         url: https://docs.neynar.com/reference/create-deployment
       operationId: create-deployment
@@ -8920,6 +8779,17 @@ paths:
                   - error
                 type: object
           description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Forbidden
         '500':
           content:
             application/json:
@@ -10812,7 +10682,7 @@ paths:
         - studio
   /v2/studio/deployment/export-zip:
     get:
-      description: 'Downloads the generated miniapp source code as a binary ZIP archive (Content-Type: application/zip). Requires a paid Studio subscription (GROWTH, STUDIO_PLUS, STUDIO_MAX, or INTERNAL). The deployment must be running. The 200 response body is a raw binary stream, not JSON.'
+      description: "Downloads the generated miniapp source code as a binary ZIP archive (Content-Type: application/zip). Requires a paid Studio subscription (GROWTH, STUDIO_PLUS, STUDIO_MAX, or INTERNAL). If the deployment is running, the ZIP reflects the live working tree; otherwise it is served from the deployment's GitHub backup (last published state). The 200 response body is a raw binary stream, not JSON."
       externalDocs:
         url: https://docs.neynar.com/reference/export-zip
       operationId: export-zip
@@ -15101,12 +14971,13 @@ components:
       title: MuteResponse
       type: object
     Network:
-      description: A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum"
+      description: A blockchain network e.g. "ethereum", "optimism", "base", "arbitrum", "robinhood"
       enum:
         - ethereum
         - optimism
         - base
         - arbitrum
+        - robinhood
       title: Network
       type: string
     NextCursor:

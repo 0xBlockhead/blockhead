@@ -1730,7 +1730,6 @@ export default {
 			coinType: (ensRecord) => ensRecord.coinType,
 			$$timestamps: {
 				select: (ensRecord) => ensRecord.$$timestamps,
-				resolveCount: (ensRecord) => ensRecord.$$timestamps.length,
 			},
 		}),
 

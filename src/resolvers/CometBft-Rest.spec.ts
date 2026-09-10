@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -34,15 +35,7 @@ const cosmosNetwork = {
 	caip2: networkBySlug.cosmos.caip2,
 }
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const blockResolver = cometBft.resolvers.find((candidate) => (
 	candidate.entityType === EntityType.CosmosBlock

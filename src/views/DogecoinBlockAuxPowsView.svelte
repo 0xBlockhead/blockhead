@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$block: true,
-					$parentBlockHeader: true,
-				},
+			fields: {
+				$block: true,
+				$parentBlockHeader: true,
 			},
 		})
 	}

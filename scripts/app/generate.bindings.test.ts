@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
+import { type as arktype } from 'arktype'
 
 import {
 	app,
@@ -15,6 +16,8 @@ import {
 	compileApp,
 	sourceBindingId,
 } from './generate.ts'
+import { renderGeneratedFile } from './render.ts'
+import { sourceBindings as runtimeBindings } from '../../src/sources/$sourceProviders.ts'
 
 const sourceBindingRows = app.sources.sources.flatMap((source) => [
 	...(source.binding == null ? [] : [source.binding]),
@@ -25,7 +28,8 @@ const sourceBindingRows = app.sources.sources.flatMap((source) => [
 	source: source.source,
 })))
 
-const sourcesMarkdown = compileApp(app).generatedFiles.find((generatedFile) => generatedFile.path === 'SOURCES.md')
+const baselineCompiledApp = compileApp(app)
+const sourcesMarkdown = baselineCompiledApp.generatedFiles.find((generatedFile) => generatedFile.path === 'SOURCES.md')
 assert.ok(sourcesMarkdown)
 assert.equal(sourcesMarkdown.kind, 'text')
 const sourcesMarkdownText = sourcesMarkdown.body.join('\n')
@@ -293,6 +297,7 @@ test('owns Esplora target identities without object stringification', () => {
 			.map(({ binding }) => binding.target.key),
 		[
 			'bip122:000000000019d6689c085ae165831e93',
+			'bip122:000000000933ea01ad0ee984209779ba',
 			'liquid',
 		]
 	)
@@ -483,4 +488,69 @@ test('keys every binding provider from canonical source definitions', () => {
 
 	for (const bindingRow of bindingRows)
 		assert.equal(bindingRow[1], providerBySource[bindingRow[2] ?? ''])
+})
+
+test('emits one provider binding file for every canonical provider closure', () => {
+	const expectedProviders = [...new Set(sourceBindingRows.map(({ provider }) => provider))]
+		.toSorted((left, right) => left.localeCompare(right, 'en'))
+	const generatedProviderFiles = baselineCompiledApp.generatedFiles
+		.filter(({ path }) => /^src\/sources\/[^/]+\/bindings\.ts$/.test(path))
+		.toSorted((left, right) => left.path.localeCompare(right.path))
+	assert.deepEqual(
+		generatedProviderFiles.map(({ path }) => path),
+		expectedProviders.map((provider) => `src/sources/${provider}/bindings.ts`)
+	)
+
+	for (const provider of expectedProviders) {
+		const file = generatedProviderFiles.find(({ path }) => path === `src/sources/${provider}/bindings.ts`)
+		assert.ok(file)
+		const providerRows = sourceBindingRows.filter(({ provider: rowProvider }) => rowProvider === provider)
+		const rendered = renderGeneratedFile(file)
+		for (const { source, binding } of providerRows) {
+			assert.match(rendered, new RegExp(`source: Source\\.${source}`))
+			assert.match(rendered, new RegExp(`apiFamily: ApiFamily\\.${binding.apiFamily}`))
+			assert.match(rendered, new RegExp(`delivery: SourceDelivery\\.${binding.delivery}`))
+			assert.match(rendered, /indexSourceBindings/)
+		}
+	}
+})
+
+test('changes a generated provider binding when its canonical APP row changes', () => {
+	const baseline = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/sources/Ipfs/bindings.ts')
+	assert.ok(baseline)
+	const changedApp = structuredClone(app)
+	const ipfs = changedApp.sources.sources.find(({ source }) => source === Source.Ipfs_Rest)
+	assert.ok(ipfs?.binding)
+	ipfs.binding.endpoints[0].locator = 'https://ipfs.example'
+	const changed = compileApp(changedApp).generatedFiles.find(({ path }) => path === 'src/sources/Ipfs/bindings.ts')
+	assert.ok(changed)
+	assert.notEqual(renderGeneratedFile(changed), renderGeneratedFile(baseline))
+	assert.match(renderGeneratedFile(changed), /https:\/\/ipfs\.example/)
+})
+
+test('preserves complete canonical binding semantics in the generated runtime', () => {
+	const expected = sourceBindingRows.map(({ source, binding }) => ({
+		source,
+		...binding,
+		credentials: binding.credentials.map((credential) => 'envKey' in credential ? { scope: credential.scope } : ({
+			...credential,
+			...('env' in credential && credential.env != null ? {
+				env: arktype(Object.fromEntries(credential.env.keys.map(({ name, type }) => [name, type]))).expression,
+			} : {}),
+		})),
+	}))
+	const actual = runtimeBindings.map((binding) => ({
+		...binding,
+		credentials: binding.credentials.map((credential) => ({
+			...credential,
+			...('env' in credential && credential.env != null ? { env: credential.env.expression } : {}),
+		})),
+	}))
+	const key = (binding: { source: string; target: { kind: string; key: string }; delivery: string; apiFamily: string }) => (
+		JSON.stringify([binding.source, binding.target.kind, binding.target.key, binding.delivery, binding.apiFamily])
+	)
+	assert.deepEqual(
+		actual.toSorted((left, right) => key(left).localeCompare(key(right))),
+		expected.toSorted((left, right) => key(left).localeCompare(key(right)))
+	)
 })

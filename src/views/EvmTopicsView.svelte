@@ -28,13 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Openchain_Rest,
-				],
-				fields: {
-					hex: true,
-				},
+			sources: selection.sources ?? [
+				Source.Openchain_Rest,
+			],
+			fields: {
+				hex: true,
 			},
 		})
 	}

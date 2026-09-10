@@ -29,16 +29,14 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.MoneroDaemonRpc_JsonRpc,
-					Source.ThreeXpl_Rest,
-				],
-				fields: {
-					height: true,
-					hash: true,
-					timestampMs: true,
-				},
+			sources: selection.sources ?? [
+				Source.MoneroDaemonRpc_JsonRpc,
+				Source.ThreeXpl_Rest,
+			],
+			fields: {
+				height: true,
+				hash: true,
+				timestampMs: true,
 			},
 		})
 	}

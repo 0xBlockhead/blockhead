@@ -34,18 +34,16 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					endpointKind: true,
-					health: true,
-					latencyMs: true,
-					endpointUrl: true,
-					source: true,
-					corsEnabled: true,
-					proxyAllowed: true,
-					error: true,
-				},
+			fields: {
+				timestampMs: true,
+				endpointKind: true,
+				health: true,
+				latencyMs: true,
+				endpointUrl: true,
+				source: true,
+				corsEnabled: true,
+				proxyAllowed: true,
+				error: true,
 			},
 		})
 	}

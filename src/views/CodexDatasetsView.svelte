@@ -27,13 +27,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					filename: true,
-					mimetype: true,
-					cid: true,
-					datasetSizeBytes: true,
-				},
+			fields: {
+				filename: true,
+				mimetype: true,
+				cid: true,
+				datasetSizeBytes: true,
 			},
 		})
 	}

@@ -28,15 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					commitment: true,
-					height: true,
-					$namespace: {
-						fields: {
-							label: true,
-							namespaceVersion: true,
-						},
+			fields: {
+				commitment: true,
+				height: true,
+				$namespace: {
+					fields: {
+						label: true,
+						namespaceVersion: true,
 					},
 				},
 			},

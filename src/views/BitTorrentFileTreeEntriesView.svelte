@@ -29,11 +29,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					path: true,
-					entryKind: true,
-				},
+			fields: {
+				path: true,
+				entryKind: true,
 			},
 		})
 	}

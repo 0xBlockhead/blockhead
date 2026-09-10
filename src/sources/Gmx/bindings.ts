@@ -1,34 +1,20 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
-const gmxRestBindingAxes = {
-	source: Source.Gmx_Rest,
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: genericReadOperationGroups,
-	delivery: SourceDelivery.BrowserDirect,
-	credentials: [],
-	artifacts: [
-		{
-			kind: SourceArtifactKind.HandwrittenTypes,
-			path: 'src/sources/Gmx/Rest/types.ts',
-			referenceUrl: 'https://docs.gmx.io/docs/api/overview/',
-		},
-	],
-} as const
-
 export default indexSourceBindings([
 	{
-		...gmxRestBindingAxes,
+		source: Source.Gmx_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '42161',
@@ -45,9 +31,23 @@ export default indexSourceBindings([
 				corsEnabled: true,
 			},
 		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Gmx/Rest/types.ts',
+				referenceUrl: 'https://docs.gmx.io/docs/api/overview/',
+			},
+		],
 	},
 	{
-		...gmxRestBindingAxes,
+		source: Source.Gmx_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '43114',
@@ -64,9 +64,23 @@ export default indexSourceBindings([
 				corsEnabled: true,
 			},
 		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Gmx/Rest/types.ts',
+				referenceUrl: 'https://docs.gmx.io/docs/api/overview/',
+			},
+		],
 	},
 	{
-		...gmxRestBindingAxes,
+		source: Source.Gmx_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '4326',
@@ -81,6 +95,20 @@ export default indexSourceBindings([
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://megaeth.gmxapi.ai/v1',
 				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Gmx/Rest/types.ts',
+				referenceUrl: 'https://docs.gmx.io/docs/api/overview/',
 			},
 		],
 	},

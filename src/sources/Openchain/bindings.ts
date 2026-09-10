@@ -1,11 +1,13 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -26,7 +28,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 		artifacts: [
@@ -35,24 +39,5 @@ export default indexSourceBindings([
 				path: 'src/sources/Openchain/Rest/types.ts',
 			},
 		],
-	},
-	{
-		source: Source.Openchain_Rest,
-		target: {
-			kind: SourceTargetKind.Global,
-			key: 'fourbyte-directory',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://www.4byte.directory/api/v1',
-				corsEnabled: false,
-			},
-		],
-		wireProtocol: WireProtocol.HttpRest,
-		apiFamily: ApiFamily.RestJson,
-		operationGroups: genericReadOperationGroups,
-		delivery: SourceDelivery.HttpProxy,
-		credentials: [],
 	},
 ])

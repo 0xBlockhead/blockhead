@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					builderPubkey: true,
-					$network: true,
-				},
+			fields: {
+				builderPubkey: true,
+				$network: true,
 			},
 		})
 	}

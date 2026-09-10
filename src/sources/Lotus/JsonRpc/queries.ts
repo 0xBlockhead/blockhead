@@ -187,9 +187,12 @@ export const searchMessage = async ({
 	messageCid: string
 }) => {
 	const lookup = await jsonRpc2(binding, 'Filecoin.StateSearchMsg', [
+		null,
 		{
 			'/': messageCid,
 		},
+		-1,
+		true,
 	])
 	if (lookup == null)
 		throw new Error(`Lotus_JsonRpc: message ${messageCid} was not found on chain`)

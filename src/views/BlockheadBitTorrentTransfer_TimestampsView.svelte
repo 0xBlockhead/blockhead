@@ -27,14 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					status: true,
-					$torrent: {
-						fields: {
-							name: true,
-						},
+			fields: {
+				timestampMs: true,
+				status: true,
+				$torrent: {
+					fields: {
+						name: true,
 					},
 				},
 			},

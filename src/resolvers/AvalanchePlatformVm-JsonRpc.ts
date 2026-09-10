@@ -571,7 +571,7 @@ export default {
 			},
 			$$delegators: {
 				select: (subnet) => subnet.$$delegators,
-				resolveCount: (subnet) => subnet.delegatorCount,
+				resolveCount: (subnet) => subnet.$$delegators.length,
 			},
 			$$timestamps: (subnet) => subnet.$$timestamps,
 		}),
@@ -628,7 +628,7 @@ export default {
 			$network: (validator) => validator.$network,
 			$$delegators: {
 				select: (validator) => validator.$$delegators,
-				resolveCount: (validator) => validator.delegatorCount,
+				resolveCount: (validator) => validator.$$delegators.length,
 			},
 			$$timestamps: (validator) => validator.$$timestamps,
 		}),

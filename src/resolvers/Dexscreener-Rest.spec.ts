@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -35,15 +36,7 @@ const poolSelector = {
 	id: '0x1111111111111111111111111111111111111111',
 }
 
-const emptyContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const emptyContext = createResolverContext()
 
 describe('Dexscreener liquidity pool observation clock', () => {
 	it('does not claim Uniswap-shaped LiquidityPool_Block provenance', () => {
@@ -128,7 +121,7 @@ describe('Dexscreener liquidity pool observation clock', () => {
 				[entityFieldAddressKey(EntityType.LiquidityPool_Timestamp, [], 'transport')]: 'Dexscreener OpenAPI',
 			},
 		}])
-		expect(resolver.projections.$$timestamps.resolveCount?.(snapshot)).toBe(1)
+		expect(resolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		expect(getLatestPairs).toHaveBeenCalledWith({
 			chainId: 'ethereum',
 			pairId: '0x1111111111111111111111111111111111111111',

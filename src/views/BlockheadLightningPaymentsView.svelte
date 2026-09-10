@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					paymentHash: true,
-					valueMsat: true,
-				},
+			fields: {
+				paymentHash: true,
+				valueMsat: true,
 			},
 		})
 	}

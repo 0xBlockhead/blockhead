@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					refName: true,
-					refKind: true,
-					targetObjectId: true,
-				},
+			fields: {
+				refName: true,
+				refKind: true,
+				targetObjectId: true,
 			},
 		})
 	}

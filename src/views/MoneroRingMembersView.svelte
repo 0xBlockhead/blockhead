@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					memberIndex: true,
-					globalOutputIndex: true,
-				},
+			fields: {
+				memberIndex: true,
+				globalOutputIndex: true,
 			},
 		})
 	}

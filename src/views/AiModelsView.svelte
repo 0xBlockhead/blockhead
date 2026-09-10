@@ -27,20 +27,18 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					label: true,
-					$provider: {
-						fields: {
-							label: true,
-							organizationKind: true,
-							providerId: true,
-							domain: true,
-						},
+			fields: {
+				label: true,
+				$provider: {
+					fields: {
+						label: true,
+						organizationKind: true,
+						providerId: true,
+						domain: true,
 					},
-					providerModelId: true,
-					modelFamily: true,
 				},
+				providerModelId: true,
+				modelFamily: true,
 			},
 		})
 	}

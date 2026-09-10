@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					outputIndex: true,
-					isCenotaph: true,
-				},
+			fields: {
+				outputIndex: true,
+				isCenotaph: true,
 			},
 		})
 	}

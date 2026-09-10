@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -17,15 +18,7 @@ vi.mock('$/sources/L2Beat/Rest/queries.ts', () => ({
 
 const { default: l2Beat } = await import('$/resolvers/L2Beat-Rest.ts')
 
-const emptyContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const emptyContext = createResolverContext()
 
 const networkSelector = {
 	caip2: {
@@ -126,7 +119,7 @@ describe('L2Beat resolver', () => {
 				[entityFieldAddressKey(EntityType.EvmRollup_Timestamp, [], 'sourceUpdatedAt')]: 1_785_830_400_000,
 			},
 		}])
-		expect(rollupResolver.projections.$$timestamps.resolveCount(rollup)).toBe(1)
+		expect(rollupResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 
 		const relationshipResolver = l2Beat.resolvers.find((candidate) => (
 			candidate.entityType === EntityType.Network

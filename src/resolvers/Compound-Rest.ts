@@ -128,7 +128,9 @@ const mapCompoundCometAssetSnapshot = (
 	},
 	symbol: asset.symbol,
 	tokenAddress: asset.tokenAddress,
-	priceFeedAddress: asset.priceFeedAddress,
+	...(asset.priceFeedAddress != null && {
+		priceFeedAddress: asset.priceFeedAddress,
+	}),
 	decimals: asset.decimals,
 	borrowCF: asset.borrowCF,
 	liquidateCF: asset.liquidateCF,

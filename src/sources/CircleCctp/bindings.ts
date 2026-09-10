@@ -1,11 +1,13 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -25,7 +27,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
@@ -43,7 +47,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
@@ -61,7 +67,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.InProcess,
 		apiFamily: ApiFamily.CatalogRows,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 	},
@@ -80,7 +88,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.OpenApiHttp,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 		artifacts: [

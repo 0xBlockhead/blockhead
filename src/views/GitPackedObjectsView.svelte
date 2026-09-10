@@ -27,14 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					objectId: true,
-					storedKind: true,
-					$packfile: {
-						fields: {
-							objectFormat: true,
-						},
+			fields: {
+				objectId: true,
+				storedKind: true,
+				$packfile: {
+					fields: {
+						objectFormat: true,
 					},
 				},
 			},

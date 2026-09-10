@@ -70,6 +70,28 @@ test('completes global discovery including IPFS and Swarm selector path variants
 	)
 })
 
+test('discovers every generated fixture variant by default', async () => {
+	const discovered = new Set(await discoverPathnamesFromRoutes())
+	const generatedPathnames = Object.values(e2eRouteFixtureMetadataByNodeId).flatMap((metadata) => (
+		metadata.mappings.flatMap((mapping) => (
+			routeProbeCasesForMapping(mapping).map((probeCase) => (
+				pathnameFromRouteFixture(metadata, Object.fromEntries(
+					Object.entries(routeProbeCaseParams(probeCase)).map(([param, atom]) => [
+						param,
+						e2eRouteProbeAtomValueById[atom],
+					])
+				))
+			))
+		))
+	))
+
+	assert.ok(generatedPathnames.length > 0)
+	assert.deepEqual(
+		generatedPathnames.filter((pathname) => !discovered.has(pathname)),
+		[]
+	)
+})
+
 test('keeps Polkadot and Lightning route atoms on their canonical networks', () => {
 	const atomValues: Record<string, string> = { ...e2eRouteProbeAtomValueById }
 	const errors = () => [

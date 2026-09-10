@@ -26,18 +26,16 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					bip125Replaceable: true,
-					timestampMs: true,
-					$transaction: {
-						fields: {
-							feeSats: true,
-							isCoinbase: true,
-						},
+			fields: {
+				bip125Replaceable: true,
+				timestampMs: true,
+				$transaction: {
+					fields: {
+						feeSats: true,
+						isCoinbase: true,
 					},
-					source: true,
 				},
+				source: true,
 			},
 		})
 	}

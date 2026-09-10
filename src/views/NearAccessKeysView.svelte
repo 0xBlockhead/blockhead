@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					publicKey: true,
-					permission: true,
-					nonce: true,
-				},
+			fields: {
+				publicKey: true,
+				permission: true,
+				nonce: true,
 			},
 		})
 	}

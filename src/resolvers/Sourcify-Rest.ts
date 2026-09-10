@@ -72,12 +72,12 @@ const sourcifySourceFilesFromLookup = (
 	wire: SourcifyContractLookup
 ) => (
 	Object.fromEntries(
-		Object.entries({
-			...wire.metadata?.sources,
-			...wire.sources,
-		})
+		[
+			...Object.entries(wire.metadata?.sources ?? {}),
+			...Object.entries(wire.sources ?? {}),
+		]
 			.flatMap(([path, source]) => (
-				source.content != null && source.content.length > 0 ?
+				source.content !== undefined ?
 					[[path, source.content]]
 				:
 					[]

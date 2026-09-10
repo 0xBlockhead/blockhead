@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NetworkEnvironment } from '$/constants/Network.ts'
@@ -37,15 +38,7 @@ if (nativeAssetsResolver == null)
 if (assetResolver == null)
 	throw new Error('CosmosChainRegistry-Github spec missing AssetInstance resolver')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 const enrolled = [
 	{

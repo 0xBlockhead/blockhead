@@ -27,18 +27,16 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					name: true,
-					$cardSnapshot: {
-						fields: {
-							name: true,
-							version: true,
-							protocolVersion: true,
-						},
+			fields: {
+				name: true,
+				$cardSnapshot: {
+					fields: {
+						name: true,
+						version: true,
+						protocolVersion: true,
 					},
-					skillId: true,
 				},
+				skillId: true,
 			},
 		})
 	}

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { buildSchema, parse, validate } from 'graphql'
 import {
 	beforeEach,
 	describe,
@@ -18,6 +20,7 @@ import {
 	getAttestationsByRecipient,
 	getAttestationsBySchema,
 	getSchema,
+	listSchemas,
 } from '$/sources/EasScan/Graphql/queries.ts'
 
 vi.mock('$/sources/_shared/wire/Graphql/client.ts', () => ({
@@ -71,6 +74,19 @@ beforeEach(() => {
 })
 
 describe('EasScan GraphQL public reads', () => {
+	it('validates the emitted schema-list document against the checked-in schema', async () => {
+		vi.mocked(graphql).mockResolvedValueOnce({ schemas: [easSchema] })
+		await expect(listSchemas({ network: 'eip155:1' })).resolves.toEqual([easSchema])
+		const request = vi.mocked(graphql).mock.calls[0]?.[0]
+		if (request == null)
+			throw new Error('Schema list did not issue a GraphQL request')
+
+		expect(validate(
+			buildSchema(readFileSync(new URL('./schema.graphql', import.meta.url), 'utf8')),
+			parse(request.query)
+		)).toEqual([])
+	})
+
 	it('gets an exact network-scoped attestation lifecycle', async () => {
 		vi.mocked(graphql).mockResolvedValueOnce({
 			attestation,

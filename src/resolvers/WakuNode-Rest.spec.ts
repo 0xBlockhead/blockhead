@@ -102,7 +102,7 @@ describe('Waku local node journey', () => {
 			},
 		})
 		expect(typeof snapshot.$$timestamps[0][EntityMetaKey.Selector].timestampMs).toBe('number')
-		expect(nodeStateResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(nodeStateResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	})
 
 	it('keeps local node health current until the owner is released', async () => {

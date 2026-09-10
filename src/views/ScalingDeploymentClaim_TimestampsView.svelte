@@ -28,15 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					architectureKind: true,
-					protocolLabel: true,
-					timestampMs: true,
-					stack: true,
-					proofSystemKind: true,
-					$claim: true,
-				},
+			fields: {
+				architectureKind: true,
+				protocolLabel: true,
+				timestampMs: true,
+				stack: true,
+				proofSystemKind: true,
+				$claim: true,
 			},
 		})
 	}

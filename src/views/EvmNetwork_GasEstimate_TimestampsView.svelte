@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					fastGwei: true,
-					timestampMs: true,
-					$network: true,
-				},
+			fields: {
+				fastGwei: true,
+				timestampMs: true,
+				$network: true,
 			},
 		})
 	}

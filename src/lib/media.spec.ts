@@ -1,66 +1,14 @@
-import {
-	describe,
-	expect,
-	it,
-} from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { MediaTransport } from '$/schema/MediaTransport.ts'
 import { resolveMediaUrlTransport } from '$/lib/media.ts'
-
-const ipfsCid = 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG'
-const arweaveTransactionId = '1234567890123456789012345678901234567890123'
+import { mediaUrlCases, rejectedMediaUrls } from '../../tests/mediaCases.ts'
 
 describe('resolveMediaUrlTransport', () => {
-	it('classifies supported media identities and rejects unsupported inputs', () => {
-		expect(resolveMediaUrlTransport(undefined)).toBeUndefined()
-		expect(resolveMediaUrlTransport(null)).toBeUndefined()
-		expect(resolveMediaUrlTransport('')).toBeUndefined()
-		expect(resolveMediaUrlTransport('   ')).toBeUndefined()
-		expect(resolveMediaUrlTransport('ftp://example.com/file.png')).toBeUndefined()
-		expect(resolveMediaUrlTransport('data:image/png;base64,AAAA')).toBeUndefined()
-		expect(resolveMediaUrlTransport('not-a-cid')).toBeUndefined()
+	it.each(mediaUrlCases)('normalizes %s', (input, url, transport) => {
+		expect(resolveMediaUrlTransport(input)).toEqual({ url, transport })
+	})
 
-		expect(resolveMediaUrlTransport('https://example.com/image.png')).toEqual({
-			url: 'https://example.com/image.png',
-			transport: MediaTransport.Http,
-		})
-		expect(resolveMediaUrlTransport('http://example.com/image.png')).toEqual({
-			url: 'http://example.com/image.png',
-			transport: MediaTransport.Http,
-		})
-		expect(resolveMediaUrlTransport('//example.com/image.png')).toEqual({
-			url: 'https://example.com/image.png',
-			transport: MediaTransport.Http,
-		})
-
-		expect(resolveMediaUrlTransport(` ipfs:///${ipfsCid}/path.png?x=1#hash `)).toEqual({
-			url: `https://ipfs.io/ipfs/${ipfsCid}/path.png?x=1#hash`,
-			transport: MediaTransport.Ipfs,
-		})
-		expect(resolveMediaUrlTransport(`https://gateway.pinata.cloud/ipfs/${ipfsCid}/file.png?x=1#hash`)).toEqual({
-			url: `https://ipfs.io/ipfs/${ipfsCid}/file.png?x=1#hash`,
-			transport: MediaTransport.Ipfs,
-		})
-		expect(resolveMediaUrlTransport(`https://${ipfsCid}.ipfs.ipfs.io/path.png?x=1`)).toEqual({
-			url: `https://ipfs.io/ipfs/${ipfsCid}/path.png?x=1`,
-			transport: MediaTransport.Ipfs,
-		})
-		expect(resolveMediaUrlTransport(` ${ipfsCid} `)).toEqual({
-			url: `https://ipfs.io/ipfs/${ipfsCid}`,
-			transport: MediaTransport.Ipfs,
-		})
-
-		expect(resolveMediaUrlTransport(`ar://${arweaveTransactionId}`)).toEqual({
-			url: `https://arweave.net/${arweaveTransactionId}`,
-			transport: MediaTransport.Arweave,
-		})
-		expect(resolveMediaUrlTransport(`https://arweave.net/${arweaveTransactionId}?x=1#hash`)).toEqual({
-			url: `https://arweave.net/${arweaveTransactionId}?x=1#hash`,
-			transport: MediaTransport.Arweave,
-		})
-		expect(resolveMediaUrlTransport(arweaveTransactionId)).toEqual({
-			url: `https://arweave.net/${arweaveTransactionId}`,
-			transport: MediaTransport.Arweave,
-		})
+	it.each(rejectedMediaUrls)('rejects unsupported input %j', (input) => {
+		expect(resolveMediaUrlTransport(input)).toBeUndefined()
 	})
 })

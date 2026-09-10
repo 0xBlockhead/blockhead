@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
@@ -1397,15 +1398,10 @@ describe('resolver registry live resolver architecture', () => {
 
 	it('materializes Voltaire EVM block-hash, transaction log-list, direct log, and blob fields through real resolver facets', async () => {
 		const resolverContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: {
 				limit: 1,
 			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const $network = {
 			caip2: {
@@ -1726,15 +1722,10 @@ describe('resolver registry live resolver architecture', () => {
 
 	it('keeps Coin_Timestamp direct resolvers tied to provider clocks', async () => {
 		const resolverContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: {
 				limit: 1,
 			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const coingeckoTimestampMs = Date.parse('2024-01-02T03:04:05.000Z')
 		const blockscoutTimestampMs = Date.parse('2024-02-03T04:05:06.000Z')
@@ -1861,15 +1852,10 @@ describe('resolver registry live resolver architecture', () => {
 
 	it('keeps NIP-11 relay observations source-scoped and preserves failure evidence', async () => {
 		const resolverContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: {
 				limit: 1,
 			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const relayUrl = 'wss://relay.damus.io'
 		const fetchRelayInformation = vi.fn(async () => ({
@@ -1944,15 +1930,10 @@ describe('resolver registry live resolver architecture', () => {
 
 	it('converges RSS item identity and keeps fetch state source-scoped', async () => {
 		const resolverContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: {
 				limit: 10,
 			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const feedUrl = 'https://hnrss.org/frontpage'
 		const guidItem = {
@@ -2080,15 +2061,10 @@ describe('resolver registry live resolver architecture', () => {
 
 	it('keeps UTXO parent list resolvers returning exact child selectors', async () => {
 		const resolverContext = {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: {
 				limit: 1,
 			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		}
 		const bitcoinNetworkSelector = {
 			caip2: networkBySlug.bitcoin.caip2,
@@ -2640,15 +2616,7 @@ describe('resolver registry live resolver architecture', () => {
 			id: '116539053870420123',
 			uri: 'https://mastodon.social/users/Gargron/statuses/116539053870420123',
 		}
-		const resolverContext = {
-			filters: [],
-			sorts: [],
-			pagination: {},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
-		}
+const resolverContext = createResolverContext()
 
 		for (const {
 			source,

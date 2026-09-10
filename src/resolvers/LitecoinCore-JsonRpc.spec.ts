@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
@@ -27,15 +28,10 @@ const { default: litecoinCoreResolvers } = await import('$/resolvers/LitecoinCor
 const litecoinMainnetBinding = bindings[Source.LitecoinCore_JsonRpc][0]
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const blockHash = 'a'.repeat(64)

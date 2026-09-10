@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					requestHash: true,
-					response: true,
-					validatorAddress: true,
-				},
+			fields: {
+				requestHash: true,
+				response: true,
+				validatorAddress: true,
 			},
 		})
 	}

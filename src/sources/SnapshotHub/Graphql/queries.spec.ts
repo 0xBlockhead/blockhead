@@ -579,11 +579,7 @@ describe('Snapshot Hub public governance reads', () => {
 					'content-type': 'application/json',
 				},
 			}))
-			.mockResolvedValueOnce(new Response(JSON.stringify({}), {
-				headers: {
-					'content-type': 'application/json',
-				},
-			}))
+			.mockResolvedValueOnce(Response.json({}))
 
 		await expect(getSpace({
 			spaceId,

@@ -1,28 +1,16 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
-	walletReadAndSignOperationGroups,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const zcashdEndpoints = [
-	{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'http://127.0.0.1:8232',
-		corsEnabled: false,
-	},
-] as const
-const zcashdCredentials = [
-	{
-		scope: SourceCredentialScope.LocalSecret,
-	},
-] as const
 
 export default indexSourceBindings([
 	{
@@ -31,12 +19,24 @@ export default indexSourceBindings([
 			kind: SourceTargetKind.Caip2Network,
 			key: 'bip122:00040fe8ec8471911baa1db1266ea15',
 		},
-		endpoints: zcashdEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'http://127.0.0.1:8232',
+				corsEnabled: false,
+			},
+		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.BitcoinJsonRpc,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.LocalOnly,
-		credentials: zcashdCredentials,
+		credentials: [
+			{
+				scope: SourceCredentialScope.LocalSecret,
+			},
+		],
 	},
 	{
 		source: Source.ZcashdWallet_JsonRpc,
@@ -44,11 +44,24 @@ export default indexSourceBindings([
 			kind: SourceTargetKind.LocalDevice,
 			key: 'wallet-rpc',
 		},
-		endpoints: zcashdEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'http://127.0.0.1:8232',
+				corsEnabled: false,
+			},
+		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.JsonRpcApi,
-		operationGroups: walletReadAndSignOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.WalletAccountRead,
+			SourceOperationGroup.WalletSign,
+		],
 		delivery: SourceDelivery.LocalOnly,
-		credentials: zcashdCredentials,
+		credentials: [
+			{
+				scope: SourceCredentialScope.LocalSecret,
+			},
+		],
 	},
 ])

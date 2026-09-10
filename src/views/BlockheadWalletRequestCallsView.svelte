@@ -27,11 +27,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					callIndex: true,
-					toAddress: true,
-				},
+			fields: {
+				callIndex: true,
+				toAddress: true,
 			},
 		})
 	}

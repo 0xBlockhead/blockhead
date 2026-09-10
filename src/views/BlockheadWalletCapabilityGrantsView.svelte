@@ -29,11 +29,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					grantId: true,
-					authorizationKind: true,
-				},
+			fields: {
+				grantId: true,
+				authorizationKind: true,
 			},
 		})
 	}

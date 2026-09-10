@@ -126,6 +126,43 @@ describe('Pendle contract account operations', () => {
 		expect(jsonRpc2).toHaveBeenCalledTimes(5)
 	})
 
+	it('reads an empty XLayer account snapshot at its chain RPC block', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			total: 0,
+			limit: 100,
+			skip: 0,
+			results: [],
+		})
+		jsonRpc2.mockResolvedValueOnce('0x64')
+
+		await expect(getAccountPositions({
+			chainId: 196,
+			account: '0x0000000000000000000000000000000000000001',
+		})).resolves.toEqual({
+			blockNumber: 100n,
+			positions: [],
+		})
+		expect(sourceGetJson).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ source: Source.Pendle_Rest }),
+			'https://api-v2.pendle.finance/core/v2/markets/all?chainId=196&skip=0&limit=100'
+		)
+		expect(jsonRpc2).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({
+				source: Source.Pendle_Rest,
+				target: {
+					kind: 'Eip155Chain',
+					key: '196',
+				},
+				endpoints: expect.arrayContaining([
+					expect.objectContaining({ locator: 'https://rpc.xlayer.tech' }),
+				]),
+			}),
+			'eth_blockNumber',
+			undefined,
+			undefined
+		)
+	})
+
 	it('rejects account reads without a chain binding', async () => {
 		await expect(getAccountPositions({
 			chainId: 11155111,

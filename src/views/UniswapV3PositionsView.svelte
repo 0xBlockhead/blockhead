@@ -28,15 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Voltaire_JsonRpc,
-					Source.UniswapContracts_Evm,
-				],
-				fields: {
-					tokenId: true,
-					positionManager: true,
-				},
+			sources: selection.sources ?? [
+				Source.Voltaire_JsonRpc,
+				Source.UniswapContracts_Evm,
+			],
+			fields: {
+				tokenId: true,
+				positionManager: true,
 			},
 		})
 	}

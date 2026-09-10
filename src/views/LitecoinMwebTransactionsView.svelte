@@ -28,23 +28,21 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$mwebBlock: {
-						fields: {
-							$block: {
-								fields: {
-									hash: true,
-									transactionCount: true,
-								},
+			fields: {
+				$mwebBlock: {
+					fields: {
+						$block: {
+							fields: {
+								hash: true,
+								transactionCount: true,
 							},
-							hogExTransactionId: true,
-							kernelRoot: true,
 						},
+						hogExTransactionId: true,
+						kernelRoot: true,
 					},
-					transactionIndex: true,
-					kernelOffset: true,
 				},
+				transactionIndex: true,
+				kernelOffset: true,
 			},
 		})
 	}

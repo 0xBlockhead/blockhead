@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
@@ -32,15 +33,7 @@ import bindings from '$/sources/MempoolSpace/bindings.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
 
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const resolver = (
 	entityType: EntityType,

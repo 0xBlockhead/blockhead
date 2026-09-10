@@ -17,12 +17,14 @@ import type {
 	AaveMarketWire,
 	AaveMarketsData,
 	AaveUserBorrowPositionWire,
+	AaveUserMarketStateData,
 	AaveUserSupplyPositionWire,
 } from '$/sources/Aave/Rest/types.ts'
 import {
 	aaveAccountPositionsEnvelope,
 	aaveMarketEnvelope,
 	aaveMarketsEnvelope,
+	aaveUserMarketStateEnvelope,
 } from '$/sources/Aave/Rest/types.ts'
 import { graphql } from '$/sources/_shared/wire/Graphql/client.ts'
 import { Source } from '$/sources/Source.ts'
@@ -540,6 +542,74 @@ const assertAccount = (account: string) => {
 	if (normalized == null)
 		throw new Error(`${Source.Aave_Rest}: invalid account ${account}`)
 	return normalized
+}
+
+/** Current account state for one market; observedAtMs is local response completion, not block history. */
+export const getUserMarketState = async ({
+	binding: sourceBinding = binding,
+	chainId,
+	poolAddress,
+	account,
+}: {
+	binding?: SourceBinding
+	chainId: number
+	poolAddress: string
+	account: string
+}) => {
+	assertChainId(chainId)
+	const market = assertPoolAddress(poolAddress)
+	const user = assertAccount(account)
+	const data = await graphql<AaveUserMarketStateData>({
+		binding: sourceBinding,
+		query: `
+			query UserMarketState($request: UserMarketStateRequest!) {
+				userMarketState(request: $request) {
+					healthFactor
+					currentLiquidationThreshold { value }
+					ltv { value }
+					totalCollateralBase
+					totalDebtBase
+					availableBorrowsBase
+					netAPY { value }
+				}
+			}
+		`,
+		variables: {
+			request: {
+				market,
+				user,
+				chainId,
+			},
+		},
+	})
+	if (data == null)
+		throw new Error(`${Source.Aave_Rest}: user market state response missing data`)
+	assertEnvelope(aaveUserMarketStateEnvelope, data.userMarketState, 'user market state')
+	const state = data.userMarketState
+	for (const [field, value] of Object.entries({
+		healthFactor: state.healthFactor,
+		currentLiquidationThreshold: state.currentLiquidationThreshold.value,
+		ltv: state.ltv.value,
+		totalCollateralBase: state.totalCollateralBase,
+		totalDebtBase: state.totalDebtBase,
+		availableBorrowsBase: state.availableBorrowsBase,
+	})) {
+		if (value != null && !decimalPattern.test(value))
+			throw new Error(`${Source.Aave_Rest}: invalid user market state ${field}`)
+	}
+	if (!/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(state.netAPY.value))
+		throw new Error(`${Source.Aave_Rest}: invalid user market state netAPY`)
+
+	return {
+		healthFactor: state.healthFactor,
+		currentLiquidationThreshold: state.currentLiquidationThreshold.value,
+		ltv: state.ltv.value,
+		totalCollateralBase: state.totalCollateralBase,
+		totalDebtBase: state.totalDebtBase,
+		availableBorrowsBase: state.availableBorrowsBase,
+		netApy: state.netAPY.value,
+		observedAtMs: Date.now(),
+	}
 }
 
 const assertCurrency = (

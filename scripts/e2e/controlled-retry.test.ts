@@ -13,26 +13,11 @@ import {
 	waitForCaptureQuality,
 	adaptCapturePage,
 	type CaptureBrowser,
-	type ControlledRetryManifest,
 	type ControlledRetryRuntimeDiagnostics,
 } from './controlled-retry.mts'
 import { waitForBoundarySettlement } from './boundarySettlement.ts'
 import { acquireExclusiveWriterLock } from './routeRunIdentity.ts'
-
-const manifest = (commit: string): ControlledRetryManifest => ({
-	schemaVersion: controlledRetrySchemaVersion,
-	ids: ['gap-a'],
-	paths: ['/a', '/b'],
-	commit,
-	dirtyPatchHash: null,
-	workers: 1,
-	freshContextPerAttempt: true,
-	attempts: 2,
-	runnerSha256: null,
-	server: { url: 'http://127.0.0.1:4173/', buildIdentity: 'fixture-build' },
-	corpusVersion: 'fixture-corpus',
-	classifierVersion: 'fixture-classifier',
-})
+import { createControlledRetryFixtureManifest } from './fixtures/controlled-retry-manifest.ts'
 
 test('settlement yields when a fixture wait resolves immediately', async () => {
 	let snapshots = 0
@@ -98,7 +83,7 @@ test('captures every manifest attempt with complete route run provenance', async
 	const productRoot = process.cwd()
 	const commit = (await (await import('node:child_process')).execFileSync('git', ['rev-parse', 'HEAD'], { cwd: productRoot })).toString().trim()
 	const outputDirectory = await mkdtemp(join(tmpdir(), 'controlled-retry-'))
-	const input = { ...manifest(commit), dirtyPatchHash: await productDirtyPatchHash(productRoot) }
+	const input = { ...createControlledRetryFixtureManifest(commit), dirtyPatchHash: await productDirtyPatchHash(productRoot) }
 	const run = await runControlledRetry({ browser: browser(), manifest: input, outputDirectory, productRoot, runnerPath: new URL(import.meta.url).pathname })
 	assert.equal(run.status, 'completed')
 	assert.equal(run.counts.completedAttempts, 4)
@@ -114,7 +99,7 @@ test('failed retry releases its writer lock for an immediate retry', async () =>
 	const commit = (await (await import('node:child_process')).execFileSync('git', ['rev-parse', 'HEAD'], { cwd: productRoot })).toString().trim()
 	const outputDirectory = await mkdtemp(join(tmpdir(), 'controlled-retry-failure-'))
 	await writeFile(join(outputDirectory, 'preexisting.txt'), 'busy')
-	const input = { ...manifest(commit), dirtyPatchHash: await productDirtyPatchHash(productRoot) }
+	const input = { ...createControlledRetryFixtureManifest(commit), dirtyPatchHash: await productDirtyPatchHash(productRoot) }
 	await assert.rejects(runControlledRetry({ browser: browser(), manifest: input, outputDirectory, productRoot, runnerPath: new URL(import.meta.url).pathname }), /output directory must be empty/)
 	const release = await acquireExclusiveWriterLock(outputDirectory)
 	await release()
@@ -124,7 +109,7 @@ test('classifies clean attempts and persists deterministic runtime diagnostics',
 	const productRoot = process.cwd()
 	const commit = (await (await import('node:child_process')).execFileSync('git', ['rev-parse', 'HEAD'], { cwd: productRoot })).toString().trim()
 	const outputDirectory = await mkdtemp(join(tmpdir(), 'controlled-retry-'))
-	const input = { ...manifest(commit), paths: ['/a'], attempts: 1, dirtyPatchHash: await productDirtyPatchHash(productRoot) }
+	const input = { ...createControlledRetryFixtureManifest(commit), paths: ['/a'], attempts: 1, dirtyPatchHash: await productDirtyPatchHash(productRoot) }
 	const run = await runControlledRetry({ browser: browser(), manifest: input, outputDirectory, productRoot, runnerPath: new URL(import.meta.url).pathname })
 	const attempt = JSON.parse((await readFile(join(outputDirectory, 'attempts.jsonl'), 'utf8')).trim())
 	assert.equal(run.counts.clean, 1)
@@ -139,7 +124,7 @@ test('records runtime faults and makes classifier failures non-clean without los
 	const productRoot = process.cwd()
 	const commit = (await (await import('node:child_process')).execFileSync('git', ['rev-parse', 'HEAD'], { cwd: productRoot })).toString().trim()
 	const outputDirectory = await mkdtemp(join(tmpdir(), 'controlled-retry-'))
-	const input = { ...manifest(commit), paths: ['/a'], attempts: 1, dirtyPatchHash: await productDirtyPatchHash(productRoot) }
+	const input = { ...createControlledRetryFixtureManifest(commit), paths: ['/a'], attempts: 1, dirtyPatchHash: await productDirtyPatchHash(productRoot) }
 	const runtimeDiagnostics = cleanRuntimeDiagnostics()
 	runtimeDiagnostics.console.push({ type: 'error', text: 'provider failed' })
 	runtimeDiagnostics.pageErrors.push({ message: 'uncaught failure', stack: 'stack' })
@@ -214,7 +199,7 @@ test('contract rejects omitted provenance, mismatched counts, reused contexts, a
 	const productRoot = process.cwd()
 	const commit = (await (await import('node:child_process')).execFileSync('git', ['rev-parse', 'HEAD'], { cwd: productRoot })).toString().trim()
 	const outputDirectory = await mkdtemp(join(tmpdir(), 'controlled-retry-'))
-	const input = { ...manifest(commit), dirtyPatchHash: await productDirtyPatchHash(productRoot) }
+	const input = { ...createControlledRetryFixtureManifest(commit), dirtyPatchHash: await productDirtyPatchHash(productRoot) }
 	const run = await runControlledRetry({ browser: browser(), manifest: input, outputDirectory, productRoot, runnerPath: new URL(import.meta.url).pathname })
 	const attempts = (await readFile(join(outputDirectory, 'attempts.jsonl'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line))
 	assert.throws(() => validateControlledRetryRun({ attempts: attempts.map((entry, index) => index === 0 ? { ...entry, runIdentity: { ...entry.runIdentity, commit: 'missing' } } : entry), manifest: input, run }), /omitted coherent run provenance/)

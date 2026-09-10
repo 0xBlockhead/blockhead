@@ -7,21 +7,14 @@ import {
 	expectMainVisible,
 	setupPageRuntimeDiagnostics,
 } from '../../../../tests/_e2eBrowserHelpers.ts'
+import { installRouteViewSqliteIsolation } from '../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const openFixture = async (
 	page: import('@playwright/test').Page,
 	testInfo: import('@playwright/test').TestInfo
 ) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `local-mutation-authority-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `local-mutation-authority-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}`)
 	const diagnostics = setupPageRuntimeDiagnostics(page, {
 		failFast: true,
 		failOnTanStackWarnings: true,

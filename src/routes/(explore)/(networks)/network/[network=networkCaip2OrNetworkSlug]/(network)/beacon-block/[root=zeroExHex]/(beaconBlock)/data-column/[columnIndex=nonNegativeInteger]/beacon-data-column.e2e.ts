@@ -1,21 +1,14 @@
 import { expect, test } from '@playwright/test'
 
 import { installChainlistRpcsJsonStub } from '../../../../../../../../../../../../tests/_e2eBrowserHelpers.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../../../../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const beaconBlockRoot = `0x${'1'.repeat(64)}`
 const routePath = `/network/eip155:1/beacon-block/${beaconBlockRoot}/data-column/7`
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-beacon-data-column-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `blockhead-beacon-data-column-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug, NetworkLedgerModel } from '$/constants/Network.ts'
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
@@ -24,15 +25,10 @@ vi.mock('$/sources/Zebra/JsonRpc/queries.ts', () => ({
 const { default: zebraResolvers } = await import('$/resolvers/Zebra-JsonRpc.ts')
 
 const resolverContext = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const blockHash = 'a'.repeat(64)

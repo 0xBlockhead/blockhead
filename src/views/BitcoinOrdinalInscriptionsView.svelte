@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					inscriptionId: true,
-					contentType: true,
-				},
+			fields: {
+				inscriptionId: true,
+				contentType: true,
 			},
 		})
 	}

@@ -399,6 +399,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rwas/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * RWA List
+         * @description To query all the supported tokenized real world assets (RWAs) on CoinGecko with RWA ID, name and symbol
+         */
+        get: operations["rwas-list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rwas/markets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * RWA List with Market Data
+         * @description To query all the supported RWAs with price, market cap, volume and market related data
+         */
+        get: operations["rwas-markets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rwas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * RWA Data by ID
+         * @description To query all the metadata, market data and tokens of a RWA based on a particular RWA ID
+         */
+        get: operations["rwas-id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rwas/issuers/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * RWA Issuers List
+         * @description To query all the supported RWA issuers on CoinGecko
+         */
+        get: operations["rwas-issuers-list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rwas/issuers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * RWA Issuer Data by ID
+         * @description To query the market data (market cap, volume, etc.) and tokens of an issuer based on a particular issuer ID
+         */
+        get: operations["rwas-issuers-id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/exchanges": {
         parameters: {
             query?: never;
@@ -1385,45 +1485,6 @@ export interface components {
                     [key: string]: number;
                 };
             };
-            /** @description Community engagement data */
-            community_data: {
-                /** @description Number of Facebook likes */
-                facebook_likes?: number | null;
-                /** @description Average Reddit posts in 48 hours */
-                reddit_average_posts_48h?: number;
-                /** @description Average Reddit comments in 48 hours */
-                reddit_average_comments_48h?: number;
-                /** @description Number of Reddit subscribers */
-                reddit_subscribers?: number | null;
-                /** @description Active Reddit accounts in 48 hours */
-                reddit_accounts_active_48h?: number;
-            };
-            /** @description Developer activity data */
-            developer_data: {
-                /** @description Repository forks */
-                forks?: number | null;
-                /** @description Repository stars */
-                stars?: number | null;
-                /** @description Repository subscribers */
-                subscribers?: number | null;
-                /** @description Total issues */
-                total_issues?: number | null;
-                /** @description Closed issues */
-                closed_issues?: number | null;
-                /** @description Pull requests merged */
-                pull_requests_merged?: number | null;
-                /** @description Pull request contributors */
-                pull_request_contributors?: number | null;
-                /** @description Code additions and deletions in the last 4 weeks */
-                code_additions_deletions_4_weeks?: {
-                    /** @description Lines added */
-                    additions?: number | null;
-                    /** @description Lines deleted */
-                    deletions?: number | null;
-                };
-                /** @description Commit count in the last 4 weeks */
-                commit_count_4_weeks?: number | null;
-            };
             /** @description Public interest statistics */
             public_interest_stats: {
                 /** @description Alexa rank */
@@ -1697,47 +1758,6 @@ export interface components {
                 last_updated?: string;
                 /** @description Sparkline 7-day price data */
                 sparkline_7d?: number[];
-            };
-            /** @description Community data */
-            community_data?: {
-                /** @description Facebook likes */
-                facebook_likes?: number | null;
-                /** @description Reddit average posts in 48 hours */
-                reddit_average_posts_48h?: number;
-                /** @description Reddit average comments in 48 hours */
-                reddit_average_comments_48h?: number;
-                /** @description Reddit subscribers */
-                reddit_subscribers?: number;
-                /** @description Reddit active accounts in 48 hours */
-                reddit_accounts_active_48h?: number;
-                /** @description Telegram channel user count */
-                telegram_channel_user_count?: number | null;
-            };
-            /** @description Developer data */
-            developer_data?: {
-                /** @description Repository forks */
-                forks?: number;
-                /** @description Repository stars */
-                stars?: number;
-                /** @description Repository subscribers */
-                subscribers?: number;
-                /** @description Repository total issues */
-                total_issues?: number;
-                /** @description Repository closed issues */
-                closed_issues?: number;
-                /** @description Repository pull requests merged */
-                pull_requests_merged?: number;
-                /** @description Repository pull request contributors */
-                pull_request_contributors?: number;
-                /** @description Code additions and deletions in 4 weeks */
-                code_additions_deletions_4_weeks?: {
-                    additions?: number;
-                    deletions?: number;
-                };
-                /** @description Repository commit count in 4 weeks */
-                commit_count_4_weeks?: number;
-                /** @description Repository last 4 weeks commit activity series */
-                last_4_weeks_commit_activity_series?: number[];
             };
             /** @description Status updates */
             status_updates: {
@@ -2134,47 +2154,6 @@ export interface components {
                 last_updated?: string;
                 /** @description Sparkline 7-day price data */
                 sparkline_7d?: number[];
-            };
-            /** @description Community data */
-            community_data?: {
-                /** @description Facebook likes */
-                facebook_likes?: number | null;
-                /** @description Reddit average posts in 48 hours */
-                reddit_average_posts_48h?: number;
-                /** @description Reddit average comments in 48 hours */
-                reddit_average_comments_48h?: number;
-                /** @description Reddit subscribers */
-                reddit_subscribers?: number;
-                /** @description Reddit active accounts in 48 hours */
-                reddit_accounts_active_48h?: number;
-                /** @description Telegram channel user count */
-                telegram_channel_user_count?: number | null;
-            };
-            /** @description Developer data */
-            developer_data?: {
-                /** @description Repository forks */
-                forks?: number;
-                /** @description Repository stars */
-                stars?: number;
-                /** @description Repository subscribers */
-                subscribers?: number;
-                /** @description Repository total issues */
-                total_issues?: number;
-                /** @description Repository closed issues */
-                closed_issues?: number;
-                /** @description Repository pull requests merged */
-                pull_requests_merged?: number;
-                /** @description Repository pull request contributors */
-                pull_request_contributors?: number;
-                /** @description Code additions and deletions in 4 weeks */
-                code_additions_deletions_4_weeks?: {
-                    additions?: number;
-                    deletions?: number;
-                };
-                /** @description Repository commit count in 4 weeks */
-                commit_count_4_weeks?: number;
-                /** @description Repository last 4 weeks commit activity series */
-                last_4_weeks_commit_activity_series?: number[];
             };
             /** @description Status updates */
             status_updates: {
@@ -4207,6 +4186,209 @@ export interface components {
                 };
             }[];
         };
+        RwasList: {
+            /** @description RWA ID */
+            id: string;
+            /** @description RWA symbol */
+            symbol: string;
+            /** @description RWA name */
+            name: string;
+            /**
+             * @description RWA asset type
+             * @enum {string}
+             */
+            asset_type: "stock" | "commodity" | "etf";
+        }[];
+        RwasMarkets: {
+            /** @description RWA ID */
+            id: string;
+            /** @description RWA symbol */
+            symbol: string;
+            /** @description RWA name */
+            name: string;
+            /**
+             * @description RWA asset type
+             * @enum {string}
+             */
+            asset_type: "stock" | "commodity" | "etf";
+            /** @description Large image URL of the token with the largest market cap */
+            image: string;
+            /** @description Aggregated tokenized market data */
+            tokenized_market_data: {
+                /** @description Current price in target currency */
+                current_price?: number | null;
+                /** @description Market cap in target currency */
+                market_cap?: number | null;
+                /** @description Total trading volume in target currency */
+                total_volume?: number | null;
+                /** @description 24-hour price high in target currency */
+                high_24h?: number | null;
+                /** @description 24-hour price low in target currency */
+                low_24h?: number | null;
+                /** @description 24-hour price change in target currency */
+                price_change_24h?: number | null;
+                /** @description 24-hour price change percentage */
+                price_change_percentage_24h?: number | null;
+                /** @description 24-hour market cap change in target currency */
+                market_cap_change_24h?: number | null;
+                /** @description 24-hour market cap change percentage */
+                market_cap_change_percentage_24h?: number | null;
+                /**
+                 * Format: date-time
+                 * @description Last updated timestamp
+                 */
+                last_updated?: string;
+                /** @description Sparkline price data for the last 7 days */
+                sparkline_in_7d?: {
+                    /** @description Array of price values */
+                    price?: number[];
+                };
+                /** @description 1-hour price change percentage in target currency */
+                price_change_percentage_1h_in_currency?: number | null;
+                /** @description 24-hour price change percentage in target currency */
+                price_change_percentage_24h_in_currency?: number | null;
+                /** @description 7-day price change percentage in target currency */
+                price_change_percentage_7d_in_currency?: number | null;
+                /** @description 14-day price change percentage in target currency */
+                price_change_percentage_14d_in_currency?: number | null;
+                /** @description 30-day price change percentage in target currency */
+                price_change_percentage_30d_in_currency?: number | null;
+                /** @description 200-day price change percentage in target currency */
+                price_change_percentage_200d_in_currency?: number | null;
+                /** @description 1-year price change percentage in target currency */
+                price_change_percentage_1y_in_currency?: number | null;
+            };
+        }[];
+        RwasID: {
+            /** @description RWA ID */
+            id: string;
+            /** @description RWA symbol */
+            symbol: string;
+            /** @description RWA name */
+            name: string;
+            /**
+             * @description RWA asset type
+             * @enum {string}
+             */
+            asset_type: "stock" | "commodity" | "etf";
+            /** @description Image URLs of the token with the largest market cap */
+            image: {
+                /** @description Thumbnail image URL */
+                thumb?: string;
+                /** @description Small image URL */
+                small?: string;
+                /** @description Large image URL */
+                large?: string;
+            };
+            /** @description RWA web slug */
+            web_slug: string;
+            /** @description Tokens tracking this RWA */
+            tokens?: {
+                /** @description Token ID */
+                id?: string;
+                /** @description Token symbol */
+                symbol?: string;
+                /** @description Token name */
+                name?: string;
+                /** @description Token asset platform and contract address */
+                platforms?: {
+                    [key: string]: string;
+                };
+                /** @description Token issuer details */
+                issuer_details?: {
+                    /** @description Issuer ID */
+                    id?: string;
+                    /** @description Issuer name */
+                    name?: string;
+                };
+            }[];
+            /** @description Aggregated tokenized market data */
+            tokenized_market_data?: {
+                /** @description Current price in target currency */
+                current_price?: number | null;
+                /** @description Market cap in target currency */
+                market_cap?: number | null;
+                /** @description Total trading volume in target currency */
+                total_volume?: number | null;
+                /** @description 24-hour price high in target currency */
+                high_24h?: number | null;
+                /** @description 24-hour price low in target currency */
+                low_24h?: number | null;
+                /** @description 24-hour price change in target currency */
+                price_change_24h?: number | null;
+                /** @description 24-hour price change percentage */
+                price_change_percentage_24h?: number | null;
+                /** @description 24-hour market cap change in target currency */
+                market_cap_change_24h?: number | null;
+                /** @description 24-hour market cap change percentage */
+                market_cap_change_percentage_24h?: number | null;
+                /**
+                 * Format: date-time
+                 * @description Last updated timestamp
+                 */
+                last_updated?: string;
+                /** @description Sparkline price data for the last 7 days */
+                sparkline_in_7d?: {
+                    /** @description Array of price values */
+                    price?: number[];
+                };
+                /** @description 1-hour price change percentage in target currency */
+                price_change_percentage_1h_in_currency?: number | null;
+                /** @description 24-hour price change percentage in target currency */
+                price_change_percentage_24h_in_currency?: number | null;
+                /** @description 7-day price change percentage in target currency */
+                price_change_percentage_7d_in_currency?: number | null;
+                /** @description 14-day price change percentage in target currency */
+                price_change_percentage_14d_in_currency?: number | null;
+                /** @description 30-day price change percentage in target currency */
+                price_change_percentage_30d_in_currency?: number | null;
+                /** @description 200-day price change percentage in target currency */
+                price_change_percentage_200d_in_currency?: number | null;
+                /** @description 1-year price change percentage in target currency */
+                price_change_percentage_1y_in_currency?: number | null;
+            };
+            /**
+             * Format: date-time
+             * @description Last updated timestamp
+             */
+            last_updated: string;
+        };
+        RwasIssuersList: {
+            /** @description Issuer ID */
+            id: string;
+            /** @description Issuer name */
+            name: string;
+        }[];
+        RwasIssuersID: {
+            /** @description Issuer ID */
+            id: string;
+            /** @description Issuer name */
+            name: string;
+            /** @description Issuer market cap in USD */
+            market_cap: number | null;
+            /** @description 24-hour issuer market cap change in USD */
+            market_cap_change_24h: number | null;
+            /** @description 24-hour issuer trading volume in USD */
+            volume_24h: number | null;
+            /** @description Tokens issued by this issuer */
+            tokens?: {
+                /** @description Token ID */
+                id?: string;
+                /** @description Token symbol */
+                symbol?: string;
+                /** @description Token name */
+                name?: string;
+                /** @description Token asset platform and contract address */
+                platforms?: {
+                    [key: string]: string;
+                };
+            }[];
+            /**
+             * Format: date-time
+             * @description Issuer last updated timestamp
+             */
+            updated_at: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -4600,13 +4782,15 @@ export interface operations {
                  */
                 market_data?: boolean;
                 /**
+                 * @deprecated
                  * @description Include community data.
-                 *     Default: true
+                 *     Deprecated: has no effect as of 28 August 2026; the `community_data` object is no longer returned.
                  */
                 community_data?: boolean;
                 /**
+                 * @deprecated
                  * @description Include developer data.
-                 *     Default: true
+                 *     Deprecated: has no effect as of 28 August 2026; the `developer_data` object is no longer returned.
                  */
                 developer_data?: boolean;
                 /**
@@ -4861,37 +5045,6 @@ export interface operations {
                      *         "circulating_supply": 19675377,
                      *         "outstanding_supply": null,
                      *         "last_updated": "2024-04-07T15:24:51.021Z"
-                     *       },
-                     *       "community_data": {
-                     *         "facebook_likes": null,
-                     *         "reddit_average_posts_48h": 7.333,
-                     *         "reddit_average_comments_48h": 384.667,
-                     *         "reddit_subscribers": 6127543,
-                     *         "reddit_accounts_active_48h": 3498,
-                     *         "telegram_channel_user_count": null
-                     *       },
-                     *       "developer_data": {
-                     *         "forks": 36433,
-                     *         "stars": 76697,
-                     *         "subscribers": 3967,
-                     *         "total_issues": 7743,
-                     *         "closed_issues": 7379,
-                     *         "pull_requests_merged": 11204,
-                     *         "pull_request_contributors": 829,
-                     *         "code_additions_deletions_4_weeks": {
-                     *           "additions": 1264,
-                     *           "deletions": -1314
-                     *         },
-                     *         "commit_count_4_weeks": 108,
-                     *         "last_4_weeks_commit_activity_series": [
-                     *           0,
-                     *           3,
-                     *           2,
-                     *           0,
-                     *           1,
-                     *           0,
-                     *           0
-                     *         ]
                      *       },
                      *       "tickers": [
                      *         {
@@ -5436,27 +5589,6 @@ export interface operations {
                      *           "sats": 33597400748372.91
                      *         }
                      *       },
-                     *       "community_data": {
-                     *         "facebook_likes": null,
-                     *         "reddit_average_posts_48h": 0,
-                     *         "reddit_average_comments_48h": 0,
-                     *         "reddit_subscribers": null,
-                     *         "reddit_accounts_active_48h": 0
-                     *       },
-                     *       "developer_data": {
-                     *         "forks": null,
-                     *         "stars": null,
-                     *         "subscribers": null,
-                     *         "total_issues": null,
-                     *         "closed_issues": null,
-                     *         "pull_requests_merged": null,
-                     *         "pull_request_contributors": null,
-                     *         "code_additions_deletions_4_weeks": {
-                     *           "additions": null,
-                     *           "deletions": null
-                     *         },
-                     *         "commit_count_4_weeks": null
-                     *       },
                      *       "public_interest_stats": {
                      *         "alexa_rank": null,
                      *         "bing_matches": null
@@ -5927,29 +6059,6 @@ export interface operations {
                      *         "outstanding_supply": null,
                      *         "last_updated": "2026-05-25T10:09:02.821Z"
                      *       },
-                     *       "community_data": {
-                     *         "facebook_likes": null,
-                     *         "reddit_average_posts_48h": 0,
-                     *         "reddit_average_comments_48h": 0,
-                     *         "reddit_subscribers": 0,
-                     *         "reddit_accounts_active_48h": 0,
-                     *         "telegram_channel_user_count": null
-                     *       },
-                     *       "developer_data": {
-                     *         "forks": 0,
-                     *         "stars": 0,
-                     *         "subscribers": 0,
-                     *         "total_issues": 0,
-                     *         "closed_issues": 0,
-                     *         "pull_requests_merged": 0,
-                     *         "pull_request_contributors": 0,
-                     *         "code_additions_deletions_4_weeks": {
-                     *           "additions": null,
-                     *           "deletions": null
-                     *         },
-                     *         "commit_count_4_weeks": 0,
-                     *         "last_4_weeks_commit_activity_series": []
-                     *       },
                      *       "status_updates": [],
                      *       "last_updated": "2026-05-25T10:09:02.821Z",
                      *       "tickers": [
@@ -6351,6 +6460,352 @@ export interface operations {
                      *     ]
                      */
                     "application/json": components["schemas"]["Categories"];
+                };
+            };
+        };
+    };
+    "rwas-list": {
+        parameters: {
+            query?: {
+                /** @description Filter by RWA asset type. */
+                asset_type?: "stock" | "commodity" | "etf";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of RWAs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example [
+                     *       {
+                     *         "id": "gold",
+                     *         "symbol": "XAU",
+                     *         "name": "Gold",
+                     *         "asset_type": "commodity"
+                     *       },
+                     *       {
+                     *         "id": "ibm",
+                     *         "symbol": "IBM",
+                     *         "name": "IBM",
+                     *         "asset_type": "stock"
+                     *       }
+                     *     ]
+                     */
+                    "application/json": components["schemas"]["RwasList"];
+                };
+            };
+        };
+    };
+    "rwas-markets": {
+        parameters: {
+            query?: {
+                /** @description Filter by RWA asset type. */
+                asset_type?: "stock" | "commodity" | "etf";
+                /**
+                 * @description RWAs' IDs, comma-separated if querying more than 1 RWA.
+                 *     *refers to [`/rwas/list`](/reference/rwas-list)
+                 */
+                ids?: string;
+                /** @description RWAs' names, comma-separated if querying more than 1 RWA. */
+                names?: string;
+                /** @description RWAs' symbols, comma-separated if querying more than 1 RWA. */
+                symbols?: string;
+                /**
+                 * @description Filter based on RWAs' issuer.
+                 *     *refers to [`/rwas/issuers/list`](/reference/rwas-issuers-list)
+                 */
+                issuer?: string;
+                /**
+                 * @description Sort result by field.
+                 *     Default: market_cap_desc
+                 */
+                order?: "market_cap_asc" | "market_cap_desc" | "volume_asc" | "volume_desc" | "id_asc" | "id_desc";
+                /**
+                 * @description Total results per page.
+                 *     Default: 100
+                 *     Valid values: 1...250
+                 */
+                per_page?: number;
+                /**
+                 * @description Page through results.
+                 *     Default: 1
+                 */
+                page?: number;
+                /**
+                 * @description Include sparkline 7-day data.
+                 *     Default: false
+                 */
+                sparkline?: boolean;
+                /**
+                 * @description Include price change percentage timeframe, comma-separated if querying more than 1 timeframe.
+                 *     Valid values: `1h`, `24h`, `7d`, `14d`, `30d`, `200d`, `1y`
+                 */
+                price_change_percentage?: string;
+                /** @description Decimal places for currency price value */
+                precision?: "full" | "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of RWAs with market data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example [
+                     *       {
+                     *         "id": "gold",
+                     *         "symbol": "xau",
+                     *         "name": "Gold",
+                     *         "asset_type": "commodity",
+                     *         "image": "https://coin-images.coingecko.com/coins/images/10481/large/logo.png?1774627372",
+                     *         "tokenized_market_data": {
+                     *           "current_price": 4572.12,
+                     *           "market_cap": 5472900361,
+                     *           "total_volume": 351992224,
+                     *           "high_24h": 4606.42,
+                     *           "low_24h": 4562.05,
+                     *           "price_change_24h": -29.774769179191026,
+                     *           "price_change_percentage_24h": -0.64701,
+                     *           "market_cap_change_24h": -26139969.102690697,
+                     *           "market_cap_change_percentage_24h": -0.47536,
+                     *           "last_updated": "2026-08-28T05:30:10Z",
+                     *           "sparkline_in_7d": {
+                     *             "price": [
+                     *               4521.62,
+                     *               4532.59,
+                     *               4542.46
+                     *             ]
+                     *           },
+                     *           "price_change_percentage_1h_in_currency": -0.01708,
+                     *           "price_change_percentage_24h_in_currency": -0.64701,
+                     *           "price_change_percentage_7d_in_currency": 1.13883,
+                     *           "price_change_percentage_14d_in_currency": 5.94825,
+                     *           "price_change_percentage_30d_in_currency": 13.84206,
+                     *           "price_change_percentage_200d_in_currency": -9.11489,
+                     *           "price_change_percentage_1y_in_currency": 34.69983
+                     *         }
+                     *       }
+                     *     ]
+                     */
+                    "application/json": components["schemas"]["RwasMarkets"];
+                };
+            };
+        };
+    };
+    "rwas-id": {
+        parameters: {
+            query?: {
+                /**
+                 * @description Include sparkline 7-day data.
+                 *     Default: false
+                 */
+                sparkline?: boolean;
+                /**
+                 * @description Include tokens data.
+                 *     Default: false
+                 */
+                tokens?: boolean;
+                /**
+                 * @description Include tokenized market data.
+                 *     Default: false
+                 */
+                tokenized_market_data?: boolean;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description RWA ID.
+                 *     *refers to [`/rwas/list`](/reference/rwas-list)
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description RWA data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "id": "gold",
+                     *       "symbol": "xau",
+                     *       "name": "Gold",
+                     *       "asset_type": "commodity",
+                     *       "image": {
+                     *         "thumb": "https://coin-images.coingecko.com/coins/images/10481/thumb/logo.png?1774627372",
+                     *         "small": "https://coin-images.coingecko.com/coins/images/10481/small/logo.png?1774627372",
+                     *         "large": "https://coin-images.coingecko.com/coins/images/10481/large/logo.png?1774627372"
+                     *       },
+                     *       "web_slug": "gold",
+                     *       "tokens": [
+                     *         {
+                     *           "id": "tether-gold",
+                     *           "symbol": "xaut",
+                     *           "name": "Tether Gold",
+                     *           "platforms": {
+                     *             "ethereum": "0x68749665ff8d2d112fa859aa293f07a622782f38"
+                     *           },
+                     *           "issuer_details": {
+                     *             "id": "tether-ecosystem",
+                     *             "name": "Tether"
+                     *           }
+                     *         },
+                     *         {
+                     *           "id": "pax-gold",
+                     *           "symbol": "paxg",
+                     *           "name": "PAX Gold",
+                     *           "platforms": {
+                     *             "ethereum": "0x45804880de22913dafe09f4980848ece6ecbaf78"
+                     *           },
+                     *           "issuer_details": {
+                     *             "id": "paxos-ecosystem",
+                     *             "name": "Paxos Global"
+                     *           }
+                     *         }
+                     *       ],
+                     *       "tokenized_market_data": {
+                     *         "current_price": 4573.031919920756,
+                     *         "market_cap": 5473598660.27155,
+                     *         "total_volume": 350321640.29896414,
+                     *         "high_24h": 4606.420052502144,
+                     *         "low_24h": 4562.053801329669,
+                     *         "price_change_24h": -27.42684886965526,
+                     *         "price_change_percentage_24h": -0.59618,
+                     *         "market_cap_change_24h": -23841133.233935356,
+                     *         "market_cap_change_percentage_24h": -0.43368,
+                     *         "last_updated": "2026-08-28T05:32:50Z",
+                     *         "sparkline_in_7d": {
+                     *           "price": [
+                     *             4521.622381614101,
+                     *             4532.590103841653,
+                     *             4542.457698947438
+                     *           ]
+                     *         },
+                     *         "price_change_percentage_1h_in_currency": 0.02617,
+                     *         "price_change_percentage_24h_in_currency": -0.59618,
+                     *         "price_change_percentage_7d_in_currency": 1.13883,
+                     *         "price_change_percentage_14d_in_currency": 5.94825,
+                     *         "price_change_percentage_30d_in_currency": 13.84206,
+                     *         "price_change_percentage_200d_in_currency": -9.11489,
+                     *         "price_change_percentage_1y_in_currency": 34.69983
+                     *       },
+                     *       "last_updated": "2026-08-28T05:32:50Z"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["RwasID"];
+                };
+            };
+        };
+    };
+    "rwas-issuers-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of RWA issuers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example [
+                     *       {
+                     *         "id": "coinbase-ecosystem",
+                     *         "name": "Coinbase"
+                     *       },
+                     *       {
+                     *         "id": "xstocks-ecosystem",
+                     *         "name": "xStocks"
+                     *       }
+                     *     ]
+                     */
+                    "application/json": components["schemas"]["RwasIssuersList"];
+                };
+            };
+        };
+    };
+    "rwas-issuers-id": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description Issuer ID.
+                 *     *refers to [`/rwas/issuers/list`](/reference/rwas-issuers-list)
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description RWA issuer data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "id": "xstocks-ecosystem",
+                     *       "name": "xStocks",
+                     *       "market_cap": 723156907.6917189,
+                     *       "market_cap_change_24h": -71364692.30308127,
+                     *       "volume_24h": 82027552.01900122,
+                     *       "tokens": [
+                     *         {
+                     *           "id": "alphabet-xstock",
+                     *           "symbol": "googlx",
+                     *           "name": "Alphabet xStock",
+                     *           "platforms": {
+                     *             "arbitrum-one": "0xe92f673ca36c5e2efd2de7628f815f84807e803f",
+                     *             "ethereum": "0xe92f673ca36c5e2efd2de7628f815f84807e803f",
+                     *             "binance-smart-chain": "0xe92f673ca36c5e2efd2de7628f815f84807e803f",
+                     *             "solana": "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN",
+                     *             "the-open-network": "EQALwJzXnxFjckNsurCi9O2kVg_0b1KdtjOSfvOedlY37iZc",
+                     *             "mantle": "0xe92f673ca36c5e2efd2de7628f815f84807e803f"
+                     *           }
+                     *         },
+                     *         {
+                     *           "id": "amazon-xstock",
+                     *           "symbol": "amznx",
+                     *           "name": "Amazon xStock",
+                     *           "platforms": {
+                     *             "arbitrum-one": "0x3557ba345b01efa20a1bddc61f573bfd87195081",
+                     *             "binance-smart-chain": "0x3557ba345b01efa20a1bddc61f573bfd87195081",
+                     *             "mantle": "0x3557ba345b01efa20a1bddc61f573bfd87195081",
+                     *             "ethereum": "0x3557ba345b01efa20a1bddc61f573bfd87195081",
+                     *             "solana": "Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg",
+                     *             "the-open-network": "EQCtD2-7qxHhQoNhxri2JSzH-dlmWqKYCDtlEZqRi3-56gd9"
+                     *           }
+                     *         }
+                     *       ],
+                     *       "updated_at": "2026-08-28T04:00:00Z"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["RwasIssuersID"];
                 };
             };
         };

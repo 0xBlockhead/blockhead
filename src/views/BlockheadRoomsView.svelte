@@ -28,15 +28,13 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Local_Internal,
-				],
-				fields: {
-					name: true,
-					createdAt: true,
-					id: true,
-				},
+			sources: selection.sources ?? [
+				Source.Local_Internal,
+			],
+			fields: {
+				name: true,
+				createdAt: true,
+				id: true,
 			},
 		})
 	}

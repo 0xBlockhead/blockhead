@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beaconConsensusNetworks,
 	epochsPerSyncCommitteePeriod,
@@ -2009,6 +2010,68 @@ describe('Beacon endpoint observation', () => {
 		expect(beaconRest.resolvers.some((candidate) => (
 			candidate.entityType === EntityType.NetworkEndpointObservation_Timestamp
 		))).toBe(false)
+	})
+
+	it('keeps Beacon endpoint observations scoped to their network', async () => {
+		const resolver = beaconRest.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& '$$endpointObservations' in candidate.projections
+		))
+		if (resolver == null)
+			throw new Error('Beacon endpoint observation resolver is not registered')
+
+		const cases = [
+			{ chainId: 1, reference: '1', peerId: 'mainnet-peer' },
+			{ chainId: 11155111, reference: '11155111', peerId: 'sepolia-peer' },
+		]
+		for (const { chainId, reference, peerId } of cases) {
+			const endpointUrl = beaconRestByChainId.get(chainId)?.restBaseUrls[0]
+			if (endpointUrl == null)
+				throw new Error(`Beacon test binding is missing for chain ${chainId}`)
+			getNodeHealthObservation.mockResolvedValueOnce({
+				statusCode: 200,
+				endpointUrl,
+				fetchedAtMs: 1_785_477_600_101,
+			})
+			getNodeIdentityObservation.mockResolvedValueOnce({
+				peer_id: peerId,
+				enr: 'enr:-binding-specific',
+				p2p_addresses: ['/ip4/127.0.0.1/tcp/9000'],
+				discovery_addresses: ['/ip4/127.0.0.1/udp/9000'],
+				metadata: { seq_number: '7', attnets: '0x01', syncnets: '0x02', custody_group_count: '3' },
+				endpointUrl,
+				fetchedAtMs: 1_785_477_600_102,
+			})
+			getNodePeerCountObservation.mockResolvedValueOnce({
+				disconnected: '1', connecting: '2', connected: '3', disconnecting: '4', endpointUrl,
+				fetchedAtMs: 1_785_477_600_103,
+			})
+			getNodeSyncingObservation.mockResolvedValueOnce({
+				head_slot: '12345678', sync_distance: '9', is_syncing: true,
+				is_optimistic: false, el_offline: false, endpointUrl,
+				fetchedAtMs: 1_785_477_600_104,
+			})
+			getNodeVersionObservation.mockResolvedValueOnce({
+				version: 'Lighthouse/v7.1.0', endpointUrl, fetchedAtMs: 1_785_477_600_105,
+			})
+
+			const observation = await resolver.resolve.Caip2.resolve({
+				caip2: { namespace: 'eip155', reference },
+			}, createResolverContext())
+			const row = resolver.projections.$$endpointObservations(observation)[0]
+			expect(row[EntityMetaKey.Selector]).toMatchObject({
+				$network: { caip2: { namespace: 'eip155', reference } },
+				endpointUrl,
+				endpointKind: 'EthereumBeaconRest',
+				source: Source.Beacon_Rest,
+			})
+			expect(row[EntityMetaKey.Fields]).toMatchObject({
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'statusCode')]: 200,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'peerId')]: peerId,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'connectedPeerCount')]: 3n,
+				[entityFieldAddressKey(EntityType.NetworkEndpointObservation_Timestamp, ['Beacon'], 'headSlot')]: 12_345_678n,
+			})
+		}
 	})
 
 	it('rejects an incomplete Beacon facet instead of publishing a partial snapshot', async () => {

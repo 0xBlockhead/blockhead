@@ -97,6 +97,13 @@ export interface components {
                 share: number;
                 verified: boolean;
             }[] | null;
+            /** @description Leaf creators used for hashing. Present when royalties are inherited from the collection (typically empty); display payees remain on `creators`. */
+            creators_raw?: {
+                address: string;
+                /** Format: int32 */
+                share: number;
+                verified: boolean;
+            }[] | null;
             external_plugins?: unknown;
             grouping?: {
                 collection_metadata?: {
@@ -147,13 +154,13 @@ export interface components {
                 basis_points: number;
                 /** Format: uint32 */
                 basis_points_raw?: number | null;
+                inherited?: boolean | null;
                 locked: boolean;
                 /** Format: double */
                 percent: number;
                 primary_sale_happened: boolean;
                 /** @enum {string} */
                 royalty_model: "creators" | "fanout" | "single";
-                sfbp_inherited?: boolean | null;
                 target?: string | null;
             } | null;
             supply?: {
@@ -251,6 +258,13 @@ export interface components {
                 share: number;
                 verified: boolean;
             }[] | null;
+            /** @description Leaf creators used for hashing. Present when royalties are inherited from the collection (typically empty); display payees remain on `creators`. */
+            creators_raw?: {
+                address: string;
+                /** Format: int32 */
+                share: number;
+                verified: boolean;
+            }[] | null;
             external_plugins?: unknown;
             grouping?: {
                 collection_metadata?: {
@@ -301,13 +315,13 @@ export interface components {
                 basis_points: number;
                 /** Format: uint32 */
                 basis_points_raw?: number | null;
+                inherited?: boolean | null;
                 locked: boolean;
                 /** Format: double */
                 percent: number;
                 primary_sale_happened: boolean;
                 /** @enum {string} */
                 royalty_model: "creators" | "fanout" | "single";
-                sfbp_inherited?: boolean | null;
                 target?: string | null;
             } | null;
             supply?: {
@@ -430,6 +444,13 @@ export interface components {
                     share: number;
                     verified: boolean;
                 }[] | null;
+                /** @description Leaf creators used for hashing. Present when royalties are inherited from the collection (typically empty); display payees remain on `creators`. */
+                creators_raw?: {
+                    address: string;
+                    /** Format: int32 */
+                    share: number;
+                    verified: boolean;
+                }[] | null;
                 external_plugins?: unknown;
                 grouping?: {
                     collection_metadata?: {
@@ -480,13 +501,13 @@ export interface components {
                     basis_points: number;
                     /** Format: uint32 */
                     basis_points_raw?: number | null;
+                    inherited?: boolean | null;
                     locked: boolean;
                     /** Format: double */
                     percent: number;
                     primary_sale_happened: boolean;
                     /** @enum {string} */
                     royalty_model: "creators" | "fanout" | "single";
-                    sfbp_inherited?: boolean | null;
                     target?: string | null;
                 } | null;
                 supply?: {

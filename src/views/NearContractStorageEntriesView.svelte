@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					keyBase64: true,
-					valueHash: true,
-					blockHeight: true,
-				},
+			fields: {
+				keyBase64: true,
+				valueHash: true,
+				blockHeight: true,
 			},
 		})
 	}

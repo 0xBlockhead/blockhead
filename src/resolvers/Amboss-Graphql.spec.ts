@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -28,15 +29,7 @@ const lightningNetwork = {
 	slug: 'lightning',
 } as const
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 const nodeResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.LightningNode
@@ -53,10 +46,17 @@ const channelResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
 	&& '$node1' in resolver.projections
 ))
 
+const networkNodesResolver = ambossGraphqlResolvers.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.Network
+	&& 'Lightning' in resolver.projections
+	&& '$$nodes' in resolver.projections.Lightning
+))
+
 if (
 	nodeResolver == null
 	|| nodeChannelsResolver == null
 	|| channelResolver == null
+	|| networkNodesResolver == null
 )
 	throw new Error('Amboss_Graphql spec missing node/channel resolvers')
 
@@ -540,5 +540,37 @@ describe('Amboss GraphQL Lightning node/channel resolvers', () => {
 				},
 			},
 		])
+	})
+
+	it('projects popular public nodes onto Network.Lightning for the explore graph', async () => {
+		getPopularNodePubkeys.mockResolvedValue([
+			publicKey,
+			peerPublicKey,
+		])
+
+		const snapshot = await networkNodesResolver.resolve.Slug.resolve(lightningNetwork, resolverContext)
+
+		expect(getPopularNodePubkeys).toHaveBeenCalledOnce()
+		expect(networkNodesResolver.projections.Lightning.$$nodes(snapshot)).toEqual([
+			{
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					publicKey,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: lightningNetwork,
+					publicKey: peerPublicKey,
+				},
+			},
+		])
+	})
+
+	it('rejects non-Lightning networks before Amboss popular-node transport', async () => {
+		await expect(networkNodesResolver.resolve.Slug.resolve({
+			slug: 'bitcoin',
+		}, resolverContext)).rejects.toThrow('unsupported Lightning network')
+		expect(getPopularNodePubkeys).not.toHaveBeenCalled()
 	})
 })

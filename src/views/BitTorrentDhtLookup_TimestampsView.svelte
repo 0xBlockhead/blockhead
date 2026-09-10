@@ -27,17 +27,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$torrent: {
-						fields: {
-							name: true,
-						},
+			fields: {
+				$torrent: {
+					fields: {
+						name: true,
 					},
-					peerCount: true,
-					status: true,
-					timestampMs: true,
 				},
+				peerCount: true,
+				status: true,
+				timestampMs: true,
 			},
 		})
 	}

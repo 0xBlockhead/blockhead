@@ -78,6 +78,8 @@ const {
 	getValidators,
 } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 
+const expectNoTransport = () => expect(getJson).not.toHaveBeenCalled()
+
 describe('Cosmos SDK GetTxsEvent transport', () => {
 	beforeEach(() => {
 		getJson.mockReset()
@@ -123,7 +125,7 @@ describe('Cosmos SDK GetTxsEvent transport', () => {
 			page,
 			limit,
 		})).toThrow('CosmosSdk_Rest: invalid transaction')
-		expect(getJson).not.toHaveBeenCalled()
+		expectNoTransport()
 	})
 
 	it('rejects duplicate and unknown continuation fields before transport', async () => {
@@ -159,7 +161,7 @@ describe('Cosmos SDK GetTxsEvent transport', () => {
 				limit: 1,
 				continuationToken,
 			})).rejects.toThrow('invalid or foreign balance continuation')
-		expect(getJson).not.toHaveBeenCalled()
+		expectNoTransport()
 	})
 })
 
@@ -171,7 +173,7 @@ describe('Cosmos SDK validator transport', () => {
 	it('rejects an unbounded validator page before transport', () => {
 		for (const limit of [0, 101, 1.5, Number.MAX_SAFE_INTEGER + 1])
 			expect(() => getValidators({ limit })).toThrow('invalid validator page limit')
-		expect(getJson).not.toHaveBeenCalled()
+		expectNoTransport()
 	})
 
 	it('requests a bounded validator page with the selected status', async () => {
@@ -232,7 +234,7 @@ describe('Cosmos SDK public account module transport', () => {
 
 	it.each([0, 101, 1.5, Number.MAX_SAFE_INTEGER + 1])('rejects account page limit %s before transport', (limit) => {
 		expect(() => getAccounts({ limit })).toThrow('CosmosSdk_Rest: invalid account page limit')
-		expect(getJson).not.toHaveBeenCalled()
+		expectNoTransport()
 	})
 
 	it('validates and normalizes an exact fixed-height balance page', async () => {
@@ -367,7 +369,7 @@ describe('Cosmos SDK public account module transport', () => {
 			limit: 1,
 			continuationToken: foreignContinuationToken.toString(),
 		})).rejects.toThrow('invalid or foreign balance continuation')
-		expect(getJson).not.toHaveBeenCalled()
+		expectNoTransport()
 	})
 
 	it('uses opaque bounded pagination for delegations and preserves exact reward scope', async () => {
@@ -391,7 +393,7 @@ describe('Cosmos SDK public account module transport', () => {
 		() => getDelegations({ delegatorAddress: 'cosmos1account', limit: 101 }),
 	])('rejects unbounded account module pages before transport', async (query) => {
 		expect(query).toThrow('CosmosSdk_Rest: invalid')
-		expect(getJson).not.toHaveBeenCalled()
+		expectNoTransport()
 	})
 
 	it.each([
@@ -404,7 +406,7 @@ describe('Cosmos SDK public account module transport', () => {
 			blockHeight: 1n,
 			limit,
 		})).rejects.toThrow('CosmosSdk_Rest: invalid balance page limit')
-		expect(getJson).not.toHaveBeenCalled()
+		expectNoTransport()
 	})
 
 	it.each([
@@ -584,7 +586,7 @@ describe('Cosmos SDK public account module transport', () => {
 			continuationToken: firstPage.continuationToken,
 			...overrides,
 		})).rejects.toThrow('invalid or foreign balance continuation')
-		expect(getJson).not.toHaveBeenCalled()
+		expectNoTransport()
 	})
 })
 
@@ -739,7 +741,7 @@ describe('Cosmos SDK x/gov v1 transport', () => {
 		() => getProposalDeposits({ proposalId: '123', limit: 1.5 }),
 	])('rejects unbounded governance pages before transport', (query) => {
 		expect(query).toThrow('CosmosSdk_Rest: invalid governance')
-		expect(getJson).not.toHaveBeenCalled()
+		expectNoTransport()
 	})
 
 	it.each([

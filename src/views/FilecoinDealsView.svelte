@@ -29,16 +29,14 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Filfox_Rest,
-				],
-				fields: {
-					dealId: true,
-					$provider: true,
-					$client: true,
-					verifiedDeal: true,
-				},
+			sources: selection.sources ?? [
+				Source.Filfox_Rest,
+			],
+			fields: {
+				dealId: true,
+				$provider: true,
+				$client: true,
+				verifiedDeal: true,
 			},
 		})
 	}

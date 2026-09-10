@@ -12,6 +12,7 @@ import {
 import bindings from '$/sources/AtprotoBsky/bindings.ts'
 import { Source } from '$/sources/Source.ts'
 import { sourceBindingId } from '$/sources/SourceBinding.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const postUri = 'at://did:plc:journeyfixture/app.bsky.feed.post/3fixture'
@@ -90,15 +91,7 @@ const expectPostIdentity = (providerUrl: URL) => {
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-atproto-post-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `blockhead-atproto-post-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

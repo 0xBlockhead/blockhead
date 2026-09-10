@@ -17,8 +17,6 @@ import type {
 import { Source } from '$/sources/Source.ts'
 import { type as arktype } from 'arktype'
 
-const binding = bindings[Source.AvalanchePlatformVm_JsonRpc][0]
-
 const outputOwnerWire = arktype({
 	locktime: 'string',
 	threshold: 'string',
@@ -163,7 +161,8 @@ const request = async <_Result>(
 	jsonRpc2<_Result>(binding, method, params)
 )
 
-export const getHeight = async () => (
+export const avalanchePlatformVmForBinding = (binding: SourceBinding) => {
+const getHeight = async () => (
 	assertEnvelope(
 		'height',
 		heightWire,
@@ -171,7 +170,7 @@ export const getHeight = async () => (
 	)
 )
 
-export const getBlockchains = async () => (
+const getBlockchains = async () => (
 	assertEnvelope(
 		'blockchains',
 		blockchainsWire,
@@ -179,7 +178,7 @@ export const getBlockchains = async () => (
 	)
 )
 
-export const getSubnets = async (
+const getSubnets = async (
 	params: {
 		ids?: string[]
 	} = {}
@@ -191,7 +190,7 @@ export const getSubnets = async (
 	)
 )
 
-export const getCurrentValidators = async (
+const getCurrentValidators = async (
 	params: {
 		subnetID?: string
 		nodeIDs?: string[]
@@ -204,7 +203,7 @@ export const getCurrentValidators = async (
 	)
 )
 
-export const getPendingValidators = async (
+const getPendingValidators = async (
 	params: {
 		subnetID?: string
 		nodeIDs?: string[]
@@ -217,7 +216,7 @@ export const getPendingValidators = async (
 	)
 )
 
-export const getBalance = async (
+const getBalance = async (
 	addresses: string[]
 ) => (
 	assertEnvelope(
@@ -227,7 +226,7 @@ export const getBalance = async (
 	)
 )
 
-export const getStake = async (
+const getStake = async (
 	addresses: string[],
 	validatorsOnly = false
 ) => (
@@ -241,7 +240,7 @@ export const getStake = async (
 	)
 )
 
-export const getTxStatus = async (
+const getTxStatus = async (
 	txID: string
 ) => {
 	if (txID === '')
@@ -254,7 +253,7 @@ export const getTxStatus = async (
 	)
 }
 
-export const getTx = async (
+const getTx = async (
 	txID: string,
 	encoding: 'hex' | 'json' = 'json'
 ) => {
@@ -278,7 +277,7 @@ export const getTx = async (
 	return response
 }
 
-export const getBlockByHeight = async (
+const getBlockByHeight = async (
 	height: bigint,
 	encoding: 'hex' | 'json' = 'json'
 ) => {
@@ -305,7 +304,7 @@ export const getBlockByHeight = async (
 	return response
 }
 
-export const getBlock = async (
+const getBlock = async (
 	blockID: string,
 	encoding: 'hex' | 'json' = 'json'
 ) => {
@@ -329,7 +328,7 @@ export const getBlock = async (
 	return response
 }
 
-export const getUtxos = async (
+const getUtxos = async (
 	addresses: string[],
 	limit: number
 ) => {
@@ -375,3 +374,34 @@ export const getUtxos = async (
 		encoding,
 	}
 }
+
+	return {
+		getBalance,
+		getBlock,
+		getBlockByHeight,
+		getBlockchains,
+		getCurrentValidators,
+		getHeight,
+		getPendingValidators,
+		getStake,
+		getSubnets,
+		getTx,
+		getTxStatus,
+		getUtxos,
+	}
+}
+
+export const {
+	getBalance,
+	getBlock,
+	getBlockByHeight,
+	getBlockchains,
+	getCurrentValidators,
+	getHeight,
+	getPendingValidators,
+	getStake,
+	getSubnets,
+	getTx,
+	getTxStatus,
+	getUtxos,
+} = avalanchePlatformVmForBinding(bindings[Source.AvalanchePlatformVm_JsonRpc][0])

@@ -27,14 +27,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$icon: true,
-					title: true,
-					url: true,
-					$embeddedCast: true,
-					indexInCast: true,
-				},
+			fields: {
+				$icon: true,
+				title: true,
+				url: true,
+				$embeddedCast: true,
+				indexInCast: true,
 			},
 		})
 	}

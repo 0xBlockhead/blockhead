@@ -4,6 +4,7 @@ import {
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../../../../../../../../tests/_e2eBrowserHelpers.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const withdrawalPath = '/network/eip155:1/withdrawals'
@@ -12,15 +13,7 @@ const beaconRestOrigin = 'https://ethereum-beacon-api.publicnode.com'
 test.setTimeout(180_000)
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-beacon-duty-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `blockhead-beacon-duty-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 

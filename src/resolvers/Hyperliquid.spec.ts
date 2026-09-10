@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import {
 	EntityMetaKey,
@@ -46,15 +47,10 @@ const account = {
 	address: '0x1111111111111111111111111111111111111111',
 }
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 const accountResolvers = hyperliquid.resolvers.filter((resolver) => (
 	resolver.entityType === EntityType.HyperliquidAccount

@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					documentKind: true,
-					mediaType: true,
-					documentUrl: true,
-				},
+			fields: {
+				documentKind: true,
+				mediaType: true,
+				documentUrl: true,
 			},
 		})
 	}

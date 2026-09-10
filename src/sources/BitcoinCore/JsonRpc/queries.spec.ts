@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import bitcoinCoreBindings from '$/sources/BitcoinCore/bindings.ts'
 import type { BitcoinCoreBlock } from '$/sources/_shared/interfaces/BitcoinCoreJsonRpc/types.ts'
+import { expectJsonRpc2Call, resetJsonRpc2Mock } from '$/sources/_shared/test/jsonRpc2.ts'
 import { Source } from '$/sources/Source.ts'
 
 const jsonRpc2 = vi.fn()
@@ -50,7 +51,7 @@ const block = {
 
 describe('Bitcoin Core JSON-RPC', () => {
 	beforeEach(() => {
-		jsonRpc2.mockReset()
+		resetJsonRpc2Mock(jsonRpc2)
 	})
 
 	it('asserts verbose getblock envelopes', async () => {
@@ -235,11 +236,7 @@ describe('Bitcoin Core JSON-RPC', () => {
 			txId,
 			blockHash,
 		])
-		expect(jsonRpc2).toHaveBeenCalledWith(
-			bitcoinMainnetBinding,
-			'getrawmempool',
-			[false]
-		)
+		expectJsonRpc2Call(jsonRpc2, bitcoinMainnetBinding, 'getrawmempool', [false])
 
 		jsonRpc2.mockResolvedValueOnce([txId, txId])
 		await expect(getMempoolTransactionIds()).rejects.toThrow('duplicate mempool transaction ID')
@@ -277,11 +274,7 @@ describe('Bitcoin Core JSON-RPC', () => {
 			...entry,
 			observedAtMs: 1_750_000_000_000,
 		})
-		expect(jsonRpc2).toHaveBeenCalledWith(
-			bitcoinMainnetBinding,
-			'getmempoolentry',
-			[txId]
-		)
+		expectJsonRpc2Call(jsonRpc2, bitcoinMainnetBinding, 'getmempoolentry', [txId])
 
 		jsonRpc2.mockResolvedValueOnce({
 			...entry,
@@ -325,11 +318,7 @@ describe('Bitcoin Core JSON-RPC', () => {
 		jsonRpc2.mockResolvedValueOnce(template)
 
 		await expect(getBlockTemplate()).resolves.toEqual(template)
-		expect(jsonRpc2).toHaveBeenCalledWith(
-			bitcoinMainnetBinding,
-			'getblocktemplate',
-			[{ rules: ['segwit'] }]
-		)
+		expectJsonRpc2Call(jsonRpc2, bitcoinMainnetBinding, 'getblocktemplate', [{ rules: ['segwit'] }])
 
 		jsonRpc2.mockResolvedValueOnce({
 			...template,

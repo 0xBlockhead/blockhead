@@ -29,16 +29,14 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$media: true,
-					name: true,
-					symbol: true,
-					metadataKey: true,
-					metadataStandard: true,
-					source: true,
-					timestampMs: true,
-				},
+			fields: {
+				$media: true,
+				name: true,
+				symbol: true,
+				metadataKey: true,
+				metadataStandard: true,
+				source: true,
+				timestampMs: true,
 			},
 		})
 	}

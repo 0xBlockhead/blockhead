@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import dogecoinCoreBindings from '$/sources/DogecoinCore/bindings.ts'
 import type { DogecoinCoreBlock } from '$/sources/DogecoinCore/JsonRpc/types.ts'
+import { expectJsonRpc2Call, resetJsonRpc2Mock } from '$/sources/_shared/test/jsonRpc2.ts'
 import { Source } from '$/sources/Source.ts'
 
 const jsonRpc2 = vi.fn()
@@ -65,7 +66,7 @@ const block = {
 
 describe('Dogecoin Core JSON-RPC', () => {
 	beforeEach(() => {
-		jsonRpc2.mockReset()
+		resetJsonRpc2Mock(jsonRpc2)
 	})
 
 	it('asserts verbose getblock envelopes and preserves AuxPoW', async () => {
@@ -74,14 +75,7 @@ describe('Dogecoin Core JSON-RPC', () => {
 		await expect(getDogecoinBlock({
 			blockHash,
 		})).resolves.toEqual(block)
-		expect(jsonRpc2).toHaveBeenCalledWith(
-			dogecoinMainnetBinding,
-			'getblock',
-			[
-				blockHash,
-				2,
-			]
-		)
+		expectJsonRpc2Call(jsonRpc2, dogecoinMainnetBinding, 'getblock', [blockHash, 2])
 	})
 
 	it('fails closed on malformed block envelopes and AuxPoW headers', async () => {

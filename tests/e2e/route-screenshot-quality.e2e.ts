@@ -13,10 +13,15 @@ import {
 	resetBoundaryProbe,
 	waitForBoundarySettle,
 } from '../_e2eBrowserHelpers.ts'
-import { routeScreenshotQuality } from '../_routeScreenshotQuality.ts'
+import {
+	routeScreenshotArtifactName,
+	routeScreenshotCorpusFailures,
+	routeScreenshotQuality,
+} from '../_routeScreenshotQuality.ts'
 import { createRouteRunIdentity } from '../../scripts/e2e/routeRunIdentity.ts'
 
 import { e2eDomQualityProbeOverlays } from './_routeParamFixtures.ts'
+import { e2eSocialScreenshotOverlays } from './_routeScreenshotFixtures.ts'
 
 
 const settleTimeoutMs = 120_000
@@ -35,7 +40,14 @@ test.skip(
 )
 
 test.describe('representative route screenshot quality', () => {
-	for (const [pathname, overlay] of Object.entries(e2eDomQualityProbeOverlays)) {
+	const overlays = { ...e2eDomQualityProbeOverlays, ...e2eSocialScreenshotOverlays }
+	const corpus = Object.entries(overlays).map(([pathname, overlay]) => ({ pathname, overlay }))
+	const corpusFailures = routeScreenshotCorpusFailures(corpus)
+	test.beforeAll(() => {
+		expect(corpusFailures, corpusFailures.join('\n')).toEqual([])
+	})
+
+	for (const [pathname, overlay] of Object.entries(overlays)) {
 		test(pathname, async ({ page }, testInfo) => {
 			await testInfo.attach('route-screenshot-quality-run.json', {
 				body: JSON.stringify({ runIdentity: await routeRunIdentity, pathname }, null, 2),
@@ -106,11 +118,13 @@ test.describe('representative route screenshot quality', () => {
 				settled,
 			})
 
-			if (quality.failures.length > 0)
-				await testInfo.attach('route-screenshot.png', {
-					body: await page.screenshot({ animations: 'disabled', fullPage: true }),
-					contentType: 'image/png',
-				})
+			const screenshotName = routeScreenshotArtifactName(pathname, 'quality.png')
+			const screenshotPath = testInfo.outputPath('route-screenshots', screenshotName)
+			await page.screenshot({ animations: 'disabled', fullPage: true, path: screenshotPath })
+			await testInfo.attach(screenshotName, {
+				path: screenshotPath,
+				contentType: 'image/png',
+			})
 			if (quality.warnings.length > 0)
 				await testInfo.attach('route-screenshot-warnings.txt', {
 					body: quality.warnings.join('\n'),

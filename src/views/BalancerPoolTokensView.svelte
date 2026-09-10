@@ -28,13 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					symbol: true,
-					balance: true,
-					weight: true,
-					$pool: true,
-				},
+			fields: {
+				symbol: true,
+				balance: true,
+				weight: true,
+				$pool: true,
 			},
 		})
 	}

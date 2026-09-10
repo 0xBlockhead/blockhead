@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-255 providers register 287 sources and 513 bindings.
+256 providers register 288 sources and 521 bindings.
 
 ## Providers
 
@@ -59,6 +59,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | Chainlist | Chainlist |
 | CircleCctp | Circle CCTP |
 | CodexNetworkPresets | Codex network presets |
+| CodexNode | Codex node |
 | Cohere | Cohere |
 | Coingecko | Coingecko |
 | CoinMarketCap | Coin Market Cap |
@@ -325,6 +326,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | CircleCctpContracts_Stellar | CircleCctp | Circle CCTP Stellar contracts |
 | CircleCctpIris | CircleCctp | Circle CCTP Iris |
 | CodexNetworkPresets_Github | CodexNetworkPresets | Codex network presets GitHub |
+| CodexNode_Rest | CodexNode | Codex node REST |
 | Cohere_Rest | Cohere | Cohere REST |
 | Coingecko_Rest | Coingecko | Coingecko REST |
 | CoinMarketCap_Rest | CoinMarketCap | Coin Market Cap REST |
@@ -579,16 +581,19 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | AtprotoBsky | Atproto_Xrpc | Global | bsky-public-appview | Xrpc | XrpcLexicon | GenericRead | HttpProxy |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteQuery","AtprotoSync"] | AtprotoSync | AtprotoSync_Xrpc | Feed | atproto-sync | Xrpc | AtprotoSync | GenericRead | RemoteQuery |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteLive","AtprotoSync"] | AtprotoSync | AtprotoSync_Xrpc | Feed | atproto-sync | Xrpc | AtprotoSync | GenericSubscribe | RemoteLive |
+| ["AtprotoSync_Xrpc","Global","atproto-plc-directory","RemoteQuery","RestJson"] | AtprotoSync | AtprotoSync_Xrpc | Global | atproto-plc-directory | HttpRest | RestJson | GenericRead | RemoteQuery |
+| ["AtprotoSync_Xrpc","Global","atproto-did-web","RemoteQuery","RestJson"] | AtprotoSync | AtprotoSync_Xrpc | Global | atproto-did-web | HttpRest | RestJson | GenericRead | RemoteQuery |
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | Avail | Avail | NetworkSlug | avail | JsonRpc2 | SubstrateJsonRpc | GenericRead | RemoteQuery |
 | ["AvalancheInfo_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | AvalancheInfo | AvalancheInfo_JsonRpc | NetworkSlug | avalanche-p-chain | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
 | ["AvalanchePlatformVm_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | AvalanchePlatformVm | AvalanchePlatformVm_JsonRpc | NetworkSlug | avalanche-p-chain | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
+| ["AvalanchePlatformVm_JsonRpc","LocalDevice","local-avalanche-platform-vm","LocalOnly","JsonRpcApi"] | AvalanchePlatformVm | AvalanchePlatformVm_JsonRpc | LocalDevice | local-avalanche-platform-vm | JsonRpc2 | JsonRpcApi | GenericRead | LocalOnly |
 | ["AwsBedrock_Rest","Global","aws-bedrock","RemoteQuery","RestJson"] | AwsBedrock | AwsBedrock_Rest | Global | aws-bedrock | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog | RemoteQuery |
 | ["Axelarscan_Rest","Global","axelarscan-api","HttpProxy","RestJson"] | Axelarscan | Axelarscan_Rest | Global | axelarscan-api | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["AzureAiFoundry_Rest","Global","azure-ai-foundry","RemoteQuery","RestJson"] | AzureAiFoundry | AzureAiFoundry_Rest | Global | azure-ai-foundry | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog | RemoteQuery |
 | ["Balancer_Rest","Global","balancer-api-v3","BrowserDirect","GraphqlHttp"] | Balancer | Balancer_Rest | Global | balancer-api-v3 | Graphql | GraphqlHttp | GenericRead | BrowserDirect |
 | ["Beacon_Rest","Eip155Chain","1","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 1 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 11155111 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 17000 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | Beacon | Beacon_Rest | Eip155Chain | 560048 | HttpRest | EthereumBeaconRest | GenericRead | BrowserDirect |
 | ["BeaconchaIn_Rest","Eip155Chain","1","HttpProxy","RestJson"] | BeaconchaIn | BeaconchaIn_Rest | Eip155Chain | 1 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["BeaconchaIn_Rest","Eip155Chain","17000","HttpProxy","RestJson"] | BeaconchaIn | BeaconchaIn_Rest | Eip155Chain | 17000 | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["BeaconchaIn_Rest","Eip155Chain","560048","HttpProxy","RestJson"] | BeaconchaIn | BeaconchaIn_Rest | Eip155Chain | 560048 | HttpRest | RestJson | GenericRead | HttpProxy |
@@ -643,6 +648,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CircleCctpContracts_Stellar","NetworkSlug","stellar","BrowserDirect","CatalogRows"] | CircleCctp | CircleCctpContracts_Stellar | NetworkSlug | stellar | InProcess | CatalogRows | GenericRead | BrowserDirect |
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | CircleCctp | CircleCctpIris | Global | circle-cctp-iris-api | HttpRest | OpenApiHttp | GenericRead | BrowserDirect |
 | ["CodexNetworkPresets_Github","GitRepository","codex-storage-network/codex-network-presets@master:","BrowserDirect","GithubContentsApi"] | CodexNetworkPresets | CodexNetworkPresets_Github | GitRepository | codex-storage-network/codex-network-presets@master: | HttpRest | GithubContentsApi | GithubRepositoryContents, RepositoryMetadata | BrowserDirect |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | CodexNode | CodexNode_Rest | LocalDevice | codex-node | HttpRest | OpenApiHttp | GenericRead | LocalOnly |
 | ["Cohere_Rest","Global","cohere-api","RemoteQuery","RestJson"] | Cohere | Cohere_Rest | Global | cohere-api | HttpRest | RestJson | AiModelCatalog, AiProviderOperationCatalog, GenericRead | RemoteQuery |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | Coingecko | Coingecko_Rest | Global | coingecko-demo | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Coingecko_Rest","Global","coingecko-pro","HttpProxy","OpenApiHttp"] | Coingecko | Coingecko_Rest | Global | coingecko-pro | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
@@ -702,6 +708,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"] | Envio | EnvioHyperSync_RawHttp | Eip155Chain | 1 | RawHttp | EnvioHyperSyncApi | GenericRead | HttpProxy |
 | ["Erigon_JsonRpc","LocalDevice","erigon-node","LocalOnly","EvmExecutionJsonRpc"] | Erigon | Erigon_JsonRpc | LocalDevice | erigon-node | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore, EvmRpcTrace, EvmRpcTxpool | LocalOnly |
 | ["Esplora_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","BrowserDirect","RestJson"] | Esplora | Esplora_Rest | Caip2Network | bip122:000000000019d6689c085ae165831e93 | HttpRest | RestJson | GenericRead | BrowserDirect |
+| ["Esplora_Rest","Caip2Network","bip122:000000000933ea01ad0ee984209779ba","BrowserDirect","RestJson"] | Esplora | Esplora_Rest | Caip2Network | bip122:000000000933ea01ad0ee984209779ba | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["Esplora_Rest","NetworkSlug","liquid","BrowserDirect","RestJson"] | Esplora | Esplora_Rest | NetworkSlug | liquid | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["EthereumEips_Github","GitRepository","ethereum/EIPs@master:EIPS","HttpProxy","GithubContentsApi"] | EthereumEips | EthereumEips_Github | GitRepository | ethereum/EIPs@master:EIPS | HttpRest | GithubContentsApi | GithubRepositoryContents | HttpProxy |
 | ["EthereumEips_Github","GitRepository","ethereum/ercs@master:ERCS","HttpProxy","GithubContentsApi"] | EthereumEips | EthereumEips_Github | GitRepository | ethereum/ercs@master:ERCS | HttpRest | GithubContentsApi | GithubRepositoryContents | HttpProxy |
@@ -785,6 +792,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["McpDeclared_Protocol","LocalDevice","declared-mcp-server","LocalOnly","McpProtocol"] | Mcp | McpDeclared_Protocol | LocalDevice | declared-mcp-server | JsonRpc2 | McpProtocol | AgentCapabilityCatalog, AgentRuntimeInvocation | LocalOnly |
 | ["McpPackageRegistry_Rest","Global","mcp-package-registry","RemoteQuery","RestJson"] | Mcp | McpPackageRegistry_Rest | Global | mcp-package-registry | HttpRest | RestJson | AgentCapabilityCatalog, AiArtifactCatalog, RepositoryMetadata | RemoteQuery |
 | ["MempoolSpace_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","BrowserDirect","RestJson"] | MempoolSpace | MempoolSpace_Rest | Caip2Network | bip122:000000000019d6689c085ae165831e93 | HttpRest | RestJson | GenericRead | BrowserDirect |
+| ["MempoolSpace_Rest","Caip2Network","bip122:000000000933ea01ad0ee984209779ba","BrowserDirect","RestJson"] | MempoolSpace | MempoolSpace_Rest | Caip2Network | bip122:000000000933ea01ad0ee984209779ba | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["MetadataVision_Rest","Global","open-graph","HttpProxy","RestJson"] | MetadataVision | MetadataVision_Rest | Global | open-graph | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["MevRelay_Rest","Feed","boost-relay.flashbots.net","HttpProxy","RestJson"] | MevRelay | MevRelay_Rest | Feed | boost-relay.flashbots.net | HttpRest | RestJson | GenericRead | HttpProxy |
 | ["MevRelay_Rest","Feed","relay.ultrasound.money","HttpProxy","RestJson"] | MevRelay | MevRelay_Rest | Feed | relay.ultrasound.money | HttpRest | RestJson | GenericRead | HttpProxy |
@@ -801,6 +809,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["NearConnect_WalletApi","LocalDevice","near-connect","BrowserDirect","WalletApi"] | NearConnect | NearConnect_WalletApi | LocalDevice | near-connect | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["NearNeps_Github","GitRepository","near/NEPs@master:neps","BrowserDirect","GithubContentsApi"] | NearNeps | NearNeps_Github | GitRepository | near/NEPs@master:neps | HttpRest | GithubContentsApi | GithubRepositoryContents | BrowserDirect |
 | ["NearRpc_JsonRpc","NetworkSlug","near","HttpProxy","JsonRpcApi"] | NearRpc | NearRpc_JsonRpc | NetworkSlug | near | JsonRpc2 | JsonRpcApi | GenericRead | HttpProxy |
+| ["NearRpc_JsonRpc","NetworkSlug","near","BrowserDirect","JsonRpcApi"] | NearRpc | NearRpc_JsonRpc | NetworkSlug | near | JsonRpc2 | JsonRpcApi | GenericRead | BrowserDirect |
 | ["NearWalletSelector_WalletApi","LocalDevice","near-wallet-selector","BrowserDirect","WalletApi"] | NearWalletSelector | NearWalletSelector_WalletApi | LocalDevice | near-wallet-selector | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | Neynar | Neynar_Rest | Global | api | HttpRest | OpenApiHttp | GenericRead | HttpProxy |
 | ["Nfid_WalletApi","LocalDevice","nfid","BrowserDirect","WalletApi"] | Nfid | Nfid_WalletApi | LocalDevice | nfid | WalletProvider | WalletApi | WalletAccountRead, WalletSign | BrowserDirect |
@@ -810,10 +819,10 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["NostrRelay_Nip11_Http","Feed","wss://relay.damus.io","HttpProxy","NostrRelay"] | NostrRelay | NostrRelay_Nip11_Http | Feed | wss://relay.damus.io | HttpRest | NostrRelay | NostrRelayRead | HttpProxy |
 | ["NostrRelay_Nip11_Http","Feed","wss://relay.nostr.band","HttpProxy","NostrRelay"] | NostrRelay | NostrRelay_Nip11_Http | Feed | wss://relay.nostr.band | HttpRest | NostrRelay | NostrRelayRead | HttpProxy |
 | ["NostrRelay_Nip11_Http","Feed","wss://relay.primal.net","HttpProxy","NostrRelay"] | NostrRelay | NostrRelay_Nip11_Http | Feed | wss://relay.primal.net | HttpRest | NostrRelay | NostrRelayRead | HttpProxy |
-| ["NostrRelay_WebSocket","Feed","wss://nos.lol","RemoteLive","NostrRelay"] | NostrRelay | NostrRelay_WebSocket | Feed | wss://nos.lol | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayRead | RemoteLive |
-| ["NostrRelay_WebSocket","Feed","wss://relay.damus.io","RemoteLive","NostrRelay"] | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.damus.io | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayRead | RemoteLive |
-| ["NostrRelay_WebSocket","Feed","wss://relay.nostr.band","RemoteLive","NostrRelay"] | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.nostr.band | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayRead, NostrSearch | RemoteLive |
-| ["NostrRelay_WebSocket","Feed","wss://relay.primal.net","RemoteLive","NostrRelay"] | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.primal.net | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayRead | RemoteLive |
+| ["NostrRelay_WebSocket","Feed","wss://nos.lol","RemoteLive","NostrRelay"] | NostrRelay | NostrRelay_WebSocket | Feed | wss://nos.lol | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayPublish, NostrRelayRead | RemoteLive |
+| ["NostrRelay_WebSocket","Feed","wss://relay.damus.io","RemoteLive","NostrRelay"] | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.damus.io | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayPublish, NostrRelayRead | RemoteLive |
+| ["NostrRelay_WebSocket","Feed","wss://relay.nostr.band","RemoteLive","NostrRelay"] | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.nostr.band | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayPublish, NostrRelayRead, NostrSearch | RemoteLive |
+| ["NostrRelay_WebSocket","Feed","wss://relay.primal.net","RemoteLive","NostrRelay"] | NostrRelay | NostrRelay_WebSocket | Feed | wss://relay.primal.net | WebSocketMessages | NostrRelay | GenericSubscribe, NostrRelayPublish, NostrRelayRead | RemoteLive |
 | ["OciRegistry_Distribution","Global","oci-registry","RemoteQuery","OciDistributionApi"] | OciRegistry | OciRegistry_Distribution | Global | oci-registry | OciDistribution | OciDistributionApi | RepositoryMetadata, SoftwareArtifactRegistry | RemoteQuery |
 | ["OctezNode","Caip2Network","tezos:NetXdQprcVkpaWU","BrowserDirect","TezosNodeRpc"] | Octez | OctezNode | Caip2Network | tezos:NetXdQprcVkpaWU | HttpRest | TezosNodeRpc | GenericRead | BrowserDirect |
 | ["Ogmios_JsonRpc","Caip2Network","cip34:1-764824073","RemoteQuery","JsonRpcApi"] | Ogmios | Ogmios_JsonRpc | Caip2Network | cip34:1-764824073 | JsonRpc2 | JsonRpcApi | GenericRead | RemoteQuery |
@@ -832,6 +841,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Pendle_Rest","Eip155Chain","56","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 56 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 143 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 146 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
+| ["Pendle_Rest","Eip155Chain","196","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 196 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 999 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 5000 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
 | ["Pendle_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | Pendle | Pendle_Rest | Eip155Chain | 8453 | JsonRpc2 | EvmExecutionJsonRpc | EvmRpcCore | HttpProxy |
@@ -1094,20 +1104,23 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Arweave_Graphql","NetworkSlug","arweave","BrowserDirect","GraphqlHttp"] | HttpUrl | https://arweave.net/graphql | https://arweave.net | true |
 | ["Arweave_Rest","NetworkSlug","arweave","BrowserDirect","ArweaveGateway"] | HttpUrl | https://arweave.net | https://arweave.net | true |
 | ["Arweave_Rest","NetworkSlug","arweave","BrowserDirect","ArweaveGateway"] | HttpUrl | https://ar-io.net | https://ar-io.net | true |
-| ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://bsky.social | https://bsky.social | false |
+| ["Atproto_BskySocial_Xrpc","Global","bsky-social-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://api.bsky.app | https://api.bsky.app | false |
 | ["Atproto_Xrpc","Global","bsky-public-appview","HttpProxy","XrpcLexicon"] | HttpUrl | https://public.api.bsky.app | https://public.api.bsky.app | false |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteQuery","AtprotoSync"] | HttpUrl | https://{pds-host} | https://{pds-host} | false |
 | ["AtprotoSync_Xrpc","Feed","atproto-sync","RemoteLive","AtprotoSync"] | WebSocketUrl | wss://{pds-host}/xrpc/com.atproto.sync.subscribeRepos |  |  |
+| ["AtprotoSync_Xrpc","Global","atproto-plc-directory","RemoteQuery","RestJson"] | HttpUrl | https://plc.directory | https://plc.directory | false |
+| ["AtprotoSync_Xrpc","Global","atproto-did-web","RemoteQuery","RestJson"] | HttpUrl | https://{did-web-host} | https://{did-web-host} | false |
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | HttpUrl | env:PUBLIC_AVAIL_RPC_URL |  | false |
 | ["AvalancheInfo_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | HttpUrl | https://api.avax.network/ext/info | https://api.avax.network | false |
 | ["AvalanchePlatformVm_JsonRpc","NetworkSlug","avalanche-p-chain","HttpProxy","JsonRpcApi"] | HttpUrl | https://api.avax.network/ext/bc/P | https://api.avax.network | false |
+| ["AvalanchePlatformVm_JsonRpc","LocalDevice","local-avalanche-platform-vm","LocalOnly","JsonRpcApi"] | HttpUrl | http://127.0.0.1:9650/ext/bc/P | http://127.0.0.1:9650 | false |
 | ["AwsBedrock_Rest","Global","aws-bedrock","RemoteQuery","RestJson"] | HttpUrl | env:AWS_BEDROCK_ENDPOINT |  |  |
 | ["Axelarscan_Rest","Global","axelarscan-api","HttpProxy","RestJson"] | HttpUrl | https://api.axelarscan.io | https://api.axelarscan.io | false |
 | ["AzureAiFoundry_Rest","Global","azure-ai-foundry","RemoteQuery","RestJson"] | HttpUrl | env:AZURE_AI_FOUNDRY_ENDPOINT |  |  |
 | ["Balancer_Rest","Global","balancer-api-v3","BrowserDirect","GraphqlHttp"] | HttpUrl | https://api-v3.balancer.fi/ | https://api-v3.balancer.fi | true |
 | ["Beacon_Rest","Eip155Chain","1","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-beacon-api.publicnode.com | https://ethereum-beacon-api.publicnode.com | true |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-sepolia-beacon-api.publicnode.com | https://ethereum-sepolia-beacon-api.publicnode.com | true |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-holesky-beacon-api.publicnode.com | https://ethereum-holesky-beacon-api.publicnode.com | true |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | HttpUrl | https://ethereum-hoodi-beacon-api.publicnode.com | https://ethereum-hoodi-beacon-api.publicnode.com | true |
 | ["BeaconchaIn_Rest","Eip155Chain","1","HttpProxy","RestJson"] | HttpUrl | https://beaconcha.in/api/v1 | https://beaconcha.in | false |
 | ["BeaconchaIn_Rest","Eip155Chain","17000","HttpProxy","RestJson"] | HttpUrl | https://holesky.beaconcha.in/api/v1 | https://holesky.beaconcha.in | false |
 | ["BeaconchaIn_Rest","Eip155Chain","560048","HttpProxy","RestJson"] | HttpUrl | https://hoodi.beaconcha.in/api/v1 | https://hoodi.beaconcha.in | false |
@@ -1124,7 +1137,10 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["BitTorrent","TorrentSwarm","metainfo-file","LocalOnly","BitTorrentClient"] | LocalFilePath | {torrent-file-path} |  |  |
 | ["BitTorrent","TorrentSwarm","http-tracker","RemoteQuery","BitTorrentTracker"] | HttpUrl | https://{tracker-host}/announce | https://{tracker-host} | false |
 | ["BitTorrent","TorrentSwarm","udp-tracker","ServerOnly","BitTorrentTracker"] | UdpAddress | udp://{tracker-host}:{port} |  |  |
-| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://{bootstrap-node}:{port} |  |  |
+| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://router.bittorrent.com:6881 |  |  |
+| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://router.utorrent.com:6881 |  |  |
+| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://dht.transmissionbt.com:6881 |  |  |
+| ["BitTorrent","TorrentSwarm","mainline-dht","ServerOnly","BitTorrentDht"] | UdpAddress | udp://dht.libtorrent.org:25401 |  |  |
 | ["BitTorrent","TorrentSwarm","metadata-exchange","ServerOnly","BitTorrentClient"] | TcpAddress | {peer-host}:{port} |  |  |
 | ["BitTorrent","TorrentSwarm","peer-wire","ServerOnly","BitTorrentClient"] | TcpAddress | {peer-host}:{port} |  |  |
 | ["Blobscan_Rest","Eip155Chain","1","HttpProxy","RestJson"] | HttpUrl | https://api.blobscan.com | https://api.blobscan.com | false |
@@ -1168,6 +1184,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | HttpUrl | https://iris-api.circle.com | https://iris-api.circle.com | true |
 | ["CodexNetworkPresets_Github","GitRepository","codex-storage-network/codex-network-presets@master:","BrowserDirect","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
 | ["CodexNetworkPresets_Github","GitRepository","codex-storage-network/codex-network-presets@master:","BrowserDirect","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com | https://raw.githubusercontent.com | true |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | HttpUrl | http://127.0.0.1:8080 | http://127.0.0.1:8080 | false |
 | ["Cohere_Rest","Global","cohere-api","RemoteQuery","RestJson"] | HttpUrl | https://api.cohere.com | https://api.cohere.com | false |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | HttpUrl | https://api.coingecko.com/api/v3 | https://api.coingecko.com | false |
 | ["Coingecko_Rest","Global","coingecko-pro","HttpProxy","OpenApiHttp"] | HttpUrl | https://pro-api.coingecko.com/api/v3 | https://pro-api.coingecko.com | false |
@@ -1231,6 +1248,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["EnvioHyperSync_RawHttp","Eip155Chain","1","HttpProxy","EnvioHyperSyncApi"] | HttpUrl | https://eth.hypersync.xyz | https://eth.hypersync.xyz | false |
 | ["Erigon_JsonRpc","LocalDevice","erigon-node","LocalOnly","EvmExecutionJsonRpc"] | HttpUrl | http://127.0.0.1:8545 | http://127.0.0.1:8545 | false |
 | ["Esplora_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","BrowserDirect","RestJson"] | HttpUrl | https://blockstream.info/api | https://blockstream.info | true |
+| ["Esplora_Rest","Caip2Network","bip122:000000000933ea01ad0ee984209779ba","BrowserDirect","RestJson"] | HttpUrl | https://blockstream.info/testnet/api | https://blockstream.info | true |
 | ["Esplora_Rest","NetworkSlug","liquid","BrowserDirect","RestJson"] | HttpUrl | https://blockstream.info/liquid/api | https://blockstream.info | true |
 | ["EthereumEips_Github","GitRepository","ethereum/EIPs@master:EIPS","HttpProxy","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
 | ["EthereumEips_Github","GitRepository","ethereum/EIPs@master:EIPS","HttpProxy","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com | https://raw.githubusercontent.com | true |
@@ -1326,6 +1344,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["McpDeclared_Protocol","LocalDevice","declared-mcp-server","LocalOnly","McpProtocol"] | LocalProcess | mcp |  |  |
 | ["McpPackageRegistry_Rest","Global","mcp-package-registry","RemoteQuery","RestJson"] | HttpUrl | https://registry.modelcontextprotocol.io/v0.1/servers | https://registry.modelcontextprotocol.io | false |
 | ["MempoolSpace_Rest","Caip2Network","bip122:000000000019d6689c085ae165831e93","BrowserDirect","RestJson"] | HttpUrl | https://mempool.space/api | https://mempool.space | true |
+| ["MempoolSpace_Rest","Caip2Network","bip122:000000000933ea01ad0ee984209779ba","BrowserDirect","RestJson"] | HttpUrl | https://mempool.space/testnet/api | https://mempool.space | true |
 | ["MetadataVision_Rest","Global","open-graph","HttpProxy","RestJson"] | HttpUrl | https://og.metadata.vision | https://og.metadata.vision | false |
 | ["MevRelay_Rest","Feed","boost-relay.flashbots.net","HttpProxy","RestJson"] | HttpUrl | https://boost-relay.flashbots.net | https://boost-relay.flashbots.net | false |
 | ["MevRelay_Rest","Feed","relay.ultrasound.money","HttpProxy","RestJson"] | HttpUrl | https://relay.ultrasound.money | https://relay.ultrasound.money | false |
@@ -1344,6 +1363,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["NearNeps_Github","GitRepository","near/NEPs@master:neps","BrowserDirect","GithubContentsApi"] | HttpUrl | https://api.github.com | https://api.github.com | true |
 | ["NearNeps_Github","GitRepository","near/NEPs@master:neps","BrowserDirect","GithubContentsApi"] | HttpUrl | https://raw.githubusercontent.com | https://raw.githubusercontent.com | true |
 | ["NearRpc_JsonRpc","NetworkSlug","near","HttpProxy","JsonRpcApi"] | HttpUrl | https://rpc.mainnet.near.org | https://rpc.mainnet.near.org | false |
+| ["NearRpc_JsonRpc","NetworkSlug","near","BrowserDirect","JsonRpcApi"] | HttpUrl | https://free.rpc.fastnear.com | https://free.rpc.fastnear.com | true |
 | ["NearWalletSelector_WalletApi","LocalDevice","near-wallet-selector","BrowserDirect","WalletApi"] | BrowserWalletProvider | near-wallet-selector |  |  |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | HttpUrl | https://api.neynar.com | https://api.neynar.com | false |
 | ["Nfid_WalletApi","LocalDevice","nfid","BrowserDirect","WalletApi"] | BrowserWalletProvider | nfid |  |  |
@@ -1377,6 +1397,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Pendle_Rest","Eip155Chain","56","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://binance.llamarpc.com | https://binance.llamarpc.com | false |
 | ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.monad.xyz | https://rpc.monad.xyz | false |
 | ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.soniclabs.com | https://rpc.soniclabs.com | false |
+| ["Pendle_Rest","Eip155Chain","196","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.xlayer.tech | https://rpc.xlayer.tech | false |
 | ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://hyperliquid.drpc.org | https://hyperliquid.drpc.org | false |
 | ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://rpc.mantle.xyz | https://rpc.mantle.xyz | false |
 | ["Pendle_Rest","Eip155Chain","8453","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://mainnet.base.org | https://mainnet.base.org | false |
@@ -1649,6 +1670,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Anthropic_Rest","Global","anthropic-api","RemoteQuery","RestJson"] | RuntimeSecret | no | ANTHROPIC_API_KEY |
 | ["AptosAip62_WalletApi","LocalDevice","aptos-aip62-wallet","BrowserDirect","WalletApi"] | UserDelegated | no |  |
 | ["Avail","NetworkSlug","avail","RemoteQuery","SubstrateJsonRpc"] | PublicConfig | yes | PUBLIC_AVAIL_RPC_URL |
+| ["AvalanchePlatformVm_JsonRpc","LocalDevice","local-avalanche-platform-vm","LocalOnly","JsonRpcApi"] | LocalSecret | no |  |
 | ["AwsBedrock_Rest","Global","aws-bedrock","RemoteQuery","RestJson"] | RuntimeSecret | no | AWS_ACCESS_KEY_ID, AWS_BEDROCK_REGION, AWS_SECRET_ACCESS_KEY |
 | ["AzureAiFoundry_Rest","Global","azure-ai-foundry","RemoteQuery","RestJson"] | RuntimeSecret | no | AZURE_AI_FOUNDRY_API_KEY |
 | ["BeaconchaIn_Rest","Eip155Chain","1","HttpProxy","RestJson"] | PublicConfig | yes | PUBLIC_BEACONCHAIN_API_KEY |
@@ -1850,9 +1872,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
 | ["Beacon_Rest","Eip155Chain","11155111","BrowserDirect","EthereumBeaconRest"] | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
-| ["Beacon_Rest","Eip155Chain","17000","BrowserDirect","EthereumBeaconRest"] | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | GenerationManifest | src/sources/Beacon/OpenApi/schema-source.ts | no |  |  |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | OpenApiSpec | src/sources/Beacon/OpenApi/beacon-node-oapi.yaml | no |  |  |
+| ["Beacon_Rest","Eip155Chain","560048","BrowserDirect","EthereumBeaconRest"] | OpenApiTypes | src/sources/Beacon/OpenApi/openapi.d.ts | yes |  |  |
 | ["BeaconchaIn_Rest","Eip155Chain","1","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/BeaconchaIn/Rest/types.ts | no |  |  |
 | ["BeaconchaIn_Rest","Eip155Chain","17000","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/BeaconchaIn/Rest/types.ts | no |  |  |
 | ["BeaconchaIn_Rest","Eip155Chain","560048","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/BeaconchaIn/Rest/types.ts | no |  |  |
@@ -1911,6 +1933,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | GenerationManifest | src/sources/CircleCctp/OpenApi/schema-source.ts | no |  |  |
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | OpenApiSpec | src/sources/CircleCctp/OpenApi/openapi.yaml | yes | https://developers.circle.com/openapi/cctp.yaml |  |
 | ["CircleCctpIris","Global","circle-cctp-iris-api","BrowserDirect","OpenApiHttp"] | OpenApiTypes | src/sources/CircleCctp/OpenApi/openapi.d.ts | yes |  |  |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | GenerationManifest | src/sources/CodexNode/OpenApi/schema-source.ts | no |  |  |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | OpenApiSpec | src/sources/CodexNode/OpenApi/openapi.yaml | yes | https://raw.githubusercontent.com/logos-storage/logos-storage-nim/master/openapi.yaml |  |
+| ["CodexNode_Rest","LocalDevice","codex-node","LocalOnly","OpenApiHttp"] | OpenApiTypes | src/sources/CodexNode/OpenApi/openapi.d.ts | yes |  |  |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Coingecko/OpenApi/schema-source.ts | no |  |  |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Coingecko/OpenApi/demo-api.json | no |  |  |
 | ["Coingecko_Rest","Global","coingecko-demo","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Coingecko/OpenApi/openapi.d.ts | yes |  |  |
@@ -2065,6 +2090,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Morpho_Rest","Global","morpho-api","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Morpho/Rest/types.ts | no |  | https://docs.morpho.org/developers/api/morpho/ |
 | ["NearBlocks_Rest","NetworkSlug","near","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/NearBlocks/Rest/types.ts | no |  |  |
 | ["NearRpc_JsonRpc","NetworkSlug","near","HttpProxy","JsonRpcApi"] | HandwrittenTypes | src/sources/NearRpc/JsonRpc/types.ts | no |  |  |
+| ["NearRpc_JsonRpc","NetworkSlug","near","BrowserDirect","JsonRpcApi"] | HandwrittenTypes | src/sources/NearRpc/JsonRpc/types.ts | no |  |  |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Neynar/OpenApi/schema-source.ts | no |  |  |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Neynar/OpenApi/openapi.yaml | no |  |  |
 | ["Neynar_Rest","Global","api","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Neynar/OpenApi/openapi.d.ts | yes |  |  |
@@ -2100,6 +2126,8 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Pendle_Rest","Eip155Chain","143","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["Pendle_Rest","Eip155Chain","146","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
+| ["Pendle_Rest","Eip155Chain","196","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
+| ["Pendle_Rest","Eip155Chain","196","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |
 | ["Pendle_Rest","Eip155Chain","999","HttpProxy","EvmExecutionJsonRpc"] | OpenRpcSpec | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src | no |  |  |
 | ["Pendle_Rest","Eip155Chain","5000","HttpProxy","EvmExecutionJsonRpc"] | GenerationManifest | src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts | no |  |  |

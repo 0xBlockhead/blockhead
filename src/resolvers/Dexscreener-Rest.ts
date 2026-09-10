@@ -112,7 +112,6 @@ export default {
 				$quoteToken: (snapshot) => snapshot.$quoteToken,
 				$$timestamps: {
 					select: (snapshot) => snapshot.$$timestamps,
-					resolveCount: (snapshot) => snapshot.$$timestamps.length,
 				},
 			}),
 

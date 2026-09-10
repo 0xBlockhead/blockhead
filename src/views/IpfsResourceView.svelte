@@ -4,7 +4,6 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
-	import { untrack } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -27,6 +26,32 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.IpfsResource> = $props()
 
+	const ipfsResourceLatestResource1 = $derived(
+		selection
+			.$$timestamps({
+				sources: [
+					Source.Ipfs_Rest,
+				],
+				fields: {
+					timestampMs: true,
+					gatewayOrigin: true,
+					gatewayUrl: true,
+					fileName: true,
+					extension: true,
+					contentType: true,
+					contentLength: true,
+					displayType: true,
+					isContentTypeInferred: true,
+					text: true,
+					$media: true,
+				},
+				limit: 1,
+				orderBy: [
+					[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
+				],
+			})
+	)
+
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Ipfs_Rest,
@@ -35,32 +60,22 @@
 	const ipfsResource = $derived(viewSelection({
 		fields: {
 			canonicalUri: true,
-			gatewayOrigin: true,
-			gatewayUrl: true,
-			fileName: true,
-			extension: true,
-			contentType: true,
-			contentLength: true,
-			displayType: true,
-			isContentTypeInferred: true,
-			text: true,
 		},
 	}))
-	const titleFallback = $derived((prefetched.canonicalUri ?? '') || 'IPFS resource')
 
 
 	// Components
-	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import MediaView from '$/views/MediaView.svelte'
+	import IpfsResource_TimestampsView from '$/views/IpfsResource_TimestampsView.svelte'
+	import IpfsResource_TimestampView from '$/views/IpfsResource_TimestampView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.IpfsResource}
 	entitySelector={selection.entitySelector}
-	title={title ?? titleFallback}
+	title={title ?? ((prefetched.canonicalUri ?? '') || 'IPFS resource')}
 	href={
 		href === undefined ?
 			(
@@ -97,15 +112,36 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Value()}
-		<ResourceBoundary resource={ipfsResource}>
-			{#snippet children(entity)}
-				{[(entity.contentType ?? ''), entity.displayType].filter(Boolean).join(' ') || entity.canonicalUri || titleFallback}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Content()}
+		<dl data-column-item="center">
+			<div>
+				<dt>Latest capture</dt>
+				<dd>
+					<ResourceBoundary
+						resource={ipfsResourceLatestResource1}
+					>
+						{#snippet children(ipfsResourceTimestamps)}
+							{@const ipfsResourceTimestamp = ipfsResourceTimestamps.values[0]}
+							{#if ipfsResourceTimestamp != null}
+								<IpfsResource_TimestampView
+									selection={
+										select(EntityType.IpfsResource_Timestamp, ipfsResourceTimestamp[EntityMetaKey.Selector], {
+											sources: [
+												Source.Ipfs_Rest,
+											],
+										})
+									}
+									layout={EntityLayout.Value}
+								/>
+							{:else}
+								<p data-text="muted" data-section-state="resolved-empty">No latest capture available.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
 		<dl data-column-item="center">
 			<div>
 				<dt>Namespace</dt>
@@ -146,152 +182,6 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-
-			<div>
-				<dt>Gateway URL</dt>
-				<dd>
-					<ResourceBoundary
-						resource={ipfsResource}
-					>
-						{#snippet children(entity)}
-							<a
-								href={entity.gatewayUrl}
-								target="_blank"
-								rel="noreferrer noopener"
-							>
-								<TruncatedValue value={entity.gatewayUrl} />
-							</a>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
-
-		<dl data-column-item="center">
-			<div>
-				<dt>Gateway origin</dt>
-				<dd>
-					<ResourceBoundary
-						resource={ipfsResource}
-					>
-						{#snippet children(entity)}
-							{entity.gatewayOrigin}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={ipfsResource}
-			>
-				{#snippet children(entity)}
-					{@const fileName = entity.fileName}
-					{#if fileName != null}
-						<div>
-							<dt>File name</dt>
-							<dd>
-								{fileName}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={ipfsResource}
-			>
-				{#snippet children(entity)}
-					{@const extension = entity.extension}
-					{#if extension != null}
-						<div>
-							<dt>Extension</dt>
-							<dd>
-								{extension}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={ipfsResource}
-			>
-				{#snippet children(entity)}
-					{@const contentType = entity.contentType}
-					{#if contentType != null}
-						<div>
-							<dt>Content type</dt>
-							<dd>
-								{contentType}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary
-				resource={ipfsResource}
-			>
-				{#snippet children(entity)}
-					{@const contentLength = entity.contentLength}
-					{#if contentLength != null}
-						<div>
-							<dt>Content length</dt>
-							<dd>
-								<NumberValue
-									value={contentLength}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<div>
-				<dt>Display type</dt>
-				<dd>
-					<ResourceBoundary
-						resource={ipfsResource}
-					>
-						{#snippet children(entity)}
-							{entity.displayType}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Content type inferred</dt>
-				<dd>
-					<ResourceBoundary
-						resource={ipfsResource}
-					>
-						{#snippet children(entity)}
-							{entity.isContentTypeInferred ? 'Yes' : 'No'}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<ResourceBoundary
-				resource={selection.$media}
-			>
-				{#snippet children(media)}
-					{#if media != null}
-						{@const mediaInitial = untrack(() => media)}
-						<div>
-							<dt>Media</dt>
-							<dd>
-								<MediaView
-									selection={select(EntityType.Media, (media ?? mediaInitial)[EntityMetaKey.Selector])}
-									prefetched={media ?? mediaInitial}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
@@ -310,9 +200,7 @@
 						<div>
 							<dt>CID version</dt>
 							<dd>
-								<NumberValue
-									value={cidVersion}
-								/>
+								{cidVersion}
 							</dd>
 						</div>
 					{/if}
@@ -356,9 +244,7 @@
 						<div>
 							<dt>CID multicodec code</dt>
 							<dd>
-								<NumberValue
-									value={cidMulticodecCode}
-								/>
+								{cidMulticodecCode}
 							</dd>
 						</div>
 					{/if}
@@ -380,9 +266,7 @@
 						<div>
 							<dt>CID multihash code</dt>
 							<dd>
-								<NumberValue
-									value={cidMultihashCode}
-								/>
+								{cidMultihashCode}
 							</dd>
 						</div>
 					{/if}
@@ -404,7 +288,7 @@
 						<div>
 							<dt>CID multihash digest hex</dt>
 							<dd>
-								<TruncatedValue value={cidMultihashDigestHex} />
+								{cidMultihashDigestHex}
 							</dd>
 						</div>
 					{/if}
@@ -433,30 +317,21 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+	{/snippet}
 
+	{#snippet Details()}
+		{@const timestampsResource = selection.$$timestamps}
 		<ResourceBoundary
-			resource={ipfsResource}
+			resource={timestampsResource}
 		>
-			{#snippet children(entity)}
-				{@const text = entity.text}
-				{#if text != null && text !== ''}
-					<p data-text="long-text">{text}</p>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-
-		<ResourceBoundary
-			resource={ipfsResource}
-		>
-			{#snippet children(entity)}
-				{@const artifactContent = entity.text}
-				{#if artifactContent != null && artifactContent !== ''}
-					<a
-						href={`data:text/plain;charset=utf-8,${encodeURIComponent(artifactContent)}`}
-						download='ipfs-resource.txt'
-					>
-						Download resolved text
-					</a>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<IpfsResource_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Captures'
+						id='timestamps'
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

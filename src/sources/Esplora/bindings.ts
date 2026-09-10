@@ -1,26 +1,19 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
-const esploraRestBindingAxes = {
-	source: Source.Esplora_Rest,
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.RestJson,
-	operationGroups: genericReadOperationGroups,
-	delivery: SourceDelivery.BrowserDirect,
-	credentials: [],
-} as const
-
 export default indexSourceBindings([
 	{
-		...esploraRestBindingAxes,
+		source: Source.Esplora_Rest,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
 			key: 'bip122:000000000019d6689c085ae165831e93',
@@ -32,9 +25,16 @@ export default indexSourceBindings([
 				corsEnabled: true,
 			},
 		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
 	},
 	{
-		...esploraRestBindingAxes,
+		source: Source.Esplora_Rest,
 		target: {
 			kind: SourceTargetKind.Caip2Network,
 			key: 'bip122:000000000933ea01ad0ee984209779ba',
@@ -46,9 +46,16 @@ export default indexSourceBindings([
 				corsEnabled: true,
 			},
 		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
 	},
 	{
-		...esploraRestBindingAxes,
+		source: Source.Esplora_Rest,
 		target: {
 			kind: SourceTargetKind.NetworkSlug,
 			key: 'liquid',
@@ -60,5 +67,12 @@ export default indexSourceBindings([
 				corsEnabled: true,
 			},
 		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
 	},
 ])

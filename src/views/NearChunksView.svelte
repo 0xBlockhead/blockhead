@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					chunkHash: true,
-					$block: true,
-					shardId: true,
-				},
+			fields: {
+				chunkHash: true,
+				$block: true,
+				shardId: true,
 			},
 		})
 	}

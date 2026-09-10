@@ -6722,14 +6722,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/yields/lsdRates": {
+    "/api/lstRates": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** APY rates of multiple LSDs */
+        /**
+         * Exchange rates and ETH peg of liquid staking tokens
+         * @description Latest expected (contract) redemption rate, executable market rate and resulting ETH peg for major LSTs.
+         */
         get: {
             parameters: {
                 query?: never;
@@ -6748,35 +6751,1924 @@ export interface paths {
                         /**
                          * @example [
                          *       {
-                         *         "name": "Dinero (pxETH)",
-                         *         "symbol": "APXETH",
-                         *         "address": "0x04c154b66cb340f3ae24111cc767e0184ed00cc6",
-                         *         "type": "accruing",
+                         *         "name": "Lido",
+                         *         "symbol": "stETH",
+                         *         "address": "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+                         *         "type": "rebase",
                          *         "expectedRate": 1,
-                         *         "marketRate": 0.9976125452932897,
-                         *         "ethPeg": -0.23874547067103125,
+                         *         "marketRate": 0.9997,
+                         *         "ethPeg": -0.03,
                          *         "fee": 0.1
+                         *       },
+                         *       {
+                         *         "name": "StakeWise V3",
+                         *         "symbol": "osETH",
+                         *         "address": "0xf1C9acDc66974dFB6dEcB12aA385b9cD01190E38",
+                         *         "type": "accruing",
+                         *         "expectedRate": 1.0775,
+                         *         "marketRate": 1.0615,
+                         *         "ethPeg": -1.48,
+                         *         "fee": 0.05
+                         *       },
+                         *       {
+                         *         "name": "Bifrost Liquid Staking",
+                         *         "symbol": "vETH",
+                         *         "address": "0x4Bc3263Eb5bb2Ef7Ad9aB6FB68be80E43b43801F",
+                         *         "type": "accruing",
+                         *         "expectedRate": 1.1353,
+                         *         "marketRate": null,
+                         *         "ethPeg": null,
+                         *         "fee": null
                          *       }
                          *     ]
                          */
                         "application/json": {
-                            /** @description The name of the LSD token */
+                            /** @description The name of the protocol issuing the LST */
                             name?: string;
-                            /** @description The symbol of the LSD token */
-                            symbol?: string;
-                            /** @description The contract address of the LSD token */
+                            /** @description The symbol of the LST */
+                            symbol?: string | null;
+                            /** @description The contract address of the LST */
                             address?: string;
-                            /** @description The type of the LSD token (e.g., accruing) */
-                            type?: string;
-                            /** @description The expected rate of the LSD token */
-                            expectedRate?: number;
-                            /** @description The current market rate of the LSD token */
-                            marketRate?: number;
-                            /** @description The ETH peg value */
-                            ethPeg?: number;
-                            /** @description The fee percentage */
-                            fee?: number;
+                            /** @description The type of the LST (rebase or accruing) */
+                            type?: string | null;
+                            /** @description ETH per token owed by the protocol, read from its contract */
+                            expectedRate?: number | null;
+                            /** @description Executable market rate in ETH per token; null when no credible market quote exists */
+                            marketRate?: number | null;
+                            /** @description Percent deviation of the market rate from the expected rate */
+                            ethPeg?: number | null;
+                            /** @description The protocol fee percentage */
+                            fee?: number | null;
                         }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/yields/v2/earn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve the latest data for all earn pools
+         * @description Returns every tracked earn pool (supply-side yield), sorted by TVL descending. APY values are percentages, attributed into `base` (organic), `reward` (incentive emissions) and `total` (base + reward) over `current`, `avg_7d` and `avg_30d` windows. Pools whose underlying token is itself yield-bearing additionally report that yield under `intrinsic`; it is not included in the pool APY. For a filtered, paginated variant of the same rows use `/yields/v2/earn/query`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Array of all earn pools */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: {
+                                /**
+                                 * @description Pool id (UUID). Same id space as the v1 yields API pool field.
+                                 * @example 747c1d2a-c668-4682-b9f9-296708a3dd90
+                                 */
+                                id?: string;
+                                /**
+                                 * @description Stable pool key.
+                                 * @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84-ethereum
+                                 */
+                                pool_key?: string;
+                                /** @description Receipt / vault token representing the position; null when the pool has no transferable pool token */
+                                pool_token?: {
+                                    /** @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84 */
+                                    address?: string;
+                                    /** @example stETH */
+                                    symbol?: string | null;
+                                    /** @example Liquid staked Ether 2.0 */
+                                    name?: string | null;
+                                } | null;
+                                /** @description Display strings for listings */
+                                display?: {
+                                    /** @example stETH */
+                                    label?: string | null;
+                                    /** @example Liquid staked Ether 2.0 */
+                                    detail?: string | null;
+                                };
+                                /**
+                                 * @description The asset you provide to enter the pool (e.g. ETH, USDC, BTC)
+                                 * @example ETH
+                                 */
+                                reference_asset_symbol?: string | null;
+                                /**
+                                 * @description Pool page on the protocol app
+                                 * @example https://lido.fi/#networks
+                                 */
+                                url?: string | null;
+                                /**
+                                 * @description Protocol display name
+                                 * @example Lido
+                                 */
+                                protocol?: string;
+                                /**
+                                 * @description Chain display name
+                                 * @example Ethereum
+                                 */
+                                chain?: string;
+                                /** @description Tokens deposited into the pool */
+                                underlying_tokens?: {
+                                    /** @example 0x0000000000000000000000000000000000000000 */
+                                    address?: string;
+                                    /** @example ETH */
+                                    symbol?: string | null;
+                                    /** @example 18 */
+                                    decimals?: number | null;
+                                }[];
+                                /** @description Incentive tokens currently emitted to the pool; empty when there are none */
+                                reward_tokens?: {
+                                    /** @example 0xd533a949740bb3306d119cc777fa900ba034cd52 */
+                                    address?: string;
+                                    /** @example CRV */
+                                    symbol?: string | null;
+                                    /** @example 18 */
+                                    decimals?: number | null;
+                                }[];
+                                /**
+                                 * @description Total value locked in USD
+                                 * @example 18050422129
+                                 */
+                                tvl_usd?: number | null;
+                                /** @description Supply APY in percent, attributed into base (organic) and reward (incentive emissions) components */
+                                apy?: {
+                                    /** @description Latest observed values */
+                                    current?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.206
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.206
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 7-day average */
+                                    avg_7d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.18932
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.18932
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 30-day average */
+                                    avg_30d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.22409
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.22409
+                                         */
+                                        total?: number | null;
+                                    };
+                                };
+                                /** @description Yield accruing inside a yield-bearing underlying token, e.g. the stETH staking yield inside a wstETH pool. Intrinsic yield is reported separately and is NOT included in the base/reward/total APY. Null when there is no intrinsic yield source. */
+                                intrinsic?: {
+                                    /** @description Intrinsic APY in percent */
+                                    apy?: {
+                                        /** @description Latest observed value */
+                                        current?: {
+                                            /** @example 3.11 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 7-day average */
+                                        avg_7d?: {
+                                            /** @example 3.05 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 30-day average */
+                                        avg_30d?: {
+                                            /** @example 3.02 */
+                                            base?: number | null;
+                                        };
+                                    };
+                                    source_pool?: {
+                                        /**
+                                         * @description Earn pool the intrinsic yield is sourced from
+                                         * @example 747c1d2a-c668-4682-b9f9-296708a3dd90
+                                         */
+                                        id?: string;
+                                        /**
+                                         * @description Address of the yield-bearing token
+                                         * @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84
+                                         */
+                                        pool_token?: string;
+                                        /** @example stETH */
+                                        symbol?: string | null;
+                                    };
+                                } | null;
+                                /** @description Stability score (0 to 1) of the trailing 30-day APY series, computed as 1 / (1 + coefficient of variation); higher is steadier. Keyed by APY composition: read the leaf matching the APY components you consume (base, base + reward, base + intrinsic, base + reward + intrinsic). */
+                                stability_30d?: {
+                                    /** @example 0.9804 */
+                                    base?: number | null;
+                                    /** @example 0.9804 */
+                                    base_reward?: number | null;
+                                    /** @example 0.9804 */
+                                    base_intrinsic?: number | null;
+                                    /** @example 0.9804 */
+                                    base_reward_intrinsic?: number | null;
+                                };
+                                /**
+                                 * @description Pool token price per share for vault-style pools; null otherwise
+                                 * @example null
+                                 */
+                                price_per_share?: number | null;
+                                /**
+                                 * @description Trailing 24h trading volume in USD for DEX pools; null otherwise
+                                 * @example null
+                                 */
+                                volume_1d_usd?: number | null;
+                                /** @description Boolean attributes, also available as filters on /yields/v2/earn/query */
+                                attributes?: {
+                                    /**
+                                     * @description All pool assets are stablecoins
+                                     * @example false
+                                     */
+                                    stablecoin_only?: boolean;
+                                    /**
+                                     * @description Position is exposed to a single asset
+                                     * @example true
+                                     */
+                                    single_asset_exposure?: boolean;
+                                    /**
+                                     * @description Position can suffer impermanent loss
+                                     * @example false
+                                     */
+                                    impermanent_loss_risk?: boolean;
+                                };
+                                /** @description Pool token holder statistics; values are null where holder data is not tracked */
+                                holders?: {
+                                    /**
+                                     * @description Number of pool token holders
+                                     * @example 618311
+                                     */
+                                    count?: number | null;
+                                    /**
+                                     * @description Average position size in USD
+                                     * @example 29423.56
+                                     */
+                                    avg_position_usd?: number | null;
+                                    /**
+                                     * @description Share of supply held by the top 10 holders, in percent
+                                     * @example 61.97
+                                     */
+                                    top_10_share_pct?: number | null;
+                                };
+                                /**
+                                 * @description Remaining deposit capacity in USD for lending pools with a supply cap (cap minus TVL, floored at 0); null when the pool has no cap
+                                 * @example null
+                                 */
+                                available_supply_usd?: number | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/yields/v2/earn/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve a filtered, paginated page of earn pools
+         * @description Same rows as `/yields/v2/earn`, filtered and paginated server-side while keeping the TVL-descending order. All filters combine with AND; `chain` and `protocol` may be repeated to match any of up to 20 values. Unknown query parameters and out-of-range values are rejected with `400 INVALID_QUERY_PARAM`. Without parameters the top 100 pools by TVL are returned.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Chain slug (lowercase). Repeat the parameter to match any of several chains, e.g. chain=ethereum&chain=arbitrum (at most 20 values) */
+                    chain?: string;
+                    /** @description Protocol slug (lowercase, e.g. aave-v3). Repeat the parameter to match any of several protocols (at most 20 values) */
+                    protocol?: string;
+                    /** @description true keeps only pools whose assets are all stablecoins, false only the rest */
+                    stablecoin?: boolean;
+                    /** @description true keeps only pools exposed to a single asset, false only the rest */
+                    single_asset_exposure?: boolean;
+                    /** @description true keeps only pools with impermanent loss risk, false only the rest */
+                    impermanent_loss_risk?: boolean;
+                    /** @description Minimum pool TVL in USD (inclusive) */
+                    min_tvl?: number;
+                    /** @description 1-based page number; default 1 */
+                    page?: number;
+                    /** @description Page size between 1 and 300; default 100. Values above 300 are rejected, not clamped */
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Page of earn pools matching the filters */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: {
+                                /**
+                                 * @description Pool id (UUID). Same id space as the v1 yields API pool field.
+                                 * @example 747c1d2a-c668-4682-b9f9-296708a3dd90
+                                 */
+                                id?: string;
+                                /**
+                                 * @description Stable pool key.
+                                 * @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84-ethereum
+                                 */
+                                pool_key?: string;
+                                /** @description Receipt / vault token representing the position; null when the pool has no transferable pool token */
+                                pool_token?: {
+                                    /** @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84 */
+                                    address?: string;
+                                    /** @example stETH */
+                                    symbol?: string | null;
+                                    /** @example Liquid staked Ether 2.0 */
+                                    name?: string | null;
+                                } | null;
+                                /** @description Display strings for listings */
+                                display?: {
+                                    /** @example stETH */
+                                    label?: string | null;
+                                    /** @example Liquid staked Ether 2.0 */
+                                    detail?: string | null;
+                                };
+                                /**
+                                 * @description The asset you provide to enter the pool (e.g. ETH, USDC, BTC)
+                                 * @example ETH
+                                 */
+                                reference_asset_symbol?: string | null;
+                                /**
+                                 * @description Pool page on the protocol app
+                                 * @example https://lido.fi/#networks
+                                 */
+                                url?: string | null;
+                                /**
+                                 * @description Protocol display name
+                                 * @example Lido
+                                 */
+                                protocol?: string;
+                                /**
+                                 * @description Chain display name
+                                 * @example Ethereum
+                                 */
+                                chain?: string;
+                                /** @description Tokens deposited into the pool */
+                                underlying_tokens?: {
+                                    /** @example 0x0000000000000000000000000000000000000000 */
+                                    address?: string;
+                                    /** @example ETH */
+                                    symbol?: string | null;
+                                    /** @example 18 */
+                                    decimals?: number | null;
+                                }[];
+                                /** @description Incentive tokens currently emitted to the pool; empty when there are none */
+                                reward_tokens?: {
+                                    /** @example 0xd533a949740bb3306d119cc777fa900ba034cd52 */
+                                    address?: string;
+                                    /** @example CRV */
+                                    symbol?: string | null;
+                                    /** @example 18 */
+                                    decimals?: number | null;
+                                }[];
+                                /**
+                                 * @description Total value locked in USD
+                                 * @example 18050422129
+                                 */
+                                tvl_usd?: number | null;
+                                /** @description Supply APY in percent, attributed into base (organic) and reward (incentive emissions) components */
+                                apy?: {
+                                    /** @description Latest observed values */
+                                    current?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.206
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.206
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 7-day average */
+                                    avg_7d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.18932
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.18932
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 30-day average */
+                                    avg_30d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.22409
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.22409
+                                         */
+                                        total?: number | null;
+                                    };
+                                };
+                                /** @description Yield accruing inside a yield-bearing underlying token, e.g. the stETH staking yield inside a wstETH pool. Intrinsic yield is reported separately and is NOT included in the base/reward/total APY. Null when there is no intrinsic yield source. */
+                                intrinsic?: {
+                                    /** @description Intrinsic APY in percent */
+                                    apy?: {
+                                        /** @description Latest observed value */
+                                        current?: {
+                                            /** @example 3.11 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 7-day average */
+                                        avg_7d?: {
+                                            /** @example 3.05 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 30-day average */
+                                        avg_30d?: {
+                                            /** @example 3.02 */
+                                            base?: number | null;
+                                        };
+                                    };
+                                    source_pool?: {
+                                        /**
+                                         * @description Earn pool the intrinsic yield is sourced from
+                                         * @example 747c1d2a-c668-4682-b9f9-296708a3dd90
+                                         */
+                                        id?: string;
+                                        /**
+                                         * @description Address of the yield-bearing token
+                                         * @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84
+                                         */
+                                        pool_token?: string;
+                                        /** @example stETH */
+                                        symbol?: string | null;
+                                    };
+                                } | null;
+                                /** @description Stability score (0 to 1) of the trailing 30-day APY series, computed as 1 / (1 + coefficient of variation); higher is steadier. Keyed by APY composition: read the leaf matching the APY components you consume (base, base + reward, base + intrinsic, base + reward + intrinsic). */
+                                stability_30d?: {
+                                    /** @example 0.9804 */
+                                    base?: number | null;
+                                    /** @example 0.9804 */
+                                    base_reward?: number | null;
+                                    /** @example 0.9804 */
+                                    base_intrinsic?: number | null;
+                                    /** @example 0.9804 */
+                                    base_reward_intrinsic?: number | null;
+                                };
+                                /**
+                                 * @description Pool token price per share for vault-style pools; null otherwise
+                                 * @example null
+                                 */
+                                price_per_share?: number | null;
+                                /**
+                                 * @description Trailing 24h trading volume in USD for DEX pools; null otherwise
+                                 * @example null
+                                 */
+                                volume_1d_usd?: number | null;
+                                /** @description Boolean attributes, also available as filters on /yields/v2/earn/query */
+                                attributes?: {
+                                    /**
+                                     * @description All pool assets are stablecoins
+                                     * @example false
+                                     */
+                                    stablecoin_only?: boolean;
+                                    /**
+                                     * @description Position is exposed to a single asset
+                                     * @example true
+                                     */
+                                    single_asset_exposure?: boolean;
+                                    /**
+                                     * @description Position can suffer impermanent loss
+                                     * @example false
+                                     */
+                                    impermanent_loss_risk?: boolean;
+                                };
+                                /** @description Pool token holder statistics; values are null where holder data is not tracked */
+                                holders?: {
+                                    /**
+                                     * @description Number of pool token holders
+                                     * @example 618311
+                                     */
+                                    count?: number | null;
+                                    /**
+                                     * @description Average position size in USD
+                                     * @example 29423.56
+                                     */
+                                    avg_position_usd?: number | null;
+                                    /**
+                                     * @description Share of supply held by the top 10 holders, in percent
+                                     * @example 61.97
+                                     */
+                                    top_10_share_pct?: number | null;
+                                };
+                                /**
+                                 * @description Remaining deposit capacity in USD for lending pools with a supply cap (cap minus TVL, floored at 0); null when the pool has no cap
+                                 * @example null
+                                 */
+                                available_supply_usd?: number | null;
+                            }[];
+                            pagination?: {
+                                /**
+                                 * @description Total number of rows matching the filters, across all pages
+                                 * @example 4519
+                                 */
+                                total?: number;
+                                /** @example 1 */
+                                page?: number;
+                                /** @example 100 */
+                                limit?: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Unknown query parameter or invalid value */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error?: {
+                                /** @example INVALID_QUERY_PARAM */
+                                code?: string;
+                                /** @example unknown query parameter: chains */
+                                message?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/yields/v2/earn/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve daily history for an earn pool
+         * @description Daily TVL, attributed APY and price per share for one earn pool, oldest first. APY carries `avg_1d` (that day), `avg_7d` and `avg_30d` (trailing averages ending that day) windows, each attributed into base/reward/total.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description History window; defaults to max (the full series) */
+                    range?: "30d" | "90d" | "max";
+                };
+                header?: never;
+                path: {
+                    /** @description Earn pool id (UUID) */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Daily history rows, oldest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: {
+                                /**
+                                 * @description Day (UTC)
+                                 * @example 2026-07-27
+                                 */
+                                date?: string;
+                                /**
+                                 * @description Total value locked in USD at that day
+                                 * @example 18233358161
+                                 */
+                                tvl_usd?: number | null;
+                                /** @description Supply APY in percent, attributed into base (organic) and reward (incentive emissions) components */
+                                apy?: {
+                                    /** @description Average over that day */
+                                    avg_1d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.26695
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.26695
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 7-day average */
+                                    avg_7d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.18878
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.18878
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 30-day average */
+                                    avg_30d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.22396
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.22396
+                                         */
+                                        total?: number | null;
+                                    };
+                                };
+                                /** @description Intrinsic yield of a yield-bearing underlying token. Intrinsic yield is reported separately and is NOT included in the base/reward/total APY. Null when there is no intrinsic yield source. */
+                                intrinsic?: {
+                                    /** @description Intrinsic APY in percent */
+                                    apy?: {
+                                        /** @description Average over that day */
+                                        avg_1d?: {
+                                            /** @example 3.11 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 7-day average */
+                                        avg_7d?: {
+                                            /** @example 3.05 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 30-day average */
+                                        avg_30d?: {
+                                            /** @example 3.02 */
+                                            base?: number | null;
+                                        };
+                                    };
+                                } | null;
+                                /**
+                                 * @description Pool token price per share for vault-style pools; null otherwise
+                                 * @example null
+                                 */
+                                price_per_share?: number | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description No earn pool with this id */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error?: {
+                                /** @example POOL_NOT_FOUND */
+                                code?: string;
+                                /** @example earn pool not found */
+                                message?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/yields/v2/borrow/markets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve the latest data for all borrow markets
+         * @description One row per borrow market: collateral and debt token, maximum loan-to-value, USD supply/borrow totals and attributed APY for both sides over `current`, `avg_7d` and `avg_30d` windows. Reward emissions offset borrowing costs, so `borrow_cost_apy` totals can be negative (the borrower is net paid).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Array of all borrow markets */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: {
+                                /**
+                                 * @description Market id (UUID)
+                                 * @example e880e828-ca59-4ec6-8d4f-27182a4dc23d
+                                 */
+                                id?: string;
+                                /**
+                                 * @description Stable market key.
+                                 * @example 0x4d5f47fa6a74757f35c14fd3a6ef8e3c9bc514e8-ethereum
+                                 */
+                                pool_key?: string;
+                                /** @description Receipt / vault token representing the position; null when the market has no transferable pool token */
+                                pool_token?: {
+                                    /** @example 0x4d5f47fa6a74757f35c14fd3a6ef8e3c9bc514e8 */
+                                    address?: string;
+                                    /** @example aEthWETH */
+                                    symbol?: string | null;
+                                    /** @example Aave Ethereum WETH */
+                                    name?: string | null;
+                                } | null;
+                                /** @description Display strings for listings */
+                                display?: {
+                                    /**
+                                     * @description Collateral symbol, or "COLLATERAL / DEBT" for isolated pairs
+                                     * @example WETH
+                                     */
+                                    label?: string | null;
+                                    /** @example null */
+                                    detail?: string | null;
+                                };
+                                /**
+                                 * @description Market page on the protocol app
+                                 * @example https://app.aave.com/reserve-overview/?underlyingAsset=0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2&marketName=proto_mainnet_v3
+                                 */
+                                url?: string | null;
+                                /**
+                                 * @description Protocol display name
+                                 * @example Aave V3
+                                 */
+                                protocol?: string;
+                                /**
+                                 * @description Chain display name
+                                 * @example Ethereum
+                                 */
+                                chain?: string;
+                                /** @description Token supplied as collateral; null when unknown */
+                                collateral_token?: {
+                                    /** @example 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 */
+                                    address?: string;
+                                    /** @example WETH */
+                                    symbol?: string | null;
+                                    /** @example 18 */
+                                    decimals?: number | null;
+                                };
+                                /** @description Token borrowed from the market; null when unknown */
+                                borrow_token?: {
+                                    /** @example 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 */
+                                    address?: string;
+                                    /** @example WETH */
+                                    symbol?: string | null;
+                                    /** @example 18 */
+                                    decimals?: number | null;
+                                };
+                                /** @description Incentive tokens currently emitted to the market; empty when there are none */
+                                reward_tokens?: {
+                                    /** @example 0xd533a949740bb3306d119cc777fa900ba034cd52 */
+                                    address?: string;
+                                    /** @example CRV */
+                                    symbol?: string | null;
+                                    /** @example 18 */
+                                    decimals?: number | null;
+                                }[];
+                                /**
+                                 * @description Maximum loan-to-value as a fraction (0.805 = 80.5%)
+                                 * @example 0.805
+                                 */
+                                loan_to_value?: number | null;
+                                /**
+                                 * @description Total supplied to the market, in USD
+                                 * @example 3683494475
+                                 */
+                                total_supply_usd?: number | null;
+                                /**
+                                 * @description Total borrowed from the market, in USD
+                                 * @example 3022727877
+                                 */
+                                total_borrow_usd?: number | null;
+                                /**
+                                 * @description Liquidity still available to borrow, in USD
+                                 * @example 568755149
+                                 */
+                                available_borrow_usd?: number | null;
+                                /** @description APY in percent earned by suppliers */
+                                supply_apy?: {
+                                    /** @description Latest observed values */
+                                    current?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 1.49954
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 1.49954
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 7-day average */
+                                    avg_7d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 1.46669
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 1.46669
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 30-day average */
+                                    avg_30d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 1.40929
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 1.40929
+                                         */
+                                        total?: number | null;
+                                    };
+                                };
+                                /** @description APY in percent paid by borrowers. Reward emissions reduce the cost, so total = base - reward and can be negative */
+                                borrow_cost_apy?: {
+                                    /** @description Latest observed values */
+                                    current?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.14984
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base minus reward, in percent; negative means the borrower is net paid
+                                         * @example 2.14984
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 7-day average */
+                                    avg_7d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.12582
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base minus reward, in percent; negative means the borrower is net paid
+                                         * @example 2.12582
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 30-day average */
+                                    avg_30d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.08412
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base minus reward, in percent; negative means the borrower is net paid
+                                         * @example 2.08412
+                                         */
+                                        total?: number | null;
+                                    };
+                                };
+                                /** @description Intrinsic yield of yield-bearing tokens on either side of the market */
+                                intrinsic?: {
+                                    /** @description Intrinsic yield of the supply-side token. Intrinsic yield is reported separately and is NOT included in the base/reward/total APY. Null when there is no intrinsic yield source. */
+                                    supply?: {
+                                        /** @description Intrinsic APY in percent */
+                                        apy?: {
+                                            /** @description Latest observed value */
+                                            current?: {
+                                                /** @example 3.11 */
+                                                base?: number | null;
+                                            };
+                                            /** @description Trailing 7-day average */
+                                            avg_7d?: {
+                                                /** @example 3.05 */
+                                                base?: number | null;
+                                            };
+                                            /** @description Trailing 30-day average */
+                                            avg_30d?: {
+                                                /** @example 3.02 */
+                                                base?: number | null;
+                                            };
+                                        };
+                                        source_pool?: {
+                                            /**
+                                             * @description Earn pool the intrinsic yield is sourced from
+                                             * @example 747c1d2a-c668-4682-b9f9-296708a3dd90
+                                             */
+                                            id?: string;
+                                            /**
+                                             * @description Address of the yield-bearing token
+                                             * @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84
+                                             */
+                                            pool_token?: string;
+                                            /** @example stETH */
+                                            symbol?: string | null;
+                                        };
+                                    } | null;
+                                    /** @description Intrinsic yield of the borrowed token. Borrowing a yield-bearing token adds this rate to the effective borrow cost, since the debt appreciates by it. Intrinsic yield is reported separately and is NOT included in the base/reward/total APY. Null when there is no intrinsic yield source. */
+                                    borrow?: {
+                                        /** @description Intrinsic APY in percent */
+                                        apy?: {
+                                            /** @description Latest observed value */
+                                            current?: {
+                                                /** @example 3.11 */
+                                                base?: number | null;
+                                            };
+                                            /** @description Trailing 7-day average */
+                                            avg_7d?: {
+                                                /** @example 3.05 */
+                                                base?: number | null;
+                                            };
+                                            /** @description Trailing 30-day average */
+                                            avg_30d?: {
+                                                /** @example 3.02 */
+                                                base?: number | null;
+                                            };
+                                        };
+                                        source_pool?: {
+                                            /**
+                                             * @description Earn pool the intrinsic yield is sourced from
+                                             * @example 747c1d2a-c668-4682-b9f9-296708a3dd90
+                                             */
+                                            id?: string;
+                                            /**
+                                             * @description Address of the yield-bearing token
+                                             * @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84
+                                             */
+                                            pool_token?: string;
+                                            /** @example stETH */
+                                            symbol?: string | null;
+                                        };
+                                    } | null;
+                                };
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/yields/v2/borrow/markets/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve daily borrow-side history for a borrow market
+         * @description Daily borrow totals and borrow-cost APY for one market, oldest first. APY carries `avg_1d` (that day), `avg_7d` and `avg_30d` (trailing averages ending that day) windows, each attributed into base/reward/total. Supply-side history for the same id lives at `/yields/v2/earn/{id}/history`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description History window; defaults to max (the full series) */
+                    range?: "30d" | "90d" | "max";
+                };
+                header?: never;
+                path: {
+                    /** @description Borrow market id (UUID) */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Daily history rows, oldest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: {
+                                /**
+                                 * @description Day (UTC)
+                                 * @example 2026-08-10
+                                 */
+                                date?: string;
+                                /**
+                                 * @description Total borrowed from the market, in USD
+                                 * @example 3339035741
+                                 */
+                                total_borrow_usd?: number | null;
+                                /**
+                                 * @description Liquidity still available to borrow, in USD
+                                 * @example 733495225
+                                 */
+                                available_borrow_usd?: number | null;
+                                /** @description APY in percent paid by borrowers. Reward emissions reduce the cost, so total = base - reward and can be negative */
+                                borrow_cost_apy?: {
+                                    /** @description Average over that day */
+                                    avg_1d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.09904
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base minus reward, in percent; negative means the borrower is net paid
+                                         * @example 2.09904
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 7-day average */
+                                    avg_7d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.10884
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base minus reward, in percent; negative means the borrower is net paid
+                                         * @example 2.10884
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 30-day average */
+                                    avg_30d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.09608
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base minus reward, in percent; negative means the borrower is net paid
+                                         * @example 2.09608
+                                         */
+                                        total?: number | null;
+                                    };
+                                };
+                                /** @description Intrinsic yield of the borrowed token. Borrowing a yield-bearing token adds this rate to the effective borrow cost, since the debt appreciates by it. Intrinsic yield is reported separately and is NOT included in the base/reward/total APY. Null when there is no intrinsic yield source. */
+                                intrinsic?: {
+                                    /** @description Intrinsic APY in percent */
+                                    apy?: {
+                                        /** @description Average over that day */
+                                        avg_1d?: {
+                                            /** @example 2.76481 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 7-day average */
+                                        avg_7d?: {
+                                            /** @example 3.97675 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 30-day average */
+                                        avg_30d?: {
+                                            /** @example 4.99742 */
+                                            base?: number | null;
+                                        };
+                                    };
+                                } | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description No borrow market with this id */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error?: {
+                                /** @example BORROW_MARKET_NOT_FOUND */
+                                code?: string;
+                                /** @example borrow market not found */
+                                message?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/yields/v2/borrow/routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve the latest data for all borrow routes
+         * @description Every supported borrowing route: a collateral position paired with a debt market on the same protocol and chain. Each row reports the collateral side (supply APY earned on the collateral), the borrow side (cost APY of the debt token) and `net_apy` (collateral yield minus borrow cost). Negative net APY means the position costs more than the collateral earns.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Array of all borrow routes */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: {
+                                /** @description Display strings for listings */
+                                display?: {
+                                    /**
+                                     * @description Market variant label; null when there is only one market
+                                     * @example Prime Instance
+                                     */
+                                    detail?: string | null;
+                                };
+                                /**
+                                 * @description Protocol display name
+                                 * @example Aave V3
+                                 */
+                                protocol?: string;
+                                /**
+                                 * @description Chain display name
+                                 * @example Ethereum
+                                 */
+                                chain?: string;
+                                /** @description The supplied collateral position */
+                                collateral?: {
+                                    /**
+                                     * @description Collateral pool id (UUID)
+                                     * @example ef8c5c38-6a41-4383-9dc8-6fb31e69a0c9
+                                     */
+                                    id?: string;
+                                    /**
+                                     * @description Stable pool key of the collateral pool
+                                     * @example 0xfa1fdbbd71b0aa16162d76914d69cd8cb3ef92da-lido
+                                     */
+                                    pool_key?: string;
+                                    /** @example https://app.aave.com/reserve-overview/?underlyingAsset=0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2&marketName=proto_lido_v3 */
+                                    url?: string | null;
+                                    /** @description Token supplied as collateral */
+                                    token?: {
+                                        /** @example 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 */
+                                        address?: string;
+                                        /** @example WETH */
+                                        symbol?: string | null;
+                                        /** @example 18 */
+                                        decimals?: number | null;
+                                    };
+                                    /**
+                                     * @description Maximum loan-to-value as a fraction (0.84 = 84%)
+                                     * @example 0.84
+                                     */
+                                    loan_to_value?: number | null;
+                                    /**
+                                     * @description Total supplied to the collateral pool, in USD
+                                     * @example 35187139
+                                     */
+                                    total_supply_usd?: number | null;
+                                    /** @description Supply APY in percent earned on the collateral */
+                                    apy?: {
+                                        /** @description Latest observed values */
+                                        current?: {
+                                            /**
+                                             * @description Organic APY in percent, excluding incentive rewards
+                                             * @example 1.56065
+                                             */
+                                            base?: number | null;
+                                            /**
+                                             * @description APY in percent from incentive token emissions; null when there are none
+                                             * @example null
+                                             */
+                                            reward?: number | null;
+                                            /**
+                                             * @description base plus reward, in percent
+                                             * @example 1.56065
+                                             */
+                                            total?: number | null;
+                                        };
+                                        /** @description Trailing 7-day average */
+                                        avg_7d?: {
+                                            /**
+                                             * @description Organic APY in percent, excluding incentive rewards
+                                             * @example 1.48621
+                                             */
+                                            base?: number | null;
+                                            /**
+                                             * @description APY in percent from incentive token emissions; null when there are none
+                                             * @example null
+                                             */
+                                            reward?: number | null;
+                                            /**
+                                             * @description base plus reward, in percent
+                                             * @example 1.48621
+                                             */
+                                            total?: number | null;
+                                        };
+                                        /** @description Trailing 30-day average */
+                                        avg_30d?: {
+                                            /**
+                                             * @description Organic APY in percent, excluding incentive rewards
+                                             * @example 1.46718
+                                             */
+                                            base?: number | null;
+                                            /**
+                                             * @description APY in percent from incentive token emissions; null when there are none
+                                             * @example null
+                                             */
+                                            reward?: number | null;
+                                            /**
+                                             * @description base plus reward, in percent
+                                             * @example 1.46718
+                                             */
+                                            total?: number | null;
+                                        };
+                                    };
+                                    /** @description Intrinsic yield of the collateral token. Intrinsic yield is reported separately and is NOT included in the base/reward/total APY. Null when there is no intrinsic yield source. */
+                                    intrinsic?: {
+                                        /** @description Intrinsic APY in percent */
+                                        apy?: {
+                                            /** @description Latest observed value */
+                                            current?: {
+                                                /** @example 3.11 */
+                                                base?: number | null;
+                                            };
+                                            /** @description Trailing 7-day average */
+                                            avg_7d?: {
+                                                /** @example 3.05 */
+                                                base?: number | null;
+                                            };
+                                            /** @description Trailing 30-day average */
+                                            avg_30d?: {
+                                                /** @example 3.02 */
+                                                base?: number | null;
+                                            };
+                                        };
+                                        source_pool?: {
+                                            /**
+                                             * @description Earn pool the intrinsic yield is sourced from
+                                             * @example 747c1d2a-c668-4682-b9f9-296708a3dd90
+                                             */
+                                            id?: string;
+                                            /**
+                                             * @description Address of the yield-bearing token
+                                             * @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84
+                                             */
+                                            pool_token?: string;
+                                            /** @example stETH */
+                                            symbol?: string | null;
+                                        };
+                                    } | null;
+                                    /** @description Incentive tokens emitted to the collateral side; empty when there are none */
+                                    reward_tokens?: {
+                                        /** @example 0xd533a949740bb3306d119cc777fa900ba034cd52 */
+                                        address?: string;
+                                        /** @example CRV */
+                                        symbol?: string | null;
+                                        /** @example 18 */
+                                        decimals?: number | null;
+                                    }[];
+                                };
+                                /** @description The borrowed debt position */
+                                borrow?: {
+                                    /**
+                                     * @description Debt market id (UUID)
+                                     * @example effcb4a4-4dcb-45e5-935d-f15542c13e6b
+                                     */
+                                    id?: string;
+                                    /**
+                                     * @description Stable pool key of the debt market
+                                     * @example 0x2a1fbcb52ed4d9b23dad17e1e8aed4bb0e6079b8-lido
+                                     */
+                                    pool_key?: string;
+                                    /** @example https://app.aave.com/reserve-overview/?underlyingAsset=0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&marketName=proto_lido_v3 */
+                                    url?: string | null;
+                                    /** @description Token borrowed */
+                                    token?: {
+                                        /** @example 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48 */
+                                        address?: string;
+                                        /** @example USDC */
+                                        symbol?: string | null;
+                                        /** @example 6 */
+                                        decimals?: number | null;
+                                    };
+                                    /**
+                                     * @description Total borrowed from the market, in USD
+                                     * @example 3377912
+                                     */
+                                    total_borrow_usd?: number | null;
+                                    /**
+                                     * @description Liquidity still available to borrow, in USD
+                                     * @example 1838568
+                                     */
+                                    available_borrow_usd?: number | null;
+                                    /** @description Borrow cost APY in percent. Reward emissions reduce the cost, so total = base - reward and can be negative */
+                                    cost_apy?: {
+                                        /** @description Latest observed values */
+                                        current?: {
+                                            /**
+                                             * @description Organic APY in percent, excluding incentive rewards
+                                             * @example 3.8712
+                                             */
+                                            base?: number | null;
+                                            /**
+                                             * @description APY in percent from incentive token emissions; null when there are none
+                                             * @example null
+                                             */
+                                            reward?: number | null;
+                                            /**
+                                             * @description base minus reward, in percent; negative means the borrower is net paid
+                                             * @example 3.8712
+                                             */
+                                            total?: number | null;
+                                        };
+                                        /** @description Trailing 7-day average */
+                                        avg_7d?: {
+                                            /**
+                                             * @description Organic APY in percent, excluding incentive rewards
+                                             * @example 3.895
+                                             */
+                                            base?: number | null;
+                                            /**
+                                             * @description APY in percent from incentive token emissions; null when there are none
+                                             * @example null
+                                             */
+                                            reward?: number | null;
+                                            /**
+                                             * @description base minus reward, in percent; negative means the borrower is net paid
+                                             * @example 3.895
+                                             */
+                                            total?: number | null;
+                                        };
+                                        /** @description Trailing 30-day average */
+                                        avg_30d?: {
+                                            /**
+                                             * @description Organic APY in percent, excluding incentive rewards
+                                             * @example 3.89527
+                                             */
+                                            base?: number | null;
+                                            /**
+                                             * @description APY in percent from incentive token emissions; null when there are none
+                                             * @example null
+                                             */
+                                            reward?: number | null;
+                                            /**
+                                             * @description base minus reward, in percent; negative means the borrower is net paid
+                                             * @example 3.89527
+                                             */
+                                            total?: number | null;
+                                        };
+                                    };
+                                    /** @description Intrinsic yield of the borrowed token. Borrowing a yield-bearing token adds this rate to the effective borrow cost, since the debt appreciates by it. Intrinsic yield is reported separately and is NOT included in the base/reward/total APY. Null when there is no intrinsic yield source. */
+                                    intrinsic?: {
+                                        /** @description Intrinsic APY in percent */
+                                        apy?: {
+                                            /** @description Latest observed value */
+                                            current?: {
+                                                /** @example 3.11 */
+                                                base?: number | null;
+                                            };
+                                            /** @description Trailing 7-day average */
+                                            avg_7d?: {
+                                                /** @example 3.05 */
+                                                base?: number | null;
+                                            };
+                                            /** @description Trailing 30-day average */
+                                            avg_30d?: {
+                                                /** @example 3.02 */
+                                                base?: number | null;
+                                            };
+                                        };
+                                        source_pool?: {
+                                            /**
+                                             * @description Earn pool the intrinsic yield is sourced from
+                                             * @example 747c1d2a-c668-4682-b9f9-296708a3dd90
+                                             */
+                                            id?: string;
+                                            /**
+                                             * @description Address of the yield-bearing token
+                                             * @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84
+                                             */
+                                            pool_token?: string;
+                                            /** @example stETH */
+                                            symbol?: string | null;
+                                        };
+                                    } | null;
+                                    /** @description Incentive tokens emitted to the borrow side; empty when there are none */
+                                    reward_tokens?: {
+                                        /** @example 0xd533a949740bb3306d119cc777fa900ba034cd52 */
+                                        address?: string;
+                                        /** @example CRV */
+                                        symbol?: string | null;
+                                        /** @example 18 */
+                                        decimals?: number | null;
+                                    }[];
+                                };
+                                /** @description Net APY in percent: collateral supply APY minus borrow cost. Keyed by APY composition: read the leaf matching the APY components you consume (base, base + reward, base + intrinsic, base + reward + intrinsic). */
+                                net_apy?: {
+                                    /** @description Latest observed values */
+                                    current?: {
+                                        /** @example -2.31055 */
+                                        base?: number | null;
+                                        /** @example -2.31055 */
+                                        base_reward?: number | null;
+                                        /** @example -2.31055 */
+                                        base_intrinsic?: number | null;
+                                        /** @example -2.31055 */
+                                        base_reward_intrinsic?: number | null;
+                                    };
+                                    /** @description Trailing 7-day average */
+                                    avg_7d?: {
+                                        /** @example -2.40879 */
+                                        base?: number | null;
+                                        /** @example -2.40879 */
+                                        base_reward?: number | null;
+                                        /** @example -2.40879 */
+                                        base_intrinsic?: number | null;
+                                        /** @example -2.40879 */
+                                        base_reward_intrinsic?: number | null;
+                                    };
+                                    /** @description Trailing 30-day average */
+                                    avg_30d?: {
+                                        /** @example -2.42809 */
+                                        base?: number | null;
+                                        /** @example -2.42809 */
+                                        base_reward?: number | null;
+                                        /** @example -2.42809 */
+                                        base_intrinsic?: number | null;
+                                        /** @example -2.42809 */
+                                        base_reward_intrinsic?: number | null;
+                                    };
+                                };
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/yields/v2/loops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve the latest data for all loop strategies
+         * @description Leveraged looping opportunities: supply a token, borrow against it and re-supply, repeated `loop_count` times at the market maximum loan-to-value. `loop_apy.total` is the resulting net APY at that leverage; `leverage` reports the accumulated supply and borrow multipliers relative to the initial capital. Borrow reward emissions offset the borrowing cost, so looped APY can exceed the plain supply APY substantially.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Array of all loop strategies */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: {
+                                /**
+                                 * @description Collateral pool id (UUID)
+                                 * @example f2e554c5-2099-46cf-9fa6-918fb41a3297
+                                 */
+                                id?: string;
+                                /** @description Display strings for listings */
+                                display?: {
+                                    /**
+                                     * @description Market variant label; null when there is only one market
+                                     * @example null
+                                     */
+                                    detail?: string | null;
+                                };
+                                /**
+                                 * @description Protocol display name
+                                 * @example Scallop Lend
+                                 */
+                                protocol?: string;
+                                /**
+                                 * @description Chain display name
+                                 * @example Sui
+                                 */
+                                chain?: string;
+                                /** @description Token being looped (supplied and borrowed) */
+                                token?: {
+                                    /** @example 0x0041f9f9344cac094454cd574e333c4fdb132d7bcc9379bcd4aab485b2a63942::wbtc::wbtc */
+                                    address?: string;
+                                    /** @example WBTC */
+                                    symbol?: string | null;
+                                    /** @example 8 */
+                                    decimals?: number | null;
+                                };
+                                /**
+                                 * @description Market page on the protocol app
+                                 * @example https://app.scallop.io/
+                                 */
+                                url?: string | null;
+                                /**
+                                 * @description Maximum loan-to-value as a fraction (0.7 = 70%)
+                                 * @example 0.7
+                                 */
+                                loan_to_value?: number | null;
+                                /**
+                                 * @description Total supplied to the market, in USD
+                                 * @example 99384
+                                 */
+                                total_supply_usd?: number | null;
+                                /**
+                                 * @description Total borrowed from the market, in USD
+                                 * @example 40704
+                                 */
+                                total_borrow_usd?: number | null;
+                                /**
+                                 * @description Liquidity still available to borrow, in USD
+                                 * @example 58680
+                                 */
+                                available_borrow_usd?: number | null;
+                                /** @description Unlevered supply APY in percent */
+                                supply_apy?: {
+                                    /** @description Latest observed values */
+                                    current?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.50779
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.50779
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 7-day average */
+                                    avg_7d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.38329
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.38329
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 30-day average */
+                                    avg_30d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 2.35421
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example null
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base plus reward, in percent
+                                         * @example 2.35421
+                                         */
+                                        total?: number | null;
+                                    };
+                                };
+                                /** @description Borrow cost APY in percent. Reward emissions reduce the cost, so total = base - reward and can be negative */
+                                borrow_cost_apy?: {
+                                    /** @description Latest observed values */
+                                    current?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 7.852
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example 21.73055
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base minus reward, in percent; negative means the borrower is net paid
+                                         * @example -13.87855
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 7-day average */
+                                    avg_7d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 7.74822
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example 38.54927
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base minus reward, in percent; negative means the borrower is net paid
+                                         * @example -30.80105
+                                         */
+                                        total?: number | null;
+                                    };
+                                    /** @description Trailing 30-day average */
+                                    avg_30d?: {
+                                        /**
+                                         * @description Organic APY in percent, excluding incentive rewards
+                                         * @example 7.70641
+                                         */
+                                        base?: number | null;
+                                        /**
+                                         * @description APY in percent from incentive token emissions; null when there are none
+                                         * @example 25.32701
+                                         */
+                                        reward?: number | null;
+                                        /**
+                                         * @description base minus reward, in percent; negative means the borrower is net paid
+                                         * @example -17.6206
+                                         */
+                                        total?: number | null;
+                                    };
+                                };
+                                /** @description Looped position APY */
+                                loop_apy?: {
+                                    /**
+                                     * @description Number of borrow/re-supply iterations
+                                     * @example 5
+                                     */
+                                    loop_count?: number | null;
+                                    /**
+                                     * @description Net APY in percent of the looped position at loop_count iterations
+                                     * @example 34.31646
+                                     */
+                                    total?: number | null;
+                                };
+                                /** @description Accumulated leverage after loop_count iterations */
+                                leverage?: {
+                                    /**
+                                     * @description Total supplied relative to initial capital
+                                     * @example 2.94117
+                                     */
+                                    supply_multiplier?: number | null;
+                                    /**
+                                     * @description Total borrowed relative to initial capital
+                                     * @example 1.94117
+                                     */
+                                    borrow_multiplier?: number | null;
+                                };
+                                /** @description Intrinsic yield of the looped token. Intrinsic yield is reported separately and is NOT included in the base/reward/total APY. Null when there is no intrinsic yield source. */
+                                intrinsic?: {
+                                    /** @description Intrinsic APY in percent */
+                                    apy?: {
+                                        /** @description Latest observed value */
+                                        current?: {
+                                            /** @example 3.11 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 7-day average */
+                                        avg_7d?: {
+                                            /** @example 3.05 */
+                                            base?: number | null;
+                                        };
+                                        /** @description Trailing 30-day average */
+                                        avg_30d?: {
+                                            /** @example 3.02 */
+                                            base?: number | null;
+                                        };
+                                    };
+                                    source_pool?: {
+                                        /**
+                                         * @description Earn pool the intrinsic yield is sourced from
+                                         * @example 747c1d2a-c668-4682-b9f9-296708a3dd90
+                                         */
+                                        id?: string;
+                                        /**
+                                         * @description Address of the yield-bearing token
+                                         * @example 0xae7ab96520de3a18e5e111b5eaab095312d7fe84
+                                         */
+                                        pool_token?: string;
+                                        /** @example stETH */
+                                        symbol?: string | null;
+                                    };
+                                } | null;
+                                /** @description Incentive tokens per market side; empty arrays when there are none */
+                                reward_tokens?: {
+                                    /** @description Incentive tokens emitted to the supply side */
+                                    supply?: {
+                                        /** @example 0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::scallop_sca */
+                                        address?: string;
+                                        /** @example sSCA */
+                                        symbol?: string | null;
+                                        /** @example 9 */
+                                        decimals?: number | null;
+                                    }[];
+                                    /** @description Incentive tokens emitted to the borrow side */
+                                    borrow?: {
+                                        /** @example 0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::scallop_sca */
+                                        address?: string;
+                                        /** @example sSCA */
+                                        symbol?: string | null;
+                                        /** @example 9 */
+                                        decimals?: number | null;
+                                    }[];
+                                };
+                            }[];
+                        };
                     };
                 };
             };
@@ -10193,7 +12085,7 @@ export interface paths {
         };
         /**
          * Get financial dimensions for a company
-         * @description Returns time-series financial dimension metrics (such as revenue, holders revenue, and earnings) for the given ticker, each broken down into annual and quarterly series. Every data point is a two-element array: ISO 8601 period-ending date, then the numeric value. Series are sorted by date descending (newest first).
+         * @description Returns time-series financial dimension metrics (revenue, holders revenue, earnings, and basic shares outstanding) for the given ticker, each broken down into annual and quarterly series. Every data point is a two-element array: ISO 8601 period-ending date, then the numeric value. Series are sorted by date descending (newest first).
          */
         get: {
             parameters: {
@@ -10272,7 +12164,7 @@ export interface paths {
         };
         /**
          * Get historical price data for a company
-         * @description Returns daily closing prices as two-element arrays: ISO 8601 date-time string, then numeric price. Sorted by date descending (newest first).
+         * @description Returns closing prices as two-element arrays: ISO 8601 date-time string, then numeric price. Sorted by date descending (newest first). Resolution follows `timeframe`: `1D`, `7D` and `1W` are 5-minute intraday bars whose date-time carries a real time of day, while `1M` and longer are daily closes stamped `T00:00:00Z`.
          */
         get: {
             parameters: {
@@ -10281,8 +12173,8 @@ export interface paths {
                     ticker: string;
                     /** @description Two-letter country code (ISO 3166-1 alpha-2) for the company, as returned by `GET /equities/v1/companies-list` (case-insensitive). */
                     country: string;
-                    /** @description Optional lookback window (case-insensitive). Omit or empty for full history (`MAX`). */
-                    timeframe?: "1W" | "1M" | "6M" | "1Y" | "5Y" | "MAX";
+                    /** @description Optional lookback window (case-insensitive). `1D` returns the most recent trading session and `7D`/`1W` (aliases) the last 7 days, both at 5-minute resolution; `1M` and longer are daily. `YTD` runs from January 1 of the current year. Omit or empty for full history (`MAX`). Intraday coverage is best-effort — a ticker without intraday data falls back to daily bars, and `1D` then returns the single most recent daily bar. */
+                    timeframe?: "1D" | "7D" | "1W" | "1M" | "3M" | "6M" | "YTD" | "1Y" | "5Y" | "MAX";
                 };
                 header?: never;
                 path?: never;
@@ -10310,9 +12202,13 @@ export interface paths {
                             error?: string;
                             /**
                              * @example [
+                             *       "1D",
+                             *       "7D",
                              *       "1W",
                              *       "1M",
+                             *       "3M",
                              *       "6M",
+                             *       "YTD",
                              *       "1Y",
                              *       "5Y",
                              *       "MAX"
@@ -10362,7 +12258,7 @@ export interface paths {
         };
         /**
          * Get OHLCV candle data for a company
-         * @description Returns daily OHLCV bars as six-number arrays: Unix timestamp in seconds (UTC), open, high, low, close, volume. Sorted by time descending (newest first). Optional `timeframe` filters how far back data goes; omit or empty for full history (`MAX`).
+         * @description Returns OHLCV bars as six-number arrays: Unix timestamp in seconds (UTC), open, high, low, close, volume. Sorted by time descending (newest first). Optional `timeframe` controls both how far back data goes and the bar resolution: `1D`, `7D` and `1W` return 5-minute bars, `1M` and longer return daily bars. Omit or empty for full history (`MAX`).
          */
         get: {
             parameters: {
@@ -10371,8 +12267,8 @@ export interface paths {
                     ticker: string;
                     /** @description Two-letter country code (ISO 3166-1 alpha-2) for the company, as returned by `GET /equities/v1/companies-list` (case-insensitive). */
                     country: string;
-                    /** @description Optional lookback window (case-insensitive). Same values as price history. Omit or empty for full history (`MAX`). */
-                    timeframe?: "1W" | "1M" | "6M" | "1Y" | "5Y" | "MAX";
+                    /** @description Optional lookback window (case-insensitive), same values as price history. `1D` returns the most recent trading session and `7D`/`1W` (aliases) the last 7 days, both as 5-minute bars; `1M` and longer are daily bars. `YTD` runs from January 1 of the current year. Omit or empty for full history (`MAX`). Intraday coverage is best-effort — a ticker without intraday data falls back to daily bars. */
+                    timeframe?: "1D" | "7D" | "1W" | "1M" | "3M" | "6M" | "YTD" | "1Y" | "5Y" | "MAX";
                 };
                 header?: never;
                 path?: never;
@@ -10400,9 +12296,13 @@ export interface paths {
                             error?: string;
                             /**
                              * @example [
+                             *       "1D",
+                             *       "7D",
                              *       "1W",
                              *       "1M",
+                             *       "3M",
                              *       "6M",
+                             *       "YTD",
                              *       "1Y",
                              *       "5Y",
                              *       "MAX"
@@ -10672,6 +12572,768 @@ export interface paths {
                 };
                 /** @description Internal server error */
                 500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/equities/v1/onchain": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get on-chain tradeable markets for a company
+         * @description Returns where the stock can be traded on-chain: `perps` are perpetual futures markets across exchanges, and `tokens` are tokenised-equity issuers. This is a live snapshot refreshed hourly and no history is kept. On-chain data is only collected for US-listed tickers, so a ticker in another market comes back with empty `perps` and `tokens` arrays rather than an error.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Stock ticker symbol (case-insensitive) */
+                    ticker: string;
+                    /** @description Two-letter country code (ISO 3166-1 alpha-2) for the company, as returned by `GET /equities/v1/companies-list` (case-insensitive). */
+                    country: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful operation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Perpetual futures markets tracking the stock. */
+                            perps?: {
+                                /**
+                                 * @description Market pair as the venue names it.
+                                 * @example AAPL-USDC
+                                 */
+                                pair?: string;
+                                /**
+                                 * @description Last traded price of the contract, in USD.
+                                 * @example 307.86
+                                 */
+                                price?: number | null;
+                                /**
+                                 * @description 24 hour volume, in USD.
+                                 * @example 1823545.15
+                                 */
+                                volume24h?: number | null;
+                                /**
+                                 * @description Open interest, in USD.
+                                 * @example 24278916.49
+                                 */
+                                openInterest?: number | null;
+                                /**
+                                 * @description Annualised funding rate, in percent, so `-70.13` is -70.13% a year. Negative means shorts pay longs.
+                                 * @example -70.13
+                                 */
+                                annualizedFundingRate?: number | null;
+                                /**
+                                 * @description Direct link to the market on the venue.
+                                 * @example https://app.hyperliquid.xyz/trade/xyz:AAPL
+                                 */
+                                tradeUrl?: string;
+                                /**
+                                 * @description DefiLlama market identifier, `{venue}:{symbol}`.
+                                 * @example xyz:AAPL
+                                 */
+                                contractSlug?: string;
+                                /**
+                                 * @description DefiLlama protocol slug for the exchange, when it has one.
+                                 * @example hyperliquid-perps
+                                 */
+                                exchangeProtocolSlug?: string;
+                                /**
+                                 * @description DefiLlama RWA platform slug for the venue, when it has one.
+                                 * @example trade-xyz
+                                 */
+                                rwaPlatformSlug?: string;
+                                /**
+                                 * @description Whether the venue is a centralised or an on-chain exchange.
+                                 * @example DEX
+                                 * @enum {string}
+                                 */
+                                exchangeType?: "CEX" | "DEX";
+                                /**
+                                 * Format: date-time
+                                 * @description When this market was last refreshed.
+                                 * @example 2026-06-07T10:04:21Z
+                                 */
+                                updatedAt?: string;
+                            }[];
+                            /** @description Tokenised equity products tracking the stock. */
+                            tokens?: {
+                                /**
+                                 * @description Legal entity issuing the tokenised share, not the listed company.
+                                 * @example Backed Assets (JE) Limited
+                                 */
+                                issuer?: string;
+                                /**
+                                 * @description DefiLlama RWA platform slug for the issuer.
+                                 * @example backed-finance
+                                 */
+                                issuerRwaPlatformSlug?: string;
+                                /**
+                                 * @description Token price, in USD.
+                                 * @example 308.7
+                                 */
+                                price?: number | null;
+                                /**
+                                 * @description Token symbol as the issuer lists it.
+                                 * @example AAPLx
+                                 */
+                                assetSlug?: string;
+                                /**
+                                 * @description Market cap of the token across active markets, in USD. `null` when no market reports one.
+                                 * @example 30068771
+                                 */
+                                activeMarketcap?: number | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Missing required `ticker` or `country` */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description On-chain data not found for ticker */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Internal server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pre-ipo/v1/companies-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get list of all tracked pre-IPO companies
+         * @description Returns every private company in the pre-IPO registry with its latest estimated valuation and derived funding metrics. Use this to discover valid `company` ids for the other pre-IPO endpoints. Companies come back in registry order, so the list is not sorted by valuation.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful operation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: date-time
+                             * @description When this snapshot was generated.
+                             * @example 2026-08-26T08:58:51.554Z
+                             */
+                            updatedAt?: string;
+                            data?: {
+                                /**
+                                 * @description Company id. Pass this as the `company` query parameter on the other pre-IPO endpoints.
+                                 * @example anthropic
+                                 */
+                                id?: string;
+                                /** @example Anthropic */
+                                name?: string;
+                                /** @example Anthropic is an AI safety and research company founded by former OpenAI executives, including siblings Dario and Daniela Amodei. */
+                                description?: string;
+                                /** @example https://anthropic.com */
+                                website?: string;
+                                /** @example Artificial Intelligence */
+                                sector?: string;
+                                /**
+                                 * @description Most recent monthly secondary-market estimate, in USD. Falls back to the latest funding round post-money valuation when no marketplace lists the company.
+                                 * @example 1377871934500
+                                 */
+                                latestEstimatedValuation?: number | null;
+                                /**
+                                 * @description Amount raised in the most recent funding round, in USD.
+                                 * @example 3566564608
+                                 */
+                                latestRaise?: number | null;
+                                /**
+                                 * @description Post-money valuation of the most recent funding round, in USD.
+                                 * @example 964999970816
+                                 */
+                                latestFundingValuation?: number | null;
+                                /**
+                                 * Format: date
+                                 * @example 2026-05-28
+                                 */
+                                latestFundingDate?: string | null;
+                                /**
+                                 * Format: date
+                                 * @description Date of the most recent secondary mark behind `latestEstimatedValuation`.
+                                 * @example 2026-08-25
+                                 */
+                                lastValuationDate?: string | null;
+                                /**
+                                 * @description Sum of all disclosed funding rounds, in USD.
+                                 * @example 52036464736
+                                 */
+                                totalRaised?: number | null;
+                                /**
+                                 * @description Change in the secondary estimate against the same month a year earlier, in percent. `null` when the company has no secondary marks.
+                                 * @example 715.68
+                                 */
+                                valuationChange1YPercentage?: number | null;
+                                /**
+                                 * @description Premium of the secondary estimate over the latest round post-money valuation, in percent. `null` when the company has no secondary marks.
+                                 * @example 42.78
+                                 */
+                                premiumVsLatestFundingPercentage?: number | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pre-ipo/v1/valuations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get valuation history for a pre-IPO company
+         * @description Returns one aggregated valuation point per calendar month, oldest first. Within a month every source's marks are averaged and then the source averages are averaged, so a source that reports daily does not outvote one that reports monthly. Points are rounded to the nearest 100 and dated `YYYY-MM-01`; months with no data are skipped, and the current month is month-to-date.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Company id from `GET /pre-ipo/v1/companies-list` (case-insensitive). The display `name` is not accepted. */
+                    company: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful operation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: date-time
+                             * @description When this snapshot was generated.
+                             * @example 2026-08-26T08:58:51.554Z
+                             */
+                            updatedAt?: string;
+                            /**
+                             * @example [
+                             *       {
+                             *         "date": "2026-06-01",
+                             *         "estimatedValuation": 1412295009600
+                             *       },
+                             *       {
+                             *         "date": "2026-07-01",
+                             *         "estimatedValuation": 1414523445700
+                             *       },
+                             *       {
+                             *         "date": "2026-08-01",
+                             *         "estimatedValuation": 1377871934500
+                             *       }
+                             *     ]
+                             */
+                            data?: {
+                                /**
+                                 * Format: date
+                                 * @description First day of the month the point covers.
+                                 * @example 2026-08-01
+                                 */
+                                date?: string;
+                                /**
+                                 * @description Aggregated valuation estimate for that month, in USD.
+                                 * @example 1377871934500
+                                 */
+                                estimatedValuation?: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unknown `company`, or no snapshot has been generated for it yet. The pre-IPO section is served as static files, so anything other than `200` means there is no such file. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pre-ipo/v1/raises": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get funding rounds for a pre-IPO company
+         * @description Returns disclosed funding rounds, oldest first. The same round is usually reported by several sources with different dates and amounts, so rounds are reconciled before being served: each cluster collapses to one canonical raise taking the earliest date, the median amount, the median valuation, and the highest-ranked series label.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Company id from `GET /pre-ipo/v1/companies-list` (case-insensitive). The display `name` is not accepted. */
+                    company: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful operation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: date-time
+                             * @description When this snapshot was generated.
+                             * @example 2026-08-26T08:58:51.554Z
+                             */
+                            updatedAt?: string;
+                            /**
+                             * @example [
+                             *       {
+                             *         "date": "2025-09-02",
+                             *         "amountRaised": 420020512,
+                             *         "valuation": 183000006656,
+                             *         "series": "Series F-2"
+                             *       },
+                             *       {
+                             *         "date": "2026-02-12",
+                             *         "amountRaised": 30600000000,
+                             *         "valuation": 380000000000,
+                             *         "series": "Series G"
+                             *       },
+                             *       {
+                             *         "date": "2026-05-28",
+                             *         "amountRaised": 3566564608,
+                             *         "valuation": 964999970816,
+                             *         "series": "Series H-4"
+                             *       }
+                             *     ]
+                             */
+                            data?: {
+                                /**
+                                 * Format: date
+                                 * @description Date the round was announced.
+                                 * @example 2026-05-28
+                                 */
+                                date?: string;
+                                /**
+                                 * @description Amount raised in the round, in USD.
+                                 * @example 3566564608
+                                 */
+                                amountRaised?: number;
+                                /**
+                                 * @description Post-money valuation of the round, in USD. `null` when no source disclosed one.
+                                 * @example 964999970816
+                                 */
+                                valuation?: number | null;
+                                /**
+                                 * @description Round label, for example `Series C` or `Series H-4`.
+                                 * @example Series H-4
+                                 */
+                                series?: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unknown `company`, or no snapshot has been generated for it yet. The pre-IPO section is served as static files, so anything other than `200` means there is no such file. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pre-ipo/v1/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get profile and latest valuation for a pre-IPO company
+         * @description Returns the company profile together with its latest estimated valuation and its most recent funding round.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Company id from `GET /pre-ipo/v1/companies-list` (case-insensitive). The display `name` is not accepted. */
+                    company: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful operation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: date-time
+                             * @description When this snapshot was generated.
+                             * @example 2026-08-26T08:58:51.554Z
+                             */
+                            updatedAt?: string;
+                            data?: {
+                                /** @example anthropic */
+                                id?: string;
+                                /** @example Anthropic */
+                                name?: string;
+                                /** @example Anthropic is an AI safety and research company founded by former OpenAI executives, including siblings Dario and Daniela Amodei. */
+                                description?: string;
+                                /**
+                                 * @description Short-form company summary. Currently identical to `description`.
+                                 * @example Anthropic is an AI safety and research company founded by former OpenAI executives, including siblings Dario and Daniela Amodei.
+                                 */
+                                summary?: string;
+                                /** @example https://anthropic.com */
+                                website?: string;
+                                /** @example Artificial Intelligence */
+                                sector?: string;
+                                /**
+                                 * @description Most recent monthly secondary-market estimate, in USD. Falls back to the latest funding round post-money valuation when no marketplace lists the company.
+                                 * @example 1377871934500
+                                 */
+                                latestEstimatedValuation?: number | null;
+                                /**
+                                 * Format: date
+                                 * @example 2026-08-25
+                                 */
+                                lastValuationDate?: string | null;
+                                /** @description Most recent funding round, or `null` when no round is on record. */
+                                latestRaise?: {
+                                    /**
+                                     * Format: date
+                                     * @description Date the round was announced.
+                                     * @example 2026-05-28
+                                     */
+                                    date?: string;
+                                    /**
+                                     * @description Amount raised in the round, in USD.
+                                     * @example 3566564608
+                                     */
+                                    amountRaised?: number;
+                                    /**
+                                     * @description Post-money valuation of the round, in USD. `null` when no source disclosed one.
+                                     * @example 964999970816
+                                     */
+                                    valuation?: number | null;
+                                    /**
+                                     * @description Round label, for example `Series C` or `Series H-4`.
+                                     * @example Series H-4
+                                     */
+                                    series?: string;
+                                } | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unknown `company`, or no snapshot has been generated for it yet. The pre-IPO section is served as static files, so anything other than `200` means there is no such file. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pre-ipo/v1/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get tradeable markets for a pre-IPO company
+         * @description Returns where the company can actually be traded right now: perpetual futures venues and tokenised-share issuers. A pre-IPO perp settles in stablecoins against the venue's reference price, so no shares change hands and the same company can trade at a slightly different price on every venue. This is a live snapshot refreshed hourly and no history is kept. Every company in the registry gets a response: one with no listings returns empty `perps` and `tokenIssuers` arrays rather than a miss.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Company id from `GET /pre-ipo/v1/companies-list` (case-insensitive). The display `name` is not accepted. */
+                    company: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successful operation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: date-time
+                             * @description When this snapshot was generated.
+                             * @example 2026-08-26T08:58:51.554Z
+                             */
+                            updatedAt?: string;
+                            /**
+                             * @example {
+                             *       "perps": [
+                             *         {
+                             *           "exchangeName": "Gate",
+                             *           "platformSlug": "gate",
+                             *           "defillamaContract": "gate:ANDURIL_USDT",
+                             *           "exchangeType": "CEX",
+                             *           "openInterest": 53713.26,
+                             *           "volume": 1889,
+                             *           "price": 129.83,
+                             *           "annualizedFundingRate": 0,
+                             *           "tradeUrl": "https://www.gate.com/futures/USDT/ANDURIL_USDT",
+                             *           "estimatedValuation": 129830000000
+                             *         }
+                             *       ],
+                             *       "tokenIssuers": [
+                             *         {
+                             *           "issuerName": "PreStocks",
+                             *           "slug": "prestocks",
+                             *           "backing": "SPV interest",
+                             *           "productUrl": "https://prestocks.com/anduril",
+                             *           "price": 137.47,
+                             *           "marketCap": 1406088.07,
+                             *           "estimatedValuation": 111741315858
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            data?: {
+                                /** @description Perpetual futures markets tracking the company. */
+                                perps?: {
+                                    /** @example Gate */
+                                    exchangeName?: string;
+                                    /**
+                                     * @description DefiLlama slug for the venue.
+                                     * @example gate
+                                     */
+                                    platformSlug?: string;
+                                    /**
+                                     * @description DefiLlama market identifier, `{venue}:{pair}`.
+                                     * @example gate:ANDURIL_USDT
+                                     */
+                                    defillamaContract?: string;
+                                    /**
+                                     * @description Whether the venue is a centralised or an on-chain exchange.
+                                     * @example CEX
+                                     * @enum {string}
+                                     */
+                                    exchangeType?: "CEX" | "DEX";
+                                    /**
+                                     * @description Open interest, in USD.
+                                     * @example 53713.26
+                                     */
+                                    openInterest?: number | null;
+                                    /**
+                                     * @description 24 hour volume, in USD.
+                                     * @example 1889
+                                     */
+                                    volume?: number | null;
+                                    /**
+                                     * @description Last traded price of the contract, in USD.
+                                     * @example 129.83
+                                     */
+                                    price?: number;
+                                    /**
+                                     * @description Annualised funding rate, in percent, so `5.2` is 5.2% a year. Negative means shorts pay longs.
+                                     * @example 0
+                                     */
+                                    annualizedFundingRate?: number | null;
+                                    /** @example https://www.gate.com/futures/USDT/ANDURIL_USDT */
+                                    tradeUrl?: string;
+                                    /**
+                                     * @description Company valuation implied by this venue's price, in USD.
+                                     * @example 129830000000
+                                     */
+                                    estimatedValuation?: number | null;
+                                }[];
+                                /** @description Tokenised exposure to the company's private shares. */
+                                tokenIssuers?: {
+                                    /**
+                                     * @description The token issuer, not the private company.
+                                     * @example PreStocks
+                                     */
+                                    issuerName?: string;
+                                    /**
+                                     * @description DefiLlama RWA platform slug for the issuer, when it has one.
+                                     * @example prestocks
+                                     */
+                                    slug?: string | null;
+                                    /**
+                                     * @description What the token is a claim on, ordered from the most direct claim on the underlying shares to the least. `Direct shares` and `Trust-held SPV` are asset-backed and bankruptcy-remote, `SPV interest` is asset-backed but held one layer removed through a vehicle, and `Unsecured note` and `Synthetic` are not asset-backed at all.
+                                     * @example SPV interest
+                                     * @enum {string}
+                                     */
+                                    backing?: "Direct shares" | "Trust-held SPV" | "SPV interest" | "Unsecured note" | "Synthetic";
+                                    /** @example https://prestocks.com/anduril */
+                                    productUrl?: string;
+                                    /**
+                                     * @description Token price, in USD.
+                                     * @example 137.47
+                                     */
+                                    price?: number;
+                                    /**
+                                     * @description Market cap of the token, in USD. Only populated for issuers that publish one.
+                                     * @example 1406088.07
+                                     */
+                                    marketCap?: number | null;
+                                    /**
+                                     * @description Company valuation implied by the token price, in USD.
+                                     * @example 111741315858
+                                     */
+                                    estimatedValuation?: number | null;
+                                }[];
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unknown `company`, or no snapshot has been generated for it yet. The pre-IPO section is served as static files, so anything other than `200` means there is no such file. */
+                502: {
                     headers: {
                         [name: string]: unknown;
                     };

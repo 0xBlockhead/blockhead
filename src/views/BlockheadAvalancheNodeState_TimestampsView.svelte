@@ -29,13 +29,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					nodeVersion: true,
-					networkName: true,
-					connectedPeerCount: true,
-				},
+			fields: {
+				timestampMs: true,
+				nodeVersion: true,
+				networkName: true,
+				connectedPeerCount: true,
 			},
 		})
 	}

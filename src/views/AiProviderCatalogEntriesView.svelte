@@ -29,13 +29,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					entryLabel: true,
-					catalogKind: true,
-					providerEntryId: true,
-					subjectKind: true,
-				},
+			fields: {
+				entryLabel: true,
+				catalogKind: true,
+				providerEntryId: true,
+				subjectKind: true,
 			},
 		})
 	}

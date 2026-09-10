@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -29,15 +30,7 @@ const network = {
 		reference: '1',
 	},
 } as const
-const emptyContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const emptyContext = createResolverContext()
 
 const nativeBalanceRow = {
 	chain: 'ethereum',
@@ -118,7 +111,7 @@ describe('Allium_Rest balance observations', () => {
 				[entityFieldAddressKey(EntityType.EvmNetworkActorCoinBalance_Timestamp, [], 'priceUsd')]: 3200,
 			},
 		}])
-		expect(balanceResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(balanceResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 
 		const observation = await balanceTimestampResolver.resolve.ActorCoinTimestampMsSource.resolve({
 			$actorCoin: {

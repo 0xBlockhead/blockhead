@@ -26,7 +26,9 @@ import {
 import {
 	classifyMappedSelector,
 	classifySourceClaim,
+	compileSourceClaimBindingCoverage,
 	compileObservationTimeAccountability,
+	dualBindingDeclarationGaps,
 	indexAccountabilityAuthority,
 	MappedSelectorAccountability,
 	ObservationTimeProvenance,
@@ -37,6 +39,7 @@ import {
 	type ObservationTimeWriter,
 	type MappedSelectorAccountabilityRow,
 	type SourceClaimAccountabilityRow,
+	type SourceClaimBindingCoverageRow,
 } from './accountability.ts'
 
 import {
@@ -371,6 +374,7 @@ export type CompiledApp = Readonly<{
 
 export type CompiledSourceAccountability = Readonly<{
 	claims: readonly SourceClaimAccountabilityRow[]
+	bindingCoverage: readonly SourceClaimBindingCoverageRow[]
 	mappedSelectors: readonly MappedSelectorAccountabilityRow[]
 }>
 
@@ -381,6 +385,11 @@ export type CompiledSourceClaim = Readonly<{
 	facetPath: readonly string[]
 	fieldName?: string
 	publicRoute?: string
+	conditions?: readonly Readonly<{
+		prop?: string
+		field?: string
+		equals: string | number | boolean
+	}>[]
 }>
 
 const repoRoot = process.cwd()
@@ -1869,6 +1878,19 @@ const sourceSelectionSources = (
 	]
 )
 
+const sourceSelectionClaims = (
+	selection: readonly string[] | _SourceSelection
+) => Array.isArray(selection) ?
+	selection.map((source) => ({ source }))
+:
+	[
+		...selection.default.map((source) => ({ source })),
+		...(selection.cases ?? []).flatMap(({ when, sources }) => sources.map((source) => ({
+			source,
+			conditions: when,
+		}))),
+	]
+
 const compileSourceClaims = (
 	entities: readonly Entity[],
 	facetEntries: readonly EntityFacetEntry[],
@@ -1894,12 +1916,13 @@ const compileSourceClaims = (
 	})))),
 	...physicalRouteFiles.flatMap((routeFile) => routeFile.kind !== 'page' ? [] : [
 		...routeFile.mappings.flatMap((mapping) => mapping.sourceSelection == null ? [] : (
-			sourceSelectionSources(mapping.sourceSelection).map((source) => ({
+			sourceSelectionClaims(mapping.sourceSelection).map(({ source, conditions }) => ({
 				source,
 				entityType: mapping.entityType,
 				selectorName: mapping.selectorName,
 				facetPath: [] as readonly string[],
 				publicRoute: publicRouteId(routeFile.appRoutePath),
+				...(conditions == null ? {} : { conditions }),
 			}))
 		)),
 		...routeFile.collections.flatMap((collection) => {
@@ -1923,12 +1946,13 @@ const compileSourceClaims = (
 			if (field == null || terminalFieldOwner == null)
 				return []
 
-			return sourceSelectionSources(collection.query.sources).map((source) => ({
+			return sourceSelectionClaims(collection.query.sources).map(({ source, conditions }) => ({
 				source,
 				entityType: terminalFieldOwner.entityType,
 				facetPath,
 				fieldName: field.name,
 				publicRoute: publicRouteId(routeFile.appRoutePath),
+				...(conditions == null ? {} : { conditions }),
 			}))
 		}),
 	]),
@@ -1938,14 +1962,21 @@ const compileSourceClaims = (
 // that deliberately have no authored page and therefore express resolver-only
 // capability rather than public route demand.
 const compileMappedSelectorFacts = (
-	routeNodes: readonly RouteNode[]
-) => routeNodes.flatMap((node) => routeNodeSelectorMappings(node).map((mapping) => ({
-	entityType: mapping.entityType,
-	selectorName: mapping.selectorName,
-	route: publicRouteId(node.svelteKitPath),
-	authoredPage: mapping.page !== false,
-	sources: mapping.sourceSelection == null ? [] : sourceSelectionSources(mapping.sourceSelection),
-})))
+	routeNodes: readonly RouteNode[],
+	physicalRouteFiles: readonly CompiledPhysicalRouteFileFacts[]
+) => {
+	const pageRoutes = new Set(physicalRouteFiles.flatMap((routeFile) => (
+		routeFile.kind === 'page' ? [routeFile.appRoutePath] : []
+	)))
+
+	return routeNodes.flatMap((node) => routeNodeSelectorMappings(node).map((mapping) => ({
+		entityType: mapping.entityType,
+		selectorName: mapping.selectorName,
+		route: publicRouteId(node.svelteKitPath),
+		authoredPage: mapping.page !== false && pageRoutes.has(node.svelteKitPath.replace(/^\//, '')),
+		sources: mapping.sourceSelection == null ? [] : sourceSelectionSources(mapping.sourceSelection),
+	})))
+}
 
 const sourceSelectionConditionFields = (
 	selection: _SourceSelection
@@ -6236,6 +6267,7 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		sourceBindings: compiledSourceBindings.map(({ source, binding }) => ({
 			source,
 			delivery: binding.delivery,
+			target: binding.target,
 		})),
 		resolverModules,
 		fieldSourcedEntityTypes,
@@ -6244,9 +6276,11 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		// generator must not infer it from schema edges alone.
 		referenceMaterializedEntityTypes: new Set(),
 	})
+	const classifiedSourceClaims = sourceClaims.map((claim) => classifySourceClaim(claim, accountabilityAuthority))
 	const sourceAccountability = {
-		claims: sourceClaims.map((claim) => classifySourceClaim(claim, accountabilityAuthority)),
-		mappedSelectors: compileMappedSelectorFacts(indexedRouteNodes)
+		claims: classifiedSourceClaims,
+		bindingCoverage: compileSourceClaimBindingCoverage(classifiedSourceClaims),
+		mappedSelectors: compileMappedSelectorFacts(indexedRouteNodes, physicalRouteFiles)
 			.map((mapping) => classifyMappedSelector(mapping, accountabilityAuthority)),
 	}
 	const observationTimeWriters = observationTimeWriterManifest(resolverModules)
@@ -6397,6 +6431,7 @@ const generateFiles = (compiledApp: CompiledAppFacts): GeneratedFile[] => {
 				],
 			}
 		),
+		...generateSourceBindingFiles(compiledApp),
 		generateSourceProvidersFile(sourceProviderNames),
 		generateSourceServerCredentialsFile(indexes.sourceBindings),
 		...generateSourceSelectionFiles(sourceSelections),
@@ -7444,6 +7479,79 @@ export function mergeSourceBindingIndexes(
 }`),
 		],
 	}
+)
+
+const emitSourceBindingValue = (
+	source: string,
+	binding: SourceBinding
+) => {
+	const emitCredential = (credential: SourceBinding['credentials'][number]) => emitObject([
+		['scope', enumAccess('SourceCredentialScope', credential.scope)],
+		...('env' in credential && credential.env != null ? [['env', 'arktype(' + emitObject(credential.env.keys.map((key) => [key.name, emitTypeScript(key.type)])) + ')'] as const] : []),
+		...('keys' in credential && credential.keys != null ? [['keys', emitArray(credential.keys.map(emitTypeScript))] as const] : []),
+	])
+
+	const emitEndpoint = (endpoint: SourceBinding['endpoints'][number]) => emitObject([
+		['endpointKind', enumAccess('SourceEndpointKind', endpoint.endpointKind)],
+		['locator', emitTypeScript(endpoint.locator)],
+		...(endpoint.corsEnabled == null ? [] : [['corsEnabled', String(endpoint.corsEnabled)] as const]),
+	])
+
+	const emitArtifact = (artifact: NonNullable<SourceBinding['artifacts']>[number]) => emitObject([
+		['kind', enumAccess('SourceArtifactKind', artifact.kind)],
+		['path', emitTypeScript(artifact.path)],
+		...(artifact.generated == null ? [] : [['generated', 'true'] as const]),
+		...('officialUrl' in artifact && artifact.officialUrl != null ? [['officialUrl', emitTypeScript(artifact.officialUrl)] as const] : []),
+		...('referenceUrl' in artifact && artifact.referenceUrl != null ? [['referenceUrl', emitTypeScript(artifact.referenceUrl)] as const] : []),
+	])
+
+	return emitObject([
+		['source', enumAccess('Source', source)],
+		['target', emitObject([
+			['kind', enumAccess('SourceTargetKind', binding.target.kind)],
+			['key', emitTypeScript(binding.target.key)],
+		])],
+		['endpoints', emitArray(binding.endpoints.map(emitEndpoint))],
+		['wireProtocol', enumAccess('WireProtocol', binding.wireProtocol)],
+		['apiFamily', enumAccess('ApiFamily', binding.apiFamily)],
+		['operationGroups', emitArray(binding.operationGroups.map((operationGroup) => enumAccess('SourceOperationGroup', operationGroup)))],
+		['delivery', enumAccess('SourceDelivery', binding.delivery)],
+		['credentials', emitArray(binding.credentials.map(emitCredential))],
+		...(binding.artifacts == null ? [] : [['artifacts', emitArray(binding.artifacts.map(emitArtifact))] as const]),
+	])
+}
+
+const generateSourceBindingFiles = (compiledApp: CompiledAppFacts) => (
+	[...Map.groupBy(compiledApp.sourceBindings, ({ source }) => compiledApp.sourceDefinitionById[source].provider)]
+		.toSorted(([left], [right]) => left.localeCompare(right, 'en'))
+		.map(([provider, bindings]) => tsFile(
+			`src/sources/${provider}/bindings.ts`,
+			{
+				imports: [
+					{ from: '$/sources/Source.ts', names: ['Source'] },
+					...(bindings.some(({ binding }) => binding.credentials.some((credential) => 'env' in credential && credential.env != null)) ? [
+						{ from: 'arktype', names: ['type as arktype'] },
+					] : []),
+					{
+						from: '$/sources/SourceBinding.ts',
+						names: [
+							'ApiFamily',
+							'indexSourceBindings',
+							'SourceDelivery',
+							'SourceEndpointKind',
+							'SourceOperationGroup',
+							'SourceTargetKind',
+							'WireProtocol',
+							...(bindings.some(({ binding }) => binding.credentials.length > 0) ? ['SourceCredentialScope'] : []),
+							...(bindings.some(({ binding }) => binding.artifacts != null) ? ['SourceArtifactKind'] : []),
+						],
+					},
+				],
+				body: [
+					`export default indexSourceBindings(${emitArray(bindings.map(({ source, binding }) => emitSourceBindingValue(source, binding)))})`,
+				],
+			}
+		))
 )
 
 const generateSourceProvidersFile = (sourceProviderNames: readonly string[]) => tsFile(
@@ -13054,14 +13162,19 @@ const generatePluralViewPlan = (entity: Entity, indexes: GenerationIndexes) => {
 		]))})`
 		:
 		undefined
-	const renderedQuery = emitObject([
-		...(query === '{}' ? [] : [{ spread: query }]),
-		['sources', selectedSourcesExpression],
-		...(filterWhereExpression == null ? [] : [{
-			spread: `${filters.map((filter) => `${filter.prop} == null`).join(' && ')} ? {} : { where: ({ row }) => ${filterWhereExpression} }`,
-		}]),
-		['limit', pluralView?.query?.limit?.default == null ? undefined : 'limit'],
-	])
+	const renderedQuery = (
+		selectedSourcesExpression == null && filterWhereExpression == null && pluralView?.query?.limit?.default == null ?
+			query
+		:
+			emitObject([
+				...(query === '{}' ? [] : [{ spread: query }]),
+				['sources', selectedSourcesExpression],
+				...(filterWhereExpression == null ? [] : [{
+					spread: `${filters.map((filter) => `${filter.prop} == null`).join(' && ')} ? {} : { where: ({ row }) => ${filterWhereExpression} }`,
+				}]),
+				['limit', pluralView?.query?.limit?.default == null ? undefined : 'limit'],
+			])
+	)
 	const itemSelectorName = `${entityValueName}Selector`
 	const itemFieldsName = `${entityValueName}Fields`
 	const itemFieldsExpression = rowProjectionPaths.length === 0 ? entityValueName : itemFieldsName
@@ -15599,11 +15712,14 @@ const checkGeneratedViewImportsResolve = async (files: readonly GeneratedFile[])
 // `node --import tsx scripts/app/generate.ts accountability`.
 const renderAccountabilityReport = ({
 	claims,
+	bindingCoverage,
 	mappedSelectors,
 }: CompiledSourceAccountability) => [
 	...Object.entries(Object.groupBy(claims, (row) => `${row.demand}/${row.access}/${row.executability}`))
 		.map(([key, rows]) => `claim ${key}: ${rows?.length ?? 0}`)
 		.toSorted((left, right) => left.localeCompare(right, 'en')),
+	`binding coordinates: ${bindingCoverage.length}`,
+	`binding coordinates below required two: ${dualBindingDeclarationGaps(bindingCoverage).length}`,
 	...Object.entries(Object.groupBy(mappedSelectors, (row) => row.accountability))
 		.map(([key, rows]) => `selector ${key}: ${rows?.length ?? 0}`)
 		.toSorted((left, right) => left.localeCompare(right, 'en')),

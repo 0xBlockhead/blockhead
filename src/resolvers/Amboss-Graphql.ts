@@ -1,4 +1,7 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolverContext,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -255,6 +258,22 @@ const ambossChannelListOffset = (
 	return offset
 }
 
+const popularLightningNodeRows = async (
+	$network: NetworkId,
+	context: ResolverContext,
+) => {
+	assertLightningNetwork($network)
+	const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
+	return (await getPopularNodePubkeys())
+		.slice(0, resolverContextRowLimit(context))
+		.map((publicKey) => ({
+			[EntityMetaKey.Selector]: {
+				$network,
+				publicKey,
+			},
+		}))
+}
+
 const peerPublicKeyFromAmbossChannel = (
 	publicKey: string,
 	channel: {
@@ -488,23 +507,28 @@ export default {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				Network: {
-					resolve: async ({ $network }, context) => {
-						assertLightningNetwork($network)
-						const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
-						const pubkeys = await getPopularNodePubkeys()
-						return pubkeys
-							.slice(0, resolverContextRowLimit(context))
-							.map((publicKey) => ({
-								[EntityMetaKey.Selector]: {
-									$network,
-									publicKey,
-								},
-							}))
-					},
+					resolve: async ({ $network }, context) => (
+						popularLightningNodeRows($network, context)
+					),
 				}
 			},
 		})({
 			$$nodes: (snapshot) => snapshot,
+		}),
+
+		defineResolver({
+			entityType: EntityType.Network,
+			resolve: {
+				Slug: {
+					resolve: async (network, context) => (
+						popularLightningNodeRows(network, context)
+					),
+				}
+			},
+		})({
+			Lightning: {
+				$$nodes: (snapshot) => snapshot,
+			},
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

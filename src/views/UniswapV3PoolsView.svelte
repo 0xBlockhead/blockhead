@@ -29,16 +29,14 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Voltaire_JsonRpc,
-					Source.UniswapContracts_Evm,
-				],
-				fields: {
-					poolAddress: true,
-					fee: true,
-					$network: true,
-				},
+			sources: selection.sources ?? [
+				Source.Voltaire_JsonRpc,
+				Source.UniswapContracts_Evm,
+			],
+			fields: {
+				poolAddress: true,
+				fee: true,
+				$network: true,
 			},
 		})
 	}

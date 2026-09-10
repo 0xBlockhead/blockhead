@@ -29,16 +29,14 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.SafeTransactionService_Rest,
-				],
-				fields: {
-					safeTxHash: true,
-					operation: true,
-					isExecuted: true,
-					$safe: true,
-				},
+			sources: selection.sources ?? [
+				Source.SafeTransactionService_Rest,
+			],
+			fields: {
+				safeTxHash: true,
+				operation: true,
+				isExecuted: true,
+				$safe: true,
 			},
 		})
 	}

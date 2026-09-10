@@ -14,6 +14,10 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getBlock = vi.hoisted(() => vi.fn())
+const remoteBlockTimestamp = vi.hoisted(() => vi.fn())
+vi.mock('$/sources/Avail/JsonRpc/queries.remote.ts', () => ({
+	getBlockTimestamp: remoteBlockTimestamp,
+}))
 const getBlockHash = vi.hoisted(() => vi.fn())
 const getBlockTimestamp = vi.hoisted(() => vi.fn())
 const getDataProof = vi.hoisted(() => vi.fn())
@@ -119,6 +123,30 @@ beforeEach(() => {
 })
 
 describe('Avail JsonRpc resolver', () => {
+	it('routes browser timestamps through the bridge with operation arguments only', async () => {
+		const resolver = avail.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.AvailBlock
+			&& 'NetworkBlockHash' in candidate.resolve
+			&& 'timestampMs' in candidate.projections
+		))
+		if (resolver == null || !('NetworkBlockHash' in resolver.resolve))
+			throw new Error('Missing Avail block timestamp resolver')
+
+		remoteBlockTimestamp.mockResolvedValueOnce(1_787_225_800_000)
+		vi.stubGlobal('window', {})
+		try {
+			const result = await resolver.resolve.NetworkBlockHash.resolve({
+				$network: { $network: { slug: 'avail' } },
+				blockHash: hash,
+			}, context)
+			expect(resolver.projections.timestampMs(result)).toBe(1_787_225_800_000)
+			expect(remoteBlockTimestamp).toHaveBeenCalledExactlyOnceWith(hash)
+			expect(getBlockTimestamp).not.toHaveBeenCalled()
+		} finally {
+			vi.unstubAllGlobals()
+		}
+	})
+
 	it('materializes exact block proof under the native submission owner', async () => {
 		getHeaderByBlockNumber.mockResolvedValue(header)
 		getFinalizedHead.mockResolvedValue({

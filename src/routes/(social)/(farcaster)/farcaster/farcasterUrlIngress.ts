@@ -122,11 +122,12 @@ export const verifyFarcasterIngressCast = (
 	}
 ) => {
 	const hash = cast.hash.toLowerCase()
+	const fid = cast.author?.fid
 	if (
 		!fullHashPattern.test(hash)
 		|| !hash.startsWith(ingress.hashPrefix)
-		|| cast.author?.fid == null
-		|| !Number.isSafeInteger(cast.author.fid)
+		|| fid == null
+		|| !Number.isSafeInteger(fid)
 		|| (
 			ingress.username !== undefined
 			&& cast.author.username?.toLowerCase() !== ingress.username
@@ -135,7 +136,7 @@ export const verifyFarcasterIngressCast = (
 		throw new Error('Farcaster lookup result does not match the requested URL')
 
 	return {
-		fid: cast.author.fid,
+		fid,
 		hash,
 	}
 }

@@ -1,7 +1,8 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
@@ -27,7 +28,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Graphql,
 		apiFamily: ApiFamily.GraphqlHttp,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
 		artifacts: [

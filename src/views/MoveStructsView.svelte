@@ -28,13 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					structName: true,
-					isEvent: true,
-					isNative: true,
-					$module: true,
-				},
+			fields: {
+				structName: true,
+				isEvent: true,
+				isNative: true,
+				$module: true,
 			},
 		})
 	}

@@ -1,7 +1,8 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
@@ -29,7 +30,7 @@ export default indexSourceBindings([
 		apiFamily: ApiFamily.RestJson,
 		operationGroups: [
 			SourceOperationGroup.EcashMintOperations,
-			...genericReadOperationGroups,
+			SourceOperationGroup.GenericRead,
 		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],

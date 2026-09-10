@@ -177,7 +177,7 @@ describe('LI.FI transfer status resolvers', () => {
 				source: Source.Lifi_Rest,
 			},
 		}])
-		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(resolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	})
 
 	it('resolves source-tx selectors with fromChain and canonical transactionId', async () => {

@@ -28,14 +28,12 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					displayDenom: true,
-					baseDenom: true,
-					traceKey: true,
-					denomHash: true,
-					sourceChannel: true,
-				},
+			fields: {
+				displayDenom: true,
+				baseDenom: true,
+				traceKey: true,
+				denomHash: true,
+				sourceChannel: true,
 			},
 		})
 	}

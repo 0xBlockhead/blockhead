@@ -119,24 +119,27 @@
 				</dd>
 			</div>
 
-			<div>
-				<dt>Price feed address</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									priceFeedAddress: true,
-								},
-							})
-						}
-					>
-						{#snippet children(entity)}
-							<TruncatedValue value={entity.priceFeedAddress} />
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							priceFeedAddress: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const priceFeedAddress = entity.priceFeedAddress}
+					{#if priceFeedAddress != null}
+						<div>
+							<dt>Price feed address</dt>
+							<dd>
+								<TruncatedValue value={priceFeedAddress} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<div>
 				<dt>Decimals</dt>

@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { entityFieldAddressKey, EntityMetaKey } from '$/schema/$schema.ts'
@@ -55,15 +56,7 @@ vi.mock('$/sources/Blockscout/Rest/queries.ts', async (importOriginal) => ({
 
 const { default: blockscoutRest } = await import('$/resolvers/Blockscout-Rest.ts')
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 const network = {
 	caip2: {
 		namespace: 'eip155',

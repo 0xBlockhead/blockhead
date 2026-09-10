@@ -1,7 +1,8 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceDelivery,
 	SourceEndpointKind,
@@ -26,7 +27,9 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Xrpc,
 		apiFamily: ApiFamily.AtprotoSync,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
@@ -48,6 +51,48 @@ export default indexSourceBindings([
 			SourceOperationGroup.GenericSubscribe,
 		],
 		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+	},
+	{
+		source: Source.AtprotoSync_Xrpc,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'atproto-plc-directory',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://plc.directory',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.RemoteQuery,
+		credentials: [],
+	},
+	{
+		source: Source.AtprotoSync_Xrpc,
+		target: {
+			kind: SourceTargetKind.Global,
+			key: 'atproto-did-web',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://{did-web-host}',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.RestJson,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
+		delivery: SourceDelivery.RemoteQuery,
 		credentials: [],
 	},
 ])

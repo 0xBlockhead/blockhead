@@ -7,6 +7,56 @@ import {
 
 test.setTimeout(180_000)
 
+test('native resource switches A to B and rejects a retired source notification', async ({ page }, testInfo) => {
+	const events: string[] = []
+	page.on('console', (message) => {
+		if (message.text().startsWith('[native-subscription] '))
+			events.push(message.text().slice('[native-subscription] '.length))
+	})
+	await openRoute(page)
+	await page.getByRole('button', { name: 'Start native A', exact: true }).click()
+	for (const surface of ['native-direct', 'native-awaited', 'native-boundary'])
+		await expect(page.getByTestId(surface)).toHaveText('Value A')
+	await expect.poll(() => events.join(', ')).toBe('subscribe lifecycle-a')
+	await page.getByRole('button', { name: 'Switch native A to B', exact: true }).click()
+	await expect.poll(() => events.join(', ')).toBe('subscribe lifecycle-a, unsubscribe lifecycle-a, subscribe lifecycle-b')
+	await page.getByRole('button', { name: 'Seed native B', exact: true }).click()
+	for (const surface of ['native-direct', 'native-awaited', 'native-boundary'])
+		await expect(page.getByTestId(surface)).toHaveText('Value B')
+	expect(events.join(', ')).toBe('subscribe lifecycle-a, unsubscribe lifecycle-a, subscribe lifecycle-b')
+	await page.getByRole('button', { name: 'Deliver retired A notification', exact: true }).click()
+	await expect(page.getByTestId('native-retired-value')).toHaveText('Value A')
+	for (const surface of ['native-direct', 'native-awaited', 'native-boundary'])
+		await expect(page.getByTestId(surface)).toHaveText('Updated B')
+	expect(events.join(', ')).toBe('subscribe lifecycle-a, unsubscribe lifecycle-a, subscribe lifecycle-b')
+	await page.getByRole('region', { name: 'Native subscription lifecycle' }).screenshot({
+		path: testInfo.outputPath('native-subscription-lifecycle.png'),
+	})
+	await page.getByRole('button', { name: 'Hide native consumer', exact: true }).click()
+	await expect(page.getByTestId('native-boundary')).toHaveCount(0)
+	await expect.poll(() => events.join(', ')).toBe('subscribe lifecycle-a, unsubscribe lifecycle-a, subscribe lifecycle-b, unsubscribe lifecycle-b')
+})
+
+test('native resource selector changes isolate a pending result before live updates', async ({ page }) => {
+	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
+	await openRoute(page)
+	await page.getByRole('button', { name: 'Start pending native A', exact: true }).click()
+	await expect(page.getByTestId('native-direct')).toHaveText('')
+	await expect(page.getByTestId('native-boundary')).toHaveCount(0)
+
+	await page.getByRole('button', { name: 'Switch native A to B', exact: true }).click()
+	await expect(page.getByTestId('native-direct')).toHaveText('')
+	await expect(page.getByTestId('native-boundary')).toHaveCount(0)
+
+	await page.getByRole('button', { name: 'Seed native B', exact: true }).click()
+	for (const surface of ['native-direct', 'native-awaited', 'native-boundary'])
+		await expect(page.getByTestId(surface)).toHaveText('Value B')
+	await expect(page.getByRole('button', { name: 'Hide native consumer', exact: true })).toBeVisible()
+	await page.getByRole('button', { name: 'Hide native consumer', exact: true }).click()
+	await expect(page.getByTestId('native-boundary')).toHaveCount(0)
+	expectNoWarnings()
+})
+
 const svelteReactivityMessages = [
 	'await_reactivity_loss',
 	'derived_inert',
@@ -59,7 +109,7 @@ test('ResourceBoundary remounts a cached resource through the await surface', as
 	expectNoWarnings()
 })
 
-test('ResourceBoundary updates from a mock TanStackLiveQueryResource snapshot', async ({ page }) => {
+test('ResourceBoundary updates from a mock TanStackLiveQueryResource snapshot', async ({ page }, testInfo) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await openRoute(page)
 	await expect(sectionLoading(page, 'selected-boundary-section')).toHaveCount(2)
@@ -83,6 +133,10 @@ test('ResourceBoundary updates from a mock TanStackLiveQueryResource snapshot', 
 	await expect(page.getByTestId('selected-boundary-value')).toHaveText('Updated selected value')
 	await expect(page.getByTestId('selected-boundary-value-secondary')).toHaveText('Updated selected value')
 	await expect(page.getByTestId('selected-awaited-value')).toHaveText('Updated selected value')
+	await page.screenshot({
+		path: testInfo.outputPath('resource-boundary-live-replacement.png'),
+		fullPage: true,
+	})
 	expectNoWarnings()
 })
 

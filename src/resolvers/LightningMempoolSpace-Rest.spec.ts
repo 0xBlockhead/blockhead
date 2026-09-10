@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import {
 	EntityMetaKey,
@@ -31,15 +32,10 @@ vi.mock('$/sources/LightningMempoolSpace/Rest/queries.ts', () => ({
 const { default: lightningMempoolSpaceRest } = await import('$/resolvers/LightningMempoolSpace-Rest.ts')
 
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 1,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const lightningNetwork = {

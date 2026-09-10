@@ -84,7 +84,10 @@ export const routeProbeCaseParams = (probeCase: {
 
 const pathnamesFromMetadata = (metadata: E2eRouteFixtureMetadata) => {
 	const probeCases = metadata.mappings.flatMap(routeProbeCasesForMapping)
-	const selectedCases = process.env.E2E_ROUTE_VARIANTS === 'all' ? probeCases : probeCases.slice(0, 1)
+	const variantMode = process.env.E2E_ROUTE_VARIANTS?.trim() || 'all'
+	if (variantMode !== 'all' && variantMode !== 'first')
+		throw new Error('E2E_ROUTE_VARIANTS must be all or first')
+	const selectedCases = variantMode === 'first' ? probeCases.slice(0, 1) : probeCases
 	if (selectedCases.length === 0)
 		throw new Error(`${metadata.routeId} has no generated route probe cases`)
 

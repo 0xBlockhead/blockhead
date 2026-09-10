@@ -27,13 +27,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					chainName: true,
-					chainAlias: true,
-					vmId: true,
-					blockchainId: true,
-				},
+			fields: {
+				chainName: true,
+				chainAlias: true,
+				vmId: true,
+				blockchainId: true,
 			},
 		})
 	}

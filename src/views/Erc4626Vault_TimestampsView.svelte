@@ -26,11 +26,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					apyTotal: true,
-				},
+			fields: {
+				timestampMs: true,
+				apyTotal: true,
 			},
 		})
 	}

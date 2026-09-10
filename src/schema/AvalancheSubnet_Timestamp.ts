@@ -39,7 +39,7 @@ export default entity({
 		],
 	},
 	delegatorCount: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.AvalanchePlatformVm_JsonRpc,
@@ -53,14 +53,14 @@ export default entity({
 		],
 	},
 	chainCount: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.AvalanchePlatformVm_JsonRpc,
 		],
 	},
 	pendingValidatorCount: {
-		primitiveType: type('number'),
+		primitiveType: type('number.integer >= 0'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.AvalanchePlatformVm_JsonRpc,

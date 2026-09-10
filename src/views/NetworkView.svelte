@@ -262,12 +262,6 @@
 		], pendingEntity)
 	)
 
-	const avalanchePlatformVmJsonRpcSources = $derived(
-		networkApplicableSources([
-			Source.AvalanchePlatformVm_JsonRpc,
-		], pendingEntity)
-	)
-
 	const suiSources = $derived(
 		networkApplicableSources([
 			Source.Sui,
@@ -5385,77 +5379,65 @@
 			resource={selection.Avalanche}
 		>
 			{#snippet Applicable(projection)}
-				{@const avalancheChainActivitySections = [
-						...(
-							avalanchePlatformVmJsonRpcSources.length > 0 ?
-								[
-									{
-										id: 'avalanche-chain-blocks',
-										label: 'Blocks',
-									},
-								]
-							:
-								[]
-						),
-						...(
-							avalanchePlatformVmJsonRpcSources.length > 0 ?
-								[
-									{
-										id: 'avalanche-chain-subnets',
-										label: 'Subnets',
-									},
-								]
-							:
-								[]
-						),
-					]}
+				<CollapsibleTabs
+					id={viewDomId + '-carousel-avalanche-chain-activity'}
+					sectionIdPrefix={viewDomId}
+					sections={
+						[
+							{
+								id: 'avalanche-chain-blocks',
+								label: 'Blocks',
+							},
+							{
+								id: 'avalanche-chain-subnets',
+								label: 'Subnets',
+							},
+						]
+					}
+					data-card
+					class='network-view-collapsible-chain-activity'
+				>
+					{#snippet Summary()}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Chain activity</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#if avalancheChainActivitySections.length > 0}
-					<CollapsibleTabs
-						id={viewDomId + '-carousel-avalanche-chain-activity'}
-						sectionIdPrefix={viewDomId}
-						sections={avalancheChainActivitySections}
-						data-card
-						class='network-view-collapsible-chain-activity'
-					>
-						{#snippet Summary()}
-							<header data-row-item="flexible" data-row="wrap gap-4">
-								<HeadingComponent>Chain activity</HeadingComponent>
-							</header>
-						{/snippet}
+					{#snippet SectionAvalancheChainBlocks({ id, label })}
+						<AvalanchePChainBlocksView
+							selection={
+								projection
+								.$$blocks({
+									sources: [
+										Source.AvalanchePlatformVm_JsonRpc,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							id={`${id}-list`}
+						/>
+					{/snippet}
 
-						{#snippet SectionAvalancheChainBlocks({ id, label })}
-							<AvalanchePChainBlocksView
-								selection={
-									projection
-									.$$blocks({
-										sources: avalanchePlatformVmJsonRpcSources,
-										limit: 16,
-									})
-								}
-								collapsible={false}
-								title={label}
-								id={`${id}-list`}
-							/>
-						{/snippet}
+					{#snippet SectionAvalancheChainSubnets({ id, label })}
+						<AvalancheSubnetsView
+							selection={
+								projection
+								.$$subnets({
+									sources: [
+										Source.AvalanchePlatformVm_JsonRpc,
+									],
+									limit: 16,
+								})
+							}
+							collapsible={false}
+							title={label}
+							id={`${id}-list`}
+						/>
+					{/snippet}
 
-						{#snippet SectionAvalancheChainSubnets({ id, label })}
-							<AvalancheSubnetsView
-								selection={
-									projection
-									.$$subnets({
-										sources: avalanchePlatformVmJsonRpcSources,
-										limit: 16,
-									})
-								}
-								collapsible={false}
-								title={label}
-								id={`${id}-list`}
-							/>
-						{/snippet}
-
-					</CollapsibleTabs>
-				{/if}
+				</CollapsibleTabs>
 			{/snippet}
 		</ProjectionBoundary>
 
@@ -5983,11 +5965,13 @@
 			{#snippet Applicable(projection)}
 				{@const lightningNetworkGraphLightningNetworkObservationsSources = networkApplicableSources([
 						Source.LightningMempoolSpace_Rest,
+						Source.LightningLnd_Rest,
 					], pendingEntity)}
 
 				{@const lightningNetworkGraphLightningNetworkNodesSources = networkApplicableSources([
 						Source.LightningMempoolSpace_Rest,
 						Source.LightningLnd_Rest,
+						Source.Amboss_Graphql,
 					], pendingEntity)}
 
 				{@const lightningNetworkGraphSections = [

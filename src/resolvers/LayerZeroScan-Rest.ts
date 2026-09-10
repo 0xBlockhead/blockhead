@@ -276,7 +276,6 @@ export default {
 			transactionLatencyMs: (transfer) => transfer.transactionLatencyMs,
 			$$timestamps: {
 				select: (transfer) => transfer.$$timestamps,
-				resolveCount: (transfer) => transfer.$$timestamps.length,
 			},
 		}),
 

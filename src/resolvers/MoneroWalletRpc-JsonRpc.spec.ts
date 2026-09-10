@@ -6,6 +6,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import {
@@ -58,13 +59,10 @@ if (
 	throw new Error('Monero wallet resolvers missing')
 
 const context = {
-	filters: [],
-	sorts: [],
-	pagination: { limit: 8 },
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
+	...createResolverContext(),
+	pagination: {
+		limit: 8,
+	},
 }
 
 afterEach(() => {
@@ -160,6 +158,8 @@ describe('Monero local wallet journey', () => {
 				[entityFieldAddressKey(EntityType.BlockheadMoneroWalletState_Timestamp, [], 'balanceAtomicUnits')]: 12n,
 			},
 		})
+		expect(walletResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
+		expect(walletResolver.projections.$$timestamps.select(snapshot)).toEqual(snapshot.$$timestamps)
 		expect(snapshot.$$subaddresses[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				walletId: 'monero-wallet-rpc',

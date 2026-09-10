@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					classHash: true,
-					contractClassVersion: true,
-					declaredAtBlockNumber: true,
-				},
+			fields: {
+				classHash: true,
+				contractClassVersion: true,
+				declaredAtBlockNumber: true,
 			},
 		})
 	}

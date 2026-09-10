@@ -28,17 +28,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					timestampMs: true,
-					$token: {
-						fields: {
-							tokenType: true,
-							decimals: true,
-						},
+			fields: {
+				timestampMs: true,
+				$token: {
+					fields: {
+						tokenType: true,
+						decimals: true,
 					},
-					source: true,
 				},
+				source: true,
 			},
 		})
 	}

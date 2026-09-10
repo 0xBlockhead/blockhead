@@ -25,6 +25,12 @@ export enum SourceClaimExecutability {
 	ResolverMissing = 'ResolverMissing',
 }
 
+export enum SourceBindingTargetMatch {
+	Matches = 'Matches',
+	Differs = 'Differs',
+	Unknown = 'Unknown',
+}
+
 export enum MappedSelectorAccountability {
 	PublicRouteDemand = 'PublicRouteDemand',
 	PublicRouteResolverMissing = 'PublicRouteResolverMissing',
@@ -255,16 +261,33 @@ export type AccountabilityAuthority = Readonly<{
 	// reference field that materializes it as a child row of another entity.
 	fieldSourcedEntityTypes: ReadonlySet<string>
 	referenceMaterializedEntityTypes: ReadonlySet<string>
+	bindingsBySource: ReadonlyMap<string, readonly SourceBindingAuthority[]>
 }>
 
-export const sourceClaimAccountabilityKey = (claim: Pick<SourceClaimFacts, 'publicRoute' | 'source' | 'entityType' | 'selectorName' | 'facetPath' | 'fieldName'>) => JSON.stringify([
+export type SourceBindingAuthority = Readonly<{
+	source: string
+	delivery: string
+	target?: Readonly<{
+		kind: string
+		key: string
+	}>
+}>
+
+export const sourceClaimAccountabilityKey = (claim: Pick<SourceClaimFacts, 'publicRoute' | 'source' | 'entityType' | 'selectorName' | 'facetPath' | 'fieldName' | 'conditions'>) => JSON.stringify([
 	claim.publicRoute ?? null,
 	claim.source,
 	claim.entityType,
 	claim.selectorName ?? null,
 	claim.facetPath,
 	claim.fieldName ?? null,
+	claim.conditions ?? null,
 ])
+
+export type SourceClaimCondition = Readonly<{
+	prop?: string
+	field?: string
+	equals: string | number | boolean
+}>
 
 type SourceClaimFacts = Readonly<{
 	source: string
@@ -273,6 +296,8 @@ type SourceClaimFacts = Readonly<{
 	facetPath: readonly string[]
 	fieldName?: string
 	publicRoute?: string
+	target?: SourceBindingAuthority['target']
+	conditions?: readonly SourceClaimCondition[]
 }>
 
 type MappedSelectorFacts = Readonly<{
@@ -288,6 +313,27 @@ export type SourceClaimAccountabilityRow = SourceClaimFacts & Readonly<{
 	access: SourceAccess
 	deliveries: readonly string[]
 	executability: SourceClaimExecutability
+	bindingEvidence: readonly SourceClaimBindingEvidence[]
+}>
+
+export type SourceClaimBindingCoverageRow = Readonly<{
+	entityType: string
+	selectorName?: string
+	facetPath: readonly string[]
+	fieldName?: string
+	publicRoute?: string
+	conditions?: readonly SourceClaimCondition[]
+	sources: readonly string[]
+	declaredExecutableBindings: number
+	requiredBindings: 2
+}>
+
+export type SourceClaimBindingEvidence = Readonly<{
+	target?: SourceBindingAuthority['target']
+	delivery: string
+	deliverySupportsExecution: boolean
+	targetMatch: SourceBindingTargetMatch
+	verification: 'Unverified'
 }>
 
 export type MappedSelectorAccountabilityRow = MappedSelectorFacts & Readonly<{
@@ -327,10 +373,7 @@ export const indexAccountabilityAuthority = ({
 	fieldSourcedEntityTypes,
 	referenceMaterializedEntityTypes,
 }: {
-	sourceBindings: readonly {
-		source: string
-		delivery: string
-	}[]
+	sourceBindings: readonly SourceBindingAuthority[]
 	resolverModules: readonly {
 		source: string
 	}[]
@@ -355,12 +398,39 @@ export const indexAccountabilityAuthority = ({
 	resolverClaimKeys,
 	fieldSourcedEntityTypes,
 	referenceMaterializedEntityTypes,
+	bindingsBySource: Map.groupBy(sourceBindings, ({ source }) => source),
 })
 
 export const sourceAccess = (
 	source: string,
 	authority: AccountabilityAuthority
 ) => authority.accessBySource.get(source) ?? SourceAccess.Undeclared
+
+const bindingTargetMatch = (
+	claim: Pick<SourceClaimFacts, 'target'>,
+	binding: SourceBindingAuthority
+) => claim.target == null || binding.target == null ?
+	SourceBindingTargetMatch.Unknown
+:
+	claim.target.kind === binding.target.kind && claim.target.key === binding.target.key ?
+	SourceBindingTargetMatch.Matches
+:
+	SourceBindingTargetMatch.Differs
+
+export const sourceClaimBindingEvidence = (
+	claim: Pick<SourceClaimFacts, 'source' | 'target'>,
+	authority: AccountabilityAuthority
+): readonly SourceClaimBindingEvidence[] => (authority.bindingsBySource.get(claim.source) ?? [])
+	.map((binding) => {
+		const access = accessByDelivery.get(binding.delivery)
+		return {
+			...(binding.target == null ? {} : { target: binding.target }),
+			delivery: binding.delivery,
+			deliverySupportsExecution: access != null && access !== SourceAccess.NonExecutable,
+			targetMatch: bindingTargetMatch(claim, binding),
+			verification: 'Unverified',
+		}
+	})
 
 export const classifySourceClaim = (
 	claim: SourceClaimFacts,
@@ -374,7 +444,43 @@ export const classifySourceClaim = (
 		SourceClaimExecutability.ResolverDeclared
 	:
 		SourceClaimExecutability.ResolverMissing,
+	bindingEvidence: sourceClaimBindingEvidence(claim, authority),
 })
+
+const sourceClaimCoverageKey = (claim: SourceClaimFacts) => JSON.stringify([
+	claim.publicRoute ?? null,
+	claim.entityType,
+	claim.selectorName ?? null,
+	claim.facetPath,
+	claim.fieldName ?? null,
+	claim.conditions ?? null,
+])
+
+export const compileSourceClaimBindingCoverage = (
+	claims: readonly SourceClaimAccountabilityRow[]
+): readonly SourceClaimBindingCoverageRow[] => [...Map.groupBy(claims, sourceClaimCoverageKey).values()]
+	.map((group) => {
+		const first = group[0]
+		return {
+			entityType: first.entityType,
+			...(first.selectorName == null ? {} : { selectorName: first.selectorName }),
+			facetPath: first.facetPath,
+			...(first.fieldName == null ? {} : { fieldName: first.fieldName }),
+			...(first.publicRoute == null ? {} : { publicRoute: first.publicRoute }),
+			...(first.conditions == null ? {} : { conditions: first.conditions }),
+			sources: [...new Set(group.map(({ source }) => source))].toSorted(),
+			declaredExecutableBindings: group.reduce((count, claim) => count + claim.bindingEvidence.filter((binding) => (
+				binding.deliverySupportsExecution
+				&& binding.targetMatch !== SourceBindingTargetMatch.Differs
+			)).length, 0),
+			requiredBindings: 2,
+		}
+	})
+	.toSorted((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), 'en'))
+
+export const dualBindingDeclarationGaps = (
+	rows: readonly SourceClaimBindingCoverageRow[]
+) => rows.filter(({ declaredExecutableBindings, requiredBindings }) => declaredExecutableBindings < requiredBindings)
 
 const mappedSelectorAccountability = (
 	mapping: MappedSelectorFacts,

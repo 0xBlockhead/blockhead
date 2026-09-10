@@ -152,7 +152,7 @@ describe('Across BridgeTransfer resolvers', () => {
 				source: Source.Across_Rest,
 			},
 		}])
-		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(1)
+		expect(resolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	})
 
 	it('omits non-EVM destination refs for TRON spoke-pool deposits', async () => {
@@ -205,7 +205,7 @@ describe('Across BridgeTransfer resolvers', () => {
 		expect(snapshot.$destinationTx).toBeUndefined()
 		expect(snapshot.exclusiveRelayer).toBeUndefined()
 		expect(resolver.projections.$$timestamps.select(snapshot)).toEqual([])
-		expect(resolver.projections.$$timestamps.resolveCount(snapshot)).toBe(0)
+		expect(resolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	})
 
 	it('projects fill status, relayer, and destination hash from deposit lifecycle', async () => {
@@ -351,7 +351,7 @@ describe('Across BridgeTransfer resolvers', () => {
 
 		const snapshot = await transferResolver.resolve.SourceTransferId.resolve(transfer)
 		expect(transferResolver.projections.$$timestamps.select(snapshot)).toEqual([])
-		expect(transferResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(0)
+		expect(transferResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		await expect(observationResolver.resolve.TransferTimestampMsSource.resolve({
 			$transfer: transfer,
 			timestampMs: Date.parse(deposit.depositBlockTimestamp),
@@ -541,7 +541,7 @@ describe('Across BridgeTransfer resolvers', () => {
 
 		const snapshot = await transferResolver.resolve.SourceTransferId.resolve(transfer)
 		expect(transferResolver.projections.$$timestamps.select(snapshot)).toEqual([])
-		expect(transferResolver.projections.$$timestamps.resolveCount(snapshot)).toBe(0)
+		expect(transferResolver.projections.$$timestamps).not.toHaveProperty('resolveCount')
 		await expect(observationResolver.resolve.TransferTimestampMsSource.resolve({
 			$transfer: transfer,
 			timestampMs: Date.parse(deposit.depositBlockTimestamp),

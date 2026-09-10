@@ -23,11 +23,7 @@ describe('Dune REST client', () => {
 	})
 
 	it('routes authenticated reads and fails closed for upstream and credential errors', async () => {
-		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ ok: true }), {
-			headers: {
-				'content-type': 'application/json',
-			},
-		}))
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ ok: true }))
 		vi.stubGlobal('fetch', fetchMock)
 		vi.stubGlobal('window', {})
 

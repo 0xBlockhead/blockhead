@@ -31,16 +31,14 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					cid: true,
-					$nodeState: {
-						fields: {
-							endpoint: true,
-						},
+			fields: {
+				cid: true,
+				$nodeState: {
+					fields: {
+						endpoint: true,
 					},
-					firstSeenAt: true,
 				},
+				firstSeenAt: true,
 			},
 		})
 	}

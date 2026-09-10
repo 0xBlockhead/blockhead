@@ -200,7 +200,7 @@ paths:
     $ref: "./apis/validator/block.v4.yaml"
   /eth/v1/validator/attestation_data:
     $ref: "./apis/validator/attestation_data.yaml"
-  /eth/v1/validator/payload_attestation_data/{slot}:
+  /eth/v1/validator/payload_attestation_data:
     $ref: "./apis/validator/payload_attestation_data.yaml"
   /eth/v2/validator/aggregate_attestation:
     $ref: "./apis/validator/aggregate_attestation.v2.yaml"
@@ -224,6 +224,8 @@ paths:
     $ref: "./apis/validator/register_validator.yaml"
   /eth/v1/validator/proposer_preferences:
     $ref: "./apis/validator/proposer_preferences.yaml"
+  /eth/v1/validator/builder_preferences:
+    $ref: "./apis/validator/builder_preferences.yaml"
   /eth/v1/validator/liveness/{epoch}:
     $ref: "./apis/validator/liveness.yaml"
   /eth/v1/validator/execution_payload_bids/{slot}/{builder_index}:
@@ -475,10 +477,6 @@ components:
       $ref: "./types/gloas/execution_payload_envelope.yaml#/Gloas/SignedExecutionPayloadEnvelope"
     Gloas.SignedExecutionPayloadEnvelopeContents:
       $ref: "./types/gloas/execution_payload_envelope.yaml#/Gloas/SignedExecutionPayloadEnvelopeContents"
-    Gloas.BlindedExecutionPayloadEnvelope:
-      $ref: "./types/gloas/execution_payload_envelope.yaml#/Gloas/BlindedExecutionPayloadEnvelope"
-    Gloas.SignedBlindedExecutionPayloadEnvelope:
-      $ref: "./types/gloas/execution_payload_envelope.yaml#/Gloas/SignedBlindedExecutionPayloadEnvelope"
     Gloas.PayloadAttestationData:
       $ref: "./types/gloas/payload_attestation.yaml#/Gloas/PayloadAttestationData"
     Gloas.PayloadAttestation:
@@ -497,6 +495,16 @@ components:
       $ref: "./types/fulu/data_column_sidecar.yaml#/Fulu/DataColumnSidecars"
     Gloas.DataColumnSidecars:
       $ref: "./types/gloas/data_column_sidecar.yaml#/Gloas/DataColumnSidecars"
+    Gloas.BuilderRequestAuth:
+      $ref: "./types/gloas/request_auth.yaml#/Gloas/BuilderRequestAuth"
+    Gloas.SignedBuilderRequestAuth:
+      $ref: "./types/gloas/request_auth.yaml#/Gloas/SignedBuilderRequestAuth"
+    Gloas.BuilderEntry:
+      $ref: "./types/gloas/builder_entry.yaml#/Gloas/BuilderEntry"
+    Gloas.BuilderConfig:
+      $ref: "./types/gloas/builder_entry.yaml#/Gloas/BuilderConfig"
+    Gloas.BuilderPreferencesEntry:
+      $ref: "./types/gloas/builder_preferences_entry.yaml#/Gloas/BuilderPreferencesEntry"
     Node:
       $ref: './types/fork_choice.yaml#/Node'
     ExtraData:
@@ -543,11 +551,7 @@ components:
       schema:
         $ref: '#/components/schemas/ConsensusVersion'
     Eth-Execution-Payload-Blinded:
-      description: |
-        Indicates whether the execution payload (or envelope) is in blinded form. Sent in
-        responses so clients can deserialize returned JSON or SSZ data to the correct object,
-        and sent in requests on endpoints that accept either blinded or full forms so the
-        server can select the correct request schema.
+      description: Required in response so client can deserialize returned json or ssz data to the correct object.
       required: true
       schema:
         type: boolean

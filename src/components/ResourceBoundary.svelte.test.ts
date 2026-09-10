@@ -49,6 +49,69 @@ test.each([false, true])('isolated direct=%s consumer follows notifications and 
 })
 
 
+test('two consumers preserve explicit resource ownership across release and fresh resubscription', async () => {
+	let snapshot: TanStackLiveQuerySnapshot<string> = {
+		data: 'Initial shared value',
+		isLoading: false,
+		isReady: true,
+		isError: false,
+		status: 'ready',
+	}
+	let publish = () => {}
+	let subscriptions = 0
+	let releases = 0
+	const resource = new TanStackLiveQueryResource(() => snapshot, (update) => {
+		subscriptions += 1
+		publish = update
+		return () => { releases += 1 }
+	})
+
+	const directConsumer = await render(ResourceBoundaryFixture, { resource, direct: true })
+	const boundaryConsumer = await render(ResourceBoundaryFixture, { resource })
+	await expect.element(page.getByLabelText('current')).toHaveTextContent('Initial shared value')
+	await expect.element(page.getByText('Initial shared value', { exact: true }).nth(1)).toBeInTheDocument()
+	expect(subscriptions).toBe(1)
+
+	snapshot = { ...snapshot, data: 'Surviving owner value' }
+	queueMicrotask(publish)
+	await expect.element(page.getByLabelText('current')).toHaveTextContent('Surviving owner value')
+	await expect.element(page.getByText('Surviving owner value', { exact: true }).nth(1)).toBeInTheDocument()
+
+	await directConsumer.unmount()
+	snapshot = { ...snapshot, data: 'After first release' }
+	queueMicrotask(publish)
+	await expect.element(page.getByText('After first release', { exact: true })).toBeInTheDocument()
+	expect(releases).toBe(0)
+
+	await boundaryConsumer.unmount()
+	resource.destroy()
+	resource.destroy()
+	expect(releases).toBe(1)
+	snapshot = { ...snapshot, data: 'Ignored after explicit destroy' }
+	queueMicrotask(publish)
+
+	let freshSnapshot: TanStackLiveQuerySnapshot<string> = {
+		data: 'Fresh owner value',
+		isLoading: false,
+		isReady: true,
+		isError: false,
+		status: 'ready',
+	}
+	let freshPublish = () => {}
+	const freshResource = new TanStackLiveQueryResource(() => freshSnapshot, (update) => {
+		freshPublish = update
+		return () => {}
+	})
+	await render(ResourceBoundaryFixture, { resource: freshResource })
+	await expect.element(page.getByText('Fresh owner value', { exact: true })).toBeInTheDocument()
+	expect(resource.current).toBe('After first release')
+	freshSnapshot = { ...freshSnapshot, data: 'Fresh notification value' }
+	queueMicrotask(freshPublish)
+	await expect.element(page.getByText('Fresh notification value', { exact: true })).toBeInTheDocument()
+	freshResource.destroy()
+})
+
+
 test('renders subsequent values from the resource-owned await state', async () => {
 	const resource = new TanStackLiveQueryResource(() => ({
 		data: 'Initial value',

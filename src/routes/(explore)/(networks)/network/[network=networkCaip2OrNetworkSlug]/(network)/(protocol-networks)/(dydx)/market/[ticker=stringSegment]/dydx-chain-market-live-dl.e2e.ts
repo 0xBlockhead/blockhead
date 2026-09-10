@@ -4,6 +4,7 @@ import {
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../../../../../../../../../../../tests/_e2eBrowserHelpers.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../../../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const blockHeightTime = '2026-08-05T17:00:00.000Z'
@@ -112,15 +113,7 @@ const marketKindDd = (page: import('@playwright/test').Page) => (
 )
 
 test.beforeEach(async ({ page }, testInfo) => {
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `bh-dydx-market-dl-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `bh-dydx-market-dl-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 })
 
 test('generated DydxChainMarketView dl: fail-closed REST snapshot in ResourceBoundary', async ({ page }) => {

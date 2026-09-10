@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
@@ -64,15 +65,10 @@ const network = {
 	caip2: networkBySlug.polkadot.caip2,
 }
 const context = {
-	filters: [],
-	sorts: [],
+	...createResolverContext(),
 	pagination: {
 		limit: 2,
 	},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
 }
 
 const jsonRpcResult = (

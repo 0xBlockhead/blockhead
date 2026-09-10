@@ -30,12 +30,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					authorizationIndex: true,
-					delegationAddress: true,
-					authority: true,
-				},
+			fields: {
+				authorizationIndex: true,
+				delegationAddress: true,
+				authority: true,
 			},
 		})
 	}

@@ -478,7 +478,6 @@ export default {
 			$$transfers: (wallet) => wallet.$$transfers,
 			$$timestamps: {
 				select: (wallet) => wallet.$$timestamps,
-				resolveCount: (wallet) => wallet.$$timestamps.length,
 			},
 		}),
 

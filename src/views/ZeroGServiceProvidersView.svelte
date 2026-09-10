@@ -28,12 +28,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					providerId: true,
-					serviceKind: true,
-					$network: true,
-				},
+			fields: {
+				providerId: true,
+				serviceKind: true,
+				$network: true,
 			},
 		})
 	}

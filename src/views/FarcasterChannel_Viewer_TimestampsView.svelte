@@ -26,13 +26,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$channel: true,
-					$viewer: true,
-					timestampMs: true,
-					source: true,
-				},
+			fields: {
+				$channel: true,
+				$viewer: true,
+				timestampMs: true,
+				source: true,
 			},
 		})
 	}

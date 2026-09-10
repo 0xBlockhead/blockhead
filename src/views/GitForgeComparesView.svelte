@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					fromObjectId: true,
-					toObjectId: true,
-					$forgeMirror: true,
-				},
+			fields: {
+				fromObjectId: true,
+				toObjectId: true,
+				$forgeMirror: true,
 			},
 		})
 	}

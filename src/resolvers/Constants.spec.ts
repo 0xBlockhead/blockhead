@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	describe,
 	expect,
@@ -31,134 +32,87 @@ import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { Source } from '$/sources/Source.ts'
 import sourceProviders from '$/sources/$sourceProviders.ts'
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
+const resolverContext = createResolverContext()
+
+const requireResolver = <_Resolver>(
+	resolver: _Resolver | undefined,
+	label: string
+) => {
+	if (resolver == null)
+		throw new Error(`Constants spec missing ${label} resolver`)
+	return resolver
 }
 
-const networkUpgradesResolver = constantsResolvers.resolvers.find((resolver) => (
+const networkUpgradesResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& '$$upgrades' in resolver.projections.Evm
-))
-const networkExecutionUpgradesResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'Network.Evm.$$upgrades')
+const networkExecutionUpgradesResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& '$$executionUpgrades' in resolver.projections.Evm
-))
-const networkConsensusUpgradesResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'Network.Evm.$$executionUpgrades')
+const networkConsensusUpgradesResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& '$$consensusUpgrades' in resolver.projections.Evm
-))
-const ethereumNetworkUpgradeResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'Network.Evm.$$consensusUpgrades')
+const ethereumNetworkUpgradeResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EthereumNetworkUpgrade
-))
-const ethereumExecutionUpgradeResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'EthereumNetworkUpgrade')
+const ethereumExecutionUpgradeResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EthereumExecutionUpgrade
-))
-const ethereumConsensusUpgradeResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'EthereumExecutionUpgrade')
+const ethereumConsensusUpgradeResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EthereumConsensusUpgrade
-))
-const networkNativeAssetsResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'EthereumConsensusUpgrade')
+const networkNativeAssetsResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& '$$nativeAssets' in resolver.projections
-))
-const networkMevRelaysResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'Network.$$nativeAssets')
+const networkMevRelaysResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& '$$mevRelays' in resolver.projections.Evm
-))
-const networkConsensusProtocolResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'Network.Evm.$$mevRelays')
+const networkConsensusProtocolResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Network
 	&& 'Evm' in resolver.projections
 	&& 'consensusProtocol' in resolver.projections.Evm
-))
-const eigenLayerProtocolResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'Network.Evm.consensusProtocol')
+const eigenLayerProtocolResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.EigenLayerProtocol
-))
-const globalIpfsAccessResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'EigenLayerProtocol')
+const globalIpfsAccessResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._GlobalIpfsAccess
-))
-const globalArweaveNetworkResolver = constantsResolvers.resolvers.find((resolver) => (
+)), '_GlobalIpfsAccess')
+const globalArweaveNetworkResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._GlobalArweaveNetwork
-))
-const globalSwarmAccessResolver = constantsResolvers.resolvers.find((resolver) => (
+)), '_GlobalArweaveNetwork')
+const globalSwarmAccessResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._GlobalSwarmAccess
-))
-const accountResolver = constantsResolvers.resolvers.find((resolver) => (
+)), '_GlobalSwarmAccess')
+const accountResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.Account
-))
-const nostrProfileResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'Account')
+const nostrProfileResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.NostrProfile
-))
-const xPostUrlResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'NostrProfile')
+const xPostUrlResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.XPost
 	&& 'postUrl' in resolver.projections
-))
-const blockheadSourceResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'XPost.postUrl')
+const blockheadSourceResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadSource
-))
-const blockheadSourceEndpointResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'BlockheadSource')
+const blockheadSourceEndpointResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.BlockheadSourceEndpoint
-))
-const blockheadSourcesResolver = constantsResolvers.resolvers.find((resolver) => (
+)), 'BlockheadSourceEndpoint')
+const blockheadSourcesResolver = requireResolver(constantsResolvers.resolvers.find((resolver) => (
 	resolver.entityType === EntityType._Global
 	&& '$$blockheadSources' in resolver.projections
-))
-
-if (networkUpgradesResolver == null)
-	throw new Error('Constants spec missing Network.Evm.$$upgrades resolver')
-
-if (networkExecutionUpgradesResolver == null)
-	throw new Error('Constants spec missing Network.Evm.$$executionUpgrades resolver')
-
-if (networkConsensusUpgradesResolver == null)
-	throw new Error('Constants spec missing Network.Evm.$$consensusUpgrades resolver')
-
-if (ethereumNetworkUpgradeResolver == null)
-	throw new Error('Constants spec missing EthereumNetworkUpgrade resolver')
-
-if (ethereumExecutionUpgradeResolver == null)
-	throw new Error('Constants spec missing EthereumExecutionUpgrade resolver')
-
-if (ethereumConsensusUpgradeResolver == null)
-	throw new Error('Constants spec missing EthereumConsensusUpgrade resolver')
-
-if (networkNativeAssetsResolver == null)
-	throw new Error('Constants spec missing Network.$$nativeAssets resolver')
-
-if (networkMevRelaysResolver == null)
-	throw new Error('Constants spec missing Network.Evm.$$mevRelays resolver')
-
-if (networkConsensusProtocolResolver == null)
-	throw new Error('Constants spec missing Network.Evm.consensusProtocol resolver')
-
-if (globalIpfsAccessResolver == null)
-	throw new Error('Constants spec missing _GlobalIpfsAccess resolver')
-
-if (globalArweaveNetworkResolver == null)
-	throw new Error('Constants spec missing _GlobalArweaveNetwork resolver')
-
-if (globalSwarmAccessResolver == null)
-	throw new Error('Constants spec missing _GlobalSwarmAccess resolver')
-
-if (accountResolver == null)
-	throw new Error('Constants spec missing Account resolver')
-
-if (nostrProfileResolver == null)
-	throw new Error('Constants spec missing NostrProfile resolver')
-
-if (xPostUrlResolver == null)
-	throw new Error('Constants spec missing XPost URL resolver')
-
-if (blockheadSourceResolver == null || blockheadSourceEndpointResolver == null || blockheadSourcesResolver == null)
-	throw new Error('Constants spec missing Blockhead source catalog resolvers')
+)), '_Global.$$blockheadSources')
 
 describe('Constants resolver projections', () => {
 	it('enrolls every concrete source endpoint with its binding authority', async () => {
@@ -687,37 +641,22 @@ describe('Constants resolver projections', () => {
 		])
 	})
 
-	it('maps the XRPL native asset to the canonical XRP coin', async () => {
+	it.each([
+		['xrpl', CoinId.XRP],
+		['hedera', CoinId.HBAR],
+	] as const)('maps the %s native asset to its canonical coin', async (slug, assetKey) => {
 		const network = await networkNativeAssetsResolver.resolve['Slug'].resolve({
-			slug: 'xrpl',
+			slug,
 		}, resolverContext)
 
 		expect(network.nativeAssets).toEqual([
 			{
 				[EntityMetaKey.Selector]: {
 					$network: {
-						slug: 'xrpl',
+						slug,
 					},
 					kind: 'Native',
-					assetKey: CoinId.XRP,
-				},
-			},
-		])
-	})
-
-	it('maps the Hedera native asset to the canonical HBAR coin', async () => {
-		const network = await networkNativeAssetsResolver.resolve['Slug'].resolve({
-			slug: 'hedera',
-		}, resolverContext)
-
-		expect(network.nativeAssets).toEqual([
-			{
-				[EntityMetaKey.Selector]: {
-					$network: {
-						slug: 'hedera',
-					},
-					kind: 'Native',
-					assetKey: CoinId.HBAR,
+					assetKey,
 				},
 			},
 		])

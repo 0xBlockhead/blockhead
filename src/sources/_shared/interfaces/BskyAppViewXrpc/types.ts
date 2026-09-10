@@ -66,6 +66,17 @@ export type BskyAppViewVideoEmbed = {
 	presentation?: string
 }
 
+export type BskyAppViewGalleryEmbed = {
+	$type: 'app.bsky.embed.gallery#view'
+	items: {
+		$type: 'app.bsky.embed.gallery#viewImage'
+		thumbnail: string
+		fullsize: string
+		alt: string
+		aspectRatio: BskyAppViewAspectRatio
+	}[]
+}
+
 export type BskyAppViewExternalEmbed = {
 	$type: 'app.bsky.embed.external#view'
 	external: {
@@ -174,12 +185,14 @@ export type BskyAppViewRecordWithMediaEmbed = {
 	media:
 		| BskyAppViewImagesEmbed
 		| BskyAppViewVideoEmbed
+		| BskyAppViewGalleryEmbed
 		| BskyAppViewExternalEmbed
 }
 
 export type BskyAppViewPostEmbed =
 	| BskyAppViewImagesEmbed
 	| BskyAppViewVideoEmbed
+	| BskyAppViewGalleryEmbed
 	| BskyAppViewExternalEmbed
 	| BskyAppViewRecordEmbed
 	| BskyAppViewRecordWithMediaEmbed
@@ -353,6 +366,7 @@ export type BskyAppViewSearchPostsResponse = {
 
 
 import {
+	scope,
 	type as arktype,
 	type Type,
 } from 'arktype'
@@ -392,6 +406,103 @@ const bskyAppViewPostRecordWire = arktype({
 	},
 })
 
+const bskyAppViewEmbedScope = scope({
+	'$JsonObject': { '[string]': '$JsonValue' },
+	'$JsonValue': 'string | number | boolean | null | $JsonValue[] | $JsonObject',
+	'$aspectRatio': {
+		width: 'number',
+		height: 'number',
+	},
+	'$imageItem': {
+		thumb: 'string',
+		fullsize: 'string',
+		alt: 'string',
+		'aspectRatio?': '$aspectRatio',
+	},
+	'$galleryItem': {
+		'$type': "'app.bsky.embed.gallery#viewImage'",
+		thumbnail: 'string',
+		fullsize: 'string',
+		alt: 'string',
+		aspectRatio: '$aspectRatio',
+	},
+	'$imageEmbed': {
+		'$type': "'app.bsky.embed.images#view'",
+		images: '$imageItem[]',
+	},
+	'$videoEmbed': {
+		'$type': "'app.bsky.embed.video#view'",
+		cid: 'string',
+		playlist: 'string',
+		'thumbnail?': 'string',
+		'alt?': 'string',
+		'aspectRatio?': '$aspectRatio',
+		'presentation?': 'string',
+	},
+	'$externalEmbed': {
+		'$type': "'app.bsky.embed.external#view'",
+		external: {
+			uri: 'string',
+			title: 'string',
+			description: 'string',
+			'thumb?': 'string',
+			'createdAt?': 'string',
+			'updatedAt?': 'string',
+			'readingTime?': 'number',
+			'labels?': '$JsonValue[]',
+		},
+	},
+	'$galleryEmbed': {
+		'$type': "'app.bsky.embed.gallery#view'",
+		items: '$galleryItem[]',
+	},
+	'$recordNotFound': {
+		'$type': "'app.bsky.embed.record#viewNotFound'",
+		uri: 'string',
+		notFound: 'true',
+	},
+	'$recordBlocked': {
+		'$type': "'app.bsky.embed.record#viewBlocked'",
+		uri: 'string',
+		blocked: 'true',
+		author: { did: 'string' },
+	},
+	'$recordDetached': {
+		'$type': "'app.bsky.embed.record#viewDetached'",
+		uri: 'string',
+		detached: 'true',
+	},
+	'$recordFound': {
+		'$type': "'app.bsky.embed.record#viewRecord'",
+		uri: 'string',
+		cid: 'string',
+		author: {
+			did: 'string',
+			handle: 'string',
+		},
+		value: '$JsonValue',
+		'labels?': '$JsonValue[]',
+		indexedAt: 'string',
+		'replyCount?': 'number',
+		'repostCount?': 'number',
+		'likeCount?': 'number',
+		'quoteCount?': 'number',
+		'embeds?': '$postEmbed[]',
+	},
+	'$recordEmbed': {
+		'$type': "'app.bsky.embed.record#view'",
+		record: '$recordFound | $recordNotFound | $recordBlocked | $recordDetached',
+	},
+	'$recordWithMediaEmbed': {
+		'$type': "'app.bsky.embed.recordWithMedia#view'",
+		record: '$recordEmbed',
+		media: '$imageEmbed | $videoEmbed | $galleryEmbed | $externalEmbed',
+	},
+	'$postEmbed': '$imageEmbed | $videoEmbed | $galleryEmbed | $externalEmbed | $recordEmbed | $recordWithMediaEmbed',
+})
+
+const bskyAppViewPostEmbedWire = bskyAppViewEmbedScope.resolve('$postEmbed')
+
 const bskyAppViewPostViewWire = arktype({
 	uri: 'string',
 	cid: 'string',
@@ -406,7 +517,7 @@ const bskyAppViewPostViewWire = arktype({
 		handle: 'string',
 	},
 	record: bskyAppViewPostRecordWire,
-	'embed?': 'unknown',
+	'embed?': bskyAppViewPostEmbedWire,
 })
 
 const bskyAppViewFeedGeneratorViewWire = arktype({
@@ -464,7 +575,7 @@ export const bskyAppViewGetStarterPackResponseWire = arktype({
 export const bskyAppViewGetAuthorFeedResponseWire = arktype({
 	feed: arktype({
 		post: bskyAppViewPostViewWire,
-		'reply?': 'unknown',
+		'reply?': bskyAppViewEmbedScope.resolve('$JsonValue'),
 		'reason?': {
 			'$type?': 'string',
 		},
@@ -476,19 +587,19 @@ export const bskyAppViewFollowersResponseWire = arktype({
 	subject: bskyAppViewProfileWire,
 	followers: bskyAppViewProfileWire.array(),
 	'cursor?': 'string',
-}).pipe(({ followers, ...response }) => ({
+}).pipe(({ followers, ...response }): BskyAppViewActorListResponse => ({
 	...response,
 	actors: followers,
-})) satisfies Type<BskyAppViewActorListResponse>
+}))
 
 export const bskyAppViewFollowsResponseWire = arktype({
 	subject: bskyAppViewProfileWire,
 	follows: bskyAppViewProfileWire.array(),
 	'cursor?': 'string',
-}).pipe(({ follows, ...response }) => ({
+}).pipe(({ follows, ...response }): BskyAppViewActorListResponse => ({
 	...response,
 	actors: follows,
-})) satisfies Type<BskyAppViewActorListResponse>
+}))
 
 export const bskyAppViewGetLikesResponseWire = arktype({
 	uri: 'string',

@@ -1,4 +1,7 @@
-import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
+import {
+	resolverContextRowLimit,
+	type ResolveLivePublishers,
+} from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
@@ -31,8 +34,12 @@ import {
 	entityFieldAddressKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import type { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceOperationGroup } from '$/sources/SourceBinding.ts'
+import {
+	SourceOperationGroup,
+	type SourceBinding,
+} from '$/sources/SourceBinding.ts'
 import {
 	type NostrEventEnvelope,
 	type NostrEventExpectation,
@@ -45,6 +52,7 @@ import {
 	nostrSearchTargetKey,
 	openNostrRelaySubscription,
 	openNostrRelaySubscriptionsForOperationGroup,
+	openRelaySubscription,
 } from '$/sources/NostrRelay/WebSocket/queries.ts'
 import type { NostrRelayEvent } from '$/sources/NostrRelay/WebSocket/types.ts'
 
@@ -73,6 +81,174 @@ const noteFromRelayEvent = (event: NostrRelayEvent) => {
 		return undefined
 	}
 }
+
+type ThreadContribution = {
+	events: Map<string, NostrEventEnvelope>
+}
+
+const threadSubscriptions = new WeakMap<object, Map<string, Set<ThreadContribution>>>()
+
+const subscribeThreadEvents = ({
+	queryClient,
+	eventId,
+	kind,
+	limit,
+	binding,
+	signal,
+	publish,
+}: {
+	queryClient: object
+	eventId: string
+	kind: 1 | 7
+	limit: number
+	binding: SourceBinding | undefined
+	signal: AbortSignal
+	publish: (events: NostrEventEnvelope[]) => void
+}) => {
+	if (signal.aborted)
+		return () => {}
+
+	const key = JSON.stringify([
+		eventId,
+		kind,
+		limit,
+	])
+	const queries = threadSubscriptions.get(queryClient) ?? new Map<string, Set<ThreadContribution>>()
+	threadSubscriptions.set(queryClient, queries)
+	const contributions = queries.get(key) ?? new Set<ThreadContribution>()
+	queries.set(key, contributions)
+	const contribution: ThreadContribution = { events: new Map() }
+	contributions.add(contribution)
+	let stopped = false
+	let subscription: { close: () => void } | undefined
+	const release = () => {
+		if (stopped)
+			return
+
+		stopped = true
+		signal.removeEventListener('abort', release)
+		contributions.delete(contribution)
+		contribution.events.clear()
+		if (contributions.size === 0) {
+			queries.delete(key)
+			if (queries.size === 0)
+				threadSubscriptions.delete(queryClient)
+		}
+		// Teardown releases observations without replacing the retained field snapshot.
+		subscription?.close()
+	}
+	signal.addEventListener('abort', release, { once: true })
+	const publishUnion = () => {
+		const events = new Map<string, NostrEventEnvelope>()
+		for (const registered of contributions)
+			for (const event of registered.events.values())
+				events.set(event.id, event)
+		publish(nostrEventsNewestFirst([...events.values()]).slice(0, limit))
+	}
+	const options: Omit<Parameters<typeof openRelaySubscription>[0], 'binding'> = {
+		subscriptionId: `blockhead-note-${kind === 1 ? 'replies' : 'reactions'}-${eventId}`,
+		filters: [{
+			'#e': [eventId],
+			kinds: [kind],
+			limit,
+		}],
+		signal,
+		maxSeenEventIds: Math.max(limit * 16, 1_024),
+		onEvent: (message) => {
+			if (stopped || signal.aborted)
+				return
+
+			if (message.type === 'eose') {
+				publishUnion()
+				return
+			}
+			if (message.type !== 'event')
+				return
+
+			let event
+			try {
+				event = validateNostrEvent(message.event, { kinds: [kind] })
+			} catch {
+				return
+			}
+			if (
+				(kind === 1 ? nostrReplyToEventId(event.tags) : nostrReactionTargetEventId(event.tags)) !== eventId
+				|| contribution.events.has(event.id)
+			)
+				return
+
+			contribution.events.set(event.id, event)
+			// A binding's top N contains every candidate it can contribute to the union's top N.
+			contribution.events = new Map(
+				nostrEventsNewestFirst([...contribution.events.values()])
+					.slice(0, limit)
+					.map((candidate) => [candidate.id, candidate])
+			)
+			publishUnion()
+		},
+	}
+	try {
+		subscription = binding == null ?
+			openNostrRelaySubscriptionsForOperationGroup({
+				...options,
+				operationGroup: SourceOperationGroup.NostrRelayRead,
+			})
+		:
+			openRelaySubscription({
+				...options,
+				binding,
+			})
+		if (stopped)
+			subscription.close()
+	} catch (error) {
+		release()
+		throw error
+	}
+	return release
+}
+
+type NostrNoteStart = ResolveLivePublishers<
+	typeof schema,
+	EntityType.NostrNote
+>[string]['start']
+
+const startNoteReplies: NostrNoteStart = async ({
+	fields,
+	parentEntitySelector,
+	queryClient,
+	signal,
+	trigger,
+}) => subscribeThreadEvents({
+	queryClient,
+	eventId: parentEntitySelector.eventId,
+	kind: 1,
+	limit: resolverContextRowLimit(trigger),
+	binding: trigger.sourceBinding,
+	signal,
+	publish: (events) => fields.$$replies.replaceRows([{
+		source: Source.NostrRelay_WebSocket,
+		value: events.map(nostrNoteReference),
+	}]),
+})
+
+const startNoteReactions: NostrNoteStart = async ({
+	fields,
+	parentEntitySelector,
+	queryClient,
+	signal,
+	trigger,
+}) => subscribeThreadEvents({
+	queryClient,
+	eventId: parentEntitySelector.eventId,
+	kind: 7,
+	limit: resolverContextRowLimit(trigger),
+	binding: trigger.sourceBinding,
+	signal,
+	publish: (events) => fields.$$reactions.replaceRows([{
+		source: Source.NostrRelay_WebSocket,
+		value: events.map((event) => nostrReactionReference(event, parentEntitySelector.eventId)),
+	}]),
+})
 
 export default {
 	source: Source.NostrRelay_WebSocket,
@@ -721,59 +897,7 @@ export default {
 					publishes: {
 						'$$replies': true,
 					},
-					start: async ({
-						fields,
-						parentEntitySelector,
-						signal,
-						trigger,
-					}) => {
-						const repliesByEventId = new Map<string, NostrEventEnvelope>()
-						const limit = resolverContextRowLimit(trigger)
-						const publish = () => {
-							fields.$$replies.replaceRows([{
-								source: Source.NostrRelay_WebSocket,
-								value: nostrEventsNewestFirst([...repliesByEventId.values()])
-									.slice(0, limit)
-									.map(nostrNoteReference),
-							}])
-						}
-						const subscription = openNostrRelaySubscriptionsForOperationGroup({
-							operationGroup: SourceOperationGroup.NostrRelayRead,
-							subscriptionId: `blockhead-note-replies-${parentEntitySelector.eventId}`,
-							filters: [{
-								'#e': [parentEntitySelector.eventId],
-								kinds: [1],
-								limit,
-							}],
-							signal,
-							maxSeenEventIds: Math.max(limit * 16, 1_024),
-							onEvent: (subscriptionEvent) => {
-								if (subscriptionEvent.type === 'eose') {
-									publish()
-									return
-								}
-								if (subscriptionEvent.type !== 'event')
-									return
-
-								let event
-								try {
-									event = validateNostrEvent(subscriptionEvent.event, { kinds: [1] })
-								} catch {
-									return
-								}
-								if (
-									nostrReplyToEventId(event.tags) !== parentEntitySelector.eventId
-									|| repliesByEventId.has(event.id)
-								)
-									return
-
-								repliesByEventId.set(event.id, event)
-								publish()
-							},
-						})
-
-						return subscription.close
-					},
+					start: startNoteReplies,
 				},
 			},
 		})({
@@ -809,59 +933,7 @@ export default {
 					publishes: {
 						'$$reactions': true,
 					},
-					start: async ({
-						fields,
-						parentEntitySelector,
-						signal,
-						trigger,
-					}) => {
-						const reactionsByEventId = new Map<string, NostrEventEnvelope>()
-						const limit = resolverContextRowLimit(trigger)
-						const publish = () => {
-							fields.$$reactions.replaceRows([{
-								source: Source.NostrRelay_WebSocket,
-								value: nostrEventsNewestFirst([...reactionsByEventId.values()])
-									.slice(0, limit)
-									.map((reaction) => nostrReactionReference(reaction, parentEntitySelector.eventId)),
-							}])
-						}
-						const subscription = openNostrRelaySubscriptionsForOperationGroup({
-							operationGroup: SourceOperationGroup.NostrRelayRead,
-							subscriptionId: `blockhead-note-reactions-${parentEntitySelector.eventId}`,
-							filters: [{
-								'#e': [parentEntitySelector.eventId],
-								kinds: [7],
-								limit,
-							}],
-							signal,
-							maxSeenEventIds: Math.max(limit * 16, 1_024),
-							onEvent: (subscriptionEvent) => {
-								if (subscriptionEvent.type === 'eose') {
-									publish()
-									return
-								}
-								if (subscriptionEvent.type !== 'event')
-									return
-
-								let event
-								try {
-									event = validateNostrEvent(subscriptionEvent.event, { kinds: [7] })
-								} catch {
-									return
-								}
-								if (
-									nostrReactionTargetEventId(event.tags) !== parentEntitySelector.eventId
-									|| reactionsByEventId.has(event.id)
-								)
-									return
-
-								reactionsByEventId.set(event.id, event)
-								publish()
-							},
-						})
-
-						return subscription.close
-					},
+					start: startNoteReactions,
 				},
 			},
 		})({

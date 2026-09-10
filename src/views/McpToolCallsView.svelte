@@ -29,12 +29,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					callId: true,
-					$tool: true,
-					startedAt: true,
-				},
+			fields: {
+				callId: true,
+				$tool: true,
+				startedAt: true,
 			},
 		})
 	}

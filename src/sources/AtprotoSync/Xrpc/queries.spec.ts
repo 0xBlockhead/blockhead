@@ -14,6 +14,7 @@ import {
 	sourceBindingId,
 	SourceDelivery,
 	SourceEndpointKind,
+	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
 
@@ -41,6 +42,7 @@ const {
 
 const remoteQueryBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
 	binding.delivery === SourceDelivery.RemoteQuery
+	&& binding.wireProtocol === WireProtocol.Xrpc
 ))
 const remoteLiveBinding = bindings[Source.AtprotoSync_Xrpc].find((binding) => (
 	binding.delivery === SourceDelivery.RemoteLive

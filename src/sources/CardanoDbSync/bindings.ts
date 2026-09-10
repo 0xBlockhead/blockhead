@@ -1,11 +1,13 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -26,13 +28,15 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.Sql,
 		apiFamily: ApiFamily.Postgres,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.ServerOnly,
 		credentials: [
 			{
 				scope: SourceCredentialScope.RuntimeSecret,
 				env: arktype({
-					'CARDANO_DB_SYNC_DATABASE_URL': 'string',
+					CARDANO_DB_SYNC_DATABASE_URL: 'string',
 				}),
 				keys: [
 					'CARDANO_DB_SYNC_DATABASE_URL',

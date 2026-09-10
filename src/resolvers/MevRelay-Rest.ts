@@ -271,6 +271,7 @@ export default {
 									$relay: entitySelector,
 									timestampMs: Date.now(),
 									source: Source.MevRelay_Rest,
+									sampleLimit,
 								},
 								[EntityMetaKey.Fields]: {
 									[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'deliveredPayloadSampleCount')]: deliveredPayloads.length,
@@ -281,7 +282,6 @@ export default {
 									...(windowEndSlot != null && {
 										[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'windowEndSlot')]: windowEndSlot,
 									}),
-									[entityFieldAddressKey(EntityType.MevRelay_Timestamp, [], 'sampleLimit')]: sampleLimit,
 								},
 							},
 						]
@@ -379,6 +379,7 @@ export default {
 								$builder: entitySelector,
 								timestampMs: Date.now(),
 								source: Source.MevRelay_Rest,
+								sampleLimit,
 							},
 							[EntityMetaKey.Fields]: {
 								[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredPayloadCount')]: deliveredPayloadCount,
@@ -390,7 +391,6 @@ export default {
 								...(windowEndSlot != null && {
 									[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowEndSlot')]: windowEndSlot,
 								}),
-								[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'sampleLimit')]: sampleLimit,
 							},
 						}]
 					},
@@ -615,6 +615,7 @@ export default {
 												$builder,
 												timestampMs,
 												source: Source.MevRelay_Rest,
+												sampleLimit: Math.min(entityLimit * 8, 200),
 											},
 											[EntityMetaKey.Fields]: {
 												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'deliveredPayloadCount')]: builder.deliveredPayloads.length,
@@ -622,7 +623,6 @@ export default {
 												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'relayCount')]: builder.relayHosts.size,
 												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowStartSlot')]: builder.windowStartSlot,
 												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'windowEndSlot')]: builder.windowEndSlot,
-												[entityFieldAddressKey(EntityType.MevBuilder_Timestamp, [], 'sampleLimit')]: Math.min(entityLimit * 8, 200),
 											},
 										}],
 									},

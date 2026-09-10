@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					owner: true,
-					repositoryName: true,
-					forgeHost: true,
-				},
+			fields: {
+				owner: true,
+				repositoryName: true,
+				forgeHost: true,
 			},
 		})
 	}

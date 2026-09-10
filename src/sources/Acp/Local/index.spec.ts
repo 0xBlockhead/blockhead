@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { redactAcpLocalValue } from '$/resolvers/AcpLocal-JsonRpc.ts'
-import { createAcpLocalJsonRpcTransport } from './transport.ts'
+import { createAcpLocalJsonRpcTransport, parseAcpLocalJsonRpcResponse } from './transport.ts'
 import { createAcpLocalRuntime, materializeAcpLocalSession } from './runtime.ts'
 import type { AcpLocalRuntime } from './types.ts'
 
@@ -26,26 +26,59 @@ const fakeRuntime = (): AcpLocalRuntime => createAcpLocalRuntime({
 })
 
 describe('ACP local JSON-RPC boundary', () => {
-	it('keeps read access local and rejects mutation dispatch', async () => {
-		const sent: string[] = []
+	it('emits one exact request and returns its correlated result', async () => {
+		const sent: unknown[] = []
 		const transport = createAcpLocalJsonRpcTransport({
 			id: () => '1',
 			send: async (request) => {
-				sent.push(request.method)
+				sent.push(request)
 				return JSON.stringify({ jsonrpc: '2.0', id: request.id, result: { ok: true } })
 			},
 		})
-		for (const method of ['initialize', 'session/list', 'session/read', 'session/history'])
-			await expect(transport.request(method, { sessionId: 'session-test' })).resolves.toEqual({ ok: true })
+		await expect(transport.request('session/read', { sessionId: 'session-test' })).resolves.toEqual({ ok: true })
 		await expect(transport.request('session/prompt', { sessionId: 'session-test' })).rejects.toThrow('unsupported read method')
-		expect(sent).toEqual(['initialize', 'session/list', 'session/read', 'session/history'])
+		expect(sent).toEqual([{ jsonrpc: '2.0', id: '1', method: 'session/read', params: { sessionId: 'session-test' } }])
 	})
 
-	it('distinguishes malformed and disconnected runtime states', async () => {
-		const transport = createAcpLocalJsonRpcTransport({ send: async () => 'not-json' })
-		await expect(transport.request('initialize')).rejects.toThrow('malformed')
+	it.each(['initialize', 'session/list', 'session/read', 'session/history'])(
+		'allows the read lifecycle method %s',
+		async (method) => {
+			const transport = createAcpLocalJsonRpcTransport({
+				send: async (request) => JSON.stringify({ jsonrpc: '2.0', id: request.id, result: { ok: true } }),
+			})
+			await expect(transport.request(method)).resolves.toEqual({ ok: true })
+		}
+	)
+
+	it('rejects a mismatched response id', () => {
+		expect(() => parseAcpLocalJsonRpcResponse('{"jsonrpc":"2.0","id":"other","result":true}', '1')).toThrow('response id mismatch')
+	})
+
+	it('converts a correlated protocol error', async () => {
+		const transport = createAcpLocalJsonRpcTransport({
+			send: async (request) => JSON.stringify({ jsonrpc: '2.0', id: request.id, error: { code: -1, message: 'unavailable' } }),
+		})
+		await expect(transport.request('initialize')).rejects.toThrow('unavailable')
+	})
+
+	it('rejects responses with neither or both result and error', () => {
+		for (const payload of [
+			'{"jsonrpc":"2.0","id":"1"}',
+			'{"jsonrpc":"2.0","id":"1","result":true,"error":{"code":-1,"message":"failed"}}',
+		])
+			expect(() => parseAcpLocalJsonRpcResponse(payload, '1')).toThrow('exactly one of result or error')
+	})
+
+	it('rejects malformed JSON', () => {
+		expect(() => parseAcpLocalJsonRpcResponse('not-json', '1')).toThrow('malformed')
+	})
+
+	it('does not send after disconnect', async () => {
+		let sends = 0
+		const transport = createAcpLocalJsonRpcTransport({ send: async () => { sends += 1; return '' } })
 		transport.disconnect()
 		await expect(transport.request('initialize')).rejects.toThrow('disconnected')
+		expect(sends).toBe(0)
 	})
 
 	it('materializes stable identity and an explicit durable history boundary', async () => {

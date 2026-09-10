@@ -27,13 +27,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					symbol: true,
-					channel: true,
-					priceFeedId: true,
-					$market: true,
-				},
+			fields: {
+				symbol: true,
+				channel: true,
+				priceFeedId: true,
+				$market: true,
 			},
 		})
 	}

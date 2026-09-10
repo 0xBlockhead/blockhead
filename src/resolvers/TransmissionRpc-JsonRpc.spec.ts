@@ -5,6 +5,7 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { createResolverContext } from '../../tests/resolverContext.ts'
 
 import {
 	entityFieldAddressKey,
@@ -38,13 +39,10 @@ if (fileResolver == null || torrentResolver == null || clientResolver == null)
 	throw new Error('Transmission RPC resolvers missing')
 
 const context = {
-	filters: [],
-	sorts: [],
-	pagination: { limit: 8 },
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
+	...createResolverContext(),
+	pagination: {
+		limit: 8,
+	},
 }
 const infoHash = '0123456789abcdef0123456789abcdef01234567'
 const torrent = {

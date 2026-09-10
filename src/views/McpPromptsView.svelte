@@ -29,17 +29,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					title: true,
-					$server: {
-						fields: {
-							transportKind: true,
-							endpointUrl: true,
-						},
+			fields: {
+				title: true,
+				$server: {
+					fields: {
+						transportKind: true,
+						endpointUrl: true,
 					},
-					name: true,
 				},
+				name: true,
 			},
 		})
 	}

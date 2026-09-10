@@ -28,22 +28,20 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Constants_Internal,
-					Source.Local_Internal,
-				],
-				fields: {
-					label: true,
-					provider: true,
-					source: true,
-					endpointUrl: true,
-					transportKind: true,
-					authKind: true,
-					corsMode: true,
-					proxyMode: true,
-					environmentScope: true,
-				},
+			sources: selection.sources ?? [
+				Source.Constants_Internal,
+				Source.Local_Internal,
+			],
+			fields: {
+				label: true,
+				provider: true,
+				source: true,
+				endpointUrl: true,
+				transportKind: true,
+				authKind: true,
+				corsMode: true,
+				proxyMode: true,
+				environmentScope: true,
 			},
 		})
 	}

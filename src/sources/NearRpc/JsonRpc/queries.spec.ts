@@ -13,7 +13,10 @@ vi.mock('$/sources/_shared/wire/JsonRpc2/client.ts', () => ({
 
 const {
 	nearRpc,
+	nearRpcForBinding,
 } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+const { default: bindings } = await import('$/sources/NearRpc/bindings.ts')
+const { Source } = await import('$/sources/Source.ts')
 const {
 	getGasPrice,
 	getReceipt,
@@ -323,6 +326,18 @@ it('pins account state queries to the requested block hash', async () => {
 			account_id: 'signer.near',
 		}
 	)
+})
+
+it('executes the same query contract through each independent mainnet binding', async () => {
+	const nearBindings = bindings[Source.NearRpc_JsonRpc]
+	expect(nearBindings).toHaveLength(2)
+	jsonRpc2.mockResolvedValue({ gas_price: '100000000' })
+
+	for (const binding of nearBindings)
+		await expect(nearRpcForBinding(binding).getGasPrice()).resolves.toEqual({ gas_price: '100000000' })
+
+	expect(jsonRpc2.mock.calls.map(([binding]) => binding)).toEqual(nearBindings)
+	expect(nearBindings.map(({ delivery }) => delivery)).toEqual(['HttpProxy', 'BrowserDirect'])
 })
 
 it('rejects substituted receipt and transaction subjects', async () => {

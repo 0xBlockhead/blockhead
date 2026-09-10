@@ -1,7 +1,8 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
@@ -11,12 +12,6 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const envio1Credentials = [
-	{
-		scope: SourceCredentialScope.RuntimeSecret,
-	},
-] as const
 
 export default indexSourceBindings([
 	{
@@ -38,7 +33,11 @@ export default indexSourceBindings([
 			SourceOperationGroup.EvmRpcCore,
 		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: envio1Credentials,
+		credentials: [
+			{
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.GenerationManifest,
@@ -65,9 +64,15 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.RawHttp,
 		apiFamily: ApiFamily.EnvioHyperSyncApi,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
-		credentials: envio1Credentials,
+		credentials: [
+			{
+				scope: SourceCredentialScope.RuntimeSecret,
+			},
+		],
 		artifacts: [
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,

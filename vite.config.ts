@@ -1,9 +1,11 @@
 import devtoolsJson from 'vite-plugin-devtools-json'
+import { realpathSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
 import { playwright } from '@vitest/browser-playwright'
 import { sveltekit } from '@sveltejs/kit/vite'
+import { searchForWorkspaceRoot } from 'vite'
 import type {
 	Plugin,
 	ViteDevServer,
@@ -96,6 +98,13 @@ export default defineConfig({
 	],
 	server: {
 		strictPort: true,
+		fs: {
+			allow: [
+				searchForWorkspaceRoot(import.meta.dirname),
+				realpathSync(resolve(import.meta.dirname, 'node_modules/@fontsource/ubuntu')),
+				realpathSync(resolve(import.meta.dirname, 'node_modules/@journeyapps/wa-sqlite/dist')),
+			],
+		},
 		watch: {
 			ignored: [
 				'**/.svelte-kit/generated/**',

@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -81,15 +82,7 @@ const amm = {
 	},
 	ammAccount: 'rs9ineLqrCzeAGS1bxsrW8x2n3bRJYAh3Q',
 }
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 describe('XrpScan Rest XRPL projections', () => {
 	beforeEach(() => {

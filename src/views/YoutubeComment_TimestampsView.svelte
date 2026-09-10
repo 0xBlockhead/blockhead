@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$comment: true,
-					timestampMs: true,
-					source: true,
-				},
+			fields: {
+				$comment: true,
+				timestampMs: true,
+				source: true,
 			},
 		})
 	}

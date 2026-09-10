@@ -27,12 +27,10 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					claimPath: true,
-					claimKind: true,
-					confidence: true,
-				},
+			fields: {
+				claimPath: true,
+				claimKind: true,
+				confidence: true,
 			},
 		})
 	}

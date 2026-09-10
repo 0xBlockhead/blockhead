@@ -27,7 +27,9 @@
 
 
 	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import TronWitness_TimestampsView from '$/views/TronWitness_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -56,7 +58,30 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Content()}
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			{#if !contentOpen}
+				<div>
+					<dt>Network</dt>
+					<dd>
+						<NetworkView
+							selection={select(EntityType.Network, selection.entitySelector.$network)}
+							layout={EntityLayout.Value}
+						/>
+					</dd>
+				</div>
+			{/if}
+
+			{#if !contentOpen}
+				<div>
+					<dt>Address</dt>
+					<dd>
+						<TruncatedValue value={selection.entitySelector.address} />
+					</dd>
+				</div>
+			{/if}
+		</dl>
+
 		<dl data-column-item="center">
 			<div>
 				<dt>Network</dt>
@@ -75,5 +100,23 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details()}
+		{@const timestampsResource = selection.$$timestamps}
+		<ResourceBoundary
+			resource={timestampsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<TronWitness_TimestampsView
+						selection={timestampsResource}
+						countResource={timestampsResource.count}
+						title='Observations'
+						id='timestamps'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>

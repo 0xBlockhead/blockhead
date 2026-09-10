@@ -28,17 +28,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					serialNumber: true,
-					$token: {
-						fields: {
-							tokenType: true,
-							decimals: true,
-						},
+			fields: {
+				serialNumber: true,
+				$token: {
+					fields: {
+						tokenType: true,
+						decimals: true,
 					},
-					createdTimestamp: true,
 				},
+				createdTimestamp: true,
 			},
 		})
 	}

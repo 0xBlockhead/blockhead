@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
@@ -76,15 +77,7 @@ vi.mock('$/sources/Mastodon/Rest/queries.ts', () => ({
 
 const { default: mastodon } = await import('$/resolvers/Mastodon-Rest.ts')
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 
 const resolver = (entityType: EntityType, fieldName?: string) => {
 	const definition = mastodon.resolvers.find((candidate) => (

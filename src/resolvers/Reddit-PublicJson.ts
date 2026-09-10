@@ -455,7 +455,6 @@ export default {
 		})({
 				$$timestamps: {
 					select: (hub) => hub.$$timestamps,
-					resolveCount: (hub) => hub.$$timestamps.length,
 				},
 			}),
 		defineResolver({

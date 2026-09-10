@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -378,16 +379,7 @@ describe('Voltaire endpoint observation', () => {
 			caip2: {
 				namespace: 'eip155',
 				reference: '10',
-			},
-		}, {
-			filters: [],
-			sorts: [],
-			pagination: {},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
-		})
+			}, }, createResolverContext())
 
 		expect(resolver.projections.$$endpointObservations(observation)).toEqual([{
 			[EntityMetaKey.Selector]: {
@@ -430,16 +422,11 @@ describe('Voltaire endpoint observation', () => {
 				reference: '10',
 			},
 		}, {
-			filters: [],
-			sorts: [],
+			...createResolverContext(),
 			pagination: {
 				limit: 1,
 				offset: 1,
 			},
-			selectorKeys: [],
-			parentSelectorKeys: [],
-			sources: [],
-			publicEnv: {},
 		})).resolves.toMatchObject([
 			{
 				[EntityMetaKey.Selector]: {
@@ -1469,6 +1456,20 @@ describe('Voltaire ENS records', () => {
 			},
 		])
 		expect(ensNameResolver.projections.$$records.resolveCount(snapshot)).toBe(7)
+		const firstRecord = ensNameResolver.projections.$$records.select(snapshot)[0]
+		if (firstRecord == null)
+			throw new Error('ENS record observation missing')
+		const recordTimestamps = firstRecord[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EnsRecord, [], '$$timestamps')]
+		expect(recordTimestamps[0]).toMatchObject({
+			[EntityMetaKey.Selector]: {
+				timestampMs: 1_800_000_000_000,
+				source: Source.Voltaire_JsonRpc,
+			},
+			[EntityMetaKey.Fields]: {
+				[entityFieldAddressKey(EntityType.EnsRecord_Timestamp, [], 'value')]: 'https://vitalik.ca',
+			},
+		})
+		expect(ensRecordResolver?.projections.$$timestamps).not.toHaveProperty('resolveCount')
 	}, 15_000)
 
 	it('omits EnsName.$$records rows when live text, coin, contenthash, dns, zonehash, abi, or pubkey values are zero or empty', async () => {

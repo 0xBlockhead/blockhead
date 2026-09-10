@@ -5,25 +5,19 @@ import type { Eip1193Provider } from './eip1193.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { WalletCapability } from '$/constants/Wallet.ts'
+import { createInjectedDiscoveryFixture } from './injectedDiscovery.test-fixture.ts'
 
 const startAdapter = (provider: Eip1193Provider) => {
-	const eventListeners = new Map<string, (event: { detail: Eip6963ProviderDetail }) => void>()
-	const providerListeners = new Map<string, (payload: JsonValue) => void>()
-	vi.stubGlobal('window', {
-		addEventListener: (event: string, listener: (event: { detail: Eip6963ProviderDetail }) => void) => {
-			eventListeners.set(event, listener)
-		},
-		removeEventListener: (event: string) => eventListeners.delete(event),
-		dispatchEvent: () => true,
-		setTimeout,
-		clearTimeout,
-	})
+	const { windowListeners: eventListeners, providerListeners } = createInjectedDiscoveryFixture<Eip6963ProviderDetail>()
 	provider.on = (event, listener) => providerListeners.set(event, listener)
 	provider.removeListener = (event) => providerListeners.delete(event)
 
 	const adapter = createEip6963Adapter()
 	const stopDiscovery = adapter.start(() => {})
-	eventListeners.get('eip6963:announceProvider')?.({
+	const announceProvider = eventListeners.get('eip6963:announceProvider')
+	if (announceProvider == null)
+		throw new Error('EIP-6963 announcement listener missing')
+	announceProvider({
 		detail: {
 			info: {
 				uuid: 'example',

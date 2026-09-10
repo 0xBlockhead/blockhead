@@ -26,18 +26,16 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$operation: {
-						fields: {
-							label: true,
-							operationKind: true,
-							pathTemplate: true,
-						},
+			fields: {
+				$operation: {
+					fields: {
+						label: true,
+						operationKind: true,
+						pathTemplate: true,
 					},
-					availabilityStatus: true,
-					error: true,
 				},
+				availabilityStatus: true,
+				error: true,
 			},
 		})
 	}

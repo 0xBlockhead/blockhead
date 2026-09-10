@@ -1,22 +1,17 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const moneroDaemonRpcJsonRpcArtifacts = [
-	{
-		kind: SourceArtifactKind.HandwrittenTypes,
-		path: 'src/sources/MoneroDaemonRpc/JsonRpc/types.ts',
-	},
-] as const
 
 export default indexSourceBindings([
 	{
@@ -39,10 +34,17 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.MoneroDaemonJsonRpc,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
-		artifacts: moneroDaemonRpcJsonRpcArtifacts,
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/MoneroDaemonRpc/JsonRpc/types.ts',
+			},
+		],
 	},
 	{
 		source: Source.MoneroDaemonRpc_JsonRpc,
@@ -59,13 +61,20 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.MoneroDaemonJsonRpc,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{
 				scope: SourceCredentialScope.LocalSecret,
 			},
 		],
-		artifacts: moneroDaemonRpcJsonRpcArtifacts,
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/MoneroDaemonRpc/JsonRpc/types.ts',
+			},
+		],
 	},
 ])

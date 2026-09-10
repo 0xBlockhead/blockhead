@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CoinId } from '$/constants/Coin.ts'
@@ -19,15 +20,7 @@ vi.mock('$/sources/CoinMarketCap/Rest/queries.ts', async (importOriginal) => ({
 
 const { default: coinMarketCapResolvers } = await import('$/resolvers/CoinMarketCap-Rest.ts')
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 const mappedCoinCount = Object.keys(idByCoinId).length
 

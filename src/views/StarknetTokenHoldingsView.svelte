@@ -28,11 +28,9 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$tokenContract: true,
-					$owner: true,
-				},
+			fields: {
+				$tokenContract: true,
+				$owner: true,
 			},
 		})
 	}

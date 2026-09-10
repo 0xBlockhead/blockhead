@@ -28,13 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					supplyScopeKey: true,
-					totalSupply: true,
-					circulatingSupply: true,
-					source: true,
-				},
+			fields: {
+				supplyScopeKey: true,
+				totalSupply: true,
+				circulatingSupply: true,
+				source: true,
 			},
 		})
 	}

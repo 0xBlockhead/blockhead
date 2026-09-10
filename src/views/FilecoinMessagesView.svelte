@@ -29,17 +29,15 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				sources: selection.sources ?? [
-					Source.Filfox_Rest,
-					Source.Lotus_JsonRpc,
-				],
-				fields: {
-					cid: true,
-					$from: true,
-					$to: true,
-					valueAttoFil: true,
-				},
+			sources: selection.sources ?? [
+				Source.Filfox_Rest,
+				Source.Lotus_JsonRpc,
+			],
+			fields: {
+				cid: true,
+				$from: true,
+				$to: true,
+				valueAttoFil: true,
 			},
 		})
 	}

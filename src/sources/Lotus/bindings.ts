@@ -1,22 +1,17 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceCredentialScope,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const lotusJsonRpcArtifacts = [
-	{
-		kind: SourceArtifactKind.HandwrittenTypes,
-		path: 'src/sources/Lotus/JsonRpc/types.ts',
-	},
-] as const
 
 export default indexSourceBindings([
 	{
@@ -34,10 +29,17 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.FilecoinLotusJsonRpc,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.BrowserDirect,
 		credentials: [],
-		artifacts: lotusJsonRpcArtifacts,
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Lotus/JsonRpc/types.ts',
+			},
+		],
 	},
 	{
 		source: Source.Lotus_JsonRpc,
@@ -54,13 +56,20 @@ export default indexSourceBindings([
 		],
 		wireProtocol: WireProtocol.JsonRpc2,
 		apiFamily: ApiFamily.FilecoinLotusJsonRpc,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.LocalOnly,
 		credentials: [
 			{
 				scope: SourceCredentialScope.LocalSecret,
 			},
 		],
-		artifacts: lotusJsonRpcArtifacts,
+		artifacts: [
+			{
+				kind: SourceArtifactKind.HandwrittenTypes,
+				path: 'src/sources/Lotus/JsonRpc/types.ts',
+			},
+		],
 	},
 ])

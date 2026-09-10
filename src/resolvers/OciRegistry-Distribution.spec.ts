@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	expect,
@@ -43,15 +44,7 @@ const referrersResolver = ociRegistryDistribution.resolvers.find((resolver) => (
 if (manifestResolver == null || descriptorResolver == null || referrersResolver == null)
 	throw new Error('OciRegistry-Distribution spec missing native resolvers')
 
-const context = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const context = createResolverContext()
 const digest = `sha256:${'a'.repeat(64)}`
 const selector = {
 	registry: 'registry.example',

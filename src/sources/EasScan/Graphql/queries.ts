@@ -93,7 +93,7 @@ const EasScanSchemas = graphql(`
 		$skip: Int!
 		$take: Int!
 	) {
-		schemas(
+		schemas: schemata(
 			skip: $skip
 			take: $take
 			orderBy: { time: desc }

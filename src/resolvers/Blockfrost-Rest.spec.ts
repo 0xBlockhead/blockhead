@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import blockFixture from '$/sources/Blockfrost/Rest/fixtures/block.json'
@@ -179,15 +180,7 @@ if (cardanoCommitteeEpochResolver == null)
 
 const blockfrostBinding = bindings[Source.Blockfrost_Rest][0]
 
-const resolverContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const resolverContext = createResolverContext()
 
 const latestBlock = blockFixture satisfies BlockfrostBlock
 const cardanoNetwork = {

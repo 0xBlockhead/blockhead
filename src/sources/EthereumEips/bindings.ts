@@ -1,3 +1,5 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
@@ -9,45 +11,57 @@ import {
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
 
-const ethereumEipsGithubEndpoints = [
-	{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://api.github.com',
-		corsEnabled: true,
-	},
-	{
-		endpointKind: SourceEndpointKind.HttpUrl,
-		locator: 'https://raw.githubusercontent.com',
-		corsEnabled: true,
-	},
-] as const
-
-const ethereumEipsGithubBindingAxes = {
-	source: Source.EthereumEips_Github,
-	wireProtocol: WireProtocol.HttpRest,
-	apiFamily: ApiFamily.GithubContentsApi,
-	operationGroups: [
-		SourceOperationGroup.GithubRepositoryContents,
-	],
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [],
-} as const
-
 export default indexSourceBindings([
 	{
-		...ethereumEipsGithubBindingAxes,
+		source: Source.EthereumEips_Github,
 		target: {
 			kind: SourceTargetKind.GitRepository,
 			key: 'ethereum/EIPs@master:EIPS',
 		},
-		endpoints: ethereumEipsGithubEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.GithubContentsApi,
+		operationGroups: [
+			SourceOperationGroup.GithubRepositoryContents,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
 	},
 	{
-		...ethereumEipsGithubBindingAxes,
+		source: Source.EthereumEips_Github,
 		target: {
 			kind: SourceTargetKind.GitRepository,
 			key: 'ethereum/ercs@master:ERCS',
 		},
-		endpoints: ethereumEipsGithubEndpoints,
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.HttpRest,
+		apiFamily: ApiFamily.GithubContentsApi,
+		operationGroups: [
+			SourceOperationGroup.GithubRepositoryContents,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
 	},
 ])

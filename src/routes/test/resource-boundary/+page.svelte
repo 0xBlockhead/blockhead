@@ -146,37 +146,65 @@
 	}))
 	const createResourceFixture = (
 		id: string,
+		observe?: (event: string, update: () => void) => void,
 	) => new TanStackLiveQueryResource(
-		() => ({
+		() => {
+			const ready = resourceFixtureSource.isReady() && resourceFixtureSource.has(id)
+			return {
 			data: resourceFixtureSource.get(id)?.value ?? '',
-			isLoading: !resourceFixtureSource.isReady(),
+			isLoading: !ready,
 			isError: resourceFixtureSource.status === 'error',
-			isReady: resourceFixtureSource.isReady(),
+			isReady: ready,
 			status: (
 				resourceFixtureSource.status === 'error' ?
 					'error'
-				: resourceFixtureSource.isReady() ?
+				: ready ?
 					'ready'
 				:
 					'loading'
 			),
-		}),
+			}
+		},
 		(update) => {
 			resourceFixtureSource.onFirstReady(update)
 			const subscription = resourceFixtureSource.subscribeChanges(update, {
 				includeInitialState: true,
 				onStatusChange: update,
 			})
+			observe?.(`subscribe ${id}`, update)
 			if (resourceFixtureSource.status === 'idle')
 				resourceFixtureSource.preload().catch(update)
 
-			return () => subscription.unsubscribe()
+			return () => {
+				subscription.unsubscribe()
+				observe?.(`unsubscribe ${id}`, update)
+			}
 		},
 		() => resourceFixtureSource.preload()
 	)
 	const realSelectedScalarResource = createResourceFixture('scalar')
 	const realSelectedBoundaryOnlyResource = createResourceFixture('boundary-only')
 	const realSelectedDirectOnlyResource = createResourceFixture('direct-only')
+	let staleNotification = () => {}
+	const observeLifecycle = (event: string, update: () => void) => {
+		console.info('[native-subscription]', event)
+		if (event === 'subscribe lifecycle-a')
+			staleNotification = update
+	}
+	const lifecycleA = createResourceFixture('lifecycle-a', observeLifecycle)
+	const lifecycleB = createResourceFixture('lifecycle-b', observeLifecycle)
+	let lifecycleKey = $state('a')
+	let showLifecycle = $state(false)
+	let retiredValue = $state('')
+	const switchLifecycle = () => {
+		lifecycleKey = 'b'
+	}
+	const deliverStaleNotification = () => {
+		writeResourceFixtureValue('lifecycle-a', 'Stale A')
+		staleNotification()
+		retiredValue = lifecycleA.current ?? ''
+		writeResourceFixtureValue('lifecycle-b', 'Updated B')
+	}
 	const applySelectedValue = (
 		value: string,
 	) => {
@@ -258,6 +286,7 @@
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import NativeResourceLifecycle from './NativeResourceLifecycle.svelte'
 </script>
 
 
@@ -279,6 +308,35 @@
 		{/snippet}
 	</ResourceBoundary>
 </Collapsible>
+
+<section aria-label="Native subscription lifecycle">
+	<h2>Native subscription lifecycle</h2>
+	<button onclick={async () => {
+		await resourceFixtureSource.preload()
+		writeResourceFixtureValue('lifecycle-a', 'Value A')
+		lifecycleKey = 'a'
+		showLifecycle = true
+	}}>Start native A</button>
+	<button onclick={async () => {
+		await resourceFixtureSource.preload()
+		if (resourceFixtureSource.has('lifecycle-a'))
+			resourceFixtureSource.delete('lifecycle-a')
+		lifecycleKey = 'a'
+		showLifecycle = true
+	}}>Start pending native A</button>
+	<button onclick={switchLifecycle}>Switch native A to B</button>
+	<button onclick={() => writeResourceFixtureValue('lifecycle-b', 'Value B')}>Seed native B</button>
+	<button onclick={deliverStaleNotification}>Deliver retired A notification</button>
+	<button onclick={() => showLifecycle = false}>Hide native consumer</button>
+	<output data-testid="native-retired-value">{retiredValue}</output>
+	{#if showLifecycle}
+		{#if lifecycleKey === 'a'}
+			<NativeResourceLifecycle resource={lifecycleA} />
+		{:else}
+			<NativeResourceLifecycle resource={lifecycleB} />
+		{/if}
+	{/if}
+</section>
 
 <section data-testid="selected-boundary-section">
 	<h2>Selected boundary</h2>

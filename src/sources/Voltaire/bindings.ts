@@ -1,7 +1,8 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	flatMapSourceBindings,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
@@ -10,52 +11,6 @@ import {
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
-
-const voltaireJsonRpcEvmRpcCoreEvmRpcTraceEvmRpcTxpoolOperationGroups = [
-	SourceOperationGroup.EvmRpcCore,
-	SourceOperationGroup.EvmRpcTrace,
-	SourceOperationGroup.EvmRpcTxpool,
-] as const
-const voltaireJsonRpcArtifacts = [
-	{
-		kind: SourceArtifactKind.GenerationManifest,
-		path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-	},
-	{
-		kind: SourceArtifactKind.OpenRpcSpec,
-		path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-	},
-] as const
-
-const voltaireJsonRpcRemoteLiveBindingAxes = {
-	source: Source.Voltaire_JsonRpc,
-	wireProtocol: WireProtocol.JsonRpc2,
-	apiFamily: ApiFamily.EvmExecutionJsonRpc,
-	operationGroups: [
-		SourceOperationGroup.EvmRpcSubscribe,
-	],
-	delivery: SourceDelivery.RemoteLive,
-	credentials: [],
-	artifacts: voltaireJsonRpcArtifacts,
-} as const
-const voltaireJsonRpcHttpProxyBindingAxes = {
-	source: Source.Voltaire_JsonRpc,
-	wireProtocol: WireProtocol.JsonRpc2,
-	apiFamily: ApiFamily.EvmExecutionJsonRpc,
-	operationGroups: voltaireJsonRpcEvmRpcCoreEvmRpcTraceEvmRpcTxpoolOperationGroups,
-	delivery: SourceDelivery.HttpProxy,
-	credentials: [],
-	artifacts: voltaireJsonRpcArtifacts,
-} as const
-const voltaireJsonRpcBrowserDirectBindingAxes = {
-	source: Source.Voltaire_JsonRpc,
-	wireProtocol: WireProtocol.JsonRpc2,
-	apiFamily: ApiFamily.EvmExecutionJsonRpc,
-	operationGroups: voltaireJsonRpcEvmRpcCoreEvmRpcTraceEvmRpcTxpoolOperationGroups,
-	delivery: SourceDelivery.BrowserDirect,
-	credentials: [],
-	artifacts: voltaireJsonRpcArtifacts,
-} as const
 
 export default indexSourceBindings([
 	{
@@ -94,10 +49,19 @@ export default indexSourceBindings([
 		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
-		artifacts: voltaireJsonRpcArtifacts,
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...voltaireJsonRpcRemoteLiveBindingAxes,
+		source: Source.Voltaire_JsonRpc,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '1',
@@ -120,205 +84,1097 @@ export default indexSourceBindings([
 				locator: 'wss://mainnet.rpc.buidlguidl.com',
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
-	...flatMapSourceBindings(
-		[
-			{
-				key: '10',
-				httpProxyLocator: 'https://mainnet.optimism.io',
-				remoteLiveLocator: 'wss://mainnet.optimism.io',
-			},
-			{
-				key: '50',
-				httpProxyLocator: 'https://erpc.xinfin.network',
-				remoteLiveLocator: 'wss://erpc.xinfin.network',
-			},
-			{
-				key: '51',
-				httpProxyLocator: 'https://rpc.apothem.network',
-				remoteLiveLocator: 'wss://rpc.apothem.network',
-			},
-			{
-				key: '56',
-				httpProxyLocator: 'https://binance.llamarpc.com',
-				remoteLiveLocator: 'wss://binance.llamarpc.com',
-			},
-			{
-				key: '130',
-				httpProxyLocator: 'https://unichain-rpc.publicnode.com',
-				remoteLiveLocator: 'wss://unichain-rpc.publicnode.com',
-			},
-			{
-				key: '137',
-				httpProxyLocator: 'https://polygon-rpc.com',
-				remoteLiveLocator: 'wss://polygon-rpc.com',
-			},
-			{
-				key: '143',
-				httpProxyLocator: 'https://rpc.monad.xyz',
-				remoteLiveLocator: 'wss://rpc.monad.xyz',
-			},
-			{
-				key: '146',
-				httpProxyLocator: 'https://rpc.soniclabs.com',
-				remoteLiveLocator: 'wss://rpc.soniclabs.com',
-			},
-			{
-				key: '300',
-				httpProxyLocator: 'https://sepolia.era.zksync.dev',
-				remoteLiveLocator: 'wss://sepolia.era.zksync.dev',
-			},
-			{
-				key: '324',
-				httpProxyLocator: 'https://mainnet.era.zksync.io',
-				remoteLiveLocator: 'wss://mainnet.era.zksync.io',
-			},
-			{
-				key: '480',
-				httpProxyLocator: 'https://worldchain-mainnet.g.alchemy.com/public',
-				remoteLiveLocator: 'wss://worldchain-mainnet.g.alchemy.com/public',
-			},
-		] as const,
-		({
-			key,
-			httpProxyLocator,
-			remoteLiveLocator,
-		}) => ([
-			{
-				...voltaireJsonRpcHttpProxyBindingAxes,
-				target: {
-					kind: SourceTargetKind.Eip155Chain,
-					key,
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: httpProxyLocator,
-						corsEnabled: false,
-					},
-				],
-			},
-			{
-				...voltaireJsonRpcRemoteLiveBindingAxes,
-				target: {
-					kind: SourceTargetKind.Eip155Chain,
-					key,
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.WebSocketUrl,
-						locator: remoteLiveLocator,
-					},
-				],
-			},
-		] as const)
-	),
-	...flatMapSourceBindings(
-		[
-			{
-				key: '998',
-				browserDirectLocator: 'https://hyperliquid-testnet.drpc.org',
-				remoteLiveLocator: 'wss://hyperliquid-testnet.drpc.org',
-			},
-			{
-				key: '999',
-				browserDirectLocator: 'https://hyperliquid.drpc.org',
-				remoteLiveLocator: 'wss://hyperliquid.drpc.org',
-			},
-		] as const,
-		({
-			key,
-			browserDirectLocator,
-			remoteLiveLocator,
-		}) => ([
-			{
-				...voltaireJsonRpcBrowserDirectBindingAxes,
-				target: {
-					kind: SourceTargetKind.Eip155Chain,
-					key,
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: browserDirectLocator,
-						corsEnabled: true,
-					},
-				],
-			},
-			{
-				...voltaireJsonRpcRemoteLiveBindingAxes,
-				target: {
-					kind: SourceTargetKind.Eip155Chain,
-					key,
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.WebSocketUrl,
-						locator: remoteLiveLocator,
-					},
-				],
-			},
-		] as const)
-	),
-	...flatMapSourceBindings(
-		[
-			{
-				key: '1301',
-				httpProxyLocator: 'https://sepolia.unichain.org',
-				remoteLiveLocator: 'wss://sepolia.unichain.org',
-			},
-			{
-				key: '1328',
-				httpProxyLocator: 'https://evm-rpc-testnet.sei-apis.com',
-				remoteLiveLocator: 'wss://evm-rpc-testnet.sei-apis.com',
-			},
-			{
-				key: '1329',
-				httpProxyLocator: 'https://evm-rpc.sei-apis.com',
-				remoteLiveLocator: 'wss://evm-rpc.sei-apis.com',
-			},
-			{
-				key: '4801',
-				httpProxyLocator: 'https://worldchain-sepolia.g.alchemy.com/public',
-				remoteLiveLocator: 'wss://worldchain-sepolia.g.alchemy.com/public',
-			},
-		] as const,
-		({
-			key,
-			httpProxyLocator,
-			remoteLiveLocator,
-		}) => ([
-			{
-				...voltaireJsonRpcHttpProxyBindingAxes,
-				target: {
-					kind: SourceTargetKind.Eip155Chain,
-					key,
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: httpProxyLocator,
-						corsEnabled: false,
-					},
-				],
-			},
-			{
-				...voltaireJsonRpcRemoteLiveBindingAxes,
-				target: {
-					kind: SourceTargetKind.Eip155Chain,
-					key,
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.WebSocketUrl,
-						locator: remoteLiveLocator,
-					},
-				],
-			},
-		] as const)
-	),
 	{
-		...voltaireJsonRpcHttpProxyBindingAxes,
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '10',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://mainnet.optimism.io',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '10',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://mainnet.optimism.io',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '50',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://erpc.xinfin.network',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '50',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://erpc.xinfin.network',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '51',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.apothem.network',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '51',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.apothem.network',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '56',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://binance.llamarpc.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '56',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://binance.llamarpc.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '130',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://unichain-rpc.publicnode.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '130',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://unichain-rpc.publicnode.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '137',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://polygon-rpc.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '137',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://polygon-rpc.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '143',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.monad.xyz',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '143',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.monad.xyz',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '146',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.soniclabs.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '146',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.soniclabs.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '300',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://sepolia.era.zksync.dev',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '300',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://sepolia.era.zksync.dev',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '324',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://mainnet.era.zksync.io',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '324',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://mainnet.era.zksync.io',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '480',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://worldchain-mainnet.g.alchemy.com/public',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '480',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://worldchain-mainnet.g.alchemy.com/public',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '998',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://hyperliquid-testnet.drpc.org',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '998',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://hyperliquid-testnet.drpc.org',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '999',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://hyperliquid.drpc.org',
+				corsEnabled: true,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.BrowserDirect,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '999',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://hyperliquid.drpc.org',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '1301',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://sepolia.unichain.org',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '1301',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://sepolia.unichain.org',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '1328',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://evm-rpc-testnet.sei-apis.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '1328',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://evm-rpc-testnet.sei-apis.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '1329',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://evm-rpc.sei-apis.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '1329',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://evm-rpc.sei-apis.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '4801',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://worldchain-sepolia.g.alchemy.com/public',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '4801',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://worldchain-sepolia.g.alchemy.com/public',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '8453',
@@ -335,9 +1191,28 @@ export default indexSourceBindings([
 				corsEnabled: false,
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
 	{
-		...voltaireJsonRpcRemoteLiveBindingAxes,
+		source: Source.Voltaire_JsonRpc,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
 			key: '8453',
@@ -352,147 +1227,1345 @@ export default indexSourceBindings([
 				locator: 'wss://base.llamarpc.com',
 			},
 		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
 	},
-	...flatMapSourceBindings(
-		[
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '10143',
+		},
+		endpoints: [
 			{
-				key: '10143',
-				httpProxyLocator: 'https://testnet-rpc.monad.xyz',
-				remoteLiveLocator: 'wss://testnet-rpc.monad.xyz',
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://testnet-rpc.monad.xyz',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '14601',
-				httpProxyLocator: 'https://rpc.testnet.soniclabs.com',
-				remoteLiveLocator: 'wss://rpc.testnet.soniclabs.com',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '10143',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://testnet-rpc.monad.xyz',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '42161',
-				httpProxyLocator: 'https://arb1.arbitrum.io/rpc',
-				remoteLiveLocator: 'wss://arb1.arbitrum.io/rpc',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '14601',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.testnet.soniclabs.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '42220',
-				httpProxyLocator: 'https://forno.celo.org',
-				remoteLiveLocator: 'wss://forno.celo.org',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '14601',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.testnet.soniclabs.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '43113',
-				httpProxyLocator: 'https://api.avax-test.network/ext/bc/C/rpc',
-				remoteLiveLocator: 'wss://api.avax-test.network/ext/bc/C/rpc',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '42161',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://arb1.arbitrum.io/rpc',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '43114',
-				httpProxyLocator: 'https://api.avax.network/ext/bc/C/rpc',
-				remoteLiveLocator: 'wss://api.avax.network/ext/bc/C/rpc',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '42161',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://arb1.arbitrum.io/rpc',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '57073',
-				httpProxyLocator: 'https://rpc-gel.inkonchain.com',
-				remoteLiveLocator: 'wss://rpc-gel.inkonchain.com',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '42220',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://forno.celo.org',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '59141',
-				httpProxyLocator: 'https://rpc.sepolia.linea.build',
-				remoteLiveLocator: 'wss://rpc.sepolia.linea.build',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '42220',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://forno.celo.org',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '59144',
-				httpProxyLocator: 'https://rpc.linea.build',
-				remoteLiveLocator: 'wss://rpc.linea.build',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '43113',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.avax-test.network/ext/bc/C/rpc',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '80002',
-				httpProxyLocator: 'https://rpc-amoy.polygon.technology',
-				remoteLiveLocator: 'wss://rpc-amoy.polygon.technology',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '43113',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://api.avax-test.network/ext/bc/C/rpc',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '81224',
-				httpProxyLocator: 'https://rpc.codex.xyz',
-				remoteLiveLocator: 'wss://rpc.codex.xyz',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '43114',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://api.avax.network/ext/bc/C/rpc',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '84532',
-				httpProxyLocator: 'https://sepolia.base.org',
-				remoteLiveLocator: 'wss://sepolia.base.org',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '43114',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://api.avax.network/ext/bc/C/rpc',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '98866',
-				httpProxyLocator: 'https://rpc.plume.org',
-				remoteLiveLocator: 'wss://rpc.plume.org',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '57073',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc-gel.inkonchain.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '98867',
-				httpProxyLocator: 'https://testnet-rpc.plume.org',
-				remoteLiveLocator: 'wss://testnet-rpc.plume.org',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '57073',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc-gel.inkonchain.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '421614',
-				httpProxyLocator: 'https://sepolia-rollup.arbitrum.io/rpc',
-				remoteLiveLocator: 'wss://sepolia-rollup.arbitrum.io/rpc',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '59141',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.sepolia.linea.build',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '763373',
-				httpProxyLocator: 'https://rpc-gel-sepolia.inkonchain.com',
-				remoteLiveLocator: 'wss://rpc-gel-sepolia.inkonchain.com',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '59141',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.sepolia.linea.build',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '812242',
-				httpProxyLocator: 'https://rpc.codex-stg.xyz',
-				remoteLiveLocator: 'wss://rpc.codex-stg.xyz',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '59144',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.linea.build',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '5042002',
-				httpProxyLocator: 'https://rpc.testnet.arc.network',
-				remoteLiveLocator: 'wss://rpc.testnet.arc.network',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '59144',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.linea.build',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '11142220',
-				httpProxyLocator: 'https://forno.celo-sepolia.celo-testnet.org',
-				remoteLiveLocator: 'wss://forno.celo-sepolia.celo-testnet.org',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '80002',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc-amoy.polygon.technology',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '11155111',
-				httpProxyLocator: 'https://ethereum-sepolia-rpc.publicnode.com',
-				remoteLiveLocator: 'wss://ethereum-sepolia-rpc.publicnode.com',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '80002',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc-amoy.polygon.technology',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				key: '11155420',
-				httpProxyLocator: 'https://sepolia.optimism.io',
-				remoteLiveLocator: 'wss://sepolia.optimism.io',
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
 			},
-		] as const,
-		({
-			key,
-			httpProxyLocator,
-			remoteLiveLocator,
-		}) => ([
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '81224',
+		},
+		endpoints: [
 			{
-				...voltaireJsonRpcHttpProxyBindingAxes,
-				target: {
-					kind: SourceTargetKind.Eip155Chain,
-					key,
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: httpProxyLocator,
-						corsEnabled: false,
-					},
-				],
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.codex.xyz',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
 			},
 			{
-				...voltaireJsonRpcRemoteLiveBindingAxes,
-				target: {
-					kind: SourceTargetKind.Eip155Chain,
-					key,
-				},
-				endpoints: [
-					{
-						endpointKind: SourceEndpointKind.WebSocketUrl,
-						locator: remoteLiveLocator,
-					},
-				],
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
 			},
-		] as const)
-	),
-] as const)
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '81224',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.codex.xyz',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '84532',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://sepolia.base.org',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '84532',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://sepolia.base.org',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '98866',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.plume.org',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '98866',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.plume.org',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '98867',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://testnet-rpc.plume.org',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '98867',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://testnet-rpc.plume.org',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '421614',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://sepolia-rollup.arbitrum.io/rpc',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '421614',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://sepolia-rollup.arbitrum.io/rpc',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '763373',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc-gel-sepolia.inkonchain.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '763373',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc-gel-sepolia.inkonchain.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '812242',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.codex-stg.xyz',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '812242',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.codex-stg.xyz',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '5042002',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://rpc.testnet.arc.network',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '5042002',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://rpc.testnet.arc.network',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '11142220',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://forno.celo-sepolia.celo-testnet.org',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '11142220',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://forno.celo-sepolia.celo-testnet.org',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '11155111',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://ethereum-sepolia-rpc.publicnode.com',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '11155111',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://ethereum-sepolia-rpc.publicnode.com',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '11155420',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://sepolia.optimism.io',
+				corsEnabled: false,
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcCore,
+			SourceOperationGroup.EvmRpcTrace,
+			SourceOperationGroup.EvmRpcTxpool,
+		],
+		delivery: SourceDelivery.HttpProxy,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+	{
+		source: Source.Voltaire_JsonRpc,
+		target: {
+			kind: SourceTargetKind.Eip155Chain,
+			key: '11155420',
+		},
+		endpoints: [
+			{
+				endpointKind: SourceEndpointKind.WebSocketUrl,
+				locator: 'wss://sepolia.optimism.io',
+			},
+		],
+		wireProtocol: WireProtocol.JsonRpc2,
+		apiFamily: ApiFamily.EvmExecutionJsonRpc,
+		operationGroups: [
+			SourceOperationGroup.EvmRpcSubscribe,
+		],
+		delivery: SourceDelivery.RemoteLive,
+		credentials: [],
+		artifacts: [
+			{
+				kind: SourceArtifactKind.GenerationManifest,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
+			},
+			{
+				kind: SourceArtifactKind.OpenRpcSpec,
+				path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
+			},
+		],
+	},
+])

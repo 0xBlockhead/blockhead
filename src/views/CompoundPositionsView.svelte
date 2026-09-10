@@ -28,13 +28,11 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					$comet: true,
-					baseTokenSymbol: true,
-					suppliedBalance: true,
-					borrowedBalance: true,
-				},
+			fields: {
+				$comet: true,
+				baseTokenSymbol: true,
+				suppliedBalance: true,
+				borrowedBalance: true,
 			},
 		})
 	}

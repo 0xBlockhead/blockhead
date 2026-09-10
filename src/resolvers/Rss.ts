@@ -15,6 +15,13 @@ import {
 } from '$/sources/_shared/interfaces/Rss/constants.ts'
 import type { ParsedRssFeed } from '$/sources/Rss/Rest/types.ts'
 
+const readRssSnapshot = <_Data>(snapshot: { data: _Data; error?: never } | { data?: never; error: unknown }): NonNullable<_Data> => {
+	if (snapshot.data == null)
+		throw snapshot.error
+
+	return snapshot.data
+}
+
 export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_Rest>({
 	loadFeed,
 	source,
@@ -38,6 +45,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 								feed = await loadFeed(feedUrl)
 							} catch (error) {
 								return {
+									error,
 									feedUrl,
 									$$timestamps: [{
 										[EntityMetaKey.Selector]: {
@@ -55,88 +63,90 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 							const timestampMs = Date.now()
 							const itemIdentityKeys = new Set<string>()
 							return {
-								...(feed.title != null && { title: feed.title }),
-								...(feed.description != null && { description: feed.description }),
-								...(feed.siteUrl != null && { siteUrl: feed.siteUrl }),
-								...(includesNativeMetadata && feed.language != null && {
-									language: feed.language,
-								}),
-								...(includesNativeMetadata && feed.lastBuildDate != null && {
-									lastBuildDate: feed.lastBuildDate,
-								}),
-								...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
-								...(feed.imageUrl != null && { $image: mediaFromUrl(feed.imageUrl, MediaType.Image) }),
-								items: feed.items
-									.slice(0, resolverContextRowLimit(context))
-									.flatMap((feedItem) => {
-										const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
-										const key = (
-											identity == null ?
-												undefined
-											:
-												`${identity.itemIdentityKind}:${identity.itemIdentity}`
-										)
-										if (key != null && itemIdentityKeys.has(key))
-											throw new Error(`${source}: duplicate feed item identity ${key}`)
-										if (key != null)
-											itemIdentityKeys.add(key)
-
-										return identity == null ? [] : [{
-											[EntityMetaKey.Selector]: {
-												$feed: { feedUrl },
-												...identity,
-											},
-											[EntityMetaKey.Fields]: {
-												...(feedItem.title != null && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'title')]: feedItem.title,
-												}),
-												...(feedItem.link != null && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'link')]: feedItem.link,
-												}),
-												...(feedItem.description != null && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'description')]: feedItem.description,
-												}),
-												...(feedItem.content != null && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'content')]: feedItem.content,
-												}),
-												...(feedItem.author != null && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'author')]: feedItem.author,
-												}),
-												...(feedItem.publishedAt != null && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'publishedAt')]: feedItem.publishedAt,
-												}),
-												...(includesNativeMetadata && feedItem.updatedAt != null && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'updatedAt')]: feedItem.updatedAt,
-												}),
-												...(feedItem.categories != null && feedItem.categories.length > 0 && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'categories')]: feedItem.categories,
-												}),
-												...(feedItem.enclosureUrl != null && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'enclosureUrl')]: feedItem.enclosureUrl,
-												}),
-												...(includesNativeMetadata && feedItem.commentsUrl != null && {
-													[entityFieldAddressKey(EntityType.RssItem, [], 'commentsUrl')]: feedItem.commentsUrl,
-												}),
-												[entityFieldAddressKey(EntityType.RssItem, [], '$feed')]: {
-													[EntityMetaKey.Selector]: { feedUrl },
-												},
-												[entityFieldAddressKey(EntityType.RssItem, [], '$$timestamps')]: [{
-													[EntityMetaKey.Selector]: {
-														$item: {
-															$feed: { feedUrl },
-															...identity,
-														},
-														timestampMs,
-														source,
-													},
-													[EntityMetaKey.Fields]: {
-														[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'observed')]: true,
-														[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: true,
-													},
-												}],
-											},
-										}]
+								data: {
+									...(feed.title != null && { title: feed.title }),
+									...(feed.description != null && { description: feed.description }),
+									...(feed.siteUrl != null && { siteUrl: feed.siteUrl }),
+									...(includesNativeMetadata && feed.language != null && {
+										language: feed.language,
 									}),
+									...(includesNativeMetadata && feed.lastBuildDate != null && {
+										lastBuildDate: feed.lastBuildDate,
+									}),
+									...(feed.imageUrl != null && { imageUrl: feed.imageUrl }),
+									...(feed.imageUrl != null && { $image: mediaFromUrl(feed.imageUrl, MediaType.Image) }),
+									limit: resolverContextRowLimit(context),
+									items: feed.items
+										.flatMap((feedItem) => {
+											const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
+											const key = (
+												identity == null ?
+													undefined
+												:
+													`${identity.itemIdentityKind}:${identity.itemIdentity}`
+											)
+											if (key != null && itemIdentityKeys.has(key))
+												throw new Error(`${source}: duplicate feed item identity ${key}`)
+											if (key != null)
+												itemIdentityKeys.add(key)
+
+											return identity == null ? [] : [{
+												[EntityMetaKey.Selector]: {
+													$feed: { feedUrl },
+													...identity,
+												},
+												[EntityMetaKey.Fields]: {
+													...(feedItem.title != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'title')]: feedItem.title,
+													}),
+													...(feedItem.link != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'link')]: feedItem.link,
+													}),
+													...(feedItem.description != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'description')]: feedItem.description,
+													}),
+													...(feedItem.content != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'content')]: feedItem.content,
+													}),
+													...(feedItem.author != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'author')]: feedItem.author,
+													}),
+													...(feedItem.publishedAt != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'publishedAt')]: feedItem.publishedAt,
+													}),
+													...(includesNativeMetadata && feedItem.updatedAt != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'updatedAt')]: feedItem.updatedAt,
+													}),
+													...(feedItem.categories != null && feedItem.categories.length > 0 && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'categories')]: feedItem.categories,
+													}),
+													...(feedItem.enclosureUrl != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'enclosureUrl')]: feedItem.enclosureUrl,
+													}),
+													...(includesNativeMetadata && feedItem.commentsUrl != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], 'commentsUrl')]: feedItem.commentsUrl,
+													}),
+													[entityFieldAddressKey(EntityType.RssItem, [], '$feed')]: {
+														[EntityMetaKey.Selector]: { feedUrl },
+													},
+													[entityFieldAddressKey(EntityType.RssItem, [], '$$timestamps')]: [{
+														[EntityMetaKey.Selector]: {
+															$item: {
+																$feed: { feedUrl },
+																...identity,
+															},
+															timestampMs,
+															source,
+														},
+														[EntityMetaKey.Fields]: {
+															[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'observed')]: true,
+															[entityFieldAddressKey(EntityType.RssItem_Timestamp, [], 'reachable')]: true,
+														},
+													}],
+												},
+											}]
+										}),
+								},
 								$$timestamps: [{
 									[EntityMetaKey.Selector]: {
 										$feed: { feedUrl },
@@ -153,18 +163,21 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 					}
 				}
 			})({
-				title: (snapshot) => snapshot.title,
-				description: (snapshot) => snapshot.description,
-				siteUrl: (snapshot) => snapshot.siteUrl,
+				title: (snapshot) => readRssSnapshot(snapshot).title,
+				description: (snapshot) => readRssSnapshot(snapshot).description,
+				siteUrl: (snapshot) => readRssSnapshot(snapshot).siteUrl,
 				...(includesNativeMetadata && {
-					language: (snapshot) => snapshot.language,
-					lastBuildDate: (snapshot) => snapshot.lastBuildDate,
+					language: (snapshot) => readRssSnapshot(snapshot).language,
+					lastBuildDate: (snapshot) => readRssSnapshot(snapshot).lastBuildDate,
 				}),
-				imageUrl: (snapshot) => snapshot.imageUrl,
-				$image: (snapshot) => snapshot.$image,
+				imageUrl: (snapshot) => readRssSnapshot(snapshot).imageUrl,
+				$image: (snapshot) => readRssSnapshot(snapshot).$image,
 				$$items: {
-					select: (snapshot) => snapshot.items,
-					resolveCount: (snapshot) => snapshot.items.length,
+					select: (snapshot) => {
+						const data = readRssSnapshot(snapshot)
+						return data.items.slice(0, data.limit)
+					},
+					resolveCount: (snapshot) => readRssSnapshot(snapshot).items.length,
 				},
 				$$timestamps: (snapshot) => snapshot.$$timestamps,
 			}),
@@ -184,8 +197,12 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 								feed = await loadFeed(feedUrl)
 							} catch (error) {
 								return {
+									error,
 									itemIdentityKind,
 									itemIdentity,
+									$feed: {
+										[EntityMetaKey.Selector]: { feedUrl },
+									},
 									$$timestamps: [{
 										[EntityMetaKey.Selector]: {
 											$item: { $feed: { feedUrl }, itemIdentityKind, itemIdentity },
@@ -212,24 +229,26 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 							return {
 								itemIdentityKind,
 								itemIdentity,
-								...(feedItem.title != null && { title: feedItem.title }),
-								...(feedItem.link != null && { link: feedItem.link }),
-								...(feedItem.description != null && { description: feedItem.description }),
-								...(feedItem.content != null && { content: feedItem.content }),
-								...(feedItem.author != null && { author: feedItem.author }),
-								...(feedItem.publishedAt != null && { publishedAt: feedItem.publishedAt }),
-								...(includesNativeMetadata && feedItem.updatedAt != null && {
-									updatedAt: feedItem.updatedAt,
-								}),
-								...(feedItem.categories != null && feedItem.categories.length > 0 && {
-									categories: feedItem.categories,
-								}),
-								...(feedItem.enclosureUrl != null && { enclosureUrl: feedItem.enclosureUrl }),
-								...(includesNativeMetadata && feedItem.commentsUrl != null && {
-									commentsUrl: feedItem.commentsUrl,
-								}),
 								$feed: {
 									[EntityMetaKey.Selector]: { feedUrl },
+								},
+								data: {
+									...(feedItem.title != null && { title: feedItem.title }),
+									...(feedItem.link != null && { link: feedItem.link }),
+									...(feedItem.description != null && { description: feedItem.description }),
+									...(feedItem.content != null && { content: feedItem.content }),
+									...(feedItem.author != null && { author: feedItem.author }),
+									...(feedItem.publishedAt != null && { publishedAt: feedItem.publishedAt }),
+									...(includesNativeMetadata && feedItem.updatedAt != null && {
+										updatedAt: feedItem.updatedAt,
+									}),
+									...(feedItem.categories != null && feedItem.categories.length > 0 && {
+										categories: feedItem.categories,
+									}),
+									...(feedItem.enclosureUrl != null && { enclosureUrl: feedItem.enclosureUrl }),
+									...(includesNativeMetadata && feedItem.commentsUrl != null && {
+										commentsUrl: feedItem.commentsUrl,
+									}),
 								},
 								$$timestamps: [{
 									[EntityMetaKey.Selector]: {
@@ -253,19 +272,19 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 			})({
 				itemIdentityKind: (snapshot) => snapshot.itemIdentityKind,
 				itemIdentity: (snapshot) => snapshot.itemIdentity,
-				title: (snapshot) => snapshot.title,
-				link: (snapshot) => snapshot.link,
-				description: (snapshot) => snapshot.description,
-				content: (snapshot) => snapshot.content,
-				author: (snapshot) => snapshot.author,
-				publishedAt: (snapshot) => snapshot.publishedAt,
+				title: (snapshot) => readRssSnapshot(snapshot).title,
+				link: (snapshot) => readRssSnapshot(snapshot).link,
+				description: (snapshot) => readRssSnapshot(snapshot).description,
+				content: (snapshot) => readRssSnapshot(snapshot).content,
+				author: (snapshot) => readRssSnapshot(snapshot).author,
+				publishedAt: (snapshot) => readRssSnapshot(snapshot).publishedAt,
 				...(includesNativeMetadata && {
-					updatedAt: (snapshot) => snapshot.updatedAt,
+					updatedAt: (snapshot) => readRssSnapshot(snapshot).updatedAt,
 				}),
-				categories: (snapshot) => snapshot.categories,
-				enclosureUrl: (snapshot) => snapshot.enclosureUrl,
+				categories: (snapshot) => readRssSnapshot(snapshot).categories,
+				enclosureUrl: (snapshot) => readRssSnapshot(snapshot).enclosureUrl,
 				...(includesNativeMetadata && {
-					commentsUrl: (snapshot) => snapshot.commentsUrl,
+					commentsUrl: (snapshot) => readRssSnapshot(snapshot).commentsUrl,
 				}),
 				$feed: (snapshot) => snapshot.$feed,
 				$$timestamps: (snapshot) => snapshot.$$timestamps,

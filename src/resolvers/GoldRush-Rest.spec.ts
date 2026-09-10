@@ -1,3 +1,4 @@
+import { createResolverContext } from '../../tests/resolverContext.ts'
 import {
 	beforeEach,
 	describe,
@@ -49,15 +50,7 @@ const goldRushBinding = bindings[Source.GoldRushFoundational_Rest][0]
 const transactionResponse = transactionFixture satisfies GoldRushTransactionResponse
 const transactionEmptyResponse = transactionEmptyFixture satisfies GoldRushTransactionResponse
 const transactionErrorResponse = transactionErrorFixture satisfies GoldRushTransactionResponse
-const emptyContext = {
-	filters: [],
-	sorts: [],
-	pagination: {},
-	selectorKeys: [],
-	parentSelectorKeys: [],
-	sources: [],
-	publicEnv: {},
-}
+const emptyContext = createResolverContext()
 
 describe('GoldRush Foundational transaction source', () => {
 	beforeEach(() => {

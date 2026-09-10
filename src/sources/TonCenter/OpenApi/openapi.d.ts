@@ -451,6 +451,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/getBlock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Block
+         * @description Get raw block data as a base64-encoded BOC
+         */
+        get: operations["getBlock_get"];
+        put?: never;
+        /**
+         * Get Block
+         * @description Get raw block data as a base64-encoded BOC
+         */
+        post: operations["getBlock_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/getBlockHeader": {
         parameters: {
             query?: never;
@@ -893,6 +917,14 @@ export interface components {
             unixtime?: string | number;
         };
         ShardsRequest: components["schemas"]["SeqnoRequest"];
+        BlockDataRequest: {
+            workchain: string | number;
+            shard: string | number;
+            seqno: string | number;
+            root_hash?: components["schemas"]["TonHash"];
+            file_hash?: components["schemas"]["TonHash"];
+            archival?: string | number | boolean;
+        };
         BlockHeaderRequest: {
             workchain: string | number;
             shard: string | number;
@@ -1593,7 +1625,7 @@ export interface components {
             in_msg?: components["schemas"]["Message"];
             out_msgs: components["schemas"]["Message"][];
         };
-        TonlibObject: components["schemas"]["DetectAddress"] | components["schemas"]["DetectHash"] | components["schemas"]["AddressInformation"] | components["schemas"]["ExtendedAddressInformation"] | components["schemas"]["WalletInformation"] | components["schemas"]["JettonMasterData"] | components["schemas"]["JettonWalletData"] | components["schemas"]["NftCollectionData"] | components["schemas"]["NftItemData"] | components["schemas"]["DnsResolved"] | components["schemas"]["MasterchainInfo"] | components["schemas"]["BlockSignatures"] | components["schemas"]["BlockSignaturesSimplex"] | components["schemas"]["ShardBlockProof"] | components["schemas"]["ConsensusBlock"] | components["schemas"]["TonBlockIdExt"] | components["schemas"]["Shards"] | components["schemas"]["BlockHeader"] | components["schemas"]["OutMsgQueueSizes"] | components["schemas"]["BlockTransactions"] | components["schemas"]["BlockTransactionsExt"] | components["schemas"]["Transaction"] | components["schemas"]["TransactionsStd"] | components["schemas"]["ConfigInfo"] | components["schemas"]["LibraryResult"] | components["schemas"]["QueryFees"] | components["schemas"]["ExtMessageInfo"] | components["schemas"]["ResultOk"] | components["schemas"]["RunGetMethodStdResult"] | components["schemas"]["RunGetMethodResult"] | components["schemas"]["TvmCell"];
+        TonlibObject: components["schemas"]["DetectAddress"] | components["schemas"]["DetectHash"] | components["schemas"]["AddressInformation"] | components["schemas"]["ExtendedAddressInformation"] | components["schemas"]["WalletInformation"] | components["schemas"]["JettonMasterData"] | components["schemas"]["JettonWalletData"] | components["schemas"]["NftCollectionData"] | components["schemas"]["NftItemData"] | components["schemas"]["DnsResolved"] | components["schemas"]["MasterchainInfo"] | components["schemas"]["BlockSignatures"] | components["schemas"]["BlockSignaturesSimplex"] | components["schemas"]["ShardBlockProof"] | components["schemas"]["ConsensusBlock"] | components["schemas"]["TonBlockIdExt"] | components["schemas"]["Shards"] | components["schemas"]["BlockData"] | components["schemas"]["BlockHeader"] | components["schemas"]["OutMsgQueueSizes"] | components["schemas"]["BlockTransactions"] | components["schemas"]["BlockTransactionsExt"] | components["schemas"]["Transaction"] | components["schemas"]["TransactionsStd"] | components["schemas"]["ConfigInfo"] | components["schemas"]["LibraryResult"] | components["schemas"]["QueryFees"] | components["schemas"]["ExtMessageInfo"] | components["schemas"]["ResultOk"] | components["schemas"]["RunGetMethodStdResult"] | components["schemas"]["RunGetMethodResult"] | components["schemas"]["TvmCell"];
         /** TonlibResponse */
         TonlibResponse: {
             /**
@@ -1709,7 +1741,7 @@ export interface components {
             account_state: components["schemas"]["AccountStateEnum"];
             last_transaction_id: components["schemas"]["InternalTransactionId"];
             /** @enum {string} */
-            wallet_type?: "wallet v1 r1" | "wallet v1 r2" | "wallet v1 r3" | "wallet v2 r1" | "wallet v2 r2" | "wallet v3 r1" | "wallet v3 r2" | "wallet v4 r1" | "wallet v4 r2" | "wallet v5 beta" | "wallet v5 r1";
+            wallet_type?: "wallet v1 r1" | "wallet v1 r2" | "wallet v1 r3" | "wallet v2 r1" | "wallet v2 r2" | "wallet v3 r1" | "wallet v3 r2" | "wallet v4 r1" | "wallet v4 r2" | "wallet v5 beta" | "wallet v5 r1" | "tg-wallet";
             /** Format: int64 */
             seqno?: number;
             wallet_id?: number;
@@ -1781,6 +1813,18 @@ export interface components {
              */
             "@type": "blocks.shards";
             shards: components["schemas"]["TonBlockIdExt"][];
+        };
+        /** @description Raw block data returned by a LiteServer. */
+        BlockData: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            "@type": "blocks.blockData";
+            /** @description Extended identifier of the returned block. */
+            id: components["schemas"]["TonBlockIdExt"];
+            /** @description Full block BOC encoded as base64. */
+            data: components["schemas"]["Bytes"];
         };
         /** @description Block header information. */
         BlockHeader: {
@@ -3054,6 +3098,65 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ShardsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TonlibResponse"];
+                };
+            };
+            default: components["responses"]["default"];
+        };
+    };
+    getBlock_get: {
+        parameters: {
+            query: {
+                /** @description Workchain ID */
+                workchain: components["parameters"]["workchain"];
+                /** @description Shard ID */
+                shard: components["parameters"]["shard"];
+                /** @description Seqno of a block */
+                seqno: components["parameters"]["seqno"];
+                /** @description Root hash of a block */
+                root_hash?: components["parameters"]["rootHashOptional"];
+                /** @description File hash of a block */
+                file_hash?: components["parameters"]["fileHashOptional"];
+                /** @description Whether to use archival node */
+                archival?: components["parameters"]["archivalOptional"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TonlibResponse"];
+                };
+            };
+            default: components["responses"]["default"];
+        };
+    };
+    getBlock_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BlockDataRequest"];
             };
         };
         responses: {

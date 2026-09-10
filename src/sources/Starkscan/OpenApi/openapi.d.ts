@@ -1,4 +1,109 @@
 export interface paths {
+    "/v1/{chain}/staking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Prepared finalized staking summary
+         * @description DB-only prepared staking facts; no RPC, provider, raw-event, historical-price, or request-time complete-set scan.
+         */
+        get: operations["getStakingSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/staking/validators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Page prepared finalized validators */
+        get: operations["listStakingValidators"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/staking/validators/{address}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prepared validator detail with per-token pools and address histories */
+        get: operations["getStakingValidator"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/staking/validators/{address}/delegators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Page prepared finalized delegators */
+        get: operations["listStakingDelegators"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/staking/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Page prepared transaction-linked staking activity */
+        get: operations["listStakingActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/staking/address/{address}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prepared address staking positions and history */
+        get: operations["getAddressStaking"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/.well-known/starkscan-agent.json": {
         parameters: {
             query?: never;
@@ -8,7 +113,9 @@ export interface paths {
         };
         /**
          * Agent-readable Starkscan memory contract
-         * @description Public machine-readable discovery document for agents. It points agents at the authenticated meta routes, route families, operating rules, and typed artifact contract without requiring chat history.
+         * @description Public machine-readable discovery document for agents. It points agents
+         *     at the authenticated meta routes, route families, operating rules, and
+         *     typed artifact contract without requiring chat history.
          */
         get: {
             parameters: {
@@ -50,7 +157,7 @@ export interface paths {
         };
         /**
          * Agent-readable API capabilities
-         * @description Authenticated route-family catalog for agents and developers. Hosted external clients call `/v1/meta/capabilities` with `X-Starkscan-Api-Key`. Same-origin explorer traffic uses this `/v1` route through the trusted edge. Use this before selecting the smallest route set for a task.
+         * @description Authenticated route-family catalog for agents and developers. Hosted external clients call `/v1/meta/capabilities` with `X-Starkscan-Api-Key`. Same-origin explorer traffic uses this `/v1` route through the trusted edge. Use this before selecting the smallest route set for a task. A chain-specific token-holder registry is omitted with `policy_registry_chain_mismatch` when it does not match the deployment's default chain.
          */
         get: {
             parameters: {
@@ -176,6 +283,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/meta/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reject the non-chain meta status alias
+         * @description `meta` is a discovery namespace, not a Starknet chain. This route always returns a typed HTTP 404 so agents cannot mistake an all-null pseudo-chain payload for a health check. Read `/v1/meta/chains`, then request `/v1/{chain}/status` for a supported chain. The trusted app-host `/v1/*` lane supplies internal authentication; direct API-host callers retain the normal Starkscan API-key boundary.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                /** @description The meta namespace is not a chain. */
+                404: {
+                    headers: {
+                        "X-Request-Id": components["headers"]["RequestId"];
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                429: components["responses"]["RateLimited"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/{chain}/status": {
         parameters: {
             query?: never;
@@ -183,7 +336,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Chain status */
+        /**
+         * Chain status
+         * @description Current indexed, finalized, and L1 evidence status for a supported Starknet chain. `meta` is a discovery namespace, not a chain; `/v1/meta/status` returns a typed HTTP 404. Read `/v1/meta/chains`, then use one of the returned chain ids here.
+         */
         get: {
             parameters: {
                 query?: never;
@@ -278,6 +434,124 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/{chain}/status/l1-finality-quorum": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * L1 finality quorum health
+         * @description Fail-closed semantic health check for external monitoring. Reads only Starkscan's materialized status facts and returns HTTP 200 when every L1 evidence component required for the served chain has a complete, agreeing quorum from at least two configured endpoints and the oldest observation is no more than five minutes old. Missing, stale, failed, degraded, diverged, or inconsistent evidence returns HTTP 503. This route does not call Ethereum and does not identify or blame an upstream provider or Starknet. The credential-free status monitor uses the trusted app-host `/v1/*` lane; direct API-host callers retain the normal Starkscan API-key boundary.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Starkscan has a fresh, complete, agreeing L1 evidence quorum. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["L1FinalityQuorumHealthView"];
+                    };
+                };
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                /** @description Chain is not served by this deployment. */
+                404: {
+                    headers: {
+                        "X-Request-Id": components["headers"]["RequestId"];
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                429: components["responses"]["RateLimited"];
+                503: components["responses"]["L1FinalityQuorumDegraded"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/status/l1-finality-freshness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * L1 finality freshness health
+         * @description Fail-closed semantic health check for external monitoring. Reads only Starkscan's materialized L1 accepted proof watermark and returns HTTP 200 when the watermark and its non-negative age are available and no more than five minutes old. Missing, stale, or inconsistent evidence returns HTTP 503. This route does not call Ethereum and does not identify or blame an upstream provider or Starknet. The credential-free status monitor uses the trusted app-host `/v1/*` lane; direct API-host callers retain the normal Starkscan API-key boundary.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Starkscan's materialized L1 finality watermark is fresh. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["L1FinalityFreshnessHealthView"];
+                    };
+                };
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                /** @description Chain is not served by this deployment. */
+                404: {
+                    headers: {
+                        "X-Request-Id": components["headers"]["RequestId"];
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                429: components["responses"]["RateLimited"];
+                503: components["responses"]["L1FinalityFreshnessDegraded"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/{chain}/rpc": {
         parameters: {
             query?: never;
@@ -289,7 +563,7 @@ export interface paths {
         put?: never;
         /**
          * Starknet JSON-RPC gateway
-         * @description Bounded Starknet JSON-RPC gateway. Read methods are forwarded through Starkscan's rate-limited upstream pool; write methods remain gated by the RPC pilot controls. Accepts a single JSON-RPC request object or a batch of up to 25 request objects. JSON parse errors and invalid JSON-RPC payloads are returned as JSON-RPC error envelopes with HTTP 200 so clients can keep standard JSON-RPC handling.
+         * @description Bounded Starknet JSON-RPC gateway. Read methods are forwarded through Starkscan's rate-limited upstream pool; write methods remain gated by the RPC pilot controls. Accepts a single JSON-RPC request object or a batch of up to 50 request objects. The serialized aggregate batch response is capped at 16 MiB and fails closed with per-request `batch_response_too_large` JSON-RPC errors when that cap is exceeded. JSON parse errors, invalid JSON-RPC payloads, and authentication failures are returned as JSON-RPC error envelopes so clients can keep standard JSON-RPC handling. Authentication failures retain their HTTP 400, 401, 403, or 503 status. HTTP 401 and 403 responses preserve the WWW-Authenticate challenge; retryable 503 responses preserve Retry-After.
          */
         post: {
             parameters: {
@@ -313,15 +587,61 @@ export interface paths {
                 /** @description JSON-RPC response or JSON-RPC error envelope forwarded from the gateway */
                 200: {
                     headers: {
+                        /** @description Quota and routing class applied to this JSON-RPC response. */
+                        "X-Starkscan-Rpc-Class"?: string;
                         [name: string]: unknown;
                     };
                     content: {
                         "application/json": components["schemas"]["JsonRpcResponse"] | components["schemas"]["JsonRpcBatchResponse"];
                     };
                 };
-                401: components["responses"]["UnauthorizedText"];
-                403: components["responses"]["ForbiddenText"];
+                /** @description Malformed or conflicting authentication credential as a JSON-RPC error envelope. */
+                400: {
+                    headers: {
+                        /** @description Canonical request correlation header for support and tracing. */
+                        "X-Request-Id"?: string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["JsonRpcResponse"];
+                    };
+                };
+                /** @description Missing or invalid credential as a JSON-RPC error envelope. */
+                401: {
+                    headers: {
+                        "WWW-Authenticate"?: string;
+                        "X-Request-Id"?: string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["JsonRpcResponse"];
+                    };
+                };
+                /** @description Valid credential lacks the required scope; returned as a JSON-RPC error envelope. */
+                403: {
+                    headers: {
+                        "WWW-Authenticate"?: string;
+                        "X-Request-Id"?: string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["JsonRpcResponse"];
+                    };
+                };
                 429: components["responses"]["RateLimited"];
+                /** @description Authentication lookup or authorization provider temporarily unavailable as a JSON-RPC error envelope. */
+                503: {
+                    headers: {
+                        /** @description Canonical request correlation header for support and tracing. */
+                        "X-Request-Id"?: string;
+                        /** @description Seconds to wait before retrying when the unavailable path supplies a retry delay. */
+                        "Retry-After"?: number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["JsonRpcResponse"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -840,6 +1160,187 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/{chain}/bridge/starkgate/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolve StarkGate bridge activity
+         * @description Resolves StarkGate lifecycle rows from indexed L1/L2 protocol message and bridge facts. At least one of `txHash`, `messageHash`, `address`, `token`, or `bridge` is required.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Optional Starknet transaction hash to resolve. */
+                    txHash?: string;
+                    /** @description Optional protocol message hash to resolve. */
+                    messageHash?: string;
+                    /** @description Optional sender or recipient address filter. */
+                    address?: string;
+                    /** @description Optional token address filter. */
+                    token?: string;
+                    /** @description Optional L1 or L2 bridge contract address filter. */
+                    bridge?: string;
+                    /** @description Optional message direction filter. */
+                    direction?: "all" | "l1_to_l2" | "l2_to_l1";
+                    /** @description Page size for resolver matches (clamped to 1..25). */
+                    limit?: number;
+                };
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description StarkGate transfer resolution */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StarkgateTransferResolutionView"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                429: components["responses"]["RateLimited"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/bridge/starkgate/transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paginated StarkGate bridge transfers */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Optional exact protocol message hash filter. */
+                    messageHash?: string;
+                    /** @description Optional sender or recipient address filter. */
+                    address?: string;
+                    /** @description Optional token address filter. */
+                    token?: string;
+                    /** @description Optional L1 or L2 bridge contract address filter. */
+                    bridge?: string;
+                    /** @description Optional transfer status filter. `pending_l1_claim` is retained as a compatibility filter for uncleared withdrawals. Claimability is sourced from a finalized StarknetCore registry snapshot; missing evidence returns `claimability_unavailable` and snapshots older than five minutes return `claimability_stale` rather than being reused as current readiness. */
+                    status?: "l1_observed" | "consumed_on_l2" | "l2_only_signal" | "pending_l1_claim" | "pending_l1_proof" | "claimability_ambiguous" | "claimability_unavailable" | "claimability_stale" | "ready_to_claim_on_l1" | "cleared_on_l1" | "unpaired";
+                    /** @description Optional message direction filter. */
+                    direction?: "all" | "l1_to_l2" | "l2_to_l1";
+                    /** @description Optional opaque StarkGate transfer cursor returned from `nextCursor`. New cursors are integrity-protected, expire after five minutes, and pin both the L1 accepted watermark and registry-freshness cutoff for stable claimability pagination. Clients must return the value unchanged and restart pagination after `400`; legacy position-only cursors remain accepted, while unsigned snapshot-bound cursors fail closed. */
+                    cursor?: string;
+                    /** @description Page size (clamped to 1..100). */
+                    limit?: number;
+                };
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description StarkGate transfer page */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StarkgateTransferPageView"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                429: components["responses"]["RateLimited"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/bridge/starkgate/transfer/{message_hash}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolve StarkGate bridge transfers by message hash
+         * @description Resolver endpoint for one protocol message hash. Returns the indexed resolution view, which may contain zero or more matching transfer rows and explicit coverage metadata.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                    /**
+                     * @description Protocol message hash.
+                     * @example 0x0123456789abcdef0123456789abcdef
+                     */
+                    message_hash: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description StarkGate transfer resolver results for one message hash */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StarkgateTransferResolutionView"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                429: components["responses"]["RateLimited"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/{chain}/messages": {
         parameters: {
             query?: never;
@@ -900,6 +1401,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/{chain}/message/{message_hash}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Canonical cross-layer message detail
+         * @description Message detail served only from indexed StarknetCore protocol message facts. Bridge adapter lifecycle facts and token-transfer-derived bridge activity are excluded.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Optional opaque cursor returned from `nextCursor` when a message hash has more lifecycle rows. */
+                    cursor?: string;
+                    /** @description Page size for lifecycle rows (clamped to 1..100, default 100). */
+                    limit?: number;
+                };
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef0123456789abcdef */
+                    message_hash: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Message detail with explicit coverage metadata */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessageDetailView"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                /** @description Message hash has no indexed StarknetCore protocol lifecycle rows */
+                404: {
+                    headers: {
+                        "X-Request-Id": components["headers"]["RequestId"];
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                429: components["responses"]["RateLimited"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/{chain}/tx/{tx_hash}/trace": {
         parameters: {
             query?: never;
@@ -918,6 +1485,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x054bfd961fb8b156c77ffa0f7882b8fcc1836753c2d3d88435b640d6300c8bd9 */
                     tx_hash: string;
                 };
                 cookie?: never;
@@ -976,6 +1544,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1025,6 +1594,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1065,7 +1635,7 @@ export interface paths {
         put?: never;
         /**
          * Batch address aggregate summaries
-         * @description Utility-tier batch helper for bounded address hydration. The route returns request-ordered indexed summary facts for up to 128 addresses and intentionally avoids raw activity scans, deployment repair, and RPC calls on the request path. Treat `activityCountExact=false` as an explicit inexact/unknown signal, not as proof that an address has no additional activity.
+         * @description Utility-tier batch helper for bounded address hydration. The route returns request-ordered indexed summary facts for up to 128 addresses and intentionally avoids raw activity scans, deployment repair, and RPC calls on the request path. `totalActivityCount=null` with `activityCountExact=false` means no trustworthy numeric statement is available; numeric zero is reserved for a certified exhaustive range.
          *
          *     Advanced utility route. This helper is externally supported, but it requires a broader utility-access key than the baseline read tier and is not the default starting point for new integrations.
          */
@@ -1120,8 +1690,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Batch address deployment, attribution, and inbound-funds intelligence
-         * @description Utility-tier batch helper for wallet, paymaster, migration, and compliance-adjacent clients that need factual classification for a bounded list of up to 128 addresses. The route returns whether each address has indexed deployment evidence, optional readable attribution, and whether indexed token-transfer rows show the address as a recipient. It is backed by read-model indexes only; it does not call RPC on the request path and does not perform risk scoring or sanctions screening.
+         * Batch address deployment, attribution, typed activity, and inbound-funds intelligence
+         * @description Utility-tier batch helper for wallet, paymaster, migration, and compliance-adjacent clients that need factual classification for a bounded list of up to 128 addresses. The route returns whether each address has indexed deployment evidence, optional readable attribution, whether indexed token-transfer rows show the address as a recipient, and typed activity coverage. Successful finalized account-sender, trace-backed finalized contract-call, and canonical finalized contract-emitted event evidence preserves the proved latest block while its total remains null until a success-only exhaustive aggregate is certified; unknown or unmaterialized totals are null, while a certified exhaustive genuine zero is 0; reorgable head rows are not promoted. It is backed by read-model indexes only; it does not call RPC on the request path and does not perform risk scoring or sanctions screening.
          *
          *     Advanced utility route. This helper is externally supported, but it requires a broader utility-access key than the baseline read tier and is not the default starting point for new integrations.
          */
@@ -1251,7 +1821,10 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
-                    /** @description Starknet class hash. */
+                    /**
+                     * @description Starknet class hash.
+                     * @example 0x0123456789abcdef
+                     */
                     class_hash: string;
                 };
                 cookie?: never;
@@ -1346,6 +1919,65 @@ export interface paths {
                 401: components["responses"]["UnauthorizedText"];
                 403: components["responses"]["ForbiddenText"];
                 409: components["responses"]["Conflict"];
+                429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/query/wallet-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify one wallet's fungible state at one immutable block
+         * @description One bounded wallet-screen operation. Candidate discovery and balance correctness are separate contracts. Every returned balance, optional nonce, and optional class hash is read from the dedicated RPC serving pool at the same resolved block hash. The server never substitutes an indexed balance and never converts an RPC error to zero. In require_complete mode, any failed value returns HTTP 503 without a partial success payload. verified_partial mode returns typed per-item failures and walletSafe=false. The current public contract accepts at most 25 candidates. The 26-50 band remains unavailable until dedicated-pool and clean-window capacity certification plus a coordinated schema and client release.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["WalletStateRequest"];
+                };
+            };
+            responses: {
+                /** @description Block-pinned complete or typed-partial wallet state */
+                200: {
+                    headers: {
+                        "X-Starkscan-Query-Class"?: "wallet_state";
+                        /** @description One partner operation within the bounded 1-25 token band. */
+                        "X-Starkscan-Cost-Units"?: 1;
+                        "x-ratelimit-limit"?: number;
+                        "x-ratelimit-remaining"?: number;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WalletStateResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
                 429: components["responses"]["RateLimited"];
                 503: components["responses"]["ServiceUnavailable"];
             };
@@ -1484,6 +2116,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/{chain}/address/{address}/assets/discovery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Discover bounded fungible asset candidates for one wallet
+         * @description Returns token candidates and evidence only; it never returns or implies a current balance. Follow nextCursor while hasMore is true. Coverage describes completeness only within the declared standard-fungible discovery scope. globallyComplete remains false because non-standard or unregistered assets may not be discoverable. Use wallet-state to verify balances at one immutable block hash.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description `discovered` returns candidates observed for this wallet. The default `discovered_plus_registry` also evaluates the curated registry, which can paginate even for a wallet with no observed assets. */
+                    scope?: "discovered" | "discovered_plus_registry";
+                    /** @description Authenticated opaque nextCursor returned by the previous discovery page. It pins one candidate snapshot, expires five minutes after the first page, and must be returned unchanged with the same scope. Restart from the first page after an invalid_cursor response. */
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
+                    address: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Candidate page with explicit discovery coverage */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WalletAssetDiscoveryPage"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                429: components["responses"]["RateLimited"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/{chain}/address/{address}/transactions": {
         parameters: {
             query?: never;
@@ -1507,6 +2196,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1545,8 +2235,9 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Indexed token holdings for one owner address
-         * @description Wallet-first indexed holdings snapshot. Use `completeness` to decide whether the response is complete enough for portfolio parity checks. Use `GET /v1/{chain}/token/{token}/balance-of/{address}` for an exact spot read when the token contract is already known.
+         * Retired indexed-balance route
+         * @deprecated
+         * @description Always returns HTTP 410 with no holdings data. The old contract mixed asset discovery with event-derived balance observations and could not satisfy wallet-grade correctness. Use assets/discovery for candidate enumeration and query/wallet-state for balances pinned to one block. The response includes Deprecation, Sunset, and successor Link headers.
          */
         get: {
             parameters: {
@@ -1558,23 +2249,27 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Address token holdings snapshot */
-                200: {
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                /** @description Route retired; migrate to discovery plus wallet-state */
+                410: {
                     headers: {
+                        Deprecation?: "true";
+                        Sunset?: string;
+                        Link?: string;
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["AddressTokenHoldingsView"];
+                        "application/json": components["schemas"]["RetiredTokenHoldingsResponse"];
                     };
                 };
-                401: components["responses"]["UnauthorizedText"];
-                403: components["responses"]["ForbiddenText"];
                 429: components["responses"]["RateLimited"];
             };
         };
@@ -1595,7 +2290,7 @@ export interface paths {
         };
         /**
          * Indexed contract metadata
-         * @description Lightweight contract metadata for migration clients. The response is composed only from indexed read-model facts; nullable token fields mean the contract is not currently identified as token metadata in the index, not that it is provably not a token.
+         * @description Lightweight contract metadata for migration clients. The response is composed from one stable snapshot of indexed read-model facts. A syntactically valid address with no indexed contract identity returns 404 rather than an all-null success envelope. Nullable token fields mean the contract is not currently identified as token metadata in the index, not that it is provably not a token. Class-hash provenance fields state exactly which indexed fact backs classHash.
          */
         get: {
             parameters: {
@@ -1607,6 +2302,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1622,9 +2318,21 @@ export interface paths {
                         "application/json": components["schemas"]["ContractMetadataView"];
                     };
                 };
+                400: components["responses"]["BadRequest"];
                 401: components["responses"]["UnauthorizedText"];
                 403: components["responses"]["ForbiddenText"];
+                /** @description No indexed contract identity exists for this address */
+                404: {
+                    headers: {
+                        "X-Request-Id": components["headers"]["RequestId"];
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
                 429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
             };
         };
         put?: never;
@@ -1657,6 +2365,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1696,17 +2405,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/{chain}/contract/{address}/entrypoints": {
+    "/v1/{chain}/contract/{address}/classes": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Contract class entrypoints */
+        /**
+         * Observed contract class epochs
+         * @description Bounded, newest-first class epochs from event-time ABI observations. This is partial evidence, not an exhaustive upgrade ledger: changes without an indexed ABI observation can be absent. `truncated` only reports page truncation and must not be interpreted as source coverage.
+         */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Maximum class epochs to return (clamped to 1..100; default 25). */
+                    limit?: number;
+                };
                 header?: {
                     /** @description Optional caller-supplied correlation ID echoed back in the response. */
                     "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
@@ -1714,6 +2429,62 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
+                    address: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Partial, observation-backed class epochs for the contract */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContractClassHistoryView"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/contract/{address}/entrypoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Contract class entrypoints
+         * @description Resolves latest, a block number, or a block hash to one canonical block hash, then reads the contract class hash and ABI at that hash. Use the returned `blockTag` for the paired contract call. Pending is rejected because it cannot be certified across separate requests.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description latest, an explicit non-negative block number, or a 0x-prefixed block hash. The response returns the resolved canonical hash. */
+                    block_tag?: string;
+                };
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1743,6 +2514,7 @@ export interface paths {
                     };
                 };
                 429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
             };
         };
         put?: never;
@@ -1762,21 +2534,51 @@ export interface paths {
         };
         /**
          * Paginated contract event logs
-         * @description Canonical paginated event/log surface for one contract. Use server-side topic and block filters before applying client-side protocol interpretation. Results are returned newest first in deterministic on-chain order (`blockNumber` DESC, `txIndex` DESC, `logIndex` DESC). Topic filters in this route are exact single-value matches (`topic0..topic3`), not OR-array combinations. The request `cursor` is exclusive and resumes after the last seen `(blockNumber, txIndex, logIndex)` tuple. Pass `nextCursor` from the previous response to continue without gaps or duplicates.
+         * @description Canonical paginated event/log surface for one contract. Use server-side topic and block filters before applying client-side protocol interpretation. Results are returned newest first in deterministic on-chain order (`blockNumber` DESC, `txIndex` DESC, `logIndex` DESC). `topic0..topic15` address exact key positions: repeated values at one position are OR alternatives, populated positions are ANDed, and omitted positions are wildcards. Each position accepts at most 128 distinct felts and the request accepts at most 256 total. Any `topic1..topic15` filter requires a non-empty `topic0` plus explicit numeric `from_block` and `to_block` values. Ordinary read keys may span at most 10,000 blocks inclusive. For a DB-backed Wallet workspace, every numeric subrange of a declared selector's certified contiguous coverage uses the positional index, including sub-10,000-block windows; narrowing a certified request never selects the raw scan. A Wallet workspace may request a larger range only when every requested selector has certified contiguous index coverage at one common non-zero anchor position. The server chooses the populated position with the fewest requested values, breaking ties by lower position number. Additional populated later positions are applied to those anchor candidates and do not need separate coverage. A selector with no full-range declaration returns `422 full_range_selector_not_supported`; a declared selector whose coverage is not ready for the requested range returns `503 event_key_index_coverage_unavailable`. An uncertified bounded raw scan that exceeds its fixed budget returns `503 event_positional_scan_timeout`; a certified index timeout returns `503 event_positional_index_timeout`. Neither path returns an incomplete page. `selector` aliases `topic0`; `key`/`keys` compatibility inputs fill sequential singleton positions after topic0 on this contract-scoped route only. The request `cursor` is exclusive and resumes after the last seen `(blockNumber, txIndex, logIndex)` tuple. Pass `nextCursor` from the previous response to continue without gaps or duplicates.
          */
         get: {
             parameters: {
                 query?: {
-                    /** @description Optional exact single-value match for the first log topic/event selector. Empty strings are invalid. */
-                    topic0?: string;
-                    /** @description Alias for `topic0` when filtering by Starknet event selector. Do not pass both `selector` and `topic0`. */
-                    selector?: string;
-                    /** @description Optional exact single-value match for the second log topic. Empty strings are invalid. */
-                    topic1?: string;
-                    /** @description Optional exact single-value match for the third log topic. Empty strings are invalid. */
-                    topic2?: string;
-                    /** @description Optional exact single-value match for the fourth log topic. Empty strings are invalid. */
-                    topic3?: string;
+                    /** @description Optional repeated exact matches for event key position 0; repeated values are OR, while populated positions are AND. */
+                    topic0?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 1; repeated values are OR, while populated positions are AND. */
+                    topic1?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 2; repeated values are OR, while populated positions are AND. */
+                    topic2?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 3; repeated values are OR, while populated positions are AND. */
+                    topic3?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 4; repeated values are OR, while populated positions are AND. */
+                    topic4?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 5; repeated values are OR, while populated positions are AND. */
+                    topic5?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 6; repeated values are OR, while populated positions are AND. */
+                    topic6?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 7; repeated values are OR, while populated positions are AND. */
+                    topic7?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 8; repeated values are OR, while populated positions are AND. */
+                    topic8?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 9; repeated values are OR, while populated positions are AND. */
+                    topic9?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 10; repeated values are OR, while populated positions are AND. */
+                    topic10?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 11; repeated values are OR, while populated positions are AND. */
+                    topic11?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 12; repeated values are OR, while populated positions are AND. */
+                    topic12?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 13; repeated values are OR, while populated positions are AND. */
+                    topic13?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 14; repeated values are OR, while populated positions are AND. */
+                    topic14?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 15; repeated values are OR, while populated positions are AND. */
+                    topic15?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Repeated alias for `topic0`. `topic0` and `selector` share one 128-item filter budget for key position 0 before duplicate-equivalent values are removed. */
+                    selector?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Contract-route compatibility alias. Repeated values fill the next available singleton positions from `topic1` through `topic15`; `key`, `keys`, and `keys[]` share one 15-value sequential budget and cannot express positional ORs. */
+                    key?: components["schemas"]["SequentialEventKeyCompatibilityFilter"];
+                    /** @description Alias for `key`; repeated values fill sequential singleton positions from `topic1` through `topic15` and share the same 15-value budget. */
+                    keys?: components["schemas"]["SequentialEventKeyCompatibilityFilter"];
+                    /** @description Bracket-form alias for `key`; repeated values fill sequential singleton positions from `topic1` through `topic15` and share the same 15-value budget. */
+                    "keys[]"?: components["schemas"]["SequentialEventKeyCompatibilityFilter"];
                     /** @description Optional inclusive lower block bound. */
                     from_block?: number;
                     /** @description Optional inclusive upper block bound. */
@@ -1793,6 +2595,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1822,7 +2625,17 @@ export interface paths {
                         "application/json": components["schemas"]["HistoryExpiredErrorResponse"];
                     };
                 };
+                /** @description One or more selectors are not declared for full-range positional search. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
                 429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
             };
         };
         put?: never;
@@ -1865,6 +2678,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1920,6 +2734,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1961,7 +2776,10 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    /** @description 0x-prefixed entrypoint selector felt */
+                    /**
+                     * @description 0x-prefixed entrypoint selector felt
+                     * @example 0x0123456789abcdef
+                     */
                     selector: string;
                     /** @description Optional felt/decimal calldata values (repeat key for multiple values). */
                     calldata?: string[];
@@ -1975,6 +2793,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -1994,6 +2813,75 @@ export interface paths {
                 401: components["responses"]["UnauthorizedText"];
                 403: components["responses"]["ForbiddenText"];
                 /** @description Contract or entrypoint not found */
+                404: {
+                    headers: {
+                        "X-Request-Id": components["headers"]["RequestId"];
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                429: components["responses"]["RateLimited"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/contract/{address}/storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read one raw contract storage slot
+         * @description Reads one storage slot at a validated Starknet block reference. The response echoes the normalized contract address and slot key plus the validated caller block-reference text used for the read.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /**
+                     * @description Storage-slot key as a 0x-prefixed felt or decimal felt.
+                     * @example 0x0
+                     */
+                    key: string;
+                    /** @description State reference used for the storage read. Use `latest` or `pending` for live reads, or pass a block number/hash for deterministic correctness checks. */
+                    block_tag?: components["schemas"]["BlockReference"];
+                };
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
+                    address: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Storage-slot value */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ContractStorageResultView"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                /** @description Contract or block not found */
                 404: {
                     headers: {
                         "X-Request-Id": components["headers"]["RequestId"];
@@ -2037,6 +2925,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -2075,7 +2964,7 @@ export interface paths {
         };
         /**
          * Paginated token transfers touching one address
-         * @description Address-scoped transfer history backed by the indexed global transfer table. Direction, token, block, cursor, and limit filters are applied before pagination. `any` returns transfers where the address is either sender or recipient; self-transfers are returned once. `in` returns recipient-side rows and `out` returns sender-side rows, so a self-transfer appears in both directional views.
+         * @description Address-scoped transfer history backed by the indexed global transfer table. Direction, token, block, cursor, and limit filters are applied before pagination. `any` returns transfers where the address is either sender or recipient; self-transfers are returned once. `in` returns recipient-side rows and `out` returns sender-side rows, so a self-transfer appears in both directional views. Rows are newest-first by `(blockNumber, txIndex, logIndex, transferIndex)`; `nextCursor` is an exclusive continuation boundary and must be passed back unchanged.
          */
         get: {
             parameters: {
@@ -2084,11 +2973,19 @@ export interface paths {
                     direction?: "any" | "in" | "out";
                     /** @description Optional repeated token-address filter. */
                     token?: string[];
+                    /** @description Indexed transfer-standard filter. Friendly aliases `fungible`, `ft`, `nft`, and `multitoken` are accepted. */
+                    type?: "erc20" | "erc721" | "erc1155" | "unknown" | "fungible" | "ft" | "nft" | "multitoken";
+                    /** @description Exact case-insensitive indexed token-symbol filter. Ambiguous symbols matching more than 128 contracts fail closed. */
+                    symbol?: string;
+                    /** @description Inclusive lower timestamp resolved once through the indexed block-timestamp read model before transfer pagination. */
+                    timestampFrom?: string | number;
+                    /** @description Case-insensitive indexed transaction-type filter for the transfer's transaction. Canonical values are `DECLARE`, `DEPLOY`, `DEPLOY_ACCOUNT`, `INVOKE`, and `L1_HANDLER`; Xverse aliases such as `execute` are normalized to `INVOKE`. */
+                    invocationType?: string;
                     /** @description Optional inclusive lower block bound. */
                     from_block?: number;
                     /** @description Optional inclusive upper block bound. */
                     to_block?: number;
-                    /** @description Optional cursor in `block:tx:log:transfer` numeric format. */
+                    /** @description Optional opaque continuation cursor returned by `nextCursor`. The current representation is `block:tx:log:transfer`; pass it back unchanged and do not construct or advance it client-side. */
                     cursor?: string;
                     /** @description Page size (clamped to 1..100). */
                     limit?: number;
@@ -2100,6 +2997,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x0123456789abcdef */
                     address: string;
                 };
                 cookie?: never;
@@ -2120,6 +3018,7 @@ export interface paths {
                 403: components["responses"]["ForbiddenText"];
                 410: components["responses"]["HistoryExpired"];
                 429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
             };
         };
         put?: never;
@@ -2137,7 +3036,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Token aggregate summary */
+        /**
+         * Token aggregate summary
+         * @description Token metadata plus versioned transfer aggregates. Read `summaryCacheStatus` before interpreting counts: `stale` aggregates can lag the independently indexed transfer feed, while `metadata_only` returns null aggregate counts and can still expose an independently known `latestTransferBlock`. Never coerce unavailable counts to zero.
+         */
         get: {
             parameters: {
                 query?: never;
@@ -2148,6 +3050,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d */
                     token: string;
                 };
                 cookie?: never;
@@ -2326,15 +3229,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Paginated token holders with indexed balances
-         * @description Partner-tier endpoint for token-contract-first holder analytics. Results are served from materialized fungible-balance snapshots, not transfer-history scans.
+         * Gap-free token-holder pagination over an immutable indexed generation
+         * @description Partner-tier endpoint for token-contract-first holder enumeration. The first page selects a sealed finalized holder generation and v3 cursors retain that generation under concurrent transfers until `snapshot.expiresAt`. The default cursor/retired-generation retention is six hours; the response deadline is authoritative. An unchanged active generation does not expire merely because no transfer arrived. Follow `nextCursor` to null and require one stable snapshot identity plus contiguous ranks through `holderCount` for a complete walk. The generation queue covers every indexed ERC-20 token discovered from finalized fungible balances or ERC-20 metadata, not a top-token allowlist. Results come from Starkscan's indexed ledger, not a request-time transfer scan or RPC enumeration. RPC has no all-holder enumeration method; `balanceOf` is used only for bounded deterministic certification samples at the exact snapshot block hash.
          *
          *     Partner-tier route backed by materialized serving tables. It is intended for bounded indexed reads and must not run request-time scans or repairs.
          */
         get: {
             parameters: {
                 query?: {
-                    /** @description Optional opaque cursor returned unchanged from `nextCursor` in the previous response. */
+                    /** @description Optional opaque v3 cursor returned unchanged from `nextCursor` in the previous response. It is scoped to one chain, token, immutable generation, block identity, row anchor, and expiry. Never parse or construct it. Invalid, cross-scope, revoked, or expired cursors return typed `400 invalid_request` restart guidance and never fall back to the first page. A temporarily unavailable holder generation returns retryable `503 service_unavailable` with `Retry-After`; retry the same cursor rather than restarting the walk. */
                     cursor?: string;
                     /** @description Page size (clamped to 1..100). */
                     limit?: number;
@@ -2346,13 +3249,14 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d */
                     token: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Token holder page */
+                /** @description One immutable holder-generation page. Ordinary pagination does not set `completeness.truncated`; `nextCursor` alone describes page coverage, while `completeness.exact` and `certification` describe correctness of the full generation. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -2375,6 +3279,64 @@ export interface paths {
                     };
                 };
                 429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/token/{token}/holders/screening": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bounded immutable top-holder screening projection
+         * @description Partner-tier whale screening backed only by an offline immutable top-K projection. K is address-keyed policy (200, 100, 50, or 10 for the launch cohort; 10 by default). Page size remains at most 100. Exhausting `nextCursor` proves only that this projection is exhausted, never that the token's holder population is complete. The response therefore keeps `screening.populationComplete=false` and `screening.exact=false`. Use `/holders` and its coverage plus certification evidence for a complete exact walk. Both routes use balance-descending, canonical-address ordering and make no request-time RPC or historical scan. When no immutable screening generation is published yet, the route returns a retryable `503` with `Retry-After`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Opaque generation-bound cursor returned by the previous screening page. Pass it back unchanged before `snapshot.expiresAt`; the service default retention is six hours, but that timestamp is authoritative. Restart from page one after expiry. */
+                    cursor?: string;
+                    /** @description Page size (clamped to 1..100); this does not change policy Top-N. */
+                    limit?: number;
+                };
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                    /** @example 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d */
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description One immutable bounded screening page. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TokenHolderScreeningPage"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
             };
         };
         put?: never;
@@ -2393,8 +3355,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Cached token holder concentration analytics
-         * @description Returns the latest operator-materialized holder concentration snapshot; the request path does not compute holder analytics.
+         * Generation-bound token holder concentration analytics
+         * @description Returns concentration metrics computed from the complete sealed holder generation, never from the loaded holder page. Generation-bound results repeat `generationId`, `asOfBlock`, `asOfBlockHash`, and `rowDigest` so consumers can prove that analytics and holder pages refer to the same population. `expiresAt` is a response-specific continuation deadline, not part of the durable generation identity. `computedAt` records the offline refresh time. Missing generation identity or `completeness.exact=false` is a degraded signal, not a fresh exact analytics claim. The request path performs no holder scan or RPC call.
          *
          *     Partner-tier route backed by materialized serving tables. It is intended for bounded indexed reads and must not run request-time scans or repairs.
          */
@@ -2408,6 +3370,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d */
                     token: string;
                 };
                 cookie?: never;
@@ -2468,6 +3431,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d */
                     token: string;
                 };
                 cookie?: never;
@@ -2533,6 +3497,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d */
                     token: string;
                 };
                 cookie?: never;
@@ -2579,7 +3544,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Paginated token transfers with optional address and block filters */
+        /**
+         * Paginated token transfers with optional address and block filters
+         * @description Rows are newest-first by `(blockNumber, txIndex, logIndex, transferIndex)`. `nextCursor` is an exclusive continuation boundary and must be passed back unchanged. List rows may intentionally omit historical USD enrichment (`historicalUsd: null`); null is not a current or zero price.
+         */
         get: {
             parameters: {
                 query?: {
@@ -2589,7 +3557,7 @@ export interface paths {
                     from_block?: number;
                     /** @description Optional inclusive upper block bound. */
                     to_block?: number;
-                    /** @description Optional cursor in `block:tx:log:transfer` numeric format. */
+                    /** @description Optional exclusive cursor returned by `nextCursor` in `block:tx:log:transfer` numeric format. Pass it back unchanged. */
                     cursor?: string;
                     /** @description Page size (clamped to 1..100). */
                     limit?: number;
@@ -2601,6 +3569,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d */
                     token: string;
                 };
                 cookie?: never;
@@ -2637,7 +3606,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Paginated raw events with optional address, topic0, and block filters */
+        /**
+         * Paginated raw events with optional address, positional key, and block filters
+         * @description Protocol-neutral indexed event search. `topic0..topic15` address exact key positions: repeated values at one position are OR alternatives, populated positions are ANDed, and omitted positions are wildcards. Each position accepts at most 128 distinct felts and the request accepts at most 256 total. `key`, `keys`, and `keys[]` are intentionally rejected on this global route because they do not identify a key position. Any `topic1..topic15` filter requires a non-empty `topic0` plus explicit numeric `from_block` and `to_block` values. Ordinary read keys may span at most 10,000 blocks inclusive; DB-backed Wallet workspaces use the positional index for every numeric subrange of declared, certified contiguous coverage, including sub-10,000-block windows. They may request larger ranges only when every requested selector has certified contiguous coverage at one common non-zero anchor position. The server chooses the populated position with the fewest requested values, breaking ties by lower position number. Additional populated later positions are applied to those anchor candidates and do not need separate coverage. A selector with no full-range declaration returns `422 full_range_selector_not_supported`; a declared selector whose coverage is not ready for the requested range returns `503 event_key_index_coverage_unavailable`. An uncertified bounded raw scan that exceeds its fixed budget returns `503 event_positional_scan_timeout`; a certified index timeout returns `503 event_positional_index_timeout`. Neither path returns a partial page. Address filters do not replace the topic0 anchor. For later-position global searches, address-by-topic0 fanout is capped at 256 pairs after expanding accepted canonical and legacy felt spellings.
+         */
         get: {
             parameters: {
                 query?: {
@@ -2647,10 +3619,40 @@ export interface paths {
                     contract?: string[];
                     /** @description Alias for repeated `address` filters. `address`, `contract`, and `contractAddress` share one 128-item filter budget before duplicate-equivalent values are removed. */
                     contractAddress?: string[];
-                    /** @description Optional repeated event-selector filter. */
-                    topic0?: string[];
-                    /** @description Alias for repeated `topic0` event-selector filters. Do not use `key`, `keys`, or `topic1..topic3` on the global route; use `/contract/{address}/events` for exact later-topic slot filters. */
-                    selector?: string[];
+                    /** @description Optional repeated exact matches for event key position 0; repeated values are OR, while populated positions are AND. */
+                    topic0?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 1; repeated values are OR, while populated positions are AND. */
+                    topic1?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 2; repeated values are OR, while populated positions are AND. */
+                    topic2?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 3; repeated values are OR, while populated positions are AND. */
+                    topic3?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 4; repeated values are OR, while populated positions are AND. */
+                    topic4?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 5; repeated values are OR, while populated positions are AND. */
+                    topic5?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 6; repeated values are OR, while populated positions are AND. */
+                    topic6?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 7; repeated values are OR, while populated positions are AND. */
+                    topic7?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 8; repeated values are OR, while populated positions are AND. */
+                    topic8?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 9; repeated values are OR, while populated positions are AND. */
+                    topic9?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 10; repeated values are OR, while populated positions are AND. */
+                    topic10?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 11; repeated values are OR, while populated positions are AND. */
+                    topic11?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 12; repeated values are OR, while populated positions are AND. */
+                    topic12?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 13; repeated values are OR, while populated positions are AND. */
+                    topic13?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 14; repeated values are OR, while populated positions are AND. */
+                    topic14?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Optional repeated exact matches for event key position 15; repeated values are OR, while populated positions are AND. */
+                    topic15?: components["schemas"]["EventKeyFeltFilter"];
+                    /** @description Repeated alias for `topic0`. `topic0` and `selector` share one 128-item filter budget for key position 0 before duplicate-equivalent values are removed. */
+                    selector?: components["schemas"]["EventKeyFeltFilter"];
                     /** @description Optional inclusive lower block bound. */
                     from_block?: number;
                     /** @description Optional inclusive upper block bound. */
@@ -2685,7 +3687,17 @@ export interface paths {
                 401: components["responses"]["UnauthorizedText"];
                 403: components["responses"]["ForbiddenText"];
                 410: components["responses"]["HistoryExpired"];
+                /** @description One or more selectors are not declared for full-range positional search. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
                 429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
             };
         };
         put?: never;
@@ -2703,7 +3715,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Paginated normalized transfers with optional address, token, and block filters */
+        /**
+         * Paginated normalized transfers with optional address, token, and block filters
+         * @description Rows are newest-first by `(blockNumber, txIndex, logIndex, transferIndex)`. `nextCursor` is an exclusive continuation boundary and must be passed back unchanged. List rows may intentionally omit historical USD enrichment (`historicalUsd: null`); null is not a current or zero price.
+         */
         get: {
             parameters: {
                 query?: {
@@ -2711,13 +3726,21 @@ export interface paths {
                     address?: string[];
                     /** @description Optional repeated token-address filter. */
                     token?: string[];
+                    /** @description Indexed transfer-standard filter. Friendly aliases `fungible`, `ft`, `nft`, and `multitoken` are accepted. */
+                    type?: "erc20" | "erc721" | "erc1155" | "unknown" | "fungible" | "ft" | "nft" | "multitoken";
+                    /** @description Exact case-insensitive indexed token-symbol filter. Ambiguous symbols matching more than 128 contracts fail closed. */
+                    symbol?: string;
+                    /** @description Inclusive lower timestamp resolved once through the indexed block-timestamp read model before transfer pagination. */
+                    timestampFrom?: string | number;
+                    /** @description Case-insensitive indexed transaction-type filter for the transfer's transaction. Canonical values are `DECLARE`, `DEPLOY`, `DEPLOY_ACCOUNT`, `INVOKE`, and `L1_HANDLER`; Xverse aliases such as `execute` are normalized to `INVOKE`. */
+                    invocationType?: string;
                     /** @description Optional direction relative to supplied address filters. Requires at least one `address` filter. */
                     direction?: "any" | "in" | "out";
                     /** @description Optional inclusive lower block bound. */
                     from_block?: number;
                     /** @description Optional inclusive upper block bound. */
                     to_block?: number;
-                    /** @description Optional cursor in `block:tx:log:transfer` numeric format. */
+                    /** @description Optional exclusive cursor returned by `nextCursor` in `block:tx:log:transfer` numeric format. Pass it back unchanged. */
                     cursor?: string;
                     /** @description Page size (clamped to 1..100). */
                     limit?: number;
@@ -2748,8 +3771,169 @@ export interface paths {
                 403: components["responses"]["ForbiddenText"];
                 410: components["responses"]["HistoryExpired"];
                 429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
             };
         };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/historical-pricing/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Prepared historical transaction-time USD coverage summary
+         * @description Returns one prepared finalized coverage row for the bounded historical pricing contract. The request never scans transfers, calls a price provider, or substitutes current/spot prices for missing transaction-time evidence. `pendingMaterializationTransfers` means an eligible transfer has no fact yet; typed-unavailable reasons are materialized facts and must not be presented as current valuations.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path: {
+                    /** @example SN_MAIN */
+                    chain: components["parameters"]["ChainParam"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Prepared bounded historical-pricing coverage summary */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TokenTransferUsdCoverageSnapshot"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
+                403: components["responses"]["ForbiddenText"];
+                /** @description No prepared coverage snapshot exists for this chain yet. */
+                404: {
+                    headers: {
+                        "X-Request-Id": components["headers"]["RequestId"];
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/privacy-pool/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paginated privacy-pool public events
+         * @description v1 supports server-side filtering by `event` only. Contract/transaction/block filters shown in the UI are client-side over loaded windows.
+         */
+        get: operations["listPrivacyPoolEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/privacy-pool/commitments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paginated privacy-pool commitment facts
+         * @description Cursor-backed commitment evidence from durable privacy-pool serving tables. This endpoint exposes public commitment facts only; it does not infer ownership, linkage, balances, anonymity set size, or note state.
+         */
+        get: operations["listPrivacyPoolCommitments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/privacy-pool/nullifiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paginated privacy-pool nullifier facts
+         * @description Cursor-backed nullifier evidence from durable privacy-pool serving tables. This endpoint exposes public nullifier facts only; it does not infer which commitment was spent, owner linkage, balances, or anonymity set size.
+         */
+        get: operations["listPrivacyPoolNullifiers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/privacy-pool/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Privacy-pool public status counters
+         * @description Counter-focused public status snapshot for v1. Includes decoded counters plus raw-vs-decoded event cursor freshness so clients can detect materialization lag without querying RPC.
+         */
+        get: operations["getPrivacyPoolStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/privacy-pool/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Privacy-pool analytics snapshot
+         * @description Low-latency analytics derived from indexed privacy-pool event rows and token metadata. This route intentionally avoids per-request RPC and external price calls; unavailable metrics explain which additional data sources or attribution rules are still required.
+         */
+        get: operations["getPrivacyPoolAnalytics"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2766,70 +3950,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Finalized Privacy Pool protected-value snapshot
-         * @description Partner-oriented, versioned snapshot of public deposits minus public withdrawals from Starkscan's depth-confirmed indexed finalized tier. `finalizedOnly` does not mean L1 settlement: clients may call the snapshot L1-accepted only when `coverage.asOfL1Accepted` is true. The route reads a bounded materialized snapshot, indexed latest-cursor and L1-acceptance evidence, and cached price facts only; it never scans event history or calls RPC or a price provider on request. Raw token amounts remain authoritative. totalUsd is null unless every returned asset has complete accounting, token decimals, and a fresh exact cached USD quote. External integrations should call the authenticated https://api.starkscan.co/v1/{chain}/privacy-pool/tvl endpoint, or /api/v1/{chain}/privacy-pool/tvl on an app-origin deployment. Responses include weak ETag and Last-Modified validators. If-None-Match takes precedence over If-Modified-Since and a matching conditional read returns 304 with no body. Authenticated external responses remain private; validators reduce transfer and serialization work but do not authorize a shared cache to reuse keyed responses.
+         * Finalized Privacy Pool public-flow snapshot
+         * @description Partner-oriented, versioned snapshot of public deposits minus public withdrawals from Starkscan's depth-confirmed indexed finalized tier. `finalizedOnly` does not mean L1 settlement: clients may call the snapshot L1-accepted only when `coverage.asOfL1Accepted` is true. The route reads a bounded materialized snapshot plus indexed latest-cursor and L1-acceptance evidence; it never scans event history or calls RPC on request. Raw token amounts, token addresses, and decimals are the supported integration inputs. Legacy price, valueUsd, valuation, and totalUsd fields are compatibility-only and must not be used as a new integration's pricing or accounting source. External integrations should call the authenticated https://api.starkscan.co/v1/{chain}/privacy-pool/tvl endpoint, or /api/v1/{chain}/privacy-pool/tvl on an app-origin deployment. Responses include weak ETag and Last-Modified validators. If-None-Match takes precedence over If-Modified-Since and a matching conditional read returns 304 with no body. Authenticated external responses remain private; validators reduce transfer and serialization work but do not authorize a shared cache to reuse keyed responses.
          */
-        get: {
-            parameters: {
-                query?: never;
-                header?: {
-                    /** @description Weak or strong entity tag, comma-separated tag list, or `*`. Takes precedence over If-Modified-Since. */
-                    "If-None-Match"?: string;
-                    /** @description HTTP date for a best-effort cache-generation-time check. ETag is the authoritative validator. */
-                    "If-Modified-Since"?: string;
-                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
-                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
-                };
-                path: {
-                    /** @example SN_MAIN */
-                    chain: components["parameters"]["ChainParam"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Finalized Privacy Pool protected-value snapshot */
-                200: {
-                    headers: {
-                        /** @description Weak SHA-256 validator over the exact uncompressed JSON response bytes. */
-                        ETag?: string;
-                        /** @description HTTP date for the in-process cache generation represented by this response. */
-                        "Last-Modified"?: string;
-                        /** @description Public on the trusted same-origin lane and rewritten to private after successful external API-key authentication. */
-                        "Cache-Control"?: string;
-                        /** @description Includes the TVL cache outcome (`pp_tvl_cache_hit` or `pp_tvl_cache_miss`) and request-path timing metrics. */
-                        "Server-Timing"?: string;
-                        /** @description Correlation identifier on authenticated private responses. Shared-cacheable trusted responses omit request-specific identifiers. */
-                        "X-Request-Id"?: string;
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["PrivacyPoolTvlView"];
-                    };
-                };
-                /** @description A supplied validator matches the current in-process cached representation. The response has no body and authentication and rate limiting still apply. */
-                304: {
-                    headers: {
-                        /** @description Validator for the current JSON representation. */
-                        ETag?: string;
-                        /** @description HTTP date for the current in-process cache generation. */
-                        "Last-Modified"?: string;
-                        /** @description Cache policy for the authenticated request lane. */
-                        "Cache-Control"?: string;
-                        /** @description Includes the TVL cache outcome and request-path timing metrics for the conditional read. */
-                        "Server-Timing"?: string;
-                        /** @description Correlation identifier on authenticated private responses. Shared-cacheable trusted responses omit request-specific identifiers. */
-                        "X-Request-Id"?: string;
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                401: components["responses"]["UnauthorizedText"];
-                403: components["responses"]["ForbiddenText"];
-                429: components["responses"]["RateLimited"];
-                503: components["responses"]["ServiceUnavailable"];
-            };
-        };
+        get: operations["getPrivacyPoolTvl"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2849,78 +3973,47 @@ export interface paths {
          * Finalized Privacy Pool hourly protected-value history
          * @description Oldest-first hourly cumulative public deposits minus public withdrawals from Starkscan's prepared finalized ledger. Raw address-keyed token amounts are authoritative. Historical USD fields are intentionally null: clients must apply their own token price at each point timestamp. The request path reads only bounded hourly serving rows and indexed token metadata; it never scans events or calls RPC, Voyager, or a price provider. Responses include weak ETag and Last-Modified validators. If-None-Match takes precedence over If-Modified-Since and a matching conditional read returns 304 with no body.
          */
-        get: {
-            parameters: {
-                query: {
-                    /** @description Inclusive RFC3339 timestamp aligned to a UTC hour. */
-                    from: string;
-                    /** @description Inclusive RFC3339 timestamp aligned to a UTC hour. */
-                    to: string;
-                    granularity: "hour";
-                    /** @description Opaque `nextCursor` value returned by the preceding page. */
-                    cursor?: string;
-                    /** @description Hour points per page; defaults to 24. */
-                    limit?: number;
-                };
-                header?: {
-                    /** @description Weak or strong entity tag, comma-separated tag list, or `*`. Takes precedence over If-Modified-Since. */
-                    "If-None-Match"?: string;
-                    /** @description HTTP date compared with the newest materialization timestamp in the page. ETag is authoritative. */
-                    "If-Modified-Since"?: string;
-                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
-                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
-                };
-                path: {
-                    /** @example SN_MAIN */
-                    chain: components["parameters"]["ChainParam"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Bounded finalized Privacy Pool hourly history page */
-                200: {
-                    headers: {
-                        /** @description Weak SHA-256 validator over the exact uncompressed JSON response bytes. */
-                        ETag?: string;
-                        /** @description Newest materialization timestamp in this page, or the Unix epoch for an empty page. */
-                        "Last-Modified"?: string;
-                        /** @description Public on the trusted same-origin lane and rewritten to private after successful external API-key authentication. */
-                        "Cache-Control"?: string;
-                        /** @description Includes request-path timing metrics for the hourly TVL read. */
-                        "Server-Timing"?: string;
-                        /** @description Correlation identifier on authenticated private responses. Shared-cacheable trusted responses omit request-specific identifiers. */
-                        "X-Request-Id"?: string;
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["PrivacyPoolTvlHourlyPageView"];
-                    };
-                };
-                /** @description A supplied validator matches the current hourly page representation. The response has no body and authentication and rate limiting still apply. */
-                304: {
-                    headers: {
-                        /** @description Validator for the current JSON representation. */
-                        ETag?: string;
-                        /** @description Newest materialization timestamp in the current page, or the Unix epoch for an empty page. */
-                        "Last-Modified"?: string;
-                        /** @description Cache policy for the authenticated request lane. */
-                        "Cache-Control"?: string;
-                        /** @description Includes request-path timing metrics for the conditional hourly TVL read. */
-                        "Server-Timing"?: string;
-                        /** @description Correlation identifier on authenticated private responses. Shared-cacheable trusted responses omit request-specific identifiers. */
-                        "X-Request-Id"?: string;
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                400: components["responses"]["BadRequest"];
-                401: components["responses"]["UnauthorizedText"];
-                403: components["responses"]["ForbiddenText"];
-                429: components["responses"]["RateLimited"];
-                503: components["responses"]["ServiceUnavailable"];
-            };
+        get: operations["listPrivacyPoolTvlHourlyPoints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/privacy-pool/metric-buckets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
+        /**
+         * Privacy-pool public metric buckets
+         * @description Precomputed daily buckets for tiny public-metric histograms. This route reads a bounded serving table only; it does not scan raw events, call RPC, infer ownership, link notes, or estimate anonymity k.
+         */
+        get: operations["listPrivacyPoolMetricBuckets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/{chain}/privacy-pool/metrics/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Privacy-pool prepared metric series
+         * @description Precomputed public metric series for charting viewing-key growth and token shielded supply. This route reads prepared buckets only; it does not scan raw events on request, call RPC, infer private ownership, link notes, or estimate anonymity k.
+         */
+        get: operations["getPrivacyPoolMetricSeries"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3047,10 +4140,13 @@ export interface paths {
             parameters: {
                 query?: never;
                 header: {
+                    /**
+                     * @description Stable unique key for this exact proof request.
+                     * @example starkscan-example-proof-request-0001
+                     */
+                    "Idempotency-Key": string;
                     /** @description Optional caller-supplied correlation ID echoed back in the response. */
                     "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
-                    /** @description Stable unique key for this exact proof request. */
-                    "Idempotency-Key": string;
                 };
                 path: {
                     /** @example SN_MAIN */
@@ -3083,12 +4179,24 @@ export interface paths {
                     };
                 };
                 400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedText"];
                 403: components["responses"]["ForbiddenText"];
-                404: components["responses"]["NotFound"];
+                /** @description Relay disabled or unsupported chain. */
+                404: {
+                    headers: {
+                        "X-Request-Id": components["headers"]["RequestId"];
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
                 409: components["responses"]["Conflict"];
                 /** @description Request body exceeds the one-megabyte bound. */
                 413: {
                     headers: {
+                        /** @description Canonical request correlation header for support and tracing. */
+                        "X-Request-Id"?: string;
                         [name: string]: unknown;
                     };
                     content: {
@@ -3126,6 +4234,7 @@ export interface paths {
                 path: {
                     /** @example SN_MAIN */
                     chain: components["parameters"]["ChainParam"];
+                    /** @example prv_0123456789abcdefghijklmn */
                     job_id: string;
                 };
                 cookie?: never;
@@ -3141,8 +4250,18 @@ export interface paths {
                         "application/json": components["schemas"]["ProveJobView"];
                     };
                 };
+                401: components["responses"]["UnauthorizedText"];
                 403: components["responses"]["ForbiddenText"];
-                404: components["responses"]["NotFound"];
+                /** @description Relay disabled, unsupported chain, or job not found for this workspace. */
+                404: {
+                    headers: {
+                        "X-Request-Id": components["headers"]["RequestId"];
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
                 429: components["responses"]["RateLimited"];
                 503: components["responses"]["ServiceUnavailable"];
             };
@@ -3195,7 +4314,7 @@ export interface paths {
         put?: never;
         /**
          * Issue or rotate the default self-serve API key for the authenticated workspace
-         * @description Issues a live read-only API key for the current workspace. If an active default key already exists, the old key is revoked and replaced in the same operation. This mutating route requires `Authorization: Bearer <better_auth_session_token>` and rejects cookie-only calls.
+         * @description Issues a live API key with read, batch, and write scopes for the current workspace. Write scope is an entitlement only: execution remains gated by forwarding availability, structural payload validation, a dedicated upstream, plan limits and credits, and the global kill switch. If an active default key already exists, the old key is revoked and replaced in the same operation. This mutating route requires `Authorization: Bearer <better_auth_session_token>` and rejects cookie-only calls.
          */
         post: {
             parameters: {
@@ -3252,6 +4371,7 @@ export interface paths {
                     "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
                 };
                 path: {
+                    /** @example example_key_01 */
                     public_id: string;
                 };
                 cookie?: never;
@@ -3283,6 +4403,57 @@ export interface paths {
                 503: components["responses"]["ServiceUnavailable"];
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/redeem-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Redeem a single-use workspace-plan access code
+         * @description Atomically consumes one labeled, unexpired and unrevoked access code and applies its plan to the authenticated workspace. Codes are single-use; missing, expired, revoked and already-used values share the same error. This mutating route requires `Authorization: Bearer <better_auth_session_token>` and rejects cookie-only calls.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                    "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SelfServePartnerAccessCodeRequest"];
+                };
+            };
+            responses: {
+                /** @description Access code consumed and workspace plan updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SelfServePartnerAccessCodeResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["UnauthorizedSelfServeSession"];
+                403: components["responses"]["ForbiddenSelfServeMutation"];
+                429: components["responses"]["RateLimited"];
+                503: components["responses"]["ServiceUnavailable"];
+            };
+        };
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3340,11 +4511,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Universal search */
+        /**
+         * Universal search
+         * @description Identifier-only search for recognized transaction hashes, block references, and addresses. It is not ticker, symbol, or free-text search; the response has separate `blocks`, `transactions`, and `addresses` arrays, not a generic `results` field.
+         */
         get: {
             parameters: {
                 query: {
-                    /** @description Required exact or prefix query. Missing or empty values return 400. Exact hash/address-style queries resolve first match in this order: transaction hash -> address -> block hash (single category returned). Prefix address matching reads address-activity tables only; addresses that appear exclusively in token-transfer activity remain accessible via `/v1/{chain}/address/{address}` but are not returned by `/search`. */
+                    /**
+                     * @description Required exact or prefix identifier query. Missing or empty values return 400. Exact hash/address-style queries resolve first match in this order: transaction hash -> address -> block hash (single category returned). Prefix address matching reads address-activity tables only; addresses that appear exclusively in token-transfer activity remain accessible via `/v1/{chain}/address/{address}` but are not returned by `/search`.
+                     * @example 0x054bfd961fb8b156c77ffa0f7882b8fcc1836753c2d3d88435b640d6300c8bd9
+                     */
                     q: string;
                 };
                 header?: {
@@ -3386,19 +4563,267 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        EventKeyFeltFilter: string[];
+        SequentialEventKeyCompatibilityFilter: string[];
+        StakingRatio: {
+            numeratorRaw: string;
+            denominatorRaw: string;
+        };
+        StakingCoverage: {
+            /** @enum {string} */
+            status: "prepared" | "catching_up" | "unavailable";
+            reasonCode: string;
+            /** @constant */
+            finalizedOnly: true;
+            /** Format: int64 */
+            materializedThroughBlock: number | null;
+            materializedThroughHash: string | null;
+            /** Format: int64 */
+            sourceLatestFinalizedBlock: number | null;
+            /** Format: int64 */
+            lagBlocks: number | null;
+            /** @description True when the prepared activity feed retains only its newest bounded window; full finalized history remains in the immutable source ledger. */
+            activityHistoryTruncated: boolean;
+            gapIntervals: components["schemas"]["StakingCoverageGap"][];
+            outstandingMaterializationIntervals: components["schemas"]["StakingCoverageGap"][];
+            metricDefinitionVersion: string | null;
+            /** Format: date-time */
+            lastSuccessfulRunAtIso: string | null;
+        };
+        StakingCoverageGap: {
+            reasonCode: string;
+            /** Format: int64 */
+            fromBlock: number | null;
+            /** Format: int64 */
+            throughBlock: number | null;
+            terminal: boolean;
+        };
+        StakingTokenAmount: {
+            tokenAddress: string;
+            symbol: string | null;
+            decimals: number | null;
+            selfStakeRaw: string | null;
+            delegatedStakeRaw: string | null;
+            totalStakeRaw: string | null;
+            pendingExitRaw: string | null;
+            networkShare: components["schemas"]["StakingRatio"] | null;
+            metricValueReason: string | null;
+        };
+        StakingPool: {
+            tokenAddress: string;
+            address: string;
+            generationRaw: string;
+            /** @enum {string} */
+            status: "active" | "retired";
+            top1Share: components["schemas"]["StakingRatio"] | null;
+            top5Share: components["schemas"]["StakingRatio"] | null;
+            hhi: components["schemas"]["StakingRatio"] | null;
+            metricValueReason: string | null;
+        };
+        StakingNetworkToken: {
+            tokenAddress: string;
+            symbol: string | null;
+            decimals: number | null;
+            totalStakeRaw: string | null;
+            /** Format: int64 */
+            nakamoto33Count: number | null;
+            metricValueReason: string | null;
+        };
+        StakingAddressHistory: {
+            /** @enum {string} */
+            role: "reward" | "operational";
+            address: string;
+            /** Format: int64 */
+            effectiveFromBlock: number;
+            effectiveFromBlockHash: string;
+            /** Format: int32 */
+            effectiveFromTxIndex: number;
+            effectiveFromTxHash: string;
+            /** Format: int32 */
+            effectiveFromLogIndex: number;
+            /** Format: int32 */
+            effectiveFromFactIndex: number;
+            emitterAddress: string;
+            contractClassHash: string;
+            decoderVersion: string;
+            decoderFingerprint: string;
+            /** @constant */
+            finality: "finalized";
+            callPath: unknown;
+            callPathReasonCode: unknown;
+            /** Format: int64 */
+            effectiveToBlock: number | null;
+        } & components["schemas"]["StakingCallPathAvailability"];
+        StakingCallPathAvailability: {
+            callPath: number[];
+            callPathReasonCode: null;
+        } | {
+            callPath: null;
+            /** @constant */
+            callPathReasonCode: "call_path_unavailable";
+        };
+        StakingDelegator: {
+            validatorGenerationId: string;
+            validatorAddress: string;
+            tokenAddress: string;
+            poolAddress: string;
+            address: string;
+            delegatedRaw: string;
+            pendingExitRaw: string | null;
+            /** @enum {string} */
+            status: "active" | "exiting";
+            share: components["schemas"]["StakingRatio"] | null;
+        };
+        StakingActivity: {
+            validatorGenerationId: string;
+            validatorAddress: string;
+            /** Format: int64 */
+            blockNumber: number;
+            /** Format: int32 */
+            transactionIndex: number;
+            /** Format: int32 */
+            logIndex: number;
+            factIndex: number;
+            transactionHash: string;
+            /** Format: date-time */
+            timestampIso: string;
+            emitterAddress: string;
+            contractClassHash: string;
+            decoderVersion: string;
+            /** @constant */
+            finality: "finalized";
+            callPath: unknown;
+            callPathReasonCode: unknown;
+            /** @enum {string} */
+            kind: "validator_registered" | "validator_deleted" | "staker_exit_intent" | "pool_registered" | "pool_retired" | "stake_own_balance_changed" | "stake_delegated_balance_changed" | "pool_member_registered" | "pool_member_balance_changed" | "exit_intent" | "exit_action" | "pool_member_switched";
+            participantAddress: string | null;
+            tokenAddress: string | null;
+            amountRaw: string | null;
+        } & components["schemas"]["StakingCallPathAvailability"];
+        StakingReward: {
+            tokenAddress: string;
+            accruedSnapshotRaw: string | null;
+            claimedWithinCoverageRaw: string;
+            /** Format: int64 */
+            coverageFromBlock: number;
+            /** Format: int64 */
+            coverageThroughBlock: number;
+            /** @enum {string} */
+            accountingStatus: "exact" | "unavailable";
+            accountingReasonCode: string | null;
+            realizedYield: components["schemas"]["StakingRatio"] | null;
+            /** @enum {string} */
+            yieldStatus: "exact" | "unavailable";
+            /** @enum {string|null} */
+            yieldReasonCode: "stake_time_coverage_incomplete" | "reward_token_scope_unavailable" | "position_history_gap" | null;
+        };
+        StakingValidator: {
+            validatorGenerationId: string;
+            address: string;
+            name: string | null;
+            protocolSlug: string | null;
+            website: string | null;
+            /** @enum {string|null} */
+            status: "active" | "inactive" | "exiting" | null;
+            rewardAddress: string | null;
+            operationalAddress: string | null;
+            commission: components["schemas"]["StakingRatio"] | null;
+            /** Format: int64 */
+            delegatorCount: number | null;
+            liveness30d: components["schemas"]["StakingRatio"] | null;
+            liveness30dReasonCode: string | null;
+            liveness90d: components["schemas"]["StakingRatio"] | null;
+            liveness90dReasonCode: string | null;
+            lastAttestationEpochRaw: string | null;
+            /** Format: int64 */
+            missedStreak: number | null;
+            metricValueReason: string | null;
+            stake: components["schemas"]["StakingTokenAmount"][];
+            pools: components["schemas"]["StakingPool"][];
+            rewards: components["schemas"]["StakingReward"][];
+        };
+        StakingSummaryPage: {
+            chainId: string;
+            currentEpochRaw: string | null;
+            /** Format: int64 */
+            validatorCount: number | null;
+            /** Format: int64 */
+            delegatorCount: number | null;
+            networkLiveness: components["schemas"]["StakingRatio"] | null;
+            networkLivenessReasonCode: string | null;
+            networkEffectiveness: components["schemas"]["StakingRatio"] | null;
+            networkEffectivenessReasonCode: string | null;
+            normalizedPowerUnit: string | null;
+            normalizationRevision: string | null;
+            metricValueReason: string | null;
+            tokens: components["schemas"]["StakingNetworkToken"][];
+            tokensTruncated: boolean;
+            coverage: components["schemas"]["StakingCoverage"];
+            /** @constant */
+            source: "finalized_prepared_staking_snapshot";
+        };
+        StakingValidatorPage: {
+            chainId: string;
+            items: components["schemas"]["StakingValidator"][];
+            nextCursor: string | null;
+            coverage: components["schemas"]["StakingCoverage"];
+            /** @constant */
+            source: "finalized_prepared_staking_snapshot";
+        };
+        StakingValidatorDetail: {
+            chainId: string;
+            validator: components["schemas"]["StakingValidator"] | null;
+            addressHistory: components["schemas"]["StakingAddressHistory"][];
+            addressHistoryTruncated: boolean;
+            coverage: components["schemas"]["StakingCoverage"];
+            /** @constant */
+            source: "finalized_prepared_staking_snapshot";
+        };
+        StakingDelegatorPage: {
+            chainId: string;
+            items: components["schemas"]["StakingDelegator"][];
+            nextCursor: string | null;
+            coverage: components["schemas"]["StakingCoverage"];
+            /** @constant */
+            source: "finalized_prepared_staking_snapshot";
+        };
+        StakingActivityPage: {
+            chainId: string;
+            items: components["schemas"]["StakingActivity"][];
+            nextCursor: string | null;
+            coverage: components["schemas"]["StakingCoverage"];
+            /** @constant */
+            source: "finalized_prepared_staking_snapshot";
+        };
+        StakingAddressView: {
+            chainId: string;
+            address: string;
+            positions: components["schemas"]["StakingDelegator"][];
+            positionsTruncated: boolean;
+            history: components["schemas"]["StakingActivity"][];
+            nextHistoryCursor: string | null;
+            coverage: components["schemas"]["StakingCoverage"];
+            /** @constant */
+            source: "finalized_prepared_staking_snapshot";
+        };
         /** @description State reference. Block hashes are validated against the Starknet field range; decimal block numbers must be non-negative signed 64-bit values. */
         BlockReference: ("latest" | "pending") | string;
         /** @description Machine-readable error envelope. JSON error responses also emit `X-Request-Id` as the canonical correlation header when the request has one; `requestId` mirrors it when available inside the handler. */
         ErrorResponse: {
             /** @enum {string} */
-            code: "invalid_request" | "unauthorized" | "forbidden" | "not_found" | "conflict" | "rate_limited" | "service_unavailable" | "internal_error" | "api_error";
+            code: "invalid_request" | "invalid_cursor" | "unauthorized" | "forbidden" | "not_found" | "conflict" | "rate_limited" | "service_unavailable" | "event_positional_scan_timeout" | "event_positional_index_timeout" | "event_key_index_coverage_unavailable" | "full_range_selector_not_supported" | "internal_error" | "api_error";
             message: string;
             /** @description Stable docs slug agents can use for next-step guidance. */
             docSlug: string;
             /** @description Mirrors `X-Request-Id` when available inside the handler; the response header is canonical. */
             requestId: string | null;
+            /**
+             * Format: int64
+             * @description Highest `to_block` proved servable for the exact failed selector/key request. Present only for coverage-unavailable errors with a safe non-empty prefix.
+             */
+            maxServableToBlock?: number;
         };
-        /** @description Explicit Sepolia response for indexed history intentionally removed by the rolling retention policy. It is distinct from an unknown resource (`404`) and from indexer lag. */
+        /** @description Explicit Sepolia response for a request before the certified fixed indexed-history boundary. It is distinct from an unknown resource (`404`) and from indexer lag. */
         HistoryExpiredErrorResponse: {
             /** @enum {string} */
             code: "history_expired";
@@ -3407,8 +4832,15 @@ export interface components {
             docSlug: string;
             /** @description Mirrors `X-Request-Id` when available inside the handler; the response header is canonical. */
             requestId: string | null;
-            /** Format: int32 */
-            retentionDays: number;
+            /** @enum {string} */
+            historyPolicy: "fixed_start";
+            /** @enum {string} */
+            historyCompleteness: "complete_from_earliest_available";
+            /**
+             * Format: int32
+             * @description Legacy rolling-window duration. Omitted for the fixed-start Sepolia policy.
+             */
+            retentionDays?: number;
             /** Format: int64 */
             earliestAvailableBlock: number;
             /** Format: date-time */
@@ -3446,7 +4878,7 @@ export interface components {
         } & {
             [key: string]: unknown;
         }) & (unknown | unknown);
-        /** @description JSON-RPC batch response from the gateway. */
+        /** @description JSON-RPC batch response from the gateway, bounded to 16 MiB serialized. */
         JsonRpcBatchResponse: components["schemas"]["JsonRpcResponse"][];
         AgentMemoryContract: {
             /** @enum {string} */
@@ -3466,7 +4898,7 @@ export interface components {
                 [key: string]: unknown;
             };
             firstCalls: components["schemas"]["AgentFirstCall"][];
-            routeFamilies: components["schemas"]["AgentRouteFamily"][];
+            routeFamilies: components["schemas"]["AgentMemoryRouteFamily"][];
             workspaceMemory: components["schemas"]["AgentWorkspaceMemoryContract"];
             operatingRules: string[];
             issueReportContract: components["schemas"]["AgentIssueReportContract"];
@@ -3482,7 +4914,40 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** @description One caller-eligible operation from the runtime correctness manifest. Use openapiOperationRef against MetaCapabilitiesView.documentation.openapiUrl as a URI fragment, percent-decode the fragment once, then use the resulting JSON Pointer to retrieve parameters, request bodies, response schemas, and examples. */
+        AgentRouteOperation: {
+            /** @example GET */
+            method: string;
+            /** @example /api/v1/{chain}/status */
+            path: string;
+            /** @example /v1/{chain}/status */
+            openapiPath: string;
+            /**
+             * @example get
+             * @enum {string}
+             */
+            openapiMethod: "get" | "post" | "put" | "patch" | "delete" | "head" | "options";
+            /** @example #/paths/~1v1~1%7Bchain%7D~1status/get */
+            openapiOperationRef: string;
+            /**
+             * @description Value returned in `X-Starkscan-Route-Class` for this operation. Use it with the rate-limit response headers for class-specific backoff.
+             * @enum {string}
+             */
+            rateLimitClass: "light" | "heavy" | "batch";
+            summary: string;
+        };
         AgentRouteFamily: {
+            name: string;
+            /** @enum {string} */
+            tier: "read" | "batch";
+            routes: string[];
+            operations: components["schemas"]["AgentRouteOperation"][];
+            useWhen: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /** @description Public route-family summary from the unauthenticated agent-memory document. Detailed operations are intentionally omitted until a caller proves its API-key scope through the capabilities endpoint. */
+        AgentMemoryRouteFamily: {
             name: string;
             /** @enum {string} */
             tier: "read" | "batch";
@@ -3490,6 +4955,21 @@ export interface components {
             useWhen: string;
         } & {
             [key: string]: unknown;
+        };
+        CapabilitiesDocumentation: {
+            /**
+             * Format: uri
+             * @description Canonical public URL for the OpenAPI artifact. This is absolute because api.starkscan.co is API-only and does not serve documentation artifacts.
+             * @constant
+             */
+            openapiUrl: "https://starkscan.co/starkscan-openapi.yaml";
+            /** @constant */
+            openapiPath: "/starkscan-openapi.yaml";
+            /** @constant */
+            openapiFormat: "OpenAPI 3.1";
+            /** @constant */
+            operationReferenceFormat: "URI-encoded JSON Pointer fragment";
+            operationLookup: string;
         };
         /** @description Authenticated capability view for agents and developers. */
         MetaCapabilitiesView: {
@@ -3499,14 +4979,136 @@ export interface components {
             defaultChain: string;
             /** @example X-Starkscan-Api-Key */
             authHeader: string;
+            /** @enum {string} */
+            externalBasePath: "/v1" | "/api/v1";
             firstCalls: components["schemas"]["AgentFirstCall"][];
+            documentation: components["schemas"]["CapabilitiesDocumentation"];
+            rateLimit: components["schemas"]["CapabilitiesRateLimit"];
             routeFamilies: components["schemas"]["AgentRouteFamily"][];
+            sessionControl: components["schemas"]["SessionControlCapability"];
+            apiKeyLifecycle: components["schemas"]["ApiKeyLifecycleCapability"];
+            caller: components["schemas"]["CallerCapabilities"];
+            eventSearch: components["schemas"]["PositionalEventSearchCapability"];
             rpcProvider: components["schemas"]["RpcProviderCapability"];
             walletInteraction: components["schemas"]["WalletInteractionCapability"];
             operatingRules: string[];
             issueReportContract: components["schemas"]["AgentIssueReportContract"];
         } & {
             [key: string]: unknown;
+        };
+        /** @description Caller-specific positional event-search contract. The bounded path is available to ordinary read callers. External full-range search additionally requires a DB-backed Wallet workspace; the authenticated loopback internal operator lane is also entitled. Both paths require certified contiguous index coverage for every requested selector at one common non-zero anchor position. The server chooses the populated position with the fewest requested values, breaking ties by lower position number. Additional populated later positions are applied to those anchor candidates and do not need separate coverage; entitlement alone never makes incomplete index data serveable. */
+        PositionalEventSearchCapability: {
+            chain: string;
+            positions: {
+                /** @enum {integer} */
+                minimum: 0;
+                /** @enum {integer} */
+                maximum: 15;
+            };
+            bounded: {
+                /** @enum {boolean} */
+                enabled: true;
+                /** @enum {integer} */
+                maximumBlocksInclusive: 10000;
+            };
+            fullRange: {
+                entitled: boolean;
+                /**
+                 * @description Required for external callers; an authenticated loopback internal caller is an explicit alternative entitlement.
+                 * @enum {string}
+                 */
+                requiredWorkspacePlan: "wallet";
+                /** @enum {string} */
+                coverageContract: "certified_per_selector_position";
+                /** @enum {string} */
+                unsupportedResponse: "422_full_range_selector_not_supported";
+                /** @enum {string} */
+                unavailableResponse: "503_event_key_index_coverage_unavailable";
+                /**
+                 * @description `available` means selectorCoverage is the complete bounded lookup result and every returned row is currently ready through its observed source high-water. `partial` means the lookup succeeded but selectorCoverage is a bounded prefix or at least one returned row is stale/building/failed. Clients must use row-level throughBlock and freshnessStatus before planning a wide request, and must not infer that an omitted selector lacks coverage when this value is `partial`. `unavailable` means the lookup failed or timed out.
+                 * @enum {string}
+                 */
+                coverageAvailability: "available" | "partial" | "unavailable";
+                /** @description Current selector-position coverage facts for this chain. Clients must only request full-range filtering when every selected topic0 is ready at the same anchor position and the requested numeric range is covered. Before matching, clients must canonicalize each requested topic0 to compact lowercase `0x` form by lowercasing hex digits and removing leading zeroes. Padded or uppercase request spellings are accepted as filters but never appear in `selector`. The server chooses the populated anchor position with the fewest requested values, breaking ties by lower position number. Additional populated later positions are applied to the anchor candidates and do not need separate coverage. A full-range request joins adjacent tier intervals in one repeatable-read snapshot: `finalized` is the retained historical prefix and `head` is the current moving source tail. `head.fromBlock` can increase when promoted rows leave the head table; that does not mean history is absent when the preceding finalized interval is adjacent. `throughBlock` remains each tier's only certified upper bound. openEnded and liveMaintenance describe a maintained projection, not an unbounded serving promise. The server rejects a request unless the exact tier intervals form a gap-free union for the requested numeric range. Compare sourceHighWaterBlock, lagBlocks, and freshnessStatus before planning a wide request; `stale` is an honest coverage gap, while `unavailable` means lifecycle coverage is not ready or that tier has no indexed block watermark. Both receive the typed unavailable response rather than a partial result. */
+                selectorCoverage: components["schemas"]["EventKeySelectorCoverage"][];
+            };
+        };
+        EventKeySelectorCoverage: {
+            /** @description Canonical compact topic0 selector covered by this record. */
+            selector: string;
+            position: number;
+            /**
+             * @description `finalized` is the retained historical prefix. `head` is the moving current source tail and is joined to finalized coverage by the server on one repeatable-read snapshot.
+             * @enum {string}
+             */
+            sourceTier: "finalized" | "head";
+            /** @description Lowest block in this tier's contiguous certified interval. A finalized fromBlock is its retained-history floor. A head fromBlock is the current moving tail floor and can increase after finalization; it does not by itself signal a history gap. */
+            fromBlock: number;
+            /** @description Highest block in this tier's contiguous source/index interval verified by the most recent bounded parity certification. It is that tier's hard upper bound for full-range serving; the server requires adjacent finalized/head intervals rather than treating either tier as a separate all-history promise. */
+            throughBlock: number;
+            openEnded: boolean;
+            liveMaintenance: boolean;
+            /** @enum {string} */
+            status: "building" | "ready" | "failed";
+            /** Format: date-time */
+            verifiedAt: string | null;
+            /** @description Latest indexed block observed for this source tier while capabilities were built. It is informational and may advance before coverage is certified. */
+            sourceHighWaterBlock: number | null;
+            /** @description Non-negative difference between sourceHighWaterBlock and throughBlock. For head this measures the current moving-tail lag, not retained-history coverage. Null only when the source tier has no indexed high-water observation. */
+            lagBlocks: number | null;
+            /**
+             * @description `current` means this tier's certified interval reaches its observed source high-water; `stale` means it does not; `unavailable` means lifecycle coverage is not ready or this tier has no indexed block watermark. Never infer current coverage from openEnded or liveMaintenance alone.
+             * @enum {string}
+             */
+            freshnessStatus: "current" | "stale" | "unavailable";
+        } & (unknown & unknown & unknown & unknown);
+        /** @description Public HTTP rate-limit/backoff contract. It intentionally names only response headers and classes, never a key, workspace, or internal limiter bucket. */
+        CapabilitiesRateLimit: {
+            responseHeaders: {
+                /** @enum {string} */
+                routeClass: "X-Starkscan-Route-Class";
+                /** @enum {string} */
+                limit: "x-ratelimit-limit";
+                /** @enum {string} */
+                remaining: "x-ratelimit-remaining";
+                /** @enum {string} */
+                policy: "x-ratelimit-policy";
+                /** @enum {string} */
+                retryAfter: "Retry-After";
+            };
+            classes: ("light" | "heavy" | "batch")[];
+            operationDisclosure: string;
+            retryRule: string;
+        };
+        /** @description Separate dashboard workspace control-plane boundary. It is visible in API-key capabilities so clients do not mistake a typed 401 on `/v1/me/*` for an API-key failure, but API keys must never authorize these routes. */
+        SessionControlCapability: {
+            /** @enum {string} */
+            status: "separate_dashboard_session_control_plane";
+            /** @enum {string} */
+            pathPrefix: "/v1/me";
+            /** @enum {string} */
+            apiKeyAccess: "not_supported";
+            safeReadAuth: ("better_auth_session_cookie" | "bearer_session_token")[];
+            /** @enum {string} */
+            mutationAuth: "bearer_session_token";
+            /** @enum {string} */
+            documentationPath: "/docs/api/self-serve";
+        };
+        /** @description API-key lifecycle contract. Inactive credentials deliberately receive a generic OAuth-compatible 401 response; lifecycle reason is never exposed. Rate-limit decisions stay distinct as 429 with Retry-After. */
+        ApiKeyLifecycleCapability: {
+            /** @enum {string} */
+            inactiveKeyResponse: "generic_401_invalid_token";
+            /**
+             * @description Exact challenge returned for revoked or expired API keys; the generic response does not disclose which lifecycle state applied.
+             * @enum {string}
+             */
+            inactiveKeyWwwAuthenticate: "Bearer realm=\"starkscan\", error=\"invalid_token\"";
+            /** @enum {string} */
+            rateLimitResponse: "429_with_retry_after";
+            /** @enum {string} */
+            ownerInspectionPath: "/v1/me/api-keys";
+            /** @enum {string} */
+            internalObservability: "sanitized_lifecycle_reason_metrics";
         };
         RpcProviderCapability: {
             /** @enum {string} */
@@ -3519,15 +5121,28 @@ export interface components {
             authHeader: string;
             /** @example 0.10.2 */
             minimumSpecVersion: string;
+            /** @example 0.10.2 */
+            publicSpecVersion: string;
+            /** @enum {string} */
+            specVersionContract: "gateway_declared_compatibility";
             /** @enum {string} */
             specVersionMethod: "starknet_specVersion";
-            supportedBlockTags: ("latest" | "pending" | "pre_confirmed")[];
+            supportedBlockTags: ("latest" | "pending" | "pre_confirmed" | "l1_accepted")[];
+            conditionalBlockTags: {
+                l1_accepted: {
+                    advertised: boolean;
+                    /** @enum {string} */
+                    evidence: "indexed_canonical_l1_accepted_watermark";
+                };
+            };
             batch: {
                 supported: boolean;
                 maxItems: number;
+                maxResponseBytes: number;
                 /** @enum {string} */
                 accounting: "Each JSON-RPC child request is classified and rate-limited independently.";
             };
+            storageProofBeta: components["schemas"]["StorageProofCapability"];
             writeBeta: {
                 enabled: boolean;
                 /** @enum {string} */
@@ -3538,16 +5153,106 @@ export interface components {
                 /** @enum {string} */
                 quotaClass: "rpc_write";
             };
+            traceBeta: {
+                /** @enum {string} */
+                status: "operator_scoped";
+                /** @enum {string} */
+                scope: "trace";
+                methods: ("starknet_traceTransaction" | "starknet_traceBlockTransactions")[];
+                /** @enum {string} */
+                quotaClass: "rpc_trace";
+                maxResponseBytes: number;
+                /** @enum {string} */
+                stateDiffPolicy: "omitted_use_starknet_getStateUpdate";
+                /** @enum {string} */
+                incompleteResponsePolicy: "fail_closed_trace_response_incomplete";
+                policy: string;
+            };
             quotaClasses: {
-                rpc_read_light: ("starknet_chainId" | "starknet_specVersion" | "starknet_blockNumber" | "starknet_blockHashAndNumber" | "starknet_syncing")[];
-                rpc_read_state: ("starknet_call" | "starknet_getStorageAt" | "starknet_getClass" | "starknet_getClassHashAt" | "starknet_getClassAt" | "starknet_getNonce")[];
-                rpc_read_history: ("starknet_getBlockWithTxHashes" | "starknet_getBlockWithTxs" | "starknet_getBlockWithReceipts" | "starknet_getBlockTransactionCount" | "starknet_getTransactionByBlockIdAndIndex" | "starknet_getTransactionByHash" | "starknet_getTransactionReceipt" | "starknet_getTransactionStatus" | "starknet_getStateUpdate" | "starknet_getEvents")[];
+                rpc_read_light: ("rpc.discover" | "starknet_chainId" | "starknet_specVersion" | "starknet_blockNumber" | "starknet_blockHashAndNumber" | "starknet_syncing")[];
+                rpc_read_state: ("starknet_call" | "starknet_getStorageAt" | "starknet_getStorageProof" | "starknet_getClass" | "starknet_getClassHashAt" | "starknet_getClassAt" | "starknet_getCompiledCasm" | "starknet_getNonce")[];
+                rpc_read_history: ("starknet_getBlockWithTxHashes" | "starknet_getBlockWithTxs" | "starknet_getBlockWithReceipts" | "starknet_getBlockTransactionCount" | "starknet_getTransactionByBlockIdAndIndex" | "starknet_getTransactionByHash" | "starknet_getTransactionReceipt" | "starknet_getTransactionStatus" | "starknet_getMessagesStatus" | "starknet_getStateUpdate" | "starknet_getEvents")[];
                 rpc_simulation: ("starknet_simulateTransactions" | "starknet_estimateFee" | "starknet_estimateMessageFee")[];
                 rpc_write: ("starknet_addInvokeTransaction" | "starknet_addDeclareTransaction" | "starknet_addDeployAccountTransaction")[];
+                rpc_trace: ("starknet_traceTransaction" | "starknet_traceBlockTransactions")[];
             };
-            unsupportedUntilCertified: ("websocket_subscriptions" | "trace_methods_except_simulateTransactions" | "archive_history_full_provider" | "no_key_public_rpc")[];
+            unsupportedUntilCertified: ("websocket_subscriptions" | "broad_trace_methods" | "archive_history_full_provider" | "no_key_public_rpc")[];
         } & {
             [key: string]: unknown;
+        };
+        StorageProofCapability: {
+            /** @enum {boolean} */
+            enabled: true;
+            /** @enum {string} */
+            status: "bounded_upstream_passthrough";
+            /** @enum {string} */
+            availability: "upstream_dependent";
+            /** @enum {string} */
+            method: "starknet_getStorageProof";
+            /** @enum {string} */
+            quotaClass: "rpc_read_state";
+            acceptedBlockIds: ("latest" | "block_number" | "block_hash")[];
+            rejectedBlockTags: ("pending" | "pre_confirmed")[];
+            limits: {
+                /** @enum {integer} */
+                maxClassHashes: 8;
+                /** @enum {integer} */
+                maxContractAddresses: 8;
+                /** @enum {integer} */
+                maxContractStoragePairs: 8;
+                /** @enum {integer} */
+                maxStorageKeysPerContract: 16;
+                /** @enum {integer} */
+                maxTotalTargets: 32;
+                /** @enum {string} */
+                totalTargetCounting: "class_hashes_plus_contract_addresses_plus_individual_storage_keys";
+                /** @enum {integer} */
+                maxResponseBytes: 1048576;
+            };
+            historicalHorizon: {
+                /** @enum {boolean} */
+                advertised: false;
+                /** @enum {string} */
+                status: "not_certified";
+                guaranteedBlocksBehindHead: null;
+                /** @enum {integer} */
+                certificationTargetBlocksBehindHead: 50000;
+                policy: string;
+            };
+            stateDiffCommitment: {
+                /** @enum {boolean} */
+                advertised: false;
+                /** @enum {boolean} */
+                guaranteed: false;
+                /** @enum {string} */
+                status: "not_in_starknet_openrpc_0_10_2";
+                /** @enum {string} */
+                passthroughPolicy: "preserved_if_returned_by_upstream_not_synthesized_or_certified";
+                policy: string;
+            };
+            /** @enum {string} */
+            responseValidation: "opaque_upstream_result_size_bounded";
+        };
+        CallerCapabilities: {
+            authenticated: boolean;
+            authType: string;
+            keyClass: string | null;
+            scopes: ("read" | "batch" | "write" | "prove" | "trace")[];
+            /** @enum {string} */
+            scopeDisclosure: "exact_for_api_key" | "not_available_for_auth_type" | "not_bound_to_request" | "operator_internal";
+            /** @enum {string} */
+            routeFamilyDisclosure: "exact_for_api_key" | "verified_read_lower_bound" | "global_operator_view" | "global_unbound" | "fail_closed";
+            /** @description Durable workspace plan for a DB-backed API key. Null when no workspace entitlement is safely bound to this request. */
+            workspacePlan: null | ("free" | "developer" | "growth" | "business" | "enterprise" | "wallet");
+            rateLimit: null | {
+                /** @enum {string} */
+                loadClass: "light" | "heavy";
+                limitPerMinute: number;
+                remaining: number;
+                retryAfterSeconds: number;
+                /** @enum {string} */
+                bucketScope: "key" | "workspace";
+            };
         };
         WalletInteractionCapability: {
             enabled: boolean;
@@ -3710,18 +5415,28 @@ export interface components {
             /** Format: int64 */
             l1SettlementLatencySeconds: number | null;
             /**
+             * @description Indexed-history availability policy. SN_SEPOLIA uses a fixed inclusive starting boundary that does not advance with time.
+             * @enum {string|null}
+             */
+            historyPolicy?: "fixed_start" | null;
+            /**
+             * @description Honest completeness claim for the indexed-history window. boundary_unavailable means the fixed boundary could not be derived and clients must not infer it from another field.
+             * @enum {string|null}
+             */
+            historyCompleteness?: "complete_from_earliest_available" | "boundary_unavailable" | null;
+            /**
              * Format: int32
              * @description Rolling indexed-history duration configured for this chain. Present only when retention is active.
              */
             retentionDays?: number | null;
             /**
              * Format: int64
-             * @description Inclusive lower block boundary currently retained by the indexed API.
+             * @description Inclusive lower block boundary currently available from the indexed API. For fixed_start this is the permanent indexed-history floor, not a rolling cutoff.
              */
             earliestAvailableBlock?: number | null;
             /**
              * Format: date-time
-             * @description UTC timestamp represented by the inclusive retained-history boundary.
+             * @description UTC timestamp represented by the inclusive indexed-history boundary.
              */
             earliestAvailableAt?: string | null;
             /** @description Durable status of the most recent indexed-history retention attempt. */
@@ -3752,6 +5467,49 @@ export interface components {
             /** @description Explicitly limits this signal to Starkscan indexing freshness. */
             trustBoundary: string;
         };
+        L1FinalityQuorumHealthView: {
+            chainId: string;
+            /** @enum {string} */
+            classification: "operational" | "degraded" | "failed" | "diverged" | "stale" | "evidence_unavailable" | "evidence_inconsistent";
+            evidenceAvailable: boolean;
+            /** @enum {string} */
+            status: "healthy" | "degraded" | "failed" | "diverged" | "stale" | "not_reported";
+            /** Format: int64 */
+            endpointsConfigured: number | null;
+            /** Format: int64 */
+            endpointsHealthy: number | null;
+            /** Format: date-time */
+            observedAt: string | null;
+            /** Format: int64 */
+            evidenceAgeSeconds: number | null;
+            /**
+             * Format: int64
+             * @constant
+             */
+            thresholdAgeSeconds: 300;
+            /** @description Limits the signal to Starkscan's sanitized materialized L1 quorum evidence. */
+            trustBoundary: string;
+        };
+        L1FinalityFreshnessHealthView: {
+            chainId: string;
+            /** @enum {string} */
+            classification: "operational" | "stale" | "evidence_unavailable" | "evidence_inconsistent";
+            evidenceAvailable: boolean;
+            /** Format: int64 */
+            watermarkBlockNumber: number | null;
+            /**
+             * Format: int64
+             * @description Signed age computed by PostgreSQL from its own clock; a negative value is inconsistent evidence and the route returns HTTP 503.
+             */
+            watermarkAgeSeconds: number | null;
+            /**
+             * Format: int64
+             * @constant
+             */
+            thresholdAgeSeconds: 300;
+            /** @description Limits the signal to Starkscan's materialized L1 finality watermark. */
+            trustBoundary: string;
+        };
         L1FinalityView: {
             /**
              * Format: int64
@@ -3760,26 +5518,37 @@ export interface components {
             watermarkBlockNumber: number | null;
             /**
              * Format: int64
-             * @description Seconds since the served L1 accepted watermark proof was indexed.
+             * @description Signed seconds since the served L1 accepted watermark proof was indexed, computed in PostgreSQL's clock domain. A negative value denotes inconsistent future-dated evidence.
              */
             watermarkAgeSeconds: number | null;
             quorum: components["schemas"]["L1FinalityQuorumView"];
             /**
              * Format: date-time
-             * @description Most recent L1 RPC quorum divergence timestamp when exported by runtime monitoring; null when not reported on the request path.
+             * @description Most recent persisted L1 RPC quorum divergence timestamp across required evidence components; null when no divergence has been observed.
              */
             lastDivergenceAt: string | null;
         };
         L1FinalityQuorumView: {
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Opaque minimum configured-endpoint count across every required L1 evidence component; null until every component has reported. Configuration separately requires at least two distinct RPC origins.
+             */
             endpointsConfigured: number | null;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Opaque minimum agreeing-endpoint count across every required L1 evidence component; null for missing, stale, failed, or diverged evidence.
+             */
             endpointsHealthy: number | null;
             /**
-             * @description Quorum health is not reported on the hot status request path yet; see L1 freshness deploy gates for current operational proof.
+             * @description Strict aggregate of state-update, message-origin, and message-consumption observations for SN_SEPOLIA. Other chains additionally require the StarkGate-registry observation. Healthy requires every component required for the requested chain to have a fresh agreeing observation from every configured endpoint, with configuration independently requiring at least two distinct RPC origins.
              * @enum {string}
              */
-            status: "not_reported";
+            status: "healthy" | "degraded" | "failed" | "diverged" | "stale" | "not_reported";
+            /**
+             * Format: date-time
+             * @description Oldest observation timestamp across every component required for the requested chain; null until every required component has reported.
+             */
+            observedAt: string | null;
         };
         L1AcceptedProofView: {
             /** @enum {string} */
@@ -3914,6 +5683,13 @@ export interface components {
             finalityStatus: string | null;
             gasUsed: string | null;
             effectiveGasPrice: string | null;
+            /** @description Receipt-reported total fee amount as a Starknet felt hex string. */
+            actualFeeAmount: string | null;
+            /**
+             * @description Receipt-reported fee unit.
+             * @enum {string|null}
+             */
+            actualFeeUnit: "WEI" | "FRI" | null;
             revertReason: string | null;
         };
         TransactionLogView: {
@@ -3955,10 +5731,10 @@ export interface components {
             amount: string | null;
             tokenId: string | null;
             standard: string;
-            /** @description Indexed transaction-time USD valuation when materialized; null when no priced historical fact is available. Do not treat this as a live/current market price. */
+            /** @description Transaction-time USD coverage when this route includes price materialization. Transaction-detail and token-transfer responses report a priced, typed-unpriced, or pending result. `outside_history_window` is terminal provider-policy coverage; `price_missing` is a repairable in-horizon gap. Lightweight preview/list responses that intentionally omit this enrichment may return null. Never treat a null or unpriced result as a live/current market price. */
             historicalUsd: components["schemas"]["TokenTransferHistoricalUsd"] | null;
         };
-        /** @description Row-backed historical USD valuation for one transfer, computed from the transfer amount and the token price at `priceHourIso`. */
+        /** @description Historical-USD coverage for one transfer. This is exactly one of: a priced transaction-time valuation; a typed unpriced result; or a pending materialization result. Clients must branch on `coverageStatus` and `coverageReasonCode`; null price fields are never a request to substitute a current/spot price. */
         TokenTransferHistoricalUsd: {
             amountDecimal: string | null;
             /** @description Token unit price in USD for `priceHourIso`, not current spot price. */
@@ -3967,16 +5743,120 @@ export interface components {
             valueUsd: string | null;
             /** Format: date-time */
             priceHourIso: string | null;
+            /**
+             * Format: date-time
+             * @description Timestamp of the provider observation used for this historical price.
+             */
+            priceSourceTimestampIso: string | null;
             priceSource: string | null;
             provider: string | null;
             providerAssetId: string | null;
             quoteCurrency: string;
             /** @enum {string} */
-            coverageStatus: "priced" | "unpriced";
+            coverageStatus: "priced" | "unpriced" | "pending";
             /** @enum {string} */
-            coverageReasonCode: "priced" | "token_unmapped" | "metadata_missing" | "non_fungible" | "amount_missing" | "price_missing" | "provider_granularity_daily";
+            coverageReasonCode: "priced" | "causal_hourly_price" | "token_unmapped" | "metadata_missing" | "non_fungible" | "amount_missing" | "price_missing" | "provider_granularity_daily" | "outside_history_window" | "materialization_pending";
             /** Format: date-time */
             indexedAt: string | null;
+        } & ({
+            /** @constant */
+            coverageStatus?: "priced";
+            /** @enum {unknown} */
+            coverageReasonCode?: "priced" | "causal_hourly_price";
+        } | {
+            /** @constant */
+            coverageStatus?: "unpriced";
+            /** @enum {unknown} */
+            coverageReasonCode?: "token_unmapped" | "metadata_missing" | "non_fungible" | "amount_missing" | "price_missing" | "provider_granularity_daily" | "outside_history_window";
+        } | {
+            /** @constant */
+            coverageStatus?: "pending";
+            /** @constant */
+            coverageReasonCode?: "materialization_pending";
+        });
+        /** @description One offline-prepared snapshot over the provider's bounded trailing history window. This is coverage telemetry, not a price feed. A transaction-time USD value is authoritative only when its individual transfer fact has `coverageStatus=priced`. Eligible and covered block/timestamp bounds are each either fully null or fully present; covered bounds always stay inside the eligible window. */
+        TokenTransferUsdCoverageSnapshot: {
+            chainId: string;
+            provider: string;
+            quoteCurrency: string;
+            /** Format: int32 */
+            maxHistoryDays: number;
+            /** @constant */
+            sourcePolicy: "hourly_causal_no_forward_fill";
+            /** Format: int64 */
+            eligibleFromBlock: number | null;
+            /** Format: int64 */
+            eligibleToBlock: number | null;
+            /** Format: date-time */
+            eligibleFromTimestamp: string | null;
+            /** Format: date-time */
+            eligibleToTimestamp: string | null;
+            /** Format: int64 */
+            coveredFromBlock: number | null;
+            /** Format: int64 */
+            coveredThroughBlock: number | null;
+            /** Format: date-time */
+            coveredFromTimestamp: string | null;
+            /** Format: date-time */
+            coveredThroughTimestamp: string | null;
+            /** Format: int64 */
+            pricedTransfers: number;
+            /** Format: int64 */
+            typedUnavailableTransfers: number;
+            /** Format: int64 */
+            pendingMaterializationTransfers: number;
+            /** @description Materialized unpriced outcomes by reason. `provider_granularity_daily` is deliberately unpriced and must not be included in `pricedTransfers`. */
+            typedUnavailableByReason: {
+                /** Format: int64 */
+                token_unmapped?: number;
+                /** Format: int64 */
+                metadata_missing?: number;
+                /** Format: int64 */
+                non_fungible?: number;
+                /** Format: int64 */
+                amount_missing?: number;
+                /** Format: int64 */
+                price_missing?: number;
+                /** Format: int64 */
+                provider_granularity_daily?: number;
+            };
+            /** Format: date-time */
+            latestSuccessfulRunAt: string | null;
+            /** Format: date-time */
+            measuredAt: string;
+            /** @enum {string|null} */
+            nextMaterializerDirection: "forward" | "backfill" | null;
+            /**
+             * Format: int64
+             * @description Reviewed direct-price assets enrolled for compact hourly history.
+             */
+            compactQuoteAssetsExpected: number;
+            /**
+             * Format: int64
+             * @description Enrolled assets whose bounded 365-day hourly recovery cursor is complete.
+             */
+            compactQuoteAssetsComplete: number;
+            /**
+             * Format: int64
+             * @description Enrolled assets still advancing through bounded hourly recovery.
+             */
+            compactQuoteAssetsIncomplete: number;
+            /**
+             * Format: date-time
+             * @description Common factual hourly-quote floor when every enrolled asset has quote rows.
+             */
+            compactQuoteCoveredFromTimestamp: string | null;
+            /**
+             * Format: date-time
+             * @description Common factual hourly-quote ceiling when every enrolled asset has quote rows.
+             */
+            compactQuoteCoveredThroughTimestamp: string | null;
+            /** @constant */
+            exact: true;
+            /** @constant */
+            scope: "eligible_finalized_transfers_in_bounded_provider_history_window";
+            /** @enum {string} */
+            status: "current" | "catching_up" | "stale" | "degraded";
         };
         /** @enum {string} */
         BridgeIntentKind: "deposit" | "withdraw" | "bridge_unknown";
@@ -3997,7 +5877,15 @@ export interface components {
             address: string;
             topic0: string | null;
         };
+        TransactionPreviewContractCallView: {
+            contractAddress: string;
+            /** Format: int32 */
+            callIndex: number;
+            entryPointSelector: string | null;
+            methodName: string | null;
+        };
         TransactionPreviewView: {
+            timestampIso: string | null;
             chainId: string;
             /** Format: int64 */
             blockNumber: number;
@@ -4010,10 +5898,15 @@ export interface components {
             executionStatus: string | null;
             finalityStatus: string | null;
             txType: string | null;
+            /** @description Optional additive projection of unique targets from an exactly decoded, bounded signed INVOKE call array. This records signed intent and does not claim that every call executed. */
+            signedCallTargets?: string[];
             /** Format: int64 */
             transferCount: number;
             tokenTransfersTruncated: boolean;
             tokenTransfers: components["schemas"]["TransactionTransferView"][];
+            /** @description Trace-backed calls selected by exact reviewed swap entrypoint selectors. Empty unless requested. */
+            exchangeCalls: components["schemas"]["TransactionPreviewContractCallView"][];
+            exchangeCallsTruncated: boolean;
             hasBurnToZero?: boolean;
             hasMintFromZero?: boolean;
             bridgeSignalContracts?: string[];
@@ -4038,11 +5931,27 @@ export interface components {
              */
             includeBridgeSignals: boolean | null;
             /**
+             * @description Include up to 16 trace-backed calls per transaction whose selector is an exact reviewed swap entrypoint. Defaults to `false` when omitted.
+             * @default false
+             */
+            includeExchangeCalls: boolean | null;
+            /**
              * Format: int32
              * @description Maximum number of logs returned per transaction when `includeLogs` is enabled. Defaults to `64` when omitted.
              * @default 64
              */
             logLimitPerTx: number | null;
+        };
+        TransactionAccountCallView: {
+            /** @description Contract address targeted by this account call. */
+            to: string;
+            /** @description Entry-point selector invoked by this account call. */
+            selector: string;
+            /**
+             * Format: int32
+             * @description Number of calldata felts supplied to this account call.
+             */
+            calldataLen: number;
         };
         TransactionDetailView: {
             chainId: string;
@@ -4066,6 +5975,18 @@ export interface components {
             eventDecodingDegraded: boolean;
             logs: components["schemas"]["TransactionLogView"][];
             calldata: string[];
+            /**
+             * Format: int32
+             * @description Number of calls decoded from a well-formed INVOKE account call array; null when the payload is not applicable or cannot be decoded safely.
+             */
+            accountCallCount: number | null;
+            /** @description Ordered calls decoded from the transaction's account call array. */
+            accountCalls: components["schemas"]["TransactionAccountCallView"][];
+            /**
+             * Format: int64
+             * @description Sender-declared `resource_bounds.l2_gas.max_amount`; null when the transaction does not declare an L2 gas bound.
+             */
+            declaredL2GasCap: number | null;
             tokenTransfers: components["schemas"]["TransactionTransferView"][];
             messages: components["schemas"]["MessageItem"][];
             messagesCoverage: components["schemas"]["MessageCoverageView"];
@@ -4085,11 +6006,80 @@ export interface components {
             /** Format: date-time */
             expiresAtIso: string;
         };
+        /** @description Canonical creation-block evidence plus fail-closed transaction-trace attribution. DEPLOY_ACCOUNT and legacy DEPLOY intentionally do not fabricate a self-deployer. */
+        AddressDeploymentProvenanceView: {
+            /**
+             * @description Whether transaction-trace attribution is exact, intentionally inapplicable, or not yet certified.
+             * @enum {string}
+             */
+            status: "known" | "not_applicable" | "unavailable";
+            /** @enum {string} */
+            reasonCode: "trace_certified" | "deploy_account_has_no_external_deployer" | "legacy_deploy_has_no_external_deployer" | "transaction_trace_not_certified";
+            /** @enum {string} */
+            evidenceSource: "state_update_and_transaction_trace" | "starknet_state_diff_boundary";
+            /** Format: int64 */
+            deployedAtBlock: number;
+            deployedAtBlockHash: string;
+            transactionHash: string | null;
+            /** @enum {string|null} */
+            deploymentKind: "deploy_account" | "invoke_factory" | "legacy_deploy" | null;
+            /** @description Transaction sender for a trace-certified factory or UDC deployment. Null when no external deployer exists or attribution is unavailable. */
+            originAddress: string | null;
+            /** @description Constructor caller for a trace-certified factory or UDC deployment. */
+            factoryAddress: string | null;
+        } & ({
+            /** @constant */
+            status?: "known";
+            /** @constant */
+            reasonCode?: "trace_certified";
+            /** @constant */
+            evidenceSource?: "state_update_and_transaction_trace";
+            transactionHash?: string;
+            /** @constant */
+            deploymentKind?: "invoke_factory";
+            originAddress?: string;
+            factoryAddress?: string;
+        } | ({
+            /** @constant */
+            status?: "not_applicable";
+            /** @constant */
+            evidenceSource?: "state_update_and_transaction_trace";
+            transactionHash?: string;
+            originAddress?: null;
+            factoryAddress?: null;
+        } & ({
+            /** @constant */
+            reasonCode?: "deploy_account_has_no_external_deployer";
+            /** @constant */
+            deploymentKind?: "deploy_account";
+        } | {
+            /** @constant */
+            reasonCode?: "legacy_deploy_has_no_external_deployer";
+            /** @constant */
+            deploymentKind?: "legacy_deploy";
+        })) | {
+            /** @constant */
+            status?: "unavailable";
+            /** @constant */
+            reasonCode?: "transaction_trace_not_certified";
+            /** @constant */
+            evidenceSource?: "starknet_state_diff_boundary";
+            transactionHash?: null;
+            deploymentKind?: null;
+            originAddress?: null;
+            factoryAddress?: null;
+        });
         AddressSummaryView: {
             address: string;
-            /** Format: int64 */
-            totalActivityCount: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Exhaustive count, a documented positive lower bound, or null when activity is unknown/partial and no safe numeric lower bound exists. Zero is valid only with activityCountExact=true.
+             */
+            totalActivityCount: number | null;
+            /**
+             * Format: int64
+             * @description Highest proved indexed activity block for this aggregate summary. It is null when totalActivityCount is null; use address/intelligence for independently typed latest-activity evidence with an unmaterialized total.
+             */
             latestActivityBlock: number | null;
             activityCountExact?: boolean | null;
             /** @description Starknet contract class hash (0x-prefixed felt hex), null when unavailable. */
@@ -4099,27 +6089,31 @@ export interface components {
             createdOnIso?: string | null;
             deployedAtTxHash?: string | null;
             deployedByAddress?: string | null;
+            /** @description Present for a deployed address with a canonical creation boundary; omitted when no deployment evidence exists. A present value with status unavailable means the creation boundary is known but transaction-trace attribution is not certified. */
+            deploymentProvenance?: components["schemas"]["AddressDeploymentProvenanceView"];
             /** @description Present only while contract-not-found evidence is fresh and no positive class fact wins. */
             contractExistence?: components["schemas"]["AddressContractExistenceView"] | null;
         };
         ContractMetadataView: {
             chainId: string;
             address: string;
-            /** @description Compatibility class hash. Uses the finalized current-class fact when available, otherwise the indexed deployment class. */
+            /** @description Compatibility class hash backed by classHashSource. Uses currentClassHash when a trusted indexed runtime observation exists, otherwise deploymentClassHash; null is possible only when another indexed identity fact, such as token metadata, keeps the response addressable. */
             classHash: string | null;
-            /** @description Finalized current class hash when materialized; null does not imply that the address is undeployed. */
+            /** @description Newest trusted indexed runtime class observation. Read with classHashAsOfBlock and classHashAsOfBlockHash; it is not a claim about blocks after that boundary. Null does not imply that the address is undeployed. */
             currentClassHash: string | null;
-            /** @description Original indexed deployment class hash when known. */
+            /** @description Original indexed deployment class hash only when authoritative deployment evidence proves it. Null when unavailable; never inferred from current class or first activity. */
             deploymentClassHash: string | null;
             /** @description Provenance source for classHash. */
             classHashSource: string | null;
             /**
              * Format: int64
-             * @description Evidence block for classHash when the source has a canonical block.
+             * @description Exact evidence block for classHash when the source has a canonical block.
              */
             classHashAsOfBlock: number | null;
+            /** @description Canonical block hash paired with classHashAsOfBlock. */
+            classHashAsOfBlockHash: string | null;
             /**
-             * @description Finality of the classHash evidence; null means the fallback source does not certify finality.
+             * @description Finality of the classHash evidence; null means the exact-block observation does not assert finalized status.
              * @enum {string|null}
              */
             classHashFinality: "finalized" | null;
@@ -4133,6 +6127,8 @@ export interface components {
             /** Format: date-time */
             createdOnIso: string | null;
             deployedByAddress: string | null;
+            /** @description Present for a deployed address with a canonical creation boundary; omitted when no deployment evidence exists. A present value with status unavailable means the creation boundary is known but transaction-trace attribution is not certified. */
+            deploymentProvenance?: components["schemas"]["AddressDeploymentProvenanceView"];
             isAccount: boolean | null;
             /**
              * @description True when token metadata exists; null means not identified in the indexed token metadata table.
@@ -4183,8 +6179,26 @@ export interface components {
             protocol: components["schemas"]["AddressAttributionProtocolView"] | null;
             /** @description True only when authoritative indexed deployment/class evidence exists for the address. */
             isDeployed: boolean;
-            /** @description Indexed deployment/read-model class hash when deployment or class evidence is available. This may not be the current runtime class after upgrades; use RPC `starknet_getClassHashAt` when current class state matters. */
+            /** @description Compatibility class hash. Uses currentClassHash when a trusted indexed current observation exists, otherwise deploymentClassHash. */
             classHash: string | null;
+            /** @description Newest trusted indexed runtime class observation. Read with classHashAsOfBlock and classHashAsOfBlockHash; it is not a claim about blocks after that boundary. */
+            currentClassHash: string | null;
+            /** @description Original indexed deployment class only when authoritative deployment evidence proves it. Null when unavailable; never inferred from current class or first activity. */
+            deploymentClassHash: string | null;
+            /** @description Evidence source for classHash. */
+            classHashSource: string | null;
+            /**
+             * Format: int64
+             * @description Exact evidence block for classHash when available.
+             */
+            classHashAsOfBlock: number | null;
+            /** @description Canonical block hash paired with classHashAsOfBlock. */
+            classHashAsOfBlockHash: string | null;
+            /**
+             * @description Finality of classHash evidence; null means the exact-block observation has not asserted finalized status.
+             * @enum {string|null}
+             */
+            classHashFinality: "finalized" | null;
             /** @description Human-readable class-family label when `classHash` matches a reviewed official class registry. This is separate from `label` and must not be treated as a curated address name tag. */
             classLabel: string | null;
             /**
@@ -4193,20 +6207,46 @@ export interface components {
              */
             classLabelSource: "official_class_registry" | null;
             isAccount: boolean | null;
+            /**
+             * Format: date-time
+             * @description Indexed canonical deployment timestamp when authoritative deployment evidence exists.
+             */
+            createdOnIso: string | null;
             /** @description Indexed deployment transaction hash when authoritative deployment evidence exists. */
             deployedAtTxHash: string | null;
             /** @description Indexed deployer/factory address when authoritative deployment attribution exists. */
             deployedByAddress: string | null;
+            /** @description Present for a deployed address with a canonical creation boundary; omitted when no deployment evidence exists. A present value with status unavailable means the creation boundary is known but transaction-trace attribution is not certified. */
+            deploymentProvenance?: components["schemas"]["AddressDeploymentProvenanceView"];
             /** @description True when indexed token-transfer rows show the address as recipient. */
             hasReceivedFunds: boolean;
             /** Format: int64 */
             latestActivityBlock: number | null;
-            /** Format: int64 */
-            totalActivityCount: number;
-            /** @description True when the returned activity count is complete for the indexed summary windows used by this response. False means the batch route intentionally returned bounded indexed metadata without cold repair or raw activity scans. */
+            /**
+             * Format: int64
+             * @description Exhaustive count, a positive lower bound when one is actually materialized, or null. Proved activity may have a latestActivityBlock with a null total. Zero is valid only when activityCountExact=true and activityCoverage.status=exhaustive.
+             */
+            totalActivityCount: number | null;
+            /** @description True only when the returned activity count is exhaustive for the certified source range. False or null means the count is non-exact: it may be a positive lower bound or null. A null count can accompany a proved latest block when no numeric total is materialized. Only true makes zero trustworthy. */
             activityCountExact: boolean | null;
+            activityCoverage: components["schemas"]["AddressActivityCoverageView"];
             /** @enum {string} */
             source: "indexed_partner_address_evidence";
+        };
+        AddressActivityCoverageView: {
+            /** @enum {string} */
+            status: "exhaustive" | "lower_bound" | "partial" | "stale" | "unavailable";
+            /** @enum {string} */
+            reasonCode: "sealed_success_only_range" | "success_only_total_not_materialized" | "no_indexed_activity_evidence" | "activity_beyond_indexed_watermark" | "activity_evidence_unavailable" | "projection_watermark_unavailable" | "watermark_unavailable" | "indexed_watermark_lag";
+            /** @enum {string} */
+            evidenceSource: "indexed_successful_transaction_and_activity_summary";
+            /** Format: int64 */
+            fromBlock: number | null;
+            /** Format: int64 */
+            throughBlock: number | null;
+            /** Format: int64 */
+            sourceWatermarkBlock: number | null;
+            sourceWatermarkHash: string | null;
         };
         AddressIntelligenceItemView: (components["schemas"]["AddressIntelligenceItemBaseView"] & {
             /** @constant */
@@ -4216,6 +6256,7 @@ export interface components {
             /** @constant */
             isDeployed: false;
             classHash: null;
+            createdOnIso: null;
             deployedAtTxHash: null;
             deployedByAddress: null;
         });
@@ -4262,6 +6303,16 @@ export interface components {
             protocol: null;
         });
         AddressIntelligenceBatchView: {
+            /**
+             * @description Version of the public activity truth and correlation contract.
+             * @constant
+             */
+            contractVersion: "starkscan.address_activity_truth.v1";
+            /**
+             * @description Version of the bounded indexed evidence sources used by this response.
+             * @constant
+             */
+            sourceContractVersion: "indexed_successful_transaction_and_activity_summary.v1";
             items: components["schemas"]["AddressIntelligenceItemView"][];
         };
         /** @description Indexed class fact derived from its earliest canonical DECLARE or legacy DEPLOY origin with optional deployment, ABI/class, and verification enrichment. A legacy deployment origin is not a declaration. `classLabel` is a reviewed class family label, not exact source verification. */
@@ -4280,6 +6331,22 @@ export interface components {
              * @enum {string}
              */
             verificationTier: "verified_exact" | "verified_external" | "official_release" | "source_candidate" | "abi_declared" | "class_family" | "unverified";
+            /** @description Machine-readable source family for the verification claim. `receipt` identifies an active Starkscan exact receipt; `federated_external` identifies retained provider evidence. */
+            verificationSource: string | null;
+            /** @description Verification provider. `starkscan` identifies independently rebuilt exact receipt evidence; external values identify the observing provider and do not imply a Starkscan rebuild. */
+            verificationProvider: string | null;
+            /** @description Content digest for the active exact receipt candidate or immutable build evidence, or for the retained external claim, when available. */
+            verificationEvidenceDigest: string | null;
+            /**
+             * Format: date-time
+             * @description Exact receipt completion time or external claim observation time, depending on `verificationSource`.
+             */
+            verificationObservedAtIso: string | null;
+            /**
+             * Format: int64
+             * @description Number of active exact receipts or retained external claims supporting this materialized tier.
+             */
+            verificationClaimCount: number | null;
             /**
              * @description How the class first entered the indexed chain. Legacy deployment is explicitly not declaration proof.
              * @enum {string|null}
@@ -4335,6 +6402,7 @@ export interface components {
             unknownInstanceCount: number;
             /** Format: int64 */
             verifiedInstanceCount: number;
+            instanceCoverage: components["schemas"]["ClassInstanceCoverageView"];
             /**
              * Format: int64
              * @description Earliest block from one paired indexed class-association evidence row; never derived from an unrelated address creation timestamp.
@@ -4364,6 +6432,60 @@ export interface components {
             /** Format: date-time */
             refreshedAtIso: string;
         };
+        /** @description Scope and classification evidence for class instance counts. Class counts are indexed observations, not a chain-wide census; consumers must not infer omitted instances from a numeric count. */
+        ClassInstanceCoverageView: {
+            /**
+             * @description `partial` means the usage projection produced a bounded indexed-observation window; `unavailable` means no trustworthy usage watermark exists.
+             * @enum {string}
+             */
+            coverageStatus: "partial" | "unavailable";
+            /** @enum {string} */
+            reasonCode: "indexed_observation_window" | "usage_projection_unavailable";
+            /**
+             * Format: int64
+             * @description Inclusive earliest materialized class-association evidence block, not necessarily the class's first chain occurrence.
+             */
+            observedFromBlock: number | null;
+            /**
+             * Format: int64
+             * @description Inclusive usage-projection watermark for the materialized observation window.
+             */
+            observedThroughBlock: number | null;
+            /**
+             * @description `known_for_observed_instances` applies only to materialized rows; it is not a claim of chain-wide account-or-contract classification.
+             * @enum {string}
+             */
+            classificationCoverage: "partial" | "known_for_observed_instances" | "unavailable";
+            /** @description True only when an observation window exists and the numeric counts can safely be treated as lower bounds. */
+            isLowerBound: boolean;
+            /**
+             * @description Always false for the indexed-observation directory; it is not a global class-instance census.
+             * @enum {boolean}
+             */
+            isExhaustive: false;
+        } & ({
+            /** @constant */
+            coverageStatus?: "partial";
+            /** @constant */
+            reasonCode?: "indexed_observation_window";
+            observedFromBlock?: number;
+            observedThroughBlock?: number;
+            /** @enum {unknown} */
+            classificationCoverage?: "partial" | "known_for_observed_instances";
+            /** @constant */
+            isLowerBound?: true;
+        } | {
+            /** @constant */
+            coverageStatus?: "unavailable";
+            /** @constant */
+            reasonCode?: "usage_projection_unavailable";
+            observedFromBlock?: null;
+            observedThroughBlock?: null;
+            /** @constant */
+            classificationCoverage?: "unavailable";
+            /** @constant */
+            isLowerBound?: false;
+        });
         ClassDirectoryPageView: {
             items: components["schemas"]["ClassDirectoryItemView"][];
             nextCursor: string | null;
@@ -4374,6 +6496,11 @@ export interface components {
              * @description Total materialized canonical class origins for this chain, independent of the loaded page or filters.
              */
             catalogTotal: number | null;
+            /**
+             * Format: int64
+             * @description Number of classes with materialized usage relationships. The instances_desc page is bounded to this cohort; it is separate from catalogTotal.
+             */
+            usageCohortTotal: number | null;
             /**
              * Format: int64
              * @description Highest contiguous indexed block reconciled into the canonical class-origin catalog, beginning at block 0. Null means contiguous historical certification has not yet been established.
@@ -4436,6 +6563,239 @@ export interface components {
             class: components["schemas"]["ClassDirectoryItemView"];
             instances: components["schemas"]["ClassInstanceView"][];
             nextInstanceCursor: string | null;
+        };
+        WalletAssetDiscoveryMetadata: {
+            symbol: string | null;
+            name: string | null;
+            decimals: number | null;
+            /** @enum {string} */
+            source: "reviewed_registry" | "indexed_metadata" | "unavailable";
+            trusted: boolean;
+            /**
+             * @description Spam classification is not currently performed. `not_assessed` must not be interpreted as safe, trusted, or non-spam.
+             * @constant
+             */
+            spamStatus: "not_assessed";
+        };
+        WalletAssetDiscoveryEvidence: {
+            /** @enum {string} */
+            tier: "reviewed_registry" | "indexed_discovery";
+            /** @enum {string} */
+            source: "checked_in_registry" | "fungible_transfer_evidence";
+            /** Format: int64 */
+            lastObservedBlock: number | null;
+            /**
+             * Format: int64
+             * @description Monotonic lower bound on indexed transfer evidence for this owner-token pair. It is the greatest idempotently observed batch count, not a cumulative or exact event count, and never a balance.
+             */
+            evidenceCountLowerBound: number | null;
+        };
+        WalletAssetDiscoveryItem: {
+            tokenAddress: string;
+            evidence: components["schemas"]["WalletAssetDiscoveryEvidence"][];
+            metadata: components["schemas"]["WalletAssetDiscoveryMetadata"];
+        };
+        WalletAssetDiscoveryCoverage: {
+            /** @enum {string} */
+            declaredScope: "standard_fungible_transfer_evidence" | "caller_explicit";
+            completeWithinScope: boolean;
+            /** @constant */
+            globallyComplete: false;
+            reasonCodes: ("seed_incomplete" | "source_truncated" | "tail_stale" | "unsupported_nonstandard")[];
+            /**
+             * Format: int64
+             * @description Last block included in the completed historical discovery seed. This is not the current transfer-tail watermark.
+             */
+            coveredThroughBlock: number | null;
+            /**
+             * Format: int64
+             * @description Target block for the historical discovery seed. Seed progress is complete only when coveredThroughBlock reaches this boundary.
+             */
+            targetThroughBlock: number | null;
+            /**
+             * Format: int64
+             * @description Last block observed by the bounded standard ERC-20 transfer tail. This does not cover nonstandard token patterns; globallyComplete remains false with unsupported_nonstandard.
+             */
+            tailObservedThroughBlock: number | null;
+        };
+        WalletAssetDiscoveryPage: {
+            /** @constant */
+            schemaVersion: "starkscan.wallet_asset_discovery.v1";
+            chainId: string;
+            ownerAddress: string;
+            /** @enum {string} */
+            scope: "discovered" | "discovered_plus_registry";
+            snapshotId: string;
+            items: components["schemas"]["WalletAssetDiscoveryItem"][];
+            hasMore: boolean;
+            nextCursor: string | null;
+            coverage: components["schemas"]["WalletAssetDiscoveryCoverage"];
+        };
+        RetiredTokenHoldingsResponse: {
+            /** @constant */
+            schemaVersion: "starkscan.retirement.v1";
+            /** @constant */
+            code: "token_holdings_retired";
+            message: string;
+            migrationGuide: string;
+            successors: {
+                /** @enum {string} */
+                rel: "asset_discovery" | "wallet_state";
+                /** @enum {string} */
+                method: "GET" | "POST";
+                path: string;
+            }[];
+            chainId: string;
+            ownerAddress: string;
+            requestId: string;
+        };
+        WalletStateIncludeRequest: {
+            /** @default false */
+            nonce: boolean;
+            /** @default false */
+            classHash: boolean;
+        };
+        WalletStateRequest: {
+            ownerAddress: string;
+            /**
+             * @default require_complete
+             * @enum {string}
+             */
+            mode: "require_complete" | "verified_partial";
+            /**
+             * @description `discovered` uses wallet-observed candidates only. `discovered_plus_registry` also evaluates the curated registry and can require pagination even when no wallet-observed asset exists.
+             * @enum {string}
+             */
+            scope?: "explicit" | "discovered" | "discovered_plus_registry";
+            tokenAddresses?: string[];
+            cursor?: string;
+            /** @default 25 */
+            limit: number;
+            /**
+             * @default latest_accepted_l2
+             * @enum {string}
+             */
+            blockPreference: "latest_accepted_l2" | "l1_accepted" | "explicit";
+            blockHash?: string;
+            /** Format: int64 */
+            blockNumber?: number;
+            include?: components["schemas"]["WalletStateIncludeRequest"];
+        };
+        WalletStateBlock: {
+            preference: string;
+            /** Format: int64 */
+            blockNumber: number;
+            blockHash: string;
+            /** @enum {string} */
+            finalityStatus: "accepted_on_l2" | "accepted_on_l1" | "explicit";
+        };
+        WalletStatePrice: {
+            /**
+             * @description `priced` is valid only with `fresh_exact_cached_price` and a non-null unit price. `valueUsd` is non-null only when the wallet balance was verified and value calculation succeeded. `unavailable` preserves the non-zero holding but excludes it from wallet totals.
+             * @enum {string}
+             */
+            status: "priced" | "unavailable";
+            /**
+             * @description Stable machine-readable reason for the pricing decision. A missing, empty, or unknown value is a response-contract violation; retain the response x-request-id and report it.
+             * @enum {string}
+             */
+            reasonCode: "fresh_exact_cached_price" | "price_metadata_unavailable" | "token_metadata_missing" | "token_unmapped" | "price_not_exact" | "price_missing" | "price_stale" | "value_calculation_failed";
+            /** @constant */
+            quoteCurrency: "usd";
+            priceUsd: string | null;
+            valueUsd: string | null;
+            source: string | null;
+            provider: string | null;
+            confidence: string | null;
+            /**
+             * Format: date-time
+             * @description Provider quote timestamp used for the freshness decision; distinct from observedAt, which is materialization time.
+             */
+            priceTimestamp: string | null;
+            /**
+             * Format: date-time
+             * @description Time Starkscan materialized the quote; not the provider quote timestamp.
+             */
+            observedAt: string | null;
+            maxAgeSeconds: number | null;
+        };
+        WalletStateAsset: {
+            tokenAddress: string;
+            /** @description Present only when balanceOf succeeded at block.blockHash. Never indexed or synthesized from an error. */
+            balanceRaw: string | null;
+            /** @enum {string} */
+            status: "ok" | "unsupported" | "timeout" | "error";
+            metadata: components["schemas"]["WalletAssetDiscoveryMetadata"];
+            price: components["schemas"]["WalletStatePrice"];
+        };
+        WalletStateVerification: {
+            /** @description Token candidates selected for block-pinned balance verification. Account-state reads are not included. */
+            selected: number;
+            /** @description Token balanceOf calls that succeeded at block.blockHash, including verified zeros. */
+            verified: number;
+            /** @description Verified non-zero token balances returned in items. */
+            visibleNonZero: number;
+            /** @description Verified zero token balances intentionally omitted from items. */
+            verifiedZeroHidden: number;
+            /** @description Token balance verification failures only. Inspect accountState statuses separately. */
+            failed: number;
+            /** @description Failed token verifications classified as timeouts. */
+            timedOut: number;
+            /** @description Failed token verifications classified as unsupported balanceOf behavior. */
+            unsupported: number;
+        };
+        WalletStateAccountState: {
+            nonce: string | null;
+            /** @enum {string} */
+            nonceStatus: "not_requested" | "verified" | "timeout" | "error";
+            classHash: string | null;
+            /** @enum {string} */
+            classHashStatus: "not_requested" | "verified" | "timeout" | "error";
+        };
+        WalletStateValuation: {
+            /**
+             * @description Valuation counters and totalUsd cover only items in this response page.
+             * @constant
+             */
+            scope: "page";
+            /** @description True only when this discovery walk began without a cursor and the first response is terminal. It says the page is the whole selected discovery walk; it never describes a continuation page or a caller-supplied explicit token subset. */
+            singlePageComplete: boolean;
+            /**
+             * @deprecated
+             * @description Deprecated compatibility alias for singlePageComplete. On raw scope=page responses this is not a wallet-wide valuation guarantee. Use hasMore=false or nextCursor=null to detect walk termination, or the SDK aggregate's scope=wallet result for wallet-wide valuation.
+             */
+            completeForWallet: boolean;
+            /** @description Exact decimal subtotal for priced assets in this response page. Raw scope=page responses never make this a wallet-wide total. */
+            totalUsd: string | null;
+            pricedAssetCount: number;
+            unpricedNonZeroAssetCount: number;
+            /** @description True means unpriced non-zero assets remain visible but are excluded from totalUsd; they are never counted as zero. */
+            excludedUnpricedAssets: boolean;
+        };
+        WalletStateResponse: {
+            /** @constant */
+            schemaVersion: "starkscan.wallet_state.v1";
+            chainId: string;
+            ownerAddress: string;
+            requestId: string;
+            block: components["schemas"]["WalletStateBlock"];
+            /**
+             * @description `discovered` uses wallet-observed candidates only. `discovered_plus_registry` also evaluates the curated registry and can require pagination even when no wallet-observed asset exists.
+             * @enum {string}
+             */
+            scope: "explicit" | "discovered" | "discovered_plus_registry";
+            coverage: components["schemas"]["WalletAssetDiscoveryCoverage"];
+            /** @enum {string} */
+            correctness: "verified_complete" | "verified_partial";
+            partial: boolean;
+            /** @description True only when verification is complete, the page has no continuation, and discovery is complete within its declared scope. */
+            walletSafe: boolean;
+            items: components["schemas"]["WalletStateAsset"][];
+            verification: components["schemas"]["WalletStateVerification"];
+            accountState: components["schemas"]["WalletStateAccountState"];
+            valuation: components["schemas"]["WalletStateValuation"];
+            hasMore: boolean;
+            nextCursor: string | null;
         };
         WalletPaymasterViewRequest: {
             addresses: string[];
@@ -4786,13 +7146,73 @@ export interface components {
             selector: string;
             name: string | null;
             stateMutability: string | null;
+            inputs: components["schemas"]["ContractAbiParameterView"][];
+            outputs: components["schemas"]["ContractAbiParameterView"][];
+        };
+        ContractAbiParameterView: {
+            name: string | null;
+            type: string;
+        };
+        ContractAbiTypeView: {
+            name: string;
+            /** @enum {string} */
+            kind: "struct" | "enum";
+            members: components["schemas"]["ContractAbiParameterView"][];
         };
         ContractEntrypointsView: {
             chainId: string;
             contractAddress: string;
+            /** @description Class hash resolved at blockTag. */
+            classHash: string;
+            /** @description Caller-supplied latest, block number, or block hash reference. */
+            requestedBlockTag: string;
+            /** @description Canonical block hash used for the class hash, class ABI, and paired contract call. */
+            blockTag: string;
+            /** Format: int64 */
+            blockNumber: number;
+            /** @enum {string} */
+            finalityStatus: "ACCEPTED_ON_L1" | "ACCEPTED_ON_L2";
             external: components["schemas"]["ContractEntrypointItem"][];
             constructor: components["schemas"]["ContractEntrypointItem"][];
             l1Handler: components["schemas"]["ContractEntrypointItem"][];
+            abiTypes: components["schemas"]["ContractAbiTypeView"][];
+            abiTypesTruncated: boolean;
+        };
+        ContractClassEpochView: {
+            classHash: string;
+            /** Format: int64 */
+            fromBlockNumber: number;
+            /** Format: int32 */
+            fromTxIndex: number;
+            /** Format: int64 */
+            toBlockNumber: number | null;
+            /** Format: int32 */
+            toTxIndex: number | null;
+            /** @description Compatibility name for the newest open observed epoch; not proof of the class currently in force. */
+            isCurrent: boolean;
+            source: string;
+            confidence: string;
+            incompleteReason: string | null;
+        };
+        ContractClassHistoryView: {
+            address: string;
+            /** Format: int64 */
+            limit: number;
+            /** @description Newest-first observed epochs. This array can omit unobserved class changes. */
+            epochs: components["schemas"]["ContractClassEpochView"][];
+            /** @description True only when more observed rows exist than this bounded page returns; false does not certify complete upgrade history. */
+            truncated: boolean;
+            coverage: components["schemas"]["ContractClassHistoryCoverageView"];
+        };
+        ContractClassHistoryCoverageView: {
+            /** @enum {string} */
+            status: "partial";
+            /** @enum {string} */
+            source: "event_time_abi_observations";
+            /** @enum {string} */
+            reasonCode: "observation_backed_not_exhaustive";
+            /** @description Human-readable warning that unobserved class changes can be absent. */
+            message: string;
         };
         EventDecodedField: {
             label: string;
@@ -4823,6 +7243,10 @@ export interface components {
             /** Format: int32 */
             logIndex: number;
             address: string;
+            /** @description Reviewed indexed/token/protocol label for the emitting contract when available. It is presentation metadata and never affects raw event data or decoding provenance. */
+            contractAlias?: string | null;
+            /** @description Reviewed class-family label for the emitting contract's indexed class when available. It is presentation metadata and never affects raw event data or decoding provenance. */
+            classAlias?: string | null;
             /** @description Canonical on-chain event key array in indexed payload order. Legacy rows lacking `payload.keys` reconstruct only `topic0` through `topic3`, so their key array can be incomplete; raw keys/data are authoritative. */
             keys: string[];
             topic0: string | null;
@@ -4844,7 +7268,7 @@ export interface components {
              * @enum {string|null}
              */
             eventNameUnavailableReason?: "event_time_class_epoch_unavailable" | null;
-            /** @description Best-effort decoded key/data fields when Starkscan has an exact materialized ABI schema match for this event. Raw topic/data fields remain authoritative. */
+            /** @description Decoded key/data fields only when an exact materialized ABI schema or a reviewed standard selector-and-arity schema consumes the full payload. Raw topic/data fields remain authoritative. */
             decodedFields?: components["schemas"]["EventDecodedField"][];
             /** @description Attribution source used for decodedFields when present. */
             decodedFieldsSource?: string | null;
@@ -4865,7 +7289,10 @@ export interface components {
             status: "exact" | "partial" | "unavailable";
             /** @enum {string} */
             source: "trace_facts" | "l2_bridge_signals" | "bridge_adapter_events" | "bridge_message_facts";
-            /** @enum {string} */
+            /**
+             * @description Reason the contract coverage view is not exact. Each value identifies the unavailable or incomplete coverage evidence for this contract.
+             * @enum {string}
+             */
             reasonCode: "indexed_trace_facts" | "no_matching_trace_rows" | "trace_tables_unavailable" | "trace_extraction_truncated" | "trace_projection_stale" | "indexed_bridge_pairing_facts" | "l1_pairing_not_indexed" | "bridge_message_facts_unavailable" | "adapter_pairing_facts_unavailable" | "query_timeout";
             message: string;
             /** Format: int64 */
@@ -4969,8 +7396,11 @@ export interface components {
             nextAction: string;
             tokenAddress: string | null;
             tokenSymbol: string | null;
+            tokenName: string | null;
             /** Format: int32 */
             tokenDecimals: number | null;
+            /** @description Pinned official registry revision or explicit native-ETH payload rule used for metadata; null means Starkscan has no reviewed metadata source. */
+            tokenMetadataSource: string | null;
             amountRaw: string | null;
             l1BridgeAddress: string | null;
             l2BridgeAddress: string | null;
@@ -4984,7 +7414,37 @@ export interface components {
             l1BlockNumber: number | null;
             /** Format: int64 */
             l2BlockNumber: number | null;
+            /**
+             * @description Withdrawal claimability is scoped to every identical L2-to-L1 message represented by the same canonical message hash; StarknetCore does not expose per-emission registry slots.
+             * @enum {string}
+             */
+            claimabilityScope: "message_hash_group" | "not_applicable";
+            /** @description True when finalized emissions, consumptions, or the finalized registry show multiplicity, violate R + C <= M, or fail R + C = M after finalized L1 proof covers the represented emission, so no individual emission can be attributed to a claim. */
+            claimabilityAmbiguous: boolean;
+            /**
+             * Format: int64
+             * @description Count of distinct finalized Starknet L2-to-L1 emissions in this message-hash group, deduplicated by transaction hash and message index. Head-only observations do not contribute.
+             */
+            matchingL2MessageCount: number;
+            /**
+             * Format: int64
+             * @description Count of indexed canonical StarknetCore ConsumedMessageToL1 logs in this message-hash group.
+             */
+            l1ConsumedMessageCount: number;
+            /** @description StarknetCore l2ToL1Messages(messageHash) uint256 value at the exact finalized Ethereum snapshot, or null when no trustworthy snapshot is materialized. */
+            registryClaimableMessageCount: string | null;
+            /** Format: int64 */
+            registrySnapshotBlockNumber: number | null;
+            /** @description Canonical Ethereum block hash agreed by the configured RPC quorum for the registry snapshot. */
+            registrySnapshotBlockHash: string | null;
+            registrySnapshotSource: string | null;
+            /** Format: date-time */
+            registrySnapshotObservedAt: string | null;
+            /** @description True only when the complete finalized registry snapshot is no more than five minutes old. Ready and cleared statuses require this freshness. */
+            registrySnapshotFresh: boolean;
+            /** @description True only when the represented emission is finalized and the group has M = 1, R = 1, and C = 0 at a complete finalized StarknetCore registry snapshot. Recheck the registry before submitting a claim because this is snapshot evidence, not a request-time RPC promise. */
             readyToClaimOnL1: boolean;
+            /** @description True only when the represented emission is finalized, the group has M = 1, R = 0, and C = 1, and a finalized L1 state-update proof covers the represented withdrawal block. */
             completedOnL1: boolean;
             /** Format: int64 */
             l1AcceptedBlockNumber: number | null;
@@ -5047,6 +7507,30 @@ export interface components {
             reasonCode: "indexed_protocol_message_facts" | "no_matching_message_rows" | "message_not_found" | "message_detail_page_exhausted" | "message_facts_unavailable" | "message_detail_truncated" | "transaction_messages_truncated" | "query_timeout";
             message: string;
         };
+        MessageTokenInterpretationView: {
+            symbol: string;
+            name: string;
+            decimals: number;
+        };
+        /** @description Additive, fail-closed semantics from one reviewed exact protocol adapter. Raw message fields remain authoritative; unknown or near-match payloads use null. */
+        MessageInterpretationView: {
+            protocol: string;
+            /** @enum {string} */
+            kind: "token_transfer" | "cairo_fact";
+            /** @enum {string} */
+            action: "deposit" | "withdrawal" | "fact_delivery";
+            summary: string;
+            /** @enum {string} */
+            source: "reviewed_protocol_adapter";
+            matchRule: string;
+            token: components["schemas"]["MessageTokenInterpretationView"] | null;
+            amountRaw: string | null;
+            amount: string | null;
+            sender: string | null;
+            recipient: string | null;
+            factHash: string | null;
+            mocked: boolean | null;
+        };
         MessageItem: {
             id: string;
             /** Format: int64 */
@@ -5102,6 +7586,8 @@ export interface components {
             payloadTruncated: boolean;
             /** @enum {string} */
             sourceTier: "head" | "finalized";
+            /** @description Null unless one exact reviewed protocol adapter matches. */
+            interpretation: components["schemas"]["MessageInterpretationView"] | null;
         };
         MessagePage: {
             chainId: string;
@@ -5124,6 +7610,16 @@ export interface components {
             /** @description Echoed validated caller text used for execution (`latest`, `pending`, block number, or block hash). */
             blockTag: components["schemas"]["BlockReference"];
             result: string[];
+        };
+        ContractStorageResultView: {
+            chainId: string;
+            contractAddress: string;
+            /** @description Normalized storage-slot key. */
+            key: string;
+            /** @description Echoed validated caller text used for the read (`latest`, `pending`, block number, or block hash). */
+            blockTag: components["schemas"]["BlockReference"];
+            /** @description Felt stored at the slot, or `0x0` when the slot has never been written. */
+            value: string;
         };
         ContractWritePayloadRequest: {
             selector: string;
@@ -5199,7 +7695,7 @@ export interface components {
             tokenAddress: string;
             /** @description Lowercase compact `0x` token address for stable agent comparisons. */
             normalizedTokenAddress: string;
-            /** @description Decimal (base-10) indexed balance string. */
+            /** @description Decimal (base-10) balance served for this row. The legacy field name is retained for compatibility. On paginated responses, `balanceSource` states whether the value is transfer-derived or was replaced by a pinned RPC `balanceOf` result. */
             indexedBalanceRaw: string;
             /** @description Token symbol from trusted token-metadata data (token metadata indexes) or from known safe defaults when available. */
             symbol: string | null;
@@ -5210,9 +7706,58 @@ export interface components {
              * @description Token decimals from trusted token-metadata data (token metadata indexes) or from known safe defaults when available.
              */
             decimals: number | null;
+            usd: components["schemas"]["AddressTokenHoldingUsdView"];
+            /**
+             * @description Whether this holding has a fresh exact cached USD price.
+             * @enum {string}
+             */
+            priceStatus: "priced" | "unavailable";
+            /**
+             * @description Typed reason for `priceStatus`; unavailable never means a zero-dollar holding.
+             * @enum {string}
+             */
+            priceReasonCode: "fresh_exact_cached_price" | "token_unmapped" | "price_not_exact" | "price_missing" | "price_stale" | "token_metadata_missing" | "value_calculation_failed" | "valuation_not_loaded";
+            /** @description Exact cached USD unit price string when `priceStatus=priced`. */
+            priceUsd: string | null;
+            /** @description Exact decimal multiplication of indexedBalanceRaw and priceUsd when priced. */
+            valueUsd: string | null;
+            priceSource: string | null;
+            priceProvider: string | null;
+            /** @enum {string|null} */
+            priceConfidence: "exact" | "proxy" | null;
+            /** Format: date-time */
+            priceTimestampIso: string | null;
+            /** Format: date-time */
+            priceObservedAtIso: string | null;
+        };
+        AddressTokenHoldingUsdView: {
+            /**
+             * @description `priced` only when an exact, fresh prepared USD fact can value this indexed balance.
+             * @enum {string}
+             */
+            status: "priced" | "unavailable";
+            /** @enum {string} */
+            reasonCode: "fresh_exact_cached_price" | "price_metadata_unavailable" | "token_metadata_missing" | "balance_invalid" | "token_unmapped" | "price_not_exact" | "price_missing" | "price_stale" | "valuation_calculation_failed";
+            /** @constant */
+            quoteCurrency: "usd";
+            /** @description Exact decimal balance derived from `indexedBalanceRaw`; never a floating-point value. */
+            balanceDecimal: string | null;
+            /** @description Prepared USD price string. Null unless `status=priced`. */
+            priceUsd: string | null;
+            /** @description Exact decimal multiplication of the indexed balance and prepared price. Null unless `status=priced`. */
+            valueUsd: string | null;
+            provider: string | null;
+            source: string | null;
+            confidence: string | null;
+            /** Format: date-time */
+            priceTimestamp: string | null;
+            /** Format: date-time */
+            observedAt: string | null;
+            /** Format: int32 */
+            maxAgeSeconds: number | null;
         };
         /**
-         * @description `complete` means the holdings snapshot is complete enough for portfolio parity checks. Other values are useful evidence but not exact portfolio ground truth. `lagBlocks` is populated when incompleteness can be attributed to indexed-source lag.
+         * @description `complete` means the full inventory and every returned balance are independently certified for portfolio parity checks. Other values are useful evidence but not exact portfolio ground truth. `lagBlocks` measures indexed-source lag only and must not be interpreted as per-token `balanceOf` freshness.
          * @enum {string}
          */
         TokenHoldingsCompletenessReasonCode: "complete" | "indexLag" | "boundedComputation" | "responseCap" | "metadataPending" | "degradedFallback" | "unknown";
@@ -5228,7 +7773,7 @@ export interface components {
             reason: string;
             /**
              * Format: int64
-             * @description Indexed lag in blocks when known. Null means the route cannot attribute lag for this response.
+             * @description Indexed-source lag in blocks when known. Zero does not certify that any token balance equals on-chain `balanceOf`. Null means the route cannot attribute index lag for this response.
              */
             lagBlocks: number | null;
             /** @description True when a response cap affected the result. */
@@ -5242,33 +7787,67 @@ export interface components {
         AddressTokenHoldingsView: {
             chainId: string;
             ownerAddress: string;
-            /** @description Holdings are capped at 256 items. When `truncated` is true, older or lower-priority holdings were omitted from this response. */
+            /** @description Legacy bounded indexed observations embedded in a larger explorer response. These rows are not wallet-safe balance authority. Use assets/discovery for candidates and query/wallet-state for balances verified at one immutable block hash. */
             items: components["schemas"]["AddressTokenHoldingItemView"][];
-            /** @description Indexed portfolio-completeness flag. This is not the same as a fresh on-chain `balanceOf` read. Treat holdings as exact only when this is true, `truncated=false`, and `completeness.reasonCode=complete`. */
+            /** @description True only when the complete token inventory and every returned balance are independently certified at one chain snapshot. Transfer-derived materialization alone never satisfies this field. */
             exact: boolean;
-            /** @description True when the holdings list hit the 256-item safety cap. */
+            /** @description True when this response is a bounded subset of the holdings snapshot. */
             truncated: boolean;
             completeness: components["schemas"]["AddressTokenHoldingsCompletenessView"];
         };
-        AddressPortfolioLiveRequest: {
-            tokenAddresses: string[];
-            blockTag?: ("latest" | "pending") | null;
-        };
-        /** @enum {string} */
-        PortfolioLiveBalanceStatus: "ok" | "unsupported" | "timeout" | "error";
-        PortfolioLiveBalanceItemView: {
-            tokenAddress: string;
-            balanceRaw: string | null;
-            status: components["schemas"]["PortfolioLiveBalanceStatus"];
-        };
-        AddressPortfolioLiveView: {
+        AddressTokenHoldingsPageView: {
             chainId: string;
             ownerAddress: string;
-            blockTag: components["schemas"]["BlockReference"];
-            items: components["schemas"]["PortfolioLiveBalanceItemView"][];
+            /** @description One page of non-zero holdings, capped at 256 items. Curated known tokens rank before unknown tokens; each group then uses descending raw balance and ascending normalized token address. When `nextCursor` is non-null, follow it to retrieve the remaining rows. */
+            items: components["schemas"]["AddressTokenHoldingItemView"][];
+            /** @description True only when this response alone contains a complete token inventory whose balances are independently certified at one chain snapshot. Transfer-derived materialization alone never satisfies this field. Multi-page responses remain false because no single page contains the complete portfolio. */
+            exact: boolean;
+            /** @description True when this response is a bounded subset of the holdings snapshot. */
+            truncated: boolean;
+            completeness: components["schemas"]["AddressTokenHoldingsCompletenessView"];
+            /**
+             * @description Provenance for every `indexedBalanceRaw` value in this page. `pinnedRpcBalanceOf` is emitted only after every returned indexed candidate was verified successfully at one block and verified zeros were removed.
+             * @enum {string}
+             */
+            balanceSource: "indexedTransferLedger" | "pinnedRpcBalanceOf";
+            /** @description Pinned block hash when `balanceSource=pinnedRpcBalanceOf`; null for transfer-derived or legacy fallback pages. */
+            balanceVerifiedAtBlock: string | null;
+            /** @description Opaque keyset cursor for the next page, or null on the terminal page. */
+            nextCursor: string | null;
+            /** @description Address holdings version pinned by this cursor sequence. Null only for a non-pageable compatibility response while the versioned read model is warming. */
+            snapshotId: string | null;
+            /** @description True when all pages identified by snapshotId describe one stable indexed holdings snapshot. This is cursor-consistency provenance only: it does not certify token discovery or `balanceOf` values and can be true while top-level `exact` is false. */
+            snapshotExact: boolean;
+            /** @description True exactly when nextCursor is non-null. */
+            hasMore: boolean;
+            /**
+             * Format: int32
+             * @description Effective item limit applied to this response page.
+             */
+            pageLimit: number;
+            /**
+             * @description Deterministic ordering applied to the response. Clients may page only knownFirstBalanceDescTokenAsc responses with a non-null nextCursor; legacyBalanceDescTokenAsc is a bounded, non-pageable warmup fallback with hasMore=false.
+             * @enum {string}
+             */
+            sort: "knownFirstBalanceDescTokenAsc" | "legacyBalanceDescTokenAsc";
+        } & (unknown & unknown & unknown);
+        StakingValidatorCoverageView: {
+            /** @enum {string} */
+            status: "indexed" | "not_indexed" | "unavailable";
+            reasonCode: string;
+            reason: string;
+        };
+        StakingValidatorDetailsView: {
+            chainId: string;
+            requestedAddress: string;
+            /** @description Prepared validator detail fact. Null when coverage is not indexed or unavailable. */
+            validator: Record<string, never> | null;
+            description: string | null;
+            delegators: Record<string, never>[];
             /** Format: int64 */
-            failedCount: number;
-            partial: boolean;
+            delegatorTotal: number;
+            activity: Record<string, never>[];
+            coverage: components["schemas"]["StakingValidatorCoverageView"];
         };
         ContractSnapshotView: {
             chainId: string;
@@ -5299,13 +7878,25 @@ export interface components {
             summaryCacheStatus: "current" | "stale" | "metadata_only" | "computed";
             /** Format: date-time */
             summaryCacheUpdatedAtIso: string | null;
-            /** Format: int64 */
-            transferCount: number;
-            /** Format: int64 */
-            distinctFromCount: number;
-            /** Format: int64 */
-            distinctToCount: number;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Null when summaryCacheStatus is metadata_only because transfer aggregates are not yet known.
+             */
+            transferCount: number | null;
+            /**
+             * Format: int64
+             * @description Null when summaryCacheStatus is metadata_only because transfer aggregates are not yet known.
+             */
+            distinctFromCount: number | null;
+            /**
+             * Format: int64
+             * @description Null when summaryCacheStatus is metadata_only because transfer aggregates are not yet known.
+             */
+            distinctToCount: number | null;
+            /**
+             * Format: int64
+             * @description Latest independently indexed transfer block when known; this can remain populated while aggregate counts are null in metadata_only responses.
+             */
             latestTransferBlock: number | null;
             /** @description Decimal string from the row-backed token_supply_snapshot read model when available. */
             totalSupplyRaw: string | null;
@@ -5365,26 +7956,86 @@ export interface components {
             /** Format: date-time */
             lastUpdatedTimestampIso: string | null;
         };
+        /** @description Identity, provenance, and observable freshness for one holder population. `generationId`, `asOfBlockHash`, `rowDigest`, `expiresAt`, `updatedAt`, and `lagBlocks` are optional for legacy compatibility, but all six are present together for immutable complete-population and Top-N screening generations. Pages in one cursor walk preserve the generation identity. Analytics comparisons use `generationId`, block/hash, and `rowDigest`; `expiresAt` is a response-specific continuation deadline. `updatedAt` records publication time and `lagBlocks` compares the pinned snapshot to the indexed finalized head observed for this response. Clients must not fabricate an omitted field. */
         TokenHolderSnapshot: {
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Finalized generation block number when generation-bound; nullable for a missing or legacy snapshot.
+             */
             asOfBlock: number | null;
+            /** @description Exact finalized block hash for an immutable generation. */
+            asOfBlockHash?: string;
+            /**
+             * Format: int64
+             * @description Server-assigned immutable holder generation identifier.
+             */
+            generationId?: number;
+            /** @description SHA-256 identity of the complete ordered holder row population. It is response evidence, not a cursor field clients should construct. */
+            rowDigest?: string;
+            /**
+             * Format: date-time
+             * @description Retention deadline through which continuation cursors for this immutable generation can be served. The service default is six hours, but this timestamp is authoritative.
+             */
+            expiresAt?: string;
+            /**
+             * Format: date-time
+             * @description Time at which this immutable generation was published and became available for reads.
+             */
+            updatedAt?: string;
+            /**
+             * Format: int64
+             * @description Difference between the indexed finalized head observed for this response and the generation snapshot block.
+             */
+            lagBlocks?: number;
             /** @enum {string} */
-            source: "materialized_fungible_balances";
+            source: "materialized_fungible_balances" | "sealed_finalized_holder_generation" | "sealed_finalized_holder_screening_projection";
             /** @enum {string} */
-            freshness: "head_plus_finalized" | "analytics_snapshot";
+            freshness: "head_plus_finalized" | "analytics_snapshot" | "finalized_generation" | "finalized_screening_generation";
+        } & (unknown & unknown);
+        TokenHolderScreeningSnapshot: components["schemas"]["TokenHolderSnapshot"] & {
+            /** Format: int64 */
+            asOfBlock: number;
+            /** @constant */
+            source: "sealed_finalized_holder_screening_projection";
+            /** @constant */
+            freshness: "finalized_screening_generation";
         };
         TokenHolderCompleteness: {
-            /** @description True only when the holder snapshot for this response has current certification evidence. */
+            /** @description Whether Starkscan has established that the generation represents the token's full holder population. This is independent of cursor pagination and sampled `balanceOf` checks. A full cursor walk with this field set to `false` is only a complete walk of the published subset, not a complete ownership population. */
+            populationComplete: boolean;
+            /**
+             * @description Population-coverage evidence state. `complete_canonical_transfer_coverage` requires canonical transfer coverage and generation-bound reconstruction. `population_coverage_unproven` means the returned rows are useful indexed evidence but must not be used to make a complete-holder or supply-concentration claim.
+             * @enum {string}
+             */
+            populationReasonCode: "complete_canonical_transfer_coverage" | "population_coverage_unproven";
+            /** @description Correctness of the complete holder generation, not coverage of the current page. True only when certification binds the exact chain, token, generation, finalized block number/hash, and row digest. */
             exact: boolean;
-            /** @description True only when the holder evidence/result was capped before a complete snapshot could be represented. Normal pagination is represented by `nextCursor` and does not make this field true. */
+            /** @description True only when the holder evidence/result was capped before a complete snapshot could be represented. Normal pagination is represented by `nextCursor` and does not make this field true; immutable holder pages therefore remain `truncated=false` while more pages exist. */
             truncated: boolean;
-            /** @enum {string} */
+            /**
+             * @description Completeness and certification reason for the holder generation. It is always present and must be interpreted alongside `exact`; `materialized_snapshot`, for example, can accompany `exact=true`. `cursor_snapshot_drift` means the cursor no longer matches the served snapshot identity; restart the holder walk from the first page rather than retrying or combining pages from that cursor.
+             * @enum {string}
+             */
             reasonCode: "materialized_snapshot" | "uncertified_materialized_snapshot" | "certification_not_run" | "certification_table_missing" | "revoked" | "stale" | "unavailable" | "audit_failed" | "cursor_snapshot_drift";
-        };
+        } & ({
+            /** @constant */
+            populationComplete?: true;
+            /** @constant */
+            populationReasonCode?: "complete_canonical_transfer_coverage";
+        } | {
+            /** @constant */
+            populationComplete?: false;
+            /** @constant */
+            populationReasonCode?: "population_coverage_unproven";
+        });
+        /** @description Certification state for the complete holder generation. `validatedAgainst=starknet_rpc_balanceOf` means bounded deterministic balances were sampled at the exact snapshot block. RPC does not enumerate holders and is not the population-completeness authority; exactness also requires complete canonical transfer coverage and generation-bound ledger reconstruction. */
         TokenHolderCertification: {
             /** @enum {string} */
             status: "certified";
-            /** @enum {string} */
+            /**
+             * @description Bounded exact-block balance sample oracle, not a holder enumeration source.
+             * @enum {string}
+             */
             validatedAgainst: "starknet_rpc_balanceOf";
             /** Format: date-time */
             checkedAt: string;
@@ -5442,16 +8093,51 @@ export interface components {
             /** @enum {string} */
             tier: "partner";
         };
+        TokenHolderScreeningCoverage: {
+            /** @constant */
+            kind: "top_k_screening";
+            /**
+             * Format: int32
+             * @description Server-resolved Top-N from the address-keyed screening policy; clients do not supply this value.
+             */
+            requestedTopN: number;
+            /**
+             * Format: int32
+             * @description Total rows materialized in this bounded projection across all pages, not the current page length or the token's holderCount.
+             */
+            returnedCount: number;
+            /** @constant */
+            populationComplete: false;
+            /** @constant */
+            exact: false;
+            /** @constant */
+            reasonCode: "screening_projection_not_population_proof";
+        };
+        TokenHolderScreeningPage: {
+            chainId: string;
+            tokenAddress: string;
+            snapshot: components["schemas"]["TokenHolderScreeningSnapshot"];
+            screening: components["schemas"]["TokenHolderScreeningCoverage"];
+            items: components["schemas"]["TokenHolderItem"][];
+            /** @description Opaque continuation for this projection. Null proves only projection exhaustion. */
+            nextCursor: string | null;
+            limits: components["schemas"]["TokenHolderLimits"];
+        };
+        /** @description One balance-ranked page from a token holder population. A complete immutable walk follows `nextCursor` to null while preserving the full snapshot identity, contiguous ranks, and stable count/total. Exactness is certification metadata and is independent of page coverage. */
         TokenHolderPage: {
             chainId: string;
             tokenAddress: string;
             snapshot: components["schemas"]["TokenHolderSnapshot"];
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Exact number of positive-balance rows in the immutable generation. When a non-serving certification state redacts public rows, zero is a redaction value and not proof that the token has no holders. A redacted response has `holderBalanceTotalRaw=null`; use that signal and the accompanying `certification.status`/`reasonCode` before treating zero as an empty population.
+             */
             holderCount: number;
-            /** @description Snapshot-aligned sum of positive holder balances used as the row-share denominator. Null when holder rows are redacted. */
+            /** @description Snapshot-aligned sum of every positive holder balance used as the analytics denominator. Null when holder rows are redacted. */
             holderBalanceTotalRaw: string | null;
+            /** @description Page rows ordered by balanceRaw descending and canonical holder address ascending, with one-based contiguous generation ranks. */
             items: components["schemas"]["TokenHolderItem"][];
-            /** @description Opaque cursor for the next holder page. Non-null means more rows are available. */
+            /** @description Opaque immutable-generation v3 cursor for the next holder page. Non-null means more rows are available. Pass it back unchanged before `snapshot.expiresAt`; never decode, construct, or reuse it for another chain or token. */
             nextCursor: string | null;
             completeness: components["schemas"]["TokenHolderCompleteness"];
             certification: components["schemas"]["TokenHolderCertification"];
@@ -5658,14 +8344,22 @@ export interface components {
             /** @description Fixed three-threshold holder counts for >=1%, >=0.1%, and >=0.01%. */
             thresholdCounts: components["schemas"]["TokenHolderThresholdCountItem"][];
         };
+        /** @description Offline concentration analytics for the full holder population. A fresh generation-bound response repeats the immutable holder snapshot identity, including `rowDigest`; compare all identity fields before combining these metrics with holder pages. Metrics are never computed from one loaded page or by request-time RPC. */
         TokenHolderAnalyticsSnapshot: {
             chainId: string;
             tokenAddress: string;
             snapshot: components["schemas"]["TokenHolderSnapshot"];
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Holder population used for every metric in this snapshot. Zero when no prepared analytics snapshot exists (`computedAt=null` and `metrics=null`); clients must check `metrics` before treating this value as an authoritative empty population.
+             */
             holderCount: number;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Offline analytics computation time. Null means no prepared analytics snapshot exists.
+             */
             computedAt: string | null;
+            /** @description Complete-generation metrics, or null when the prepared analytics snapshot is missing or incomplete. */
             metrics: components["schemas"]["TokenHolderAnalyticsMetrics"] | null;
             completeness: components["schemas"]["TokenHolderCompleteness"];
         };
@@ -5686,7 +8380,7 @@ export interface components {
             label: string;
             /** @enum {string} */
             environment: "test" | "live";
-            scopes: ("read" | "batch")[];
+            scopes: ("read" | "batch" | "write" | "prove" | "trace")[];
             /** @enum {string} */
             status: "active" | "revoked";
             secretHint: string;
@@ -5708,6 +8402,14 @@ export interface components {
             apiKey: components["schemas"]["SelfServeApiKeySummary"];
             revokedPublicIds: string[];
         };
+        SelfServePartnerAccessCodeRequest: {
+            /** @description Single-use partner access code. Trim surrounding whitespace before sending; these constraints apply to the exact request value. Case is not significant because the server uppercases before matching. */
+            code: string;
+        };
+        SelfServePartnerAccessCodeResponse: {
+            /** @enum {string} */
+            plan: "free" | "developer" | "growth" | "business" | "enterprise" | "wallet";
+        };
         SelfServeRateLimitState: {
             loadClass: string;
             /** Format: int64 */
@@ -5726,7 +8428,7 @@ export interface components {
             apiKeyLabel: string;
             /** @enum {string} */
             apiKeyEnvironment: "test" | "live";
-            apiKeyScopes: ("read" | "batch")[];
+            apiKeyScopes: ("read" | "batch" | "write" | "prove" | "trace")[];
             method: string;
             routePath: string;
             loadClass: string;
@@ -5825,7 +8527,7 @@ export interface components {
              */
             tokenDecimals: number | null;
             actionContext: components["schemas"]["TokenTransferActionContext"] | null;
-            /** @description Indexed transaction-time USD valuation when materialized; null when no priced historical fact is available. Do not treat this as a live/current market price. */
+            /** @description Transaction-time USD coverage when this route includes price materialization. Transaction-detail and token-transfer responses report a priced, typed-unpriced, or pending result. `outside_history_window` is terminal provider-policy coverage; `price_missing` is a repairable in-horizon gap. Lightweight preview/list responses that intentionally omit this enrichment may return null. Never treat a null or unpriced result as a live/current market price. */
             historicalUsd: components["schemas"]["TokenTransferHistoricalUsd"] | null;
             /** @enum {string} */
             sourceTier: "head" | "finalized";
@@ -5865,6 +8567,8 @@ export interface components {
             /** @enum {string} */
             sourceTier: "head" | "finalized";
             actionContext: components["schemas"]["TokenTransferActionContext"] | null;
+            /** @description Transaction-time USD coverage for this transfer. A null result is an explicit omission or unavailable fact, never a current-price substitute. */
+            historicalUsd: components["schemas"]["TokenTransferHistoricalUsd"] | null;
         };
         GlobalTransferPage: {
             items: components["schemas"]["GlobalTransferItem"][];
@@ -5881,6 +8585,10 @@ export interface components {
             logIndex: number;
             txHash: string;
             address: string;
+            /** @description Reviewed indexed/token/protocol label for the emitting contract when available. It is presentation metadata and never affects raw event data or decoding provenance. */
+            contractAlias?: string | null;
+            /** @description Reviewed class-family label for the emitting contract's indexed class when available. It is presentation metadata and never affects raw event data or decoding provenance. */
+            classAlias?: string | null;
             /** @description Canonical on-chain event key array in indexed payload order. Legacy rows lacking `payload.keys` reconstruct only `topic0` through `topic3`, so their key array can be incomplete; raw keys/data are authoritative. */
             keys: string[];
             topic0: string | null;
@@ -5902,7 +8610,7 @@ export interface components {
              * @enum {string|null}
              */
             eventNameUnavailableReason?: "event_time_class_epoch_unavailable" | null;
-            /** @description Best-effort decoded key/data fields when Starkscan has an exact materialized ABI schema match for this event. Raw topic/data fields remain authoritative. */
+            /** @description Decoded key/data fields only when an exact materialized ABI schema or a reviewed standard selector-and-arity schema consumes the full payload. Raw topic/data fields remain authoritative. */
             decodedFields?: components["schemas"]["EventDecodedField"][];
             /** @description Attribution source used for decodedFields when present. */
             decodedFieldsSource?: string | null;
@@ -5911,6 +8619,8 @@ export interface components {
              * @enum {string|null}
              */
             decodedFieldsUnavailableReason?: "schema_unavailable" | "selector_only_attribution" | "payload_shape_mismatch" | "schema_shape_unsupported" | null;
+            /** @description Exact execution class selected from the emitting contract's applicable on-chain class epoch at this event. Omitted when event-time class evidence is absent or ambiguous; the current contract class is never substituted. */
+            eventTimeClassHash?: string | null;
             /** @enum {string} */
             sourceTier: "head" | "finalized";
         };
@@ -5993,7 +8703,9 @@ export interface components {
         };
         PrivacyPoolPublicFieldsView: {
             visibility: components["schemas"]["PrivacyPoolPublicVisibility"];
+            /** @description Public on-chain actor address when the decoded event exposes one, such as a depositor. Null when absent, partial, or hidden by the event shape. */
             actorAddress: string | null;
+            /** @description Public on-chain recipient address when the decoded event exposes one, such as a withdrawal recipient. Null when absent, partial, or hidden by the event shape. */
             toAddress: string | null;
             token: components["schemas"]["PrivacyPoolTokenView"] | null;
             amountRaw: string | null;
@@ -6200,7 +8912,9 @@ export interface components {
              * @description Raw-event block minus decoded/materialized event block when the raw source-event filter is available.
              */
             eventLagBlocks: number | null;
-            /** @description True when decoded privacy-pool materialization is caught up with raw event evidence; null when no raw source-event filter is configured. */
+            /** @description True when a raw source-event filter is configured but exceeds the bounded serving-path candidate limit, so raw freshness cannot be certified. This is distinct from no raw filter being configured. */
+            rawEventFilterTruncated: boolean;
+            /** @description True when decoded privacy-pool materialization is caught up with raw event evidence; null when no raw source-event filter is configured or raw freshness is unavailable. Check rawEventFilterTruncated to distinguish the bounded-filter case. */
             materializationFresh: boolean | null;
         };
         PrivacyPoolNoteStateView: {
@@ -6296,6 +9010,10 @@ export interface components {
              */
             decodedEventLagBlocks: number | null;
         };
+        /**
+         * @deprecated
+         * @description Legacy compatibility valuation. Not a supported Privacy Pool pricing or accounting input; consumers must price raw address-keyed token amounts independently.
+         */
         PrivacyPoolTvlPriceView: {
             /** @enum {string} */
             status: "priced" | "unavailable";
@@ -6343,7 +9061,15 @@ export interface components {
             protectedAmount: string | null;
             /** Format: int64 */
             missingAmountEventCount: number;
+            /**
+             * @deprecated
+             * @description Legacy compatibility valuation. Do not use as a pricing or accounting input.
+             */
             price: components["schemas"]["PrivacyPoolTvlPriceView"];
+            /**
+             * @deprecated
+             * @description Legacy compatibility display value. Do not use as a pricing or accounting input.
+             */
             valueUsd: string | null;
         } & (({
             /** @constant */
@@ -6370,6 +9096,10 @@ export interface components {
             /** @enum {unknown} */
             reasonCode: "amount_decode_incomplete" | "negative_protected_amount";
         }));
+        /**
+         * @deprecated
+         * @description Legacy compatibility aggregate valuation. Consumers must price raw address-keyed token amounts independently.
+         */
         PrivacyPoolTvlValuationView: {
             /** @enum {string} */
             status: "complete" | "unavailable";
@@ -6403,8 +9133,12 @@ export interface components {
             status: "complete" | "degraded" | "unavailable";
             asOf: components["schemas"]["PrivacyPoolTvlAsOfView"];
             coverage: components["schemas"]["PrivacyPoolTvlCoverageView"];
+            /**
+             * @deprecated
+             * @description Legacy compatibility valuation. Not part of the supported Privacy Pool accounting contract.
+             */
             valuation: components["schemas"]["PrivacyPoolTvlValuationView"];
-            /** @description Canonical-address-sorted nonzero protected amounts plus amount-incomplete degraded entries. Known zero-balance tokens are omitted; an empty array is certified zero active TVL only when coverage and valuation are complete and valuation.totalUsd is "0"; a null or unavailable valuation is not certified zero. */
+            /** @description Canonical-address-sorted nonzero public-flow amounts plus amount-incomplete degraded entries. Known zero-flow tokens are omitted. Consumers must use coverage and status fields and must not infer a custody balance from an empty array. */
             assets: components["schemas"]["PrivacyPoolTvlAssetView"][];
             caveat: string;
         };
@@ -6505,10 +9239,85 @@ export interface components {
             /** Format: date-time */
             to: string;
             limit: number;
+            coverage: components["schemas"]["PrivacyPoolTvlHourlyCoverageView"];
+            freshness: components["schemas"]["PrivacyPoolTvlHourlyFreshnessView"];
             items: components["schemas"]["PrivacyPoolTvlHourlyPointView"][];
             nextCursor: string | null;
             caveat: string;
         };
+        PrivacyPoolTvlHourlyCoverageView: {
+            /** @enum {string} */
+            status: "complete" | "degraded";
+            /** @enum {string} */
+            reasonCode: "prepared_hourly_coverage_complete" | "prepared_hourly_point_missing";
+            /** Format: date-time */
+            pageFrom: string;
+            /** Format: date-time */
+            pageTo: string;
+            expectedPointCount: number;
+            availablePointCount: number;
+            missingPointCount: number;
+        } & ({
+            /** @constant */
+            status?: "complete";
+            /** @constant */
+            reasonCode?: "prepared_hourly_coverage_complete";
+            /** @constant */
+            missingPointCount?: 0;
+        } | {
+            /** @constant */
+            status?: "degraded";
+            /** @constant */
+            reasonCode?: "prepared_hourly_point_missing";
+        });
+        PrivacyPoolTvlHourlyFreshnessView: {
+            /** @enum {string} */
+            status: "fresh" | "stale" | "unavailable";
+            /** @enum {string} */
+            reasonCode: "prepared_hourly_tail_current" | "prepared_hourly_tail_behind_finalized" | "prepared_hourly_tail_missing" | "finalized_hour_unavailable";
+            /** Format: date-time */
+            finalizedThrough: string | null;
+            /** Format: date-time */
+            materializedThrough: string | null;
+            lagHours: number | null;
+        } & ({
+            /** @constant */
+            status?: "fresh";
+            /** @constant */
+            reasonCode?: "prepared_hourly_tail_current";
+            /** Format: date-time */
+            finalizedThrough?: string;
+            /** Format: date-time */
+            materializedThrough?: string;
+            /** @constant */
+            lagHours?: 0;
+        } | {
+            /** @constant */
+            status?: "stale";
+            /** @constant */
+            reasonCode?: "prepared_hourly_tail_behind_finalized";
+            /** Format: date-time */
+            finalizedThrough?: string;
+            /** Format: date-time */
+            materializedThrough?: string;
+            lagHours?: number;
+        } | {
+            /** @constant */
+            status?: "unavailable";
+            /** @constant */
+            reasonCode?: "prepared_hourly_tail_missing";
+            /** Format: date-time */
+            finalizedThrough?: string;
+            materializedThrough?: null;
+            lagHours?: null;
+        } | {
+            /** @constant */
+            status?: "unavailable";
+            /** @constant */
+            reasonCode?: "finalized_hour_unavailable";
+            finalizedThrough?: null;
+            lagHours?: null;
+        });
         PrivacyPoolCountView: {
             /**
              * @description Breakdown bucket name. Event breakdowns use indexed privacy-pool snake_case event names; visibility breakdowns use `public`, `partial`, or `hidden_by_design`.
@@ -6536,11 +9345,31 @@ export interface components {
         };
         PrivacyPoolUnavailableMetricView: {
             /** @enum {string} */
-            metric: "tvlUsd" | "privateSwapVolume" | "exactAnonymitySet";
+            metric: "tvlUsd" | "privateSwapVolume" | "exactAnonymitySet" | "privateActivity";
             /** @enum {string} */
-            reasonCode: "requires_balance_and_price_snapshots" | "volume_pricing_not_certified" | "commitment_state_materializer_required";
+            reasonCode: "requires_balance_and_price_snapshots" | "volume_pricing_not_certified" | "commitment_state_materializer_required" | "historical_materialization_not_reconciled" | "source_coverage_stale" | "private_activity_metrics_not_migrated";
             reason: string;
-        };
+        } & ({
+            /** @constant */
+            metric?: "tvlUsd";
+            /** @constant */
+            reasonCode?: "requires_balance_and_price_snapshots";
+        } | {
+            /** @constant */
+            metric?: "privateSwapVolume";
+            /** @constant */
+            reasonCode?: "volume_pricing_not_certified";
+        } | {
+            /** @constant */
+            metric?: "exactAnonymitySet";
+            /** @constant */
+            reasonCode?: "commitment_state_materializer_required";
+        } | {
+            /** @constant */
+            metric?: "privateActivity";
+            /** @enum {unknown} */
+            reasonCode?: "historical_materialization_not_reconciled" | "source_coverage_stale" | "private_activity_metrics_not_migrated";
+        });
         PrivacyPoolMetricBucketItem: {
             /** Format: date-time */
             bucketStartIso: string;
@@ -6635,7 +9464,7 @@ export interface components {
             queuePosition?: number;
             /** Format: int64 */
             pollAfterSeconds?: number;
-            /** @description Prover result, available briefly after successful completion. */
+            /** @description Prover result, passed through verbatim and available briefly after successful completion. Carries proof, proof_facts and l2_to_l1_messages, and for screened deposits also additional_data with the screening attestation. Persist the whole object on the first successful poll; a deposit is unusable on chain without additional_data. */
             result?: unknown;
             /** @enum {string} */
             resultUnavailableReason?: "delivered_or_expired";
@@ -6795,7 +9624,10 @@ export interface components {
             providerFamily: string;
             /** @description Human-readable wallet-provider label. */
             providerLabel: string;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Distinct recognized wallet-provider deployment origins. Canonical deployment facts or finalized immutable deployment-class evidence is sufficient even when the derived address-activity summary has not been populated yet.
+             */
             knownDeployedAccountCount: number;
             /**
              * Format: int64
@@ -6841,7 +9673,10 @@ export interface components {
             items: components["schemas"]["WalletProviderMetricItem"][];
             /** @description Current account-code lineage, separate from immutable wallet-provider origin. */
             implementationItems: components["schemas"]["WalletImplementationMetricItem"][];
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Distinct account contracts known through finalized account summaries, account-marked deployment facts, or a recognized wallet-provider deployment origin backed by canonical deployment facts or finalized immutable deployment-class evidence.
+             */
             sourceKnownAccountCount: number;
             /** Format: int64 */
             trackedProviderAccountCount: number;
@@ -6863,7 +9698,7 @@ export interface components {
             /** @enum {string} */
             coverageReasonCode: "finalized_materialized_snapshot" | "materializer_stale" | "materializer_state_unavailable" | "materialized_ahead_of_source_tip" | "no_prepared_snapshot" | "source_contract_mismatch" | "source_tip_unavailable";
             /** @enum {string} */
-            metricDefinitionVersion: "wallet_provider_metrics_v1" | "wallet_provider_metrics_v2" | "wallet_provider_metrics_v3";
+            metricDefinitionVersion: "wallet_provider_metrics_v1" | "wallet_provider_metrics_v2" | "wallet_provider_metrics_v3" | "wallet_provider_metrics_v4";
             /** @enum {string} */
             source: "finalized_materialized_snapshot";
             caveat: string;
@@ -6884,6 +9719,7 @@ export interface components {
             helperLabel: string;
             /** @enum {string} */
             confidence: "certified" | "candidate" | "unavailable";
+            /** @description Versioned public attribution rule. AVNU helper-attributed Privacy Pool activity uses private_swap_v2 (finalized event quartet, AVNU Router calldata marker, and changed token set); it is not AVNU's total swap count or volume. */
             attributionRuleVersion: string;
             /** Format: int64 */
             txCount: number;
@@ -6893,30 +9729,126 @@ export interface components {
             openNoteCreatedEventCount: number;
             /** Format: int64 */
             openNoteDepositedEventCount: number;
-            /** Format: int64 */
-            encNoteCreatedEventCount: number;
+            /**
+             * Format: int64
+             * @description Certified public EncNoteCreated count, or null when the serving snapshot does not carry that evidence. Null must not be interpreted as zero.
+             */
+            encNoteCreatedEventCount: number | null;
             /** Format: int64 */
             helperWithdrawalEventCount: number;
             /** Format: int64 */
             latestBlockNumber: number | null;
             latestTxHash: string | null;
         };
+        PrivacyPoolPrivateActivitySourceProvenanceView: {
+            /** Format: int64 */
+            generation: number;
+            definitionFingerprint: string;
+            /** Format: int64 */
+            sourceCommitSeq: number;
+            sourceRangeDigest: string;
+            /** Format: int64 */
+            terminalBlockNumber: number;
+            terminalBlockHash: string;
+        };
         PrivacyPoolPrivateActivityView: {
             source: string;
+            /**
+             * @description Only `complete` permits clients to treat the returned counters as lifetime totals. `stale` and `unavailable` fail closed and return no lifetime counter.
+             * @enum {string}
+             */
+            coverageStatus: "complete" | "stale" | "unavailable";
+            /**
+             * @description Stable reason lifetime coverage is not complete. `source_coverage_stale` means a sealed source exists but finalized source facts extend beyond it. `historical_materialization_not_reconciled` means older finalized routes have not been reconciled into the serving aggregate. `private_activity_metrics_not_migrated` means the serving migration is not available.
+             * @enum {string|null}
+             */
+            coverageReasonCode: "historical_materialization_not_reconciled" | "source_coverage_stale" | "private_activity_metrics_not_migrated" | null;
+            sourceProvenance: components["schemas"]["PrivacyPoolPrivateActivitySourceProvenanceView"] | null;
             caveat: string;
             /** Format: int64 */
-            totalPrivateActionTxCount: number;
+            totalPrivateActionTxCount: number | null;
             /** Format: int64 */
-            totalHelperWithdrawalEventCount: number;
+            totalHelperWithdrawalEventCount: number | null;
             /** Format: int64 */
-            totalNoteUsedEventCount: number;
+            totalNoteUsedEventCount: number | null;
             /** Format: int64 */
-            totalOpenNoteDepositedEventCount: number;
+            totalOpenNoteDepositedEventCount: number | null;
             /** Format: int64 */
             metricsLimit: number;
             metricsTruncated: boolean;
             metrics: components["schemas"]["PrivacyPoolPrivateActivityMetricView"][];
-        };
+        } & ({
+            /** @constant */
+            coverageStatus: "complete";
+            /** @constant */
+            coverageReasonCode: unknown;
+            sourceProvenance: components["schemas"]["PrivacyPoolPrivateActivitySourceProvenanceView"];
+            /** Format: int64 */
+            totalPrivateActionTxCount?: number;
+            /** Format: int64 */
+            totalHelperWithdrawalEventCount?: number;
+            /** Format: int64 */
+            totalNoteUsedEventCount?: number;
+            /** Format: int64 */
+            totalOpenNoteDepositedEventCount?: number;
+            metrics?: (components["schemas"]["PrivacyPoolPrivateActivityMetricView"] & {
+                /** @constant */
+                confidence: "certified";
+            })[];
+        } | {
+            /** @constant */
+            coverageStatus: "stale";
+            /** @constant */
+            coverageReasonCode: "source_coverage_stale";
+            sourceProvenance: components["schemas"]["PrivacyPoolPrivateActivitySourceProvenanceView"];
+            /** @constant */
+            totalPrivateActionTxCount?: unknown;
+            /** @constant */
+            totalHelperWithdrawalEventCount?: unknown;
+            /** @constant */
+            totalNoteUsedEventCount?: unknown;
+            /** @constant */
+            totalOpenNoteDepositedEventCount?: unknown;
+            metrics?: unknown;
+            /** @constant */
+            metricsTruncated?: false;
+        } | {
+            /** @constant */
+            coverageStatus: "unavailable";
+            /** @constant */
+            coverageReasonCode: "historical_materialization_not_reconciled";
+            /** @constant */
+            sourceProvenance: unknown;
+            /** @constant */
+            totalPrivateActionTxCount?: unknown;
+            /** @constant */
+            totalHelperWithdrawalEventCount?: unknown;
+            /** @constant */
+            totalNoteUsedEventCount?: unknown;
+            /** @constant */
+            totalOpenNoteDepositedEventCount?: unknown;
+            metrics?: unknown;
+            /** @constant */
+            metricsTruncated?: false;
+        } | {
+            /** @constant */
+            coverageStatus: "unavailable";
+            /** @constant */
+            coverageReasonCode: "private_activity_metrics_not_migrated";
+            /** @constant */
+            sourceProvenance: unknown;
+            /** @constant */
+            totalPrivateActionTxCount?: unknown;
+            /** @constant */
+            totalHelperWithdrawalEventCount?: unknown;
+            /** @constant */
+            totalNoteUsedEventCount?: unknown;
+            /** @constant */
+            totalOpenNoteDepositedEventCount?: unknown;
+            metrics?: unknown;
+            /** @constant */
+            metricsTruncated?: false;
+        });
         PrivacyPoolAnalyticsView: {
             chainId: string;
             /** Format: int64 */
@@ -6967,6 +9899,27 @@ export interface components {
         };
     };
     responses: {
+        /** @description Invalid request shape, path parameter, query parameter, or body. */
+        BadRequest: {
+            headers: {
+                "X-Request-Id": components["headers"]["RequestId"];
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description Cookie-authenticated mutations are not allowed on self-serve routes. */
+        ForbiddenSelfServeMutation: {
+            headers: {
+                "X-Request-Id": components["headers"]["RequestId"];
+                "WWW-Authenticate": components["headers"]["WwwAuthenticate"];
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
         /** @description Missing or invalid Starkscan credential. */
         UnauthorizedText: {
             headers: {
@@ -7026,6 +9979,18 @@ export interface components {
                 "application/json": components["schemas"]["ErrorResponse"];
             };
         };
+        /** @description The Privacy Pool route is temporarily unavailable. */
+        PrivacyPoolServiceUnavailable: {
+            headers: {
+                "X-Request-Id": components["headers"]["RequestId"];
+                "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                "Retry-After": components["headers"]["RetryAfter"];
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
         /** @description Indexing is stale or required freshness evidence is unavailable or inconsistent. */
         IndexingFreshnessDegraded: {
             headers: {
@@ -7037,10 +10002,33 @@ export interface components {
                 "application/json": components["schemas"]["IndexingFreshnessHealthView"];
             };
         };
-        /** @description Invalid request shape, path parameter, query parameter, or body. */
-        BadRequest: {
+        /** @description Required L1 quorum evidence is missing, stale, failed, degraded, diverged, or inconsistent. */
+        L1FinalityQuorumDegraded: {
+            headers: {
+                /** @description Canonical request correlation header for support and tracing. */
+                "X-Request-Id"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["L1FinalityQuorumHealthView"];
+            };
+        };
+        /** @description The materialized L1 finality watermark is missing, stale, or inconsistent. */
+        L1FinalityFreshnessDegraded: {
+            headers: {
+                /** @description Canonical request correlation header for support and tracing. */
+                "X-Request-Id"?: string;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["L1FinalityFreshnessHealthView"];
+            };
+        };
+        /** @description Invalid Privacy Pool path, query parameter, or cursor. */
+        PrivacyPoolBadRequest: {
             headers: {
                 "X-Request-Id": components["headers"]["RequestId"];
+                "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
                 [name: string]: unknown;
             };
             content: {
@@ -7049,17 +10037,6 @@ export interface components {
         };
         /** @description Valid Starkscan credential lacks the required scope. */
         ForbiddenText: {
-            headers: {
-                "X-Request-Id": components["headers"]["RequestId"];
-                "WWW-Authenticate": components["headers"]["WwwAuthenticate"];
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Cookie-authenticated mutations are not allowed on self-serve routes. */
-        ForbiddenSelfServeMutation: {
             headers: {
                 "X-Request-Id": components["headers"]["RequestId"];
                 "WWW-Authenticate": components["headers"]["WwwAuthenticate"];
@@ -7098,6 +10075,8 @@ export interface components {
     };
     requestBodies: never;
     headers: {
+        /** @description Machine-readable lifecycle marker for the beta Privacy Pool public route. */
+        PrivacyPoolBetaStability: "beta";
         /** @description Canonical request correlation header for support and tracing. */
         RequestId: string;
         /** @description Authentication or scope hint when the request is rejected. */
@@ -7105,7 +10084,7 @@ export interface components {
         /** @description Seconds to wait before retrying this route class. */
         RetryAfter: number;
         /** @description Route budget class for class-specific backoff. */
-        StarkscanRouteClass: "light" | "list" | "heavy" | "profile" | "batch";
+        StarkscanRouteClass: "light" | "heavy" | "batch";
         /** @description Maximum request budget for the current route-class window. */
         RateLimitLimit: number;
         /** @description Remaining request budget for the current route-class window. */
@@ -7116,4 +10095,588 @@ export interface components {
     pathItems: never;
 }
 export type $defs = Record<string, never>;
-export type operations = Record<string, never>;
+export interface operations {
+    getStakingSummary: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Prepared summary with typed coverage */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StakingSummaryPage"];
+                };
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listStakingValidators: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bounded keyset page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StakingValidatorPage"];
+                };
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getStakingValidator: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+                /** @example 0x0123456789abcdef */
+                address: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Prepared validator detail */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StakingValidatorDetail"];
+                };
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listStakingDelegators: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+                /** @example 0x0123456789abcdef */
+                address: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bounded delegator page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StakingDelegatorPage"];
+                };
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listStakingActivity: {
+        parameters: {
+            query?: {
+                validator?: string;
+                cursor?: string;
+                limit?: number;
+            };
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bounded activity page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StakingActivityPage"];
+                };
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getAddressStaking: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+                /** @example 0x0123456789abcdef */
+                address: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Prepared positions and bounded history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StakingAddressView"];
+                };
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listPrivacyPoolEvents: {
+        parameters: {
+            query?: {
+                /** @description Optional privacy-pool event-name filter. Use the indexed snake_case name, for example `deposit`, `proof_validity_blocks_set`, or `protocol_event`. */
+                event?: string;
+                /** @description Optional cursor in `block:tx:log` numeric format. */
+                cursor?: string;
+                /** @description Page size (clamped to 1..100). */
+                limit?: number;
+            };
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Privacy-pool event page */
+            200: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyPoolEventPage"];
+                };
+            };
+            400: components["responses"]["PrivacyPoolBadRequest"];
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listPrivacyPoolCommitments: {
+        parameters: {
+            query?: {
+                /** @description Optional 0x-prefixed pool contract address for a single-pool cursor scan. */
+                pool?: string;
+                /** @description Optional cursor in `block:tx:log` numeric format. */
+                cursor?: string;
+                /** @description Page size (clamped to 1..100). */
+                limit?: number;
+            };
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Privacy-pool commitment fact page */
+            200: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyPoolCommitmentFactPage"];
+                };
+            };
+            400: components["responses"]["PrivacyPoolBadRequest"];
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listPrivacyPoolNullifiers: {
+        parameters: {
+            query?: {
+                /** @description Optional 0x-prefixed pool contract address for a single-pool cursor scan. */
+                pool?: string;
+                /** @description Optional cursor in `block:tx:log` numeric format. */
+                cursor?: string;
+                /** @description Page size (clamped to 1..100). */
+                limit?: number;
+            };
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Privacy-pool nullifier fact page */
+            200: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyPoolNullifierFactPage"];
+                };
+            };
+            400: components["responses"]["PrivacyPoolBadRequest"];
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getPrivacyPoolStatus: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Privacy-pool status */
+            200: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyPoolStatusView"];
+                };
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getPrivacyPoolAnalytics: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Privacy-pool analytics */
+            200: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyPoolAnalyticsView"];
+                };
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getPrivacyPoolTvl: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Weak or strong entity tag, comma-separated tag list, or `*`. Takes precedence over If-Modified-Since. */
+                "If-None-Match"?: string;
+                /** @description HTTP date for a best-effort cache-generation-time check. ETag is the authoritative validator. */
+                "If-Modified-Since"?: string;
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Finalized Privacy Pool protected-value snapshot */
+            200: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    /** @description Weak SHA-256 validator over the exact uncompressed JSON response bytes. */
+                    ETag?: string;
+                    /** @description HTTP date for the in-process cache generation represented by this response. */
+                    "Last-Modified"?: string;
+                    /** @description Public on the trusted same-origin lane and rewritten to private after successful external API-key authentication. */
+                    "Cache-Control"?: string;
+                    /** @description Includes the TVL cache outcome (`pp_tvl_cache_hit` or `pp_tvl_cache_miss`) and request-path timing metrics. */
+                    "Server-Timing"?: string;
+                    /** @description Correlation identifier on authenticated private responses. Shared-cacheable trusted responses omit request-specific identifiers. */
+                    "X-Request-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyPoolTvlView"];
+                };
+            };
+            /** @description A supplied validator matches the current in-process cached representation. The response has no body and authentication and rate limiting still apply. */
+            304: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    /** @description Validator for the current JSON representation. */
+                    ETag?: string;
+                    /** @description HTTP date for the current in-process cache generation. */
+                    "Last-Modified"?: string;
+                    /** @description Cache policy for the authenticated request lane. */
+                    "Cache-Control"?: string;
+                    /** @description Includes the TVL cache outcome and request-path timing metrics for the conditional read. */
+                    "Server-Timing"?: string;
+                    /** @description Correlation identifier on authenticated private responses. Shared-cacheable trusted responses omit request-specific identifiers. */
+                    "X-Request-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+            503: components["responses"]["PrivacyPoolServiceUnavailable"];
+        };
+    };
+    listPrivacyPoolTvlHourlyPoints: {
+        parameters: {
+            query: {
+                /**
+                 * @description Inclusive RFC3339 timestamp aligned to a UTC hour.
+                 * @example 2026-08-10T00:00:00Z
+                 */
+                from: string;
+                /**
+                 * @description Inclusive RFC3339 timestamp aligned to a UTC hour.
+                 * @example 2026-08-10T23:00:00Z
+                 */
+                to: string;
+                /** @example hour */
+                granularity: "hour";
+                /** @description Opaque `nextCursor` value returned by the preceding page. */
+                cursor?: string;
+                /** @description Hour points per page; defaults to 24. */
+                limit?: number;
+            };
+            header?: {
+                /** @description Weak or strong entity tag, comma-separated tag list, or `*`. Takes precedence over If-Modified-Since. */
+                "If-None-Match"?: string;
+                /** @description HTTP date compared with the newest materialization timestamp in the page. ETag is authoritative. */
+                "If-Modified-Since"?: string;
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bounded finalized Privacy Pool hourly history page */
+            200: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    /** @description Weak SHA-256 validator over the exact uncompressed JSON response bytes. */
+                    ETag?: string;
+                    /** @description Newest materialization timestamp in this page, or the Unix epoch for an empty page. */
+                    "Last-Modified"?: string;
+                    /** @description Public on the trusted same-origin lane and rewritten to private after successful external API-key authentication. */
+                    "Cache-Control"?: string;
+                    /** @description Includes request-path timing metrics for the hourly TVL read. */
+                    "Server-Timing"?: string;
+                    /** @description Correlation identifier on authenticated private responses. Shared-cacheable trusted responses omit request-specific identifiers. */
+                    "X-Request-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyPoolTvlHourlyPageView"];
+                };
+            };
+            /** @description A supplied validator matches the current hourly page representation. The response has no body and authentication and rate limiting still apply. */
+            304: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    /** @description Validator for the current JSON representation. */
+                    ETag?: string;
+                    /** @description Newest materialization timestamp in the current page, or the Unix epoch for an empty page. */
+                    "Last-Modified"?: string;
+                    /** @description Cache policy for the authenticated request lane. */
+                    "Cache-Control"?: string;
+                    /** @description Includes request-path timing metrics for the conditional hourly TVL read. */
+                    "Server-Timing"?: string;
+                    /** @description Correlation identifier on authenticated private responses. Shared-cacheable trusted responses omit request-specific identifiers. */
+                    "X-Request-Id"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["PrivacyPoolBadRequest"];
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+            503: components["responses"]["PrivacyPoolServiceUnavailable"];
+        };
+    };
+    listPrivacyPoolMetricBuckets: {
+        parameters: {
+            query?: {
+                /** @description Number of daily buckets to return, newest-first in storage and chronological in response. */
+                limit?: number;
+            };
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Privacy-pool public metric bucket page */
+            200: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyPoolMetricBucketPage"];
+                };
+            };
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getPrivacyPoolMetricSeries: {
+        parameters: {
+            query?: {
+                /** @description Time range to return from prepared buckets. */
+                range?: "24h" | "7d" | "30d" | "all";
+                /** @description Prepared bucket granularity. `range=all&granularity=hour` returns the latest 720 prepared hourly buckets to keep this chart route bounded. */
+                granularity?: "hour" | "day" | "week";
+                /** @description 0x-prefixed token contract address/felt for the shielded-supply series. Omit this parameter to use Starkscan's tracked strkBTC token address. */
+                token?: string;
+            };
+            header?: {
+                /** @description Optional caller-supplied correlation ID echoed back in the response. */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @example SN_MAIN */
+                chain: components["parameters"]["ChainParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Privacy-pool prepared metric series */
+            200: {
+                headers: {
+                    "X-Starkscan-Route-Stability": components["headers"]["PrivacyPoolBetaStability"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrivacyPoolMetricSeriesPage"];
+                };
+            };
+            400: components["responses"]["PrivacyPoolBadRequest"];
+            401: components["responses"]["UnauthorizedText"];
+            403: components["responses"]["ForbiddenText"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+}

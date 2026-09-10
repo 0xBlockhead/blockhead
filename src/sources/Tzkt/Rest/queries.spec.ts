@@ -144,6 +144,17 @@ describe('TzKT REST fail-closed envelopes', () => {
 		})
 	})
 
+	it('rejects an account response for a different requested address', async () => {
+		sourceGetJsonMock.mockResolvedValueOnce({
+			...account,
+			address: 'tz1different',
+		})
+
+		await expect(getAccount({ address: account.address })).rejects.toThrow(
+			'TzKT account response does not match the subject'
+		)
+	})
+
 	it('returns a coherent current network snapshot without retrying', async () => {
 		sourceGetJsonMock
 			.mockResolvedValueOnce(head)

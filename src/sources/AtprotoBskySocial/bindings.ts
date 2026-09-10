@@ -1,11 +1,13 @@
+// Generated from APP.ts.
+
 import { Source } from '$/sources/Source.ts'
 import {
 	ApiFamily,
-	genericReadOperationGroups,
 	indexSourceBindings,
 	SourceArtifactKind,
 	SourceDelivery,
 	SourceEndpointKind,
+	SourceOperationGroup,
 	SourceTargetKind,
 	WireProtocol,
 } from '$/sources/SourceBinding.ts'
@@ -20,13 +22,15 @@ export default indexSourceBindings([
 		endpoints: [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://bsky.social',
+				locator: 'https://api.bsky.app',
 				corsEnabled: false,
 			},
 		],
 		wireProtocol: WireProtocol.Xrpc,
 		apiFamily: ApiFamily.XrpcLexicon,
-		operationGroups: genericReadOperationGroups,
+		operationGroups: [
+			SourceOperationGroup.GenericRead,
+		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [],
 		artifacts: [

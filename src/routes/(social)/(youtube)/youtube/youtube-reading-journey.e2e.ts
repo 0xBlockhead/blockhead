@@ -9,6 +9,7 @@ import {
 	routeViewSmokeTimeoutsMs,
 	setupRouteViewSmokePage,
 } from '../../../../../tests/e2e/_routeViewDiagnostics.ts'
+import { installRouteViewSqliteIsolation } from '../../../../../tests/e2e/_routeViewFixtures.ts'
 
 
 const channelId = 'UC_x5XG1OV2P6uZZ5FSM9Ttw'
@@ -20,15 +21,7 @@ const videoPath = `/youtube/video/${videoId}`
 test.beforeEach(async ({ page }, testInfo) => {
 	testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 	page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-	await page.addInitScript(({ name, schemaVersion }) => {
-		window.__blockheadClientProbeEnabled = true
-		window.__blockheadWaSqliteDatabaseNameOverride = name
-		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
-		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
-	}, {
-		name: `blockhead-youtube-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
-		schemaVersion: Date.now(),
-	})
+	await installRouteViewSqliteIsolation(page, `blockhead-youtube-reading-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`)
 	await installChainlistRpcsJsonStub(page)
 })
 
