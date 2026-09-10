@@ -471,7 +471,7 @@ const attachBoundaryArtifacts = async (
 	await testInfo.attach('route-matrix-report.json', {
 		body: JSON.stringify(await (async () => {
 			const runIdentity = await routeRunIdentity
-			const results: RouteResult[] = reports.map((report) => routeResultFromReport(report, routeCorpusTargets))
+			const results: RouteResult[] = reports.map((report) => routeResultFromReport(report, routeCorpusTargets, runIdentity))
 			const artifact = {
 				runIdentity,
 				corpusFingerprint: corpusFingerprint(routeCorpusTargets),

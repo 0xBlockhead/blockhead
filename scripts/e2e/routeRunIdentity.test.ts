@@ -130,6 +130,11 @@ test('preserves v1 historical runId derivation and canonicalizes artifact roots'
 	assert.equal(relative.runId, absolute.runId)
 })
 
+test('joins derived result rows to the producing run identity', () => {
+	const result = routeResultFromReport({ pathname: '/alpha' }, [{ id: '/alpha', examples: [{ id: 'default', version: 'v1' }] }], identity)
+	assert.deepEqual(result.runIdentity, identity)
+})
+
 test('requires an exact, versioned result for every corpus example', () => {
 	assert.doesNotThrow(() => assertRouteResultsCoherent({ corpusTargets: targets, results, runIdentity: identity }))
 	assert.doesNotThrow(() => assertRouteResultsArtifactCoherent({

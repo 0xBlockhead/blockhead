@@ -52,6 +52,7 @@ export type RouteResult = {
 	targetId: string
 	exampleId: string
 	exampleVersion: string
+	runIdentity?: RouteRunIdentity
 	[key: string]: unknown
 }
 
@@ -59,6 +60,7 @@ export type RouteReport = {
 	runIdentity: RouteRunIdentity
 	corpusFingerprint: string
 	resultSetFingerprint: string
+	reports?: readonly RouteResult[]
 	[key: string]: unknown
 }
 
@@ -96,7 +98,8 @@ export const routeCorpusTargetsFromPathnames = (pathnames: readonly string[]): R
 
 export const routeResultFromReport = (
 	report: { pathname: string } & Partial<RouteResult>,
-	corpusTargets: readonly RouteCorpusTarget[]
+	corpusTargets: readonly RouteCorpusTarget[],
+	runIdentity?: RouteRunIdentity,
 ): RouteResult => {
 	const target = corpusTargets.find(({ id }) => id === report.pathname)
 	if (target == null)
@@ -106,6 +109,7 @@ export const routeResultFromReport = (
 		throw new Error(`route corpus target has no examples: ${report.pathname}`)
 	return {
 		...report,
+		...(runIdentity == null ? {} : { runIdentity }),
 		targetId: target.id,
 		exampleId: example.id,
 		exampleVersion: example.version,
@@ -427,4 +431,7 @@ export const assertRouteReportCoherent = ({
 	const expectedFingerprint = resultSetFingerprint(acceptedResults)
 	if (report.resultSetFingerprint !== expectedFingerprint)
 		throw new Error(`${reportName} was not derived from the accepted result set`)
+	for (const result of report.reports ?? [])
+		if (result.runIdentity != null)
+			assertRunIdentityMatches(runIdentity, result.runIdentity, `${reportName} result`)
 }
