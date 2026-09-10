@@ -273,7 +273,7 @@ export const walletHarnessEvidenceByExtensionKind = {
 	'polkadot-js': WalletHarnessEvidenceKind.RealHeadedJourney,
 	rabby: WalletHarnessEvidenceKind.RequestConstruction,
 	taho: WalletHarnessEvidenceKind.RealHeadedJourney,
-	tonkeeper: WalletHarnessEvidenceKind.RequestConstruction,
+	tonkeeper: WalletHarnessEvidenceKind.RealHeadedJourney,
 	unisat: WalletHarnessEvidenceKind.CryptographicFixture,
 	zerion: WalletHarnessEvidenceKind.RequestConstruction,
 } as const satisfies Record<RealWalletKind, WalletHarnessEvidenceKind>
