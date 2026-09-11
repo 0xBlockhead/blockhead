@@ -344,6 +344,12 @@ test('re-derives the complete observation-time writer denominator without blessi
 			provenance: 'LocalRefresh',
 		},
 		{
+			entityType: '_GlobalYoutubeNetwork_Timestamp',
+			selectorName: 'HubTimestampMsSource',
+			source: 'Youtube_Rest',
+			provenance: 'LocalRefresh',
+		},
+		{
 			entityType: 'AaveAccountMarket_Timestamp',
 			selectorName: 'AccountMarketTimestampMsSource',
 			source: 'Aave_Rest',
@@ -392,11 +398,48 @@ test('re-derives the complete observation-time writer denominator without blessi
 			provenance: 'HttpResponse',
 		},
 		{
+			entityType: 'LensAccount_Timestamp',
+			selectorName: 'LensAccountTimestampMs',
+			source: 'Lens_Graphql',
+			provenance: 'LocalRefresh',
+		},
+		{
+			entityType: 'LensPost_Timestamp',
+			selectorName: 'LensPostTimestampMs',
+			source: 'Lens_Graphql',
+			provenance: 'LocalRefresh',
+		},
+		{
 			entityType: 'NetworkEndpointObservation_Timestamp',
 			selectorName: 'NetworkEndpointUrlEndpointKindTimestampMsSource',
 			source: 'Beacon_Rest',
 			provenance: 'HttpResponse',
 		},
+		...[
+			['StellarAccount_Timestamp', 'AccountTimestampMsSource'],
+			['StellarAccountSigner_Timestamp', 'SignerTimestampMsSource'],
+			['StellarClaimableBalance_Timestamp', 'ClaimableBalanceTimestampMsSource'],
+			['StellarLiquidityPool_Timestamp', 'LiquidityPoolTimestampMsSource'],
+			['StellarOffer_Timestamp', 'OfferTimestampMsSource'],
+			['StellarTransaction_Timestamp', 'TransactionTimestampMsSource'],
+			['StellarTrustline_Timestamp', 'TrustlineTimestampMsSource'],
+		].map(([entityType, selectorName]) => ({
+			entityType,
+			selectorName,
+			source: 'StellarHorizon_Rest',
+			provenance: 'HttpResponse' as const,
+		})),
+		...[
+			['YoutubeChannel_Timestamp', 'YoutubeChannelTimestampMsSource'],
+			['YoutubeComment_Timestamp', 'YoutubeCommentTimestampMsSource'],
+			['YoutubePlaylist_Timestamp', 'YoutubePlaylistTimestampMsSource'],
+			['YoutubeVideo_Timestamp', 'YoutubeVideoTimestampMsSource'],
+		].map(([entityType, selectorName]) => ({
+			entityType,
+			selectorName,
+			source: 'Youtube_Rest',
+			provenance: 'LocalRefresh' as const,
+		})),
 	])
 	const truthfulRows = truthfulObservationTimeAccountability(rows)
 	assert.deepEqual(truthfulRows.map(({ entityType, selectorName, source, provenance }) => [entityType, selectorName, source, provenance]), [
