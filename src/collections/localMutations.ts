@@ -2208,21 +2208,33 @@ export const writeLocalBlockheadActionOutcome = async (
 		if (existingFields.some((fieldName) => (
 			stringify(localPrimitiveFieldValue(context, EntityType.BlockheadActionOutcome, entitySelector, fieldName)) !==
 			stringify(primitiveFields[fieldName])
-		)) || [
-			['$walletRequest', outcome.walletRequest],
-			['$intentOrder', outcome.intentOrder],
-			['$simulation', outcome.simulation],
-		].some(([fieldName, selector]) => (
-			localReferenceValueKey(
-				context,
-				EntityType.BlockheadActionOutcome,
-				entitySelector,
-				fieldName
-			) !== (selector === undefined ? undefined : localEntityReferenceValueKey(
-				EntityType.BlockheadActionOutcome,
-				fieldName,
-				selector
-			))
+		)) || localReferenceValueKey(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$walletRequest'
+		) !== (outcome.walletRequest === undefined ? undefined : localEntityReferenceValueKey(
+			EntityType.BlockheadActionOutcome,
+			'$walletRequest',
+			outcome.walletRequest
+		)) || localReferenceValueKey(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$intentOrder'
+		) !== (outcome.intentOrder === undefined ? undefined : localEntityReferenceValueKey(
+			EntityType.BlockheadActionOutcome,
+			'$intentOrder',
+			outcome.intentOrder
+		)) || localReferenceValueKey(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$simulation'
+		) !== (outcome.simulation === undefined ? undefined : localEntityReferenceValueKey(
+			EntityType.BlockheadActionOutcome,
+			'$simulation',
+			outcome.simulation
 		)) || stringify(localReferenceValueKeys(
 			context,
 			EntityType.BlockheadActionOutcome,
