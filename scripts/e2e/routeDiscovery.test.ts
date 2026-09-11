@@ -29,6 +29,21 @@ test('route probe atom values exactly cover every generated atom', () => {
 	)
 })
 
+test('keeps generated fixture variant identities distinct within a mapping', () => {
+	assert.deepEqual(
+		routeProbeCasesForMapping({
+			id: 'fixture',
+			probeCaseId: 'path',
+			probeAtomPrefixes: ['fixture'],
+			probeCases: [
+				[[0, '1', ['value']]],
+				[[0, '2', ['value']]],
+			],
+		}).map(({ id }) => id),
+		['path', 'variant-2']
+	)
+})
+
 test('excludes unsupported Hyperliquid observations while retaining block-scoped Near account state', () => {
 	const mappingIds: string[] = Object.values(e2eRouteFixtureMetadataByNodeId).flatMap(({ mappings }) => (
 		mappings.map(({ id }) => id)

@@ -109,7 +109,7 @@ const generatedRouteFixtureMetadata = (routeId: string): E2eRouteFixtureMetadata
 
 export const routeProbeCasesForMapping = (mapping: E2eRouteFixtureMapping) => (
 	mapping.probeCases.map((probeCase, index) => ({
-		id: mapping.probeCaseId ?? (index === 0 ? 'default' : `variant-${index + 1}`),
+		id: index === 0 ? (mapping.probeCaseId ?? 'default') : `variant-${index + 1}`,
 		atoms: probeCase.flatMap(([prefixIndex, caseNumber, fields]) => (
 			fields.map((field) => `${mapping.probeAtomPrefixes[prefixIndex]}.${caseNumber}.${field}`)
 		)),
