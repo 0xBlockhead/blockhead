@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 import { ambireWalletMatrixScenarios } from './Ambire/matrix.ts'
@@ -71,6 +72,17 @@ test('runs every real wallet matrix through the shared denominator', async () =>
 	assert.equal(new Set(results.map(({ walletKind }) => walletKind)).size, realWalletMatrixDefinitions.length)
 	assert.equal(results.length, realWalletMatrixDefinitions.reduce((total, [, createScenarios]) => total + createScenarios().length, 0))
 	assert.ok(results.every(({ outcome }) => outcome === 'unsupported'))
+})
+
+test('enrolls every manifest wallet with an executable driver', async () => {
+	const manifest = JSON.parse(await readFile(new URL('./wallets.json', import.meta.url), 'utf8')) as Record<string, unknown>
+	const enrolled = new Set(realWalletMatrixDefinitions.map(([kind]) => kind))
+	const manifestKinds = Object.keys(manifest)
+	assert.deepEqual(
+		manifestKinds.filter((kind) => !enrolled.has(kind)),
+		[],
+		'Manifest wallet with a driver must be enrolled in the executable matrix suite',
+	)
 })
 
 test('keeps three source-faithful cells for every non-EVM extension ecosystem', () => {
