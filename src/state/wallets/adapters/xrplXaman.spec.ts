@@ -87,6 +87,15 @@ const connect = async (bridge: XummAdapterBridge) => {
 }
 
 describe('Xaman XRPL adapter', () => {
+	it('refuses connection when the bridge reports an unsupported network', async () => {
+		const xumm = fixture()
+		xumm.bridge.user.networkType = Promise.resolve('sidechain')
+		const adapter = createXrplXamanAdapter(() => xumm.bridge)
+		adapter.start(() => {})
+
+		await expect(adapter.connect('xrpl:xaman')).rejects.toThrow('supported XRPL network')
+	})
+
 	it('completes only when the SDK-shaped terminal callback resolves its subscription', async () => {
 		const xumm = fixture()
 		const { adapter, connection } = await connect(xumm.bridge)
@@ -96,6 +105,7 @@ describe('Xaman XRPL adapter', () => {
 
 		await xumm.created
 		await xumm.emit({ opened: true })
+		await xumm.emit({ expired: false })
 		await xumm.emit({})
 		expect(settled).toBe(false)
 		await xumm.emit({ signed: true }, payload())

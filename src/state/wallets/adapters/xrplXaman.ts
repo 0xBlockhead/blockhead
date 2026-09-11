@@ -144,7 +144,6 @@ export const createXrplXamanAdapter = (
 					data.signed === true
 					|| data.signed === false
 					|| data.expired === true
-					|| data.expired === false
 				) ? data : undefined
 			)
 			if (!current(candidate, candidateStartGeneration, candidateLifecycleGeneration))
