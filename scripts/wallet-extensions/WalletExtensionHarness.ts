@@ -551,9 +551,6 @@ export const launchWalletExtensions = async ({
 	headless?: boolean
 	serviceWorkerTimeoutMs?: number
 }) => {
-	if (headless)
-		throw new Error('Wallet extensions require headed Chromium. Remove PLAYWRIGHT_WALLET_HEADLESS=1 and run in a desktop session.')
-
 	if (extensionDirectories.length === 0)
 		throw new Error('No unpacked extensions supplied. Set WALLET_EXTENSION_DIRS to one or more paths separated by the platform path delimiter.')
 
@@ -569,7 +566,8 @@ export const launchWalletExtensions = async ({
 	const extensionPaths = extensions.map(({ path }) => path).join(',')
 	const profileDirectory = await mkdtemp(join(tmpdir(), 'blockhead-wallet-extensions-'))
 	const context = await chromium.launchPersistentContext(profileDirectory, {
-		headless: false,
+		headless,
+		...(headless && { channel: 'chromium' }),
 		args: [
 			`--disable-extensions-except=${extensionPaths}`,
 			`--load-extension=${extensionPaths}`,
