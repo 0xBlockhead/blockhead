@@ -430,6 +430,7 @@ type PersistedCollectionRowCollectionUtils<
 	hasLocalMutationAuthority(selectorKey: string, authorityKey: string): boolean
 	localMutationAuthorityRowCount(selectorKey: string, authorityKey: string): number | undefined
 	subscribeLocalMutationAuthorityChanges(update: () => void): () => void
+	subscribeRowChanges(update: () => void): () => void
 	isResolverSubsetLoading(selectorKey: string, sources?: readonly string[]): boolean
 	isResolverSubsetResolved(selectorKey: string, sources?: readonly string[]): boolean
 	subscribeResolverSubsetLoadingChanges(update: () => void): () => void
@@ -1383,6 +1384,11 @@ const persistedCollectionUtils = <
 		| undefined
 	let clearLocalMutationAuthority: ((selectorKey: string) => void) | undefined
 	const continuationSubscribers = new Set<() => void>()
+	const rowChangeSubscribers = new Set<() => void>()
+	const notifyRowChanges = () => {
+		for (const subscriber of rowChangeSubscribers)
+			subscriber()
+	}
 	const localMutationAuthoritySubscribers = new Set<() => void>()
 	const resolverSubsetLoadingSubscribers = new Set<() => void>()
 	type PendingMutation = (
@@ -1414,6 +1420,8 @@ const persistedCollectionUtils = <
 				mutation.rows,
 				mutation.authority
 			)
+
+		notifyRowChanges()
 
 		return mutation.onApplied?.()
 	}
@@ -1465,6 +1473,12 @@ const persistedCollectionUtils = <
 				localMutationAuthoritySubscribers.delete(update)
 			}
 		},
+		subscribeRowChanges(update) {
+			rowChangeSubscribers.add(update)
+			return () => {
+				rowChangeSubscribers.delete(update)
+			}
+		},
 		isResolverSubsetLoading(selectorKey, sources) {
 			return isResolverSubsetLoading(selectorKey, sources)
 		},
@@ -1489,7 +1503,10 @@ const persistedCollectionUtils = <
 					rows,
 				})
 			else
+			{
 				replaceRows(predicate, rows)
+				notifyRowChanges()
+			}
 		},
 		replaceRowsWithAuthority(predicate, rows, selectorKey, authorityKey, resolution, onApplied) {
 			utils.dataUpdatedAt = Date.now()
@@ -1513,7 +1530,10 @@ const persistedCollectionUtils = <
 					rows: Array.isArray(row) ? row : [row],
 				})
 			else
+			{
 				writeRows(Array.isArray(row) ? row : [row])
+				notifyRowChanges()
+			}
 		},
 		writeUpsertWithAuthority(row, selectorKey, authorityKey, resolution, onApplied) {
 			utils.dataUpdatedAt = Date.now()
