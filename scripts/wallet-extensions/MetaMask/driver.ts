@@ -50,6 +50,17 @@ export const metamaskUiGeneration = (version: string) => {
 	return 'modern' as const
 }
 
+export const disableMetaMaskTelemetryDuringOnboarding = async (page: Page) => {
+	const choice = page.getByRole('button', { name: /no thanks/i })
+	if (await choice.isVisible()) {
+		await choice.click()
+		await expect(choice).toBeHidden()
+		return 'disabled' as const
+	}
+
+	return 'not-present' as const
+}
+
 const clickButton = async (
 	page: Page,
 	name: RegExp
@@ -151,11 +162,7 @@ export const metamaskDriver = {
 		if (await terms.isVisible())
 			await terms.check()
 		await clickButton(page, /create a new wallet/i)
-		const telemetryChoice = page.getByRole('button', {
-			name: /no thanks/i,
-		})
-		if (await telemetryChoice.isVisible())
-			await telemetryChoice.click()
+		await disableMetaMaskTelemetryDuringOnboarding(page)
 		const directPasswordInputs = page.locator('input[type="password"]')
 		await directPasswordInputs.first().fill(password)
 		await directPasswordInputs.nth(1).fill(password)
