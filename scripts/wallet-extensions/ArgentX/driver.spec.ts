@@ -22,6 +22,12 @@ test('maps headed Connect chrome to Argent X index.html URLs', () => {
 	assert.equal(isArgentXIndexPageUrl(`chrome-extension://other/index.html`, extensionId), false)
 })
 
+test('scopes connection decisions to Argent X index.html and excludes extension-owned helpers', () => {
+	const extensionId = 'dlcobpjiigpikoobohmabehhmhfoodbb'
+	assert.equal(isArgentXIndexPageUrl(`chrome-extension://${extensionId}/background.html`, extensionId), false)
+	assert.equal(isArgentXIndexPageUrl(`chrome-extension://${extensionId}/notification.html`, extensionId), false)
+})
+
 test('exposes the pinned Argent X reporting opt-outs as an explicit driver step', () => {
 	assert.equal(typeof disableArgentXTelemetry, 'function')
 })

@@ -137,7 +137,7 @@ export const argentXDriver = {
 		)
 		while (Date.now() < deadline) {
 			for (const page of context.pages()) {
-				if (!page.url().startsWith(`chrome-extension://${extensionId}/`))
+				if (!isArgentXIndexPageUrl(page.url(), extensionId))
 					continue
 				if (!await page.getByText(/Connect to /).isVisible().catch(() => false))
 					continue
