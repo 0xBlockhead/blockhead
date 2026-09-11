@@ -13,6 +13,13 @@ export type WalletExtensionPageCheckpointInput = {
 	visibleFormCount?: number
 	visibleSubmitButtonCount?: number
 	url: string
+	controlRoles?: readonly string[]
+	stableControlIds?: readonly string[]
+	inputTypes?: readonly string[]
+	testIds?: readonly string[]
+	ariaOwners?: readonly string[]
+	disabledControlCount?: number
+	walletErrorCodes?: readonly string[]
 }
 
 export type WalletExtensionPageCheckpoint = {
@@ -22,6 +29,15 @@ export type WalletExtensionPageCheckpoint = {
 	inputIds: string[]
 	visibleFormCount: number
 	visibleSubmitButtonCount: number
+	origin: string
+	pageIdentity: string
+	controlRoles: string[]
+	stableControlIds: string[]
+	inputTypes: string[]
+	testIds: string[]
+	ariaOwners: string[]
+	disabledControlCount: number
+	walletErrorCodes: string[]
 }
 
 export type WalletExtensionSurfaceCheckpoint = {
@@ -253,6 +269,38 @@ const normalizedInputIds = (ids: readonly string[]) => (
 	[...new Set(ids.map((id) => id.trim()).filter((id) => safeInputIds.has(id)))]
 )
 
+const normalizedStructuralTokens = (tokens: readonly string[]) => (
+	[...new Set(tokens.map((token) => token.trim()).filter((token) => /^[a-z][a-z0-9_.:-]{0,63}$/i.test(token) && !/(private|secret|seed|phrase|token|address|message|value)/i.test(token)))]
+)
+
+const normalizedInputTypes = (types: readonly string[]) => (
+	[...new Set(types.map((type) => type.trim().toLowerCase()).filter((type) => /^[a-z][a-z0-9-]{0,31}$/.test(type)))]
+)
+
+const normalizedWalletErrorCodes = (codes: readonly string[]) => (
+	[...new Set(codes.map((code) => code.trim()).filter((code) => /^[A-Z][A-Z0-9_.:-]{0,63}$/.test(code)))]
+)
+
+const safeOrigin = (url: string) => {
+	try {
+		const parsed = new URL(url)
+		return `${parsed.protocol}//${parsed.host}`
+	}
+	catch {
+		return 'unparseable'
+	}
+}
+
+const safePageIdentity = (url: string) => {
+	try {
+		const parsed = new URL(url)
+		return `${parsed.protocol}//${parsed.hostname}${parsed.pathname}`
+	}
+	catch {
+		return 'unparseable'
+	}
+}
+
 const integerAfter = (copy: string | null, label: string) => {
 	if (copy == null) return null
 	const match = new RegExp(`${label}:\\s*(\\d+)`, 'i').exec(copy)
@@ -282,13 +330,22 @@ const safeExtensionUrl = (url: string) => {
 export const walletExtensionSurfaceCheckpointFromSnapshots = (
 	extensionPages: readonly WalletExtensionPageCheckpointInput[]
 ): WalletExtensionSurfaceCheckpoint => ({
-	extensionPages: extensionPages.map(({ buttonNames, headingNames, inputIds, visibleFormCount = 0, visibleSubmitButtonCount = 0, url }) => ({
+	extensionPages: extensionPages.map(({ buttonNames, headingNames, inputIds, visibleFormCount = 0, visibleSubmitButtonCount = 0, url, controlRoles = [], stableControlIds = [], inputTypes = [], testIds = [], ariaOwners = [], disabledControlCount = 0, walletErrorCodes = [] }) => ({
 		buttonNames: normalizedVisibleLabels(buttonNames),
 		extensionUrl: safeExtensionUrl(url),
 		headingNames: normalizedVisibleLabels(headingNames),
 		inputIds: normalizedInputIds(inputIds),
 		visibleFormCount,
 		visibleSubmitButtonCount,
+		origin: safeOrigin(url),
+		pageIdentity: safePageIdentity(url),
+		controlRoles: normalizedStructuralTokens(controlRoles),
+		stableControlIds: normalizedStructuralTokens(stableControlIds),
+		inputTypes: normalizedInputTypes(inputTypes),
+		testIds: normalizedStructuralTokens(testIds),
+		ariaOwners: normalizedStructuralTokens(ariaOwners),
+		disabledControlCount: Math.max(0, disabledControlCount),
+		walletErrorCodes: normalizedWalletErrorCodes(walletErrorCodes),
 	})),
 })
 
@@ -321,15 +378,29 @@ const visibleInputIds = (page: Page) => (
 	))
 )
 
+const structuralSnapshot = (page: Page) => page.locator('button:visible, input:visible, select:visible, textarea:visible, [role]:visible, [data-wallet-error-code]:visible').evaluateAll((controls) => {
+	const values = (attribute: string) => controls.map((element) => element.getAttribute(attribute) ?? '').filter(Boolean)
+	return {
+		controlRoles: values('role'),
+		stableControlIds: controls.map((element) => element.id).filter(Boolean),
+		inputTypes: controls.filter((element): element is HTMLInputElement => element instanceof HTMLInputElement).map((element) => element.type),
+		testIds: values('data-testid'),
+		ariaOwners: values('aria-owns'),
+		disabledControlCount: controls.filter((element) => element instanceof HTMLButtonElement || element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement ? element.disabled : element.getAttribute('aria-disabled') === 'true').length,
+		walletErrorCodes: values('data-wallet-error-code'),
+	}
+})
+
 export const captureWalletExtensionSurfaceCheckpoint = async (
 	pages: readonly Page[]
 ) => walletExtensionSurfaceCheckpointFromSnapshots(await Promise.all(pages.map(async (page) => {
-	const [buttonNames, headingNames, inputIds, visibleFormCount, visibleSubmitButtonCount] = await Promise.all([
+	const [buttonNames, headingNames, inputIds, visibleFormCount, visibleSubmitButtonCount, structural] = await Promise.all([
 		visibleTexts(page, 'button:visible, [role="button"]:visible'),
 		visibleTexts(page, 'h1:visible, h2:visible, h3:visible, h4:visible, h5:visible, h6:visible, [role="heading"]:visible'),
 		visibleInputIds(page),
 		page.locator('form:visible').count(),
 		page.locator('form:visible button[type="submit"]:visible').count(),
+		structuralSnapshot(page),
 	])
 	return {
 		buttonNames,
@@ -338,6 +409,7 @@ export const captureWalletExtensionSurfaceCheckpoint = async (
 		visibleFormCount,
 		visibleSubmitButtonCount,
 		url: page.url(),
+		...structural,
 	}
 })))
 

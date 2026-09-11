@@ -64,6 +64,8 @@ test('captures a redacted request checkpoint without returning page payloads or 
 		extensionPages: [{
 			buttonNames: ['Cancel', 'Sign', '[redacted]'],
 			extensionUrl: 'chrome-extension://abcdefghijklmnopabcdefghijklmnop/popup.html',
+			origin: 'chrome-extension://abcdefghijklmnopabcdefghijklmnop',
+			pageIdentity: 'chrome-extension://abcdefghijklmnopabcdefghijklmnop/popup.html',
 			headingNames: ['Sign message', '[redacted]'],
 			inputIds: [
 				'password',
@@ -71,6 +73,13 @@ test('captures a redacted request checkpoint without returning page payloads or 
 			],
 			visibleFormCount: 1,
 			visibleSubmitButtonCount: 1,
+			controlRoles: [],
+			stableControlIds: [],
+			inputTypes: [],
+			testIds: [],
+			ariaOwners: [],
+			disabledControlCount: 0,
+			walletErrorCodes: [],
 		}],
 	})
 	const serialized = JSON.stringify(checkpoint)
@@ -84,6 +93,41 @@ test('captures a redacted request checkpoint without returning page payloads or 
 		'seed-phrase-words-123456',
 	])
 		assert.equal(serialized.includes(secret), false)
+})
+
+test('classifies wallet surfaces from structural evidence without using localized copy', () => {
+	const checkpoint = walletExtensionSurfaceCheckpointFromSnapshots([{
+		buttonNames: ['Autoriser une demande privée'],
+		headingNames: ['Texte localisé sensible'],
+		inputIds: ['request-7-private-value'],
+		controlRoles: ['dialog', 'button', 'dialog', 'not a role'],
+		stableControlIds: ['approve-button'],
+		inputTypes: ['password', 'text', 'text'],
+		testIds: ['wallet-approve', 'secret private id'],
+		ariaOwners: ['wallet-dialog'],
+		disabledControlCount: 1,
+		walletErrorCodes: ['PHISHING_ORIGIN', 'not safe text'],
+		url: 'chrome-extension://walletid/notification.html?secret=private',
+	}])
+
+	assert.deepEqual(checkpoint.extensionPages[0], {
+		buttonNames: ['[redacted]'],
+		headingNames: ['[redacted]'],
+		inputIds: [],
+		extensionUrl: 'chrome-extension://walletid/notification.html',
+		origin: 'chrome-extension://walletid',
+		pageIdentity: 'chrome-extension://walletid/notification.html',
+		visibleFormCount: 0,
+		visibleSubmitButtonCount: 0,
+		controlRoles: ['dialog', 'button'],
+		stableControlIds: ['approve-button'],
+		inputTypes: ['password', 'text'],
+		testIds: ['wallet-approve'],
+		ariaOwners: ['wallet-dialog'],
+		disabledControlCount: 1,
+		walletErrorCodes: ['PHISHING_ORIGIN'],
+	})
+	assert.equal(JSON.stringify(checkpoint).includes('private-value'), false)
 })
 
 test('returns an owned surface from the first sample and reports each safe change once', async () => {
