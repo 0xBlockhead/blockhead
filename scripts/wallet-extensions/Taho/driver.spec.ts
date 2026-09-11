@@ -19,6 +19,8 @@ test('maps headed Connect chrome to Taho popup.html URLs', () => {
 	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/popup.html`, extensionId), true)
 	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/popup.html#/`, extensionId), true)
 	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/tab.html#/onboarding`, extensionId), false)
+	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/popup.html.evil`, extensionId), false)
+	assert.equal(isTahoPopupPageUrl(`https://${extensionId}/popup.html`, extensionId), false)
 	assert.equal(isTahoPopupPageUrl(`chrome-extension://other/popup.html`, extensionId), false)
 })
 

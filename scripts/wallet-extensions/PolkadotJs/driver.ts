@@ -37,10 +37,16 @@ export const polkadotJsDriver = {
 export const isPolkadotJsNotificationPageUrl = (
 	url: string,
 	extensionId: string
-) => (
-	url.startsWith(`chrome-extension://${extensionId}/`)
-	&& url.includes('/notification.html')
-)
+) => {
+	try {
+		const parsed = new URL(url)
+		return parsed.protocol === 'chrome-extension:'
+			&& parsed.hostname === extensionId
+			&& parsed.pathname === '/notification.html'
+	} catch {
+		return false
+	}
+}
 
 const addAccount = async (page: Page, name: string) => {
 	await page.getByText('Create new account', {
