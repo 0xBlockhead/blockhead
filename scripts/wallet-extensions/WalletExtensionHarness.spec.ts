@@ -309,6 +309,37 @@ test('drives explicit rejection without submission or EvmTransaction persistence
 		assert.match(String(result.error), /User rejected/)
 })
 
+test('arms wallet request observation before invoking the provider', async () => {
+	let observationArmed = false
+	await exerciseWalletSigningRequest({
+		contract: {
+			provider: {
+				request: async () => {
+					assert.equal(observationArmed, true)
+					throw new Error('User rejected the request')
+				},
+			},
+			driver: {
+				waitForRequest: async () => {
+					observationArmed = true
+				},
+				approve: async () => {},
+				reject: async () => {},
+			},
+			observePersistence: () => ({ evmTransactionIds: [] }),
+		},
+		request: {
+			ecosystem: WalletHarnessEcosystem.Evm,
+			kind: 'transaction',
+			method: 'eth_sendTransaction',
+			accountAddress: '0x1111111111111111111111111111111111111111',
+			chainId: 'eip155:1',
+			params: [],
+		},
+		decision: 'reject',
+	})
+})
+
 test('permits transaction persistence only after a real provider hash', async () => {
 	const transactionHash = `0x${'ab'.repeat(32)}`
 	let persistence: WalletSigningPersistenceObservation = {

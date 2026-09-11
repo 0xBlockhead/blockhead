@@ -325,6 +325,7 @@ export const exerciseWalletSigningRequest = async ({
 	const metadata = walletTestRequestMetadata(request)
 	await assertWalletSigningNotSubmitted(contract.observePersistence)
 
+	const requestReady = contract.driver.waitForRequest(metadata)
 	const providerOutcome = contract.provider.request({
 		method: request.method,
 		params: request.params,
@@ -338,7 +339,7 @@ export const exerciseWalletSigningRequest = async ({
 			error,
 		})
 	)
-	await contract.driver.waitForRequest(metadata)
+	await requestReady
 	await assertWalletSigningNotSubmitted(contract.observePersistence)
 	await contract.driver[decision](metadata)
 
