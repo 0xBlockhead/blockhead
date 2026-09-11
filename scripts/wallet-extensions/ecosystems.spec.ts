@@ -40,10 +40,10 @@ test('requires one strongest evidence classification for every manifest wallet',
 	assert.equal(walletHarnessEvidenceByExtensionKind.backpack, WalletHarnessEvidenceKind.CryptographicFixture)
 	assert.equal(walletHarnessEvidenceByExtensionKind['polkadot-js'], WalletHarnessEvidenceKind.JourneyImplementation)
 	assert.equal(walletHarnessEvidenceByExtensionKind.taho, WalletHarnessEvidenceKind.JourneyImplementation)
-	assert.equal(walletHarnessEvidenceByExtensionKind.tonkeeper, WalletHarnessEvidenceKind.JourneyImplementation)
-	assert.ok(Object.values(walletHarnessEvidenceByExtensionKind).every((evidence) => (
-		evidence !== WalletHarnessEvidenceKind.VerifiedRealHeadedJourney
-	)))
+	assert.equal(walletHarnessEvidenceByExtensionKind.tonkeeper, WalletHarnessEvidenceKind.VerifiedRealHeadedJourney)
+	assert.deepEqual(Object.entries(walletHarnessEvidenceByExtensionKind).filter(([, evidence]) => (
+		evidence === WalletHarnessEvidenceKind.VerifiedRealHeadedJourney
+	)).map(([kind]) => kind), ['tonkeeper'])
 	assert.equal(walletHarnessEvidenceByExtensionKind.unisat, WalletHarnessEvidenceKind.CryptographicFixture)
 	assert.ok(realWalletKinds.every((kind) => walletHarnessEvidenceByExtensionKind[kind] != null))
 })
