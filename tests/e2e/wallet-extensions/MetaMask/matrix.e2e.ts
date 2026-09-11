@@ -3,16 +3,7 @@ import {
 	exerciseWalletSigningRequest,
 } from '../../../../scripts/wallet-extensions/WalletExtensionHarness.ts'
 import { WalletHarnessEcosystem } from '../../../../scripts/wallet-extensions/ecosystems.ts'
-import {
-	metamaskDriver,
-	metamaskUnsupportedEnvironmentEvidence,
-} from '../../../../scripts/wallet-extensions/MetaMask/driver.ts'
-import { metamaskWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/MetaMask/matrix.ts'
-import {
-	assertWalletMatrixOutcomes,
-	logWalletMatrixResults,
-	runWalletCompatibilityMatrix,
-} from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
+import { metamaskDriver } from '../../../../scripts/wallet-extensions/MetaMask/driver.ts'
 import {
 	connectWalletButtonForDriver,
 	selectedWalletAccount,
@@ -25,31 +16,15 @@ import { expect, test } from '../wallet.fixture.ts'
 test.skip(process.env.WALLET_EXTENSIONS_E2E !== '1', 'Real MetaMask extension test is opt-in')
 test.setTimeout(420_000)
 
-test('runs the MetaMask real-extension matrix shard', async ({
+test('exercises the MetaMask account and message-signing lifecycle', async ({
 	baseURL,
 	context,
 	extensions,
 	page,
 }) => {
 	const extension = extensions.find(({ kind }) => kind === 'metamask')
-	const scenarios = metamaskWalletMatrixScenarios(extension?.manifest.version ?? 'unavailable')
-
-	if (!process.env.METAMASK_EXTENSION_DIR || !extension) {
-		const results = await runWalletCompatibilityMatrix({
-			driver: {
-				kind: 'metamask',
-				run: async () => metamaskUnsupportedEnvironmentEvidence(),
-			},
-			scenarios,
-			step: (name, run) => test.step(name, run),
-		})
-		assertWalletMatrixOutcomes(results, ['unsupported'], 'metamask-unsupported-environment')
-		logWalletMatrixResults(results, {
-			label: 'metamask-unsupported-environment',
-			expectedOutcomes: ['unsupported'],
-		})
-		return
-	}
+	if (!extension)
+		throw new Error('Requested MetaMask artifact was not loaded')
 
 	const {
 		addresses,
@@ -156,25 +131,4 @@ test('runs the MetaMask real-extension matrix shard', async ({
 	})
 	await page.reload()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
-
-	const results = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'metamask',
-			run: async (scenario) => ({
-				accountAddress: addresses[scenario.accountOrdinal - 1],
-				outcome: 'pass',
-				evidence: {
-					code: `metamask-${scenario.lifecycleEdgeCase}-verified`,
-					source: 'semantic-selector',
-				},
-			}),
-		},
-		scenarios,
-		step: (name, run) => test.step(name, run),
-	})
-	assertWalletMatrixOutcomes(results, ['pass'], 'metamask-real-extension')
-	logWalletMatrixResults(results, {
-		label: 'metamask-real-extension',
-		expectedOutcomes: ['pass'],
-	})
 })

@@ -6,12 +6,17 @@ import {
 	traceE2ECollections,
 	type E2ECollectionTrace,
 } from './$e2eTrace.ts'
-import type { Schema } from '$/schema/$schema.ts'
+import {
+	authorityDispatchGraph,
+	type AuthorityDispatchGraph,
+} from './authorityDispatchGraph.ts'
+import { schema } from '$/schema/index.ts'
 import type {
 	LoadSubsetOptions,
 } from '@tanstack/db'
 import type {
 	PersistedCollectionPersistence,
+	PersistedScannedRow,
 	PersistedTx,
 	PersistenceAdapter,
 } from '@tanstack/db-sqlite-persistence-core'
@@ -49,6 +54,7 @@ export type ClientProbe = {
 		error?: string
 	}[]
 	traceCollections: () => E2ECollectionTrace
+	authorityDispatchGraph: () => Promise<AuthorityDispatchGraph>
 }
 
 declare global {
@@ -56,6 +62,10 @@ declare global {
 		__blockheadClientProbeEnabled?: boolean
 		__blockheadClientProbe?: ClientProbe
 		__blockheadPersistenceTrace?: PersistenceTraceEvent[]
+		__blockheadPersistedRowScanner?: (
+			collectionId: string,
+			schemaVersion: number
+		) => Promise<PersistedScannedRow[]>
 		__blockheadPersistedCollectionSchemaVersionOverride?: number
 	}
 }
@@ -86,6 +96,20 @@ export const createE2EClientInstrumentation = <
 >(
 	basePersistence: _Persistence
 ) => {
+	const scanPersistedRows = async (
+		collectionId: string,
+		schemaVersion: number
+	): Promise<PersistedScannedRow[]> => {
+		const collectionPersistence = basePersistence.resolvePersistenceForCollection?.({
+			collectionId,
+			mode: 'sync-present',
+			schemaVersion,
+		}) ?? basePersistence
+		return await collectionPersistence.adapter.scanRows?.(collectionId) ?? []
+	}
+	if (clientProbeRequested())
+		window.__blockheadPersistedRowScanner = scanPersistedRows
+
 	const traceAdapter = (collectionPersistence: PersistedCollectionPersistence) => {
 		const scanRows = collectionPersistence.adapter.scanRows?.bind(collectionPersistence.adapter)
 		const markIndexRemoved = collectionPersistence.adapter.markIndexRemoved?.bind(collectionPersistence.adapter)
@@ -201,12 +225,15 @@ export const createE2EClientInstrumentation = <
 }
 
 export const installAppClientProbe = <
-	const _Schema extends Schema,
 	const _Source extends string
 >(
-	appClient: ClientContext<_Schema, _Source>
+	appClient: ClientContext<typeof schema, _Source>
 ) => {
 	if (!clientProbeRequested()) return
+	const scanPersistedRows = window.__blockheadPersistedRowScanner
+	if (scanPersistedRows === undefined)
+		throw new Error('E2E persistence scanner was unavailable before the client probe installed.')
+
 	Object.defineProperty(window, '__blockheadClientProbe', {
 		value: {
 			events: {
@@ -254,6 +281,7 @@ export const installAppClientProbe = <
 					}))
 			),
 			traceCollections: () => traceE2ECollections(appClient),
+			authorityDispatchGraph: () => authorityDispatchGraph(appClient, scanPersistedRows),
 		},
 		configurable: true,
 	})

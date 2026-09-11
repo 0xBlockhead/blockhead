@@ -37,10 +37,16 @@ export const metamaskUnsupportedEnvironmentEvidence = () => ({
 export const isMetaMaskNotificationPageUrl = (
 	url: string,
 	extensionId: string
-) => (
-	url.startsWith(`chrome-extension://${extensionId}/`)
-	&& url.includes('/notification.html')
-)
+) => {
+	try {
+		const parsed = new URL(url)
+		return parsed.protocol === 'chrome-extension:'
+			&& parsed.hostname === extensionId
+			&& parsed.pathname === '/notification.html'
+	} catch {
+		return false
+	}
+}
 
 export const metamaskUiGeneration = (version: string) => {
 	const major = Number.parseInt(version.split('.')[0] ?? '', 10)
@@ -48,6 +54,17 @@ export const metamaskUiGeneration = (version: string) => {
 		throw new Error(`MetaMask ${version} is outside the observed semantic-selector UI range (11.x and newer)`)
 
 	return 'modern' as const
+}
+
+export const disableMetaMaskTelemetryDuringOnboarding = async (page: Page) => {
+	const choice = page.getByRole('button', { name: /no thanks/i })
+	if (await choice.isVisible()) {
+		await choice.click()
+		await expect(choice).toBeHidden()
+		return 'disabled' as const
+	}
+
+	return 'not-present' as const
 }
 
 const clickButton = async (
@@ -151,11 +168,7 @@ export const metamaskDriver = {
 		if (await terms.isVisible())
 			await terms.check()
 		await clickButton(page, /create a new wallet/i)
-		const telemetryChoice = page.getByRole('button', {
-			name: /no thanks/i,
-		})
-		if (await telemetryChoice.isVisible())
-			await telemetryChoice.click()
+		await disableMetaMaskTelemetryDuringOnboarding(page)
 		const directPasswordInputs = page.locator('input[type="password"]')
 		await directPasswordInputs.first().fill(password)
 		await directPasswordInputs.nth(1).fill(password)

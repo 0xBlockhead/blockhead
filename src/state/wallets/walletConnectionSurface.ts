@@ -59,6 +59,7 @@ export type WalletCapabilitySurface = {
 		| 'selectAccount'
 		| 'signMessage'
 		| 'signTypedData'
+		| 'signStarknetTypedData'
 		| 'switchScope'
 		| 'rejectPreparedTransactionRequest'
 	adapterHook?:
@@ -66,6 +67,7 @@ export type WalletCapabilitySurface = {
 		| 'connect'
 		| 'signMessage'
 		| 'signTypedData'
+		| 'signStarknetTypedData'
 		| 'switchScope'
 		| 'disconnect'
 		| 'subscribeConnection'
@@ -171,6 +173,18 @@ export const walletCapabilitySurfaces = [
 		runtimeAction: 'signTypedData',
 		adapterHook: 'signTypedData',
 		notes: 'EIP-712 eth_signTypedData_v4; same request audit trail as SignMessage.',
+	},
+	{
+		capability: WalletCapability.SignStarknetTypedData,
+		kind: WalletCapabilitySurfaceKind.ExecutableSign,
+		discoverableOn: [
+			'connection.accounts.capabilities',
+			'connection.scopes.methods',
+			'runtime.action',
+		],
+		runtimeAction: 'signStarknetTypedData',
+		adapterHook: 'signStarknetTypedData',
+		notes: 'SNIP-12 wallet_signTypedData; distinct from EIP-712 typed data signing.',
 	},
 	{
 		capability: WalletCapability.SignTransaction,

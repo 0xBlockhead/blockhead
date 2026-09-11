@@ -61,6 +61,7 @@
 		RegisteredEntityProxyResource,
 	} from '$/client/$proxy.svelte.ts'
 	import {
+		type ActionParamsByActionType,
 		ActionType,
 		actionTypeDefinitionByActionType,
 		actionTypeDefinitions,
@@ -94,6 +95,7 @@
 		deleteLocalBlockheadSession,
 		deleteLocalBlockheadSessionAction,
 		deleteLocalBlockheadSessionLockedAt,
+		StaleSessionActionRevisionError,
 		updateLocalBlockheadSessionActionType,
 		writeLocalBlockheadSessionAction,
 		writeLocalBlockheadSessionLockedAt,
@@ -139,6 +141,7 @@
 				actionParams: true,
 				indexInSequence: true,
 				createdAt: true,
+				contentRevisionHash: true,
 			},
 		})
 	)
@@ -155,7 +158,10 @@
 		draft = idleSessionActionDraft
 	}
 
-	const writeAction = async (activeDraft: Exclude<SessionActionDraft, { mode: 'idle' }>, actionParams: object) => {
+	const writeAction = async <_ActionType extends ActionType>(
+		activeDraft: Extract<Exclude<SessionActionDraft, { mode: 'idle' }>, { actionType: _ActionType }>,
+		actionParams: ActionParamsByActionType[_ActionType]
+	) => {
 		if (activeDraft.mode === 'edit') {
 			await updateLocalBlockheadSessionActionType(
 				getAppClient(),
@@ -165,6 +171,7 @@
 				activeDraft.createdAt,
 				activeDraft.actionType,
 				actionParams,
+				activeDraft.expectedContentRevisionHash,
 			)
 			notice = {
 				status: 'info',
@@ -196,11 +203,19 @@
 			}
 			return
 		}
+		if (resolvedAction.contentRevisionHash == null) {
+			notice = {
+				status: 'error',
+				message: 'Draft content revision is not available.',
+			}
+			return
+		}
 		const nextActionType = arktype.enumerated(...Object.values(ActionType)).assert(resolvedAction.actionType)
 		const identity = {
 			selector: resolvedAction[EntityMetaKey.Selector],
 			indexInSequence: resolvedAction.indexInSequence,
 			createdAt: resolvedAction.createdAt,
+			expectedContentRevisionHash: resolvedAction.contentRevisionHash,
 		}
 		if (nextActionType === ActionType.Transfer) {
 			const actionParams = actionTypeDefinitionByActionType[nextActionType].params.assert(resolvedAction.actionParams ?? {})
@@ -283,10 +298,13 @@
 					amount: BigInt(draft.fields.amount),
 					slippage: Number(draft.fields.slippage),
 				}))
-		} catch {
+		} catch (error) {
 			notice = {
 				status: 'error',
-				message: 'Draft values are invalid. Correct them before saving.',
+				message: error instanceof StaleSessionActionRevisionError ?
+					'Action changed; reload before saving.'
+				:
+					'Draft values are invalid. Correct them before saving.',
 			}
 		}
 	}

@@ -4,7 +4,12 @@ import { isJsonObject, type JsonObject, type JsonValue } from '$/typescript/Json
 import { base58 } from '@scure/base'
 import * as Hash from 'ox/Hash'
 import { SvelteMap } from 'svelte/reactivity'
-import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import {
+	WalletAdapterPreDispatchFailure,
+	type WalletAdapter,
+	type WalletCandidate,
+	type WalletConnection,
+} from './types.ts'
 import { personalSign } from './eip1193.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
 
@@ -363,12 +368,17 @@ export const createTronInjectedAdapter = (): WalletAdapter => {
 		connect: async (walletId) => {
 			const provider = providerByWalletId.get(walletId)
 			if (provider == null) return undefined
+			const connectVersion = (updateVersionByWalletId.get(walletId) ?? 0) + 1
+			updateVersionByWalletId.set(walletId, connectVersion)
 
 			const state = await readTronState(
 				provider,
 				'eth_requestAccounts',
 				Date.now()
 			)
+			if (providerByWalletId.get(walletId) !== provider
+				|| updateVersionByWalletId.get(walletId) !== connectVersion)
+				return undefined
 			if (!state.accounts.length)
 				throw new Error('TRON wallet did not return any accounts')
 
@@ -383,10 +393,15 @@ export const createTronInjectedAdapter = (): WalletAdapter => {
 			const provider = providerByWalletId.get(walletId)
 			if (provider == null)
 				throw new Error('TRON wallet provider is unavailable')
+			if (!stateByWalletId.get(walletId)?.accounts.includes(accountAddress))
+				throw new WalletAdapterPreDispatchFailure(
+					'TRON signing authority does not match a connected account'
+				)
 
 			return personalSign(provider, accountAddress, message)
 		},
 		disconnect: (walletId) => {
+			updateVersionByWalletId.set(walletId, (updateVersionByWalletId.get(walletId) ?? 0) + 1)
 			stateByWalletId.delete(walletId)
 		},
 		subscribeConnection: (walletId, updateConnection) => {

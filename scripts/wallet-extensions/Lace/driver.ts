@@ -1,3 +1,4 @@
+import { verifyCardanoCip30SignData } from '$/state/wallets/adapters/cardanoCip30SignData.ts'
 import { expect, type BrowserContext, type Page } from '@playwright/test'
 
 import type {
@@ -17,8 +18,99 @@ export type LaceWallet = {
 	page: Page
 }
 
+type LaceCip30SignDataResponse = Parameters<typeof verifyCardanoCip30SignData>[0]['response']
+
+export type LaceCip30Api = {
+	getUsedAddresses(): Promise<readonly string[]>
+	signData(address: string, payload: string): Promise<LaceCip30SignDataResponse>
+}
+
+export type LaceCip30Provider = {
+	enable(): Promise<LaceCip30Api>
+	isEnabled(): Promise<boolean>
+}
+
+export class LaceCip30SigningLifecycle {
+	#active = true
+	#generation = 0
+
+	begin() {
+		if (!this.#active)
+			throw new Error('Lace CIP-30 signing lifecycle is not active')
+
+		return this.#generation
+	}
+
+	disconnect() {
+		this.#active = false
+		this.#generation += 1
+	}
+
+	reconnect() {
+		this.#generation += 1
+		this.#active = true
+	}
+
+	stop() {
+		this.#active = false
+		this.#generation += 1
+	}
+
+	isCurrent(generation: number) {
+		return this.#active && generation === this.#generation
+	}
+}
+
 
 // Functions
+
+const assertCurrentLaceCip30Operation = (
+	lifecycle: LaceCip30SigningLifecycle,
+	generation: number
+) => {
+	if (!lifecycle.isCurrent(generation))
+		throw new Error('Lace CIP-30 signData operation became stale during lifecycle transition')
+}
+
+/**
+ * Calls `isEnabled()` before `enable()` so an unconnected provider is rejected.
+ * `enable()` remains the required CIP-30 API-acquisition call; identity reads do not avoid it.
+ */
+export const signLaceCip30Data = async ({
+	address,
+	lifecycle,
+	payload,
+	provider,
+}: {
+	address: string
+	lifecycle: LaceCip30SigningLifecycle
+	payload: string
+	provider: LaceCip30Provider
+}) => {
+	const generation = lifecycle.begin()
+	const enabled = await provider.isEnabled.call(provider)
+	assertCurrentLaceCip30Operation(lifecycle, generation)
+	if (!enabled)
+		throw new Error('Lace CIP-30 provider is not enabled')
+
+	const api = await provider.enable.call(provider)
+	assertCurrentLaceCip30Operation(lifecycle, generation)
+	const usedAddresses = await api.getUsedAddresses.call(api)
+	assertCurrentLaceCip30Operation(lifecycle, generation)
+	if (!usedAddresses.includes(address))
+		throw new Error('Lace CIP-30 selected account is not available for signData')
+
+	const response = await api.signData.call(api, address, payload)
+	assertCurrentLaceCip30Operation(lifecycle, generation)
+	const signature = verifyCardanoCip30SignData({
+		address,
+		payload,
+		response,
+	})
+	assertCurrentLaceCip30Operation(lifecycle, generation)
+
+	return signature
+}
 
 const laceSidePanelBlockedDetail = (lifecycleEdgeCase: string) => (
 	lifecycleEdgeCase === 'side-panel-onboarding-blocked' ?

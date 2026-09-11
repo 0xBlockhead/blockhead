@@ -1,9 +1,22 @@
-import { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
+import {
+	WalletCapability,
+	WalletDiscoveryKind,
+	WalletProtocol,
+	WalletTransportKind,
+} from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { bech32, hex } from '@scure/base'
 import { SvelteMap } from 'svelte/reactivity'
-import type { WalletAdapter, WalletConnection } from './types.ts'
+import {
+	WalletAdapterPreDispatchFailure,
+	type WalletAdapter,
+	type WalletConnection,
+} from './types.ts'
+import { verifyCardanoCip30SignData } from './cardanoCip30SignData.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
+
+// oxlint-disable-next-line typescript/no-restricted-types -- CIP-30 signData is untrusted injected-wallet data and is parsed at the COSE wire boundary.
+type CardanoCip30DataSignature = unknown
 
 type CardanoCip30WalletApi = {
 	getUsedAddresses(): Promise<string[]>
@@ -12,10 +25,7 @@ type CardanoCip30WalletApi = {
 	signData?(
 		address: string,
 		payload: string
-	): Promise<{
-		signature: string
-		key: string
-	}>
+	): Promise<CardanoCip30DataSignature>
 	cip142?: {
 		getNetworkMagic(): Promise<number>
 	}
@@ -25,6 +35,13 @@ type CardanoConnectionState = {
 	api: CardanoCip30WalletApi
 	connection: WalletConnection
 	connectedAt: number
+	generation: number
+	startGeneration: number
+}
+
+type CardanoCip30PaymentAddress = {
+	accountAddress: string
+	signDataSupported: boolean
 }
 
 type CardanoCip30Wallet = {
@@ -118,18 +135,26 @@ const decodeCardanoCip30Address = (
 			throw new Error('Cardano CIP-30 wallet returned a non-canonical pointer address')
 	}
 
-	return bech32.encode(
-		networkId === 1 ?
-			'addr'
-		:
-			'addr_test',
-		bech32.toWords(addressBytes),
-		false
-	)
+	return {
+		accountAddress: bech32.encode(
+			networkId === 1 ?
+				'addr'
+			:
+				'addr_test',
+			bech32.toWords(addressBytes),
+			false
+		),
+		signDataSupported: (
+			addressType === 0
+			|| addressType === 2
+			|| addressType === 4
+			|| addressType === 6
+		),
+	} satisfies CardanoCip30PaymentAddress
 }
 
 const cardanoSignMessagePayload = (message: string) => (
-	`0x${Array.from(new TextEncoder().encode(message), (byte) => byte.toString(16).padStart(2, '0')).join('')}`
+	hex.encode(new TextEncoder().encode(message))
 )
 
 const cardanoSignDataAddress = (accountAddress: string) => {
@@ -146,6 +171,43 @@ const cardanoSignDataAddress = (accountAddress: string) => {
 export const createCardanoCip30Adapter = (): WalletAdapter => {
 	const walletByWalletId = new SvelteMap<string, CardanoCip30Wallet>()
 	const stateByWalletId = new SvelteMap<string, CardanoConnectionState>()
+	const generationByWalletId = new SvelteMap<string, number>()
+	let activeStartGeneration = 0
+	let activeStop: (() => void) | undefined
+	const nextGeneration = (walletId: string) => {
+		const generation = (generationByWalletId.get(walletId) ?? 0) + 1
+		generationByWalletId.set(walletId, generation)
+
+		return generation
+	}
+	const isCurrentGeneration = (
+		walletId: string,
+		startGeneration: number,
+		generation: number
+	) => (
+		activeStartGeneration === startGeneration
+		&& generationByWalletId.get(walletId) === generation
+	)
+	const isCurrentState = (
+		walletId: string,
+		state: CardanoConnectionState
+	) => isCurrentGeneration(
+		walletId,
+		state.startGeneration,
+		state.generation
+	)
+	const invalidateWallet = (walletId: string) => {
+		nextGeneration(walletId)
+		stateByWalletId.delete(walletId)
+	}
+	const connectionAuthority = (connection: WalletConnection) => [
+		...connection.scopes.map((scope) => (
+			`${scope.namespace}:${scope.reference}:${scope.methods.join(',')}:${scope.events.join(',')}`
+		)),
+		...connection.accounts.map((account) => (
+			`${account.namespace}:${account.reference}:${account.accountAddress}:${account.capabilities.join(',')}`
+		)),
+	].join('|')
 	const readConnection = async (
 		walletId: string,
 		api: CardanoCip30WalletApi,
@@ -177,6 +239,18 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 		if (networkReference === undefined)
 			throw new Error('Cardano CIP-30 wallet did not expose a canonical CIP-34 network')
 
+		const accountByAddress = new Map<string, CardanoCip30PaymentAddress>()
+		for (const encodedAddress of [
+			...await api.getUsedAddresses(),
+			...await api.getUnusedAddresses?.() ?? [],
+		]) {
+			const paymentAddress = decodeCardanoCip30Address(
+				encodedAddress,
+				networkId
+			)
+			accountByAddress.set(paymentAddress.accountAddress, paymentAddress)
+		}
+
 		return buildWalletConnection({
 			walletId,
 			status: BlockheadConnectionStatus.Connected,
@@ -186,17 +260,19 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 				{
 					namespace: 'cip34',
 					reference: networkReference,
-					methods: ['enable', 'getUsedAddresses', 'getUnusedAddresses', 'signData', 'signTx', 'submitTx'],
+					methods: [
+						'enable',
+						'getUsedAddresses',
+						...(api.getUnusedAddresses == null ? [] : ['getUnusedAddresses']),
+						...(api.signData == null ? [] : ['signData']),
+					],
 					events: [],
 				},
 			],
-			accounts: [...new Set([
-				...await api.getUsedAddresses(),
-				...await api.getUnusedAddresses?.() ?? [],
-			].map((encodedAddress) => decodeCardanoCip30Address(
-				encodedAddress,
-				networkId
-			)))].map((accountAddress) => ({
+			accounts: [...accountByAddress.values()].map(({
+				accountAddress,
+				signDataSupported,
+			}) => ({
 				namespace: 'cip34',
 				reference: networkReference,
 				accountAddress,
@@ -204,8 +280,10 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 					WalletCapability.Connect,
 					WalletCapability.Reconnect,
 					WalletCapability.ListAccounts,
-					WalletCapability.SignMessage,
-					WalletCapability.SignTransaction,
+					...(signDataSupported && api.signData != null ?
+						[WalletCapability.SignMessage]
+					:
+						[]),
 				],
 			})),
 			selected: true,
@@ -215,6 +293,8 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 	const authorize = async (
 		walletId: string,
 		wallet: CardanoCip30Wallet,
+		startGeneration: number,
+		generation: number,
 		connectedAt = Date.now()
 	) => {
 		const api = await wallet.enable({
@@ -224,15 +304,23 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 				},
 			],
 		})
+		if (!isCurrentGeneration(walletId, startGeneration, generation))
+			return undefined
+
 		const connection = await readConnection(
 			walletId,
 			api,
 			connectedAt
 		)
+		if (!isCurrentGeneration(walletId, startGeneration, generation))
+			return undefined
+
 		stateByWalletId.set(walletId, {
 			api,
 			connection,
 			connectedAt,
+			generation,
+			startGeneration,
 		})
 
 		return connection
@@ -242,8 +330,19 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 		wallet: CardanoCip30Wallet
 	) => {
 		const state = stateByWalletId.get(walletId)
-		if (state == null)
-			return authorize(walletId, wallet)
+		if (state == null) {
+			const startGeneration = activeStartGeneration
+			const generation = nextGeneration(walletId)
+
+			return authorize(
+				walletId,
+				wallet,
+				startGeneration,
+				generation
+			)
+		}
+		if (!isCurrentState(walletId, state))
+			return undefined
 
 		try {
 			const connection = await readConnection(
@@ -251,19 +350,35 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 				state.api,
 				state.connectedAt
 			)
+			if (!isCurrentState(walletId, state))
+				return undefined
+
+			const currentState = stateByWalletId.get(walletId)
+			if (currentState == null || !isCurrentState(walletId, currentState))
+				return undefined
+
 			stateByWalletId.set(walletId, {
-				...state,
+				...currentState,
 				connection,
+				...(connectionAuthority(currentState.connection) !== connectionAuthority(connection) && {
+					generation: nextGeneration(walletId),
+				}),
 			})
 
 			return connection
 		}
 		catch (error) {
+			if (!isCurrentState(walletId, state))
+				return undefined
 			if (!isAccountChangeError(error)) throw error
 
+			const generation = nextGeneration(walletId)
+			stateByWalletId.delete(walletId)
 			return authorize(
 				walletId,
 				wallet,
+				state.startGeneration,
+				generation,
 				state.connectedAt
 			)
 		}
@@ -272,6 +387,12 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 	return {
 		id: 'cardano-cip30',
 		start: (updateCandidates) => {
+			activeStop?.()
+			activeStartGeneration += 1
+			const startGeneration = activeStartGeneration
+			stateByWalletId.clear()
+			walletByWalletId.clear()
+			generationByWalletId.clear()
 			const candidates = typeof window === 'undefined' ?
 				[]
 			:
@@ -291,48 +412,102 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 								WalletCapability.Connect,
 								WalletCapability.Reconnect,
 								WalletCapability.ListAccounts,
-								WalletCapability.SignMessage,
-								WalletCapability.SignTransaction,
 							],
 						}
 					})
 
 			updateCandidates(candidates)
 
-			return () => {
+			const stop = () => {
+				if (activeStop !== stop || activeStartGeneration !== startGeneration) return
+
+				activeStop = undefined
+				activeStartGeneration += 1
 				stateByWalletId.clear()
 				walletByWalletId.clear()
+				generationByWalletId.clear()
 			}
+			activeStop = stop
+
+			return stop
 		},
 		connect: async (walletId) => {
 			const wallet = walletByWalletId.get(walletId)
 			if (wallet == null) return undefined
 
-			return authorize(walletId, wallet)
+			const startGeneration = activeStartGeneration
+			const generation = nextGeneration(walletId)
+			stateByWalletId.delete(walletId)
+
+			return authorize(
+				walletId,
+				wallet,
+				startGeneration,
+				generation
+			)
 		},
 		disconnect: (walletId) => {
-			stateByWalletId.delete(walletId)
+			invalidateWallet(walletId)
 		},
 		signMessage: async (walletId, accountAddress, message) => {
 			const state = stateByWalletId.get(walletId)
-			if (state == null)
+			if (state == null || !isCurrentState(walletId, state))
 				throw new Error('Cardano CIP-30 wallet is not connected')
 
 			const signData = state.api.signData
 			if (signData == null)
 				throw new Error('Cardano CIP-30 wallet does not implement signData')
 
-			const response = await signData(
-				cardanoSignDataAddress(accountAddress),
-				cardanoSignMessagePayload(message)
-			)
-			if (response.signature.length === 0)
-				throw new Error('Cardano CIP-30 wallet returned an invalid signData signature')
+			const authorizedAccount = state.connection.accounts.find((account) => (
+				account.accountAddress === accountAddress
+				&& account.capabilities.includes(WalletCapability.SignMessage)
+			))
+			if (authorizedAccount == null)
+				throw new WalletAdapterPreDispatchFailure(
+					'Cardano CIP-30 selected account does not support signData'
+				)
 
-			return response.signature
+			const address = cardanoSignDataAddress(accountAddress)
+			const payload = cardanoSignMessagePayload(message)
+			let liveConnection: WalletConnection
+			try {
+				liveConnection = await readConnection(
+					walletId,
+					state.api,
+					state.connectedAt
+				)
+			}
+			catch {
+				throw new WalletAdapterPreDispatchFailure(
+					'Cardano CIP-30 signing authority could not be read before signData'
+				)
+			}
+			if (!isCurrentState(walletId, state))
+				throw new WalletAdapterPreDispatchFailure(
+					'Cardano CIP-30 connection changed before signData dispatch'
+				)
+			if (!liveConnection.accounts.some((account) => (
+				account.accountAddress === accountAddress
+				&& account.reference === authorizedAccount.reference
+				&& account.capabilities.includes(WalletCapability.SignMessage)
+			)))
+				throw new WalletAdapterPreDispatchFailure(
+					'Cardano CIP-30 selected account no longer supports signData'
+				)
+
+			const response = await signData.call(state.api, address, payload)
+			if (!isCurrentState(walletId, state))
+				throw new Error('Cardano CIP-30 connection changed while signData was pending')
+
+			return verifyCardanoCip30SignData({
+				address,
+				payload,
+				response,
+			})
 		},
 		subscribeConnection: (walletId, updateConnection) => {
 			const abortController = new AbortController()
+			const startGeneration = activeStartGeneration
 			const wallet = walletByWalletId.get(walletId)
 			if (wallet == null) return () => abortController.abort()
 
@@ -341,14 +516,20 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 
 			let checking = false
 			let previousIdentity: string | undefined
+			const isCurrentSubscription = () => (
+				!abortController.signal.aborted
+				&& activeStartGeneration === startGeneration
+			)
 			const checkConnection = async () => {
-				if (checking || abortController.signal.aborted) return
+				if (checking || !isCurrentSubscription()) return
 
 				checking = true
 				try {
-					const enabled = await isEnabled()
-					// oxlint-disable-next-line typescript/no-unnecessary-condition -- cleanup can abort while the wallet request is pending
-					if (abortController.signal.aborted) return
+					const enabled = await isEnabled.call(wallet)
+					if (!isCurrentSubscription()) return
+
+					if (!enabled)
+						invalidateWallet(walletId)
 
 					const connection = enabled ?
 						await refresh(walletId, wallet)
@@ -362,10 +543,7 @@ export const createCardanoCip30Adapter = (): WalletAdapter => {
 							accounts: [],
 							disconnectedAt: Date.now(),
 						})
-					if (!enabled)
-						stateByWalletId.delete(walletId)
-					// oxlint-disable-next-line typescript/no-unnecessary-condition -- cleanup can abort while wallet account and network reads are pending
-					if (abortController.signal.aborted) return
+					if (connection == null || !isCurrentSubscription()) return
 
 					const identity = [
 						connection.status,

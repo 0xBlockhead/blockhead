@@ -45,7 +45,14 @@ export type FarcasterProofWalletConnection =
 export type FarcasterWalletSigner = {
 	/** Proofable EVM sessions only — not Farcaster identity enrollment. */
 	connections: readonly FarcasterProofWalletConnection[]
-	signMessage(connectionKey: string, message: string): Promise<{
+	signMessage(input: {
+		connectionKey: string
+		message: string
+		authorityPresentation: {
+			submittedAt: number
+			validUntil?: number
+		}
+	}): Promise<{
 		accountAddress: string
 		signature: string
 	}>
@@ -130,11 +137,16 @@ export const signFarcasterAccountConnectionChallenge = async ({
 	walletRuntime,
 	connectionKey,
 	challenge,
+	submittedAt,
 }: {
 	walletRuntime: FarcasterWalletSigner
 	connectionKey: string
 	challenge: FarcasterAccountConnectionChallenge
+	submittedAt: number
 }) => {
+	if (!Number.isFinite(submittedAt) || submittedAt < challenge.issuedAt || submittedAt >= challenge.expiresAt)
+		throw new Error('Farcaster proof requires a current displayed challenge submission')
+
 	const connection = walletRuntime.connections.find((candidate) => (
 		walletConnectionKey(candidate) === connectionKey
 	))
@@ -143,8 +155,12 @@ export const signFarcasterAccountConnectionChallenge = async ({
 	if (connection.activeAccount.accountAddress.toLowerCase() !== challenge.signerAddress.toLowerCase())
 		throw new Error('Selected wallet account does not match the Farcaster challenge signer')
 
-	return walletRuntime.signMessage(
+	return walletRuntime.signMessage({
 		connectionKey,
-		farcasterAccountConnectionChallengeMessage(challenge)
-	)
+		message: farcasterAccountConnectionChallengeMessage(challenge),
+		authorityPresentation: {
+			submittedAt,
+			validUntil: challenge.expiresAt,
+		},
+	})
 }

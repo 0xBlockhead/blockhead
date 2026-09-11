@@ -37,10 +37,16 @@ export const polkadotJsDriver = {
 export const isPolkadotJsNotificationPageUrl = (
 	url: string,
 	extensionId: string
-) => (
-	url.startsWith(`chrome-extension://${extensionId}/`)
-	&& url.includes('/notification.html')
-)
+) => {
+	try {
+		const parsed = new URL(url)
+		return parsed.protocol === 'chrome-extension:'
+			&& parsed.hostname === extensionId
+			&& parsed.pathname === '/notification.html'
+	} catch {
+		return false
+	}
+}
 
 const addAccount = async (page: Page, name: string) => {
 	await page.getByText('Create new account', {
@@ -95,7 +101,8 @@ export const createPolkadotJsAccounts = async (page: Page) => {
 
 export const approvePolkadotJsConnection = async (
 	context: BrowserContext,
-	extensionId: string
+	extensionId: string,
+	expectedRequestUrl: string
 ) => {
 	const approval = (
 		context.pages().find((page) => isPolkadotJsNotificationPageUrl(page.url(), extensionId))
@@ -105,10 +112,22 @@ export const approvePolkadotJsConnection = async (
 		})
 	)
 	await approval.waitForLoadState('domcontentloaded')
-	await approval.getByText('Select all', {
-		exact: true,
-	}).click()
-	await approval.getByText(/Yes, allow this application access|Connect \d+ account\(s\)/, {
-		exact: true,
-	}).click()
+	const requestOrigin = approval.locator('.tab-url')
+	await expect(requestOrigin).toHaveCount(1)
+	await expect(requestOrigin).toHaveText(new URL(expectedRequestUrl).href)
+	const selectAllControl = approval.locator('.accountTree-checkbox:has(+ .accountList)')
+	const selectAll = selectAllControl.locator('input[type="checkbox"]')
+	await expect(selectAll).toHaveCount(1)
+	if (!await selectAll.isChecked())
+		await selectAllControl.click()
+	const accountSelections = approval.locator('.accountList input[type="checkbox"]')
+	await expect(accountSelections).toHaveCount(2)
+	await expect(approval.locator('.accountList input[type="checkbox"]:checked')).toHaveCount(2)
+	const approve = approval.locator('.acceptButton')
+	await expect(approve).toHaveCount(1)
+	await expect(approve).toBeEnabled()
+	await Promise.all([
+		approval.waitForEvent('close'),
+		approve.click(),
+	])
 }

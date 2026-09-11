@@ -51,7 +51,7 @@
 			}
 		>
 			{#snippet Title()}
-				{blockheadSwapIntent.$sessionAction.actionType || 'blockhead session action'}
+				{(blockheadSwapIntent.$sessionAction.selectedProtocol ?? '') || 'blockhead session action'}
 			{/snippet}
 
 			{#snippet Value()}

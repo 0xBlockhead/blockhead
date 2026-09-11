@@ -19,7 +19,6 @@ const requiredAptosFeatureNames = [
 	'aptos:onAccountChange',
 	'aptos:onNetworkChange',
 	'aptos:signMessage',
-	'aptos:signTransaction',
 ] as const
 
 const aptosCapabilities = [
@@ -30,7 +29,6 @@ const aptosCapabilities = [
 	WalletCapability.WatchAccounts,
 	WalletCapability.WatchScopes,
 	WalletCapability.SignMessage,
-	WalletCapability.SignTransaction,
 ] satisfies WalletCapability[]
 
 const aptosFeatures = (wallet: StandardWallet) => (
@@ -47,9 +45,7 @@ const aptosFeatures = (wallet: StandardWallet) => (
 	// oxlint-disable-next-line no-runtime-shape-guards/guards -- AIP-62 discovery is defined by the registered wallet's callable feature surface.
 	&& typeof wallet.features['aptos:onNetworkChange']?.onNetworkChange === 'function'
 	// oxlint-disable-next-line no-runtime-shape-guards/guards -- AIP-62 discovery is defined by the registered wallet's callable feature surface.
-	&& typeof wallet.features['aptos:signMessage']?.signMessage === 'function'
-	// oxlint-disable-next-line no-runtime-shape-guards/guards -- AIP-62 discovery is defined by the registered wallet's callable feature surface.
-	&& typeof wallet.features['aptos:signTransaction']?.signTransaction === 'function' ?
+	&& typeof wallet.features['aptos:signMessage']?.signMessage === 'function' ?
 		wallet.features
 	:
 		undefined
@@ -147,7 +143,7 @@ const normalizeAptosSignature = (signature: string | string[]) => {
 		:
 			signature[0]
 	)
-	if (value == null || value.length === 0)
+	if (value.length === 0)
 		throw new Error('Aptos AIP-62 wallet returned an invalid aptos:signMessage signature')
 
 	return value
@@ -159,7 +155,46 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 	const connectedAtByWalletId = new Map<string, number>()
 	const accountByWalletId = new Map<string, AptosAccountInfo>()
 	const networkByWalletId = new Map<string, AptosNetworkInfo>()
+	const registrationEpochByWalletId = new Map<string, number>()
+	const lifecycleEpochByWalletId = new Map<string, number>()
+	const subscriptionEpochByWalletId = new Map<string, number>()
 	let updateCandidates: ((candidates: WalletCandidate[]) => void) | undefined
+	let nextStartEpoch = 0
+	let activeStartEpoch = 0
+	let activeStop: (() => void) | undefined
+
+	const nextEpoch = (epochs: Map<string, number>, walletId: string) => {
+		const epoch = (epochs.get(walletId) ?? 0) + 1
+		epochs.set(walletId, epoch)
+		return epoch
+	}
+
+	const isCurrent = (
+		walletId: string,
+		wallet: StandardWallet,
+		startEpoch: number,
+		registrationEpoch: number,
+		lifecycleEpoch?: number,
+		subscriptionEpoch?: number
+	) => (
+		activeStartEpoch === startEpoch
+		&& walletById.get(walletId) === wallet
+		&& registrationEpochByWalletId.get(walletId) === registrationEpoch
+		&& (lifecycleEpoch === undefined || lifecycleEpochByWalletId.get(walletId) === lifecycleEpoch)
+		&& (subscriptionEpoch === undefined || subscriptionEpochByWalletId.get(walletId) === subscriptionEpoch)
+	)
+
+	const invalidateWallet = (walletId: string, wallet: StandardWallet) => {
+		if (walletById.get(walletId) !== wallet)
+			return
+
+		nextEpoch(registrationEpochByWalletId, walletId)
+		nextEpoch(lifecycleEpochByWalletId, walletId)
+		nextEpoch(subscriptionEpochByWalletId, walletId)
+		connectedAtByWalletId.delete(walletId)
+		accountByWalletId.delete(walletId)
+		networkByWalletId.delete(walletId)
+	}
 
 	const emitCandidates = () => updateCandidates?.(
 		[...walletById].map(([id, wallet]) => ({
@@ -177,6 +212,7 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 	)
 	const registry: WalletRegistryApi = {
 		register: (...wallets) => {
+			const registered: { wallet: StandardWallet, walletId: string, registrationEpoch: number }[] = []
 			for (const wallet of wallets) {
 				if (
 					walletIdByWallet.has(wallet)
@@ -192,15 +228,26 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 
 				walletIdByWallet.set(wallet, walletId)
 				walletById.set(walletId, wallet)
+				nextEpoch(lifecycleEpochByWalletId, walletId)
+				registered.push({
+					wallet,
+					walletId,
+					registrationEpoch: nextEpoch(registrationEpochByWalletId, walletId),
+				})
 			}
 
 			emitCandidates()
 
 			return () => {
-				for (const wallet of wallets) {
-					const walletId = walletIdByWallet.get(wallet)
-					if (walletId == null) continue
+				for (const { wallet, walletId, registrationEpoch } of registered) {
+					if (
+						walletIdByWallet.get(wallet) !== walletId
+						|| walletById.get(walletId) !== wallet
+						|| registrationEpochByWalletId.get(walletId) !== registrationEpoch
+					)
+						continue
 
+					invalidateWallet(walletId, wallet)
 					walletIdByWallet.delete(wallet)
 					walletById.delete(walletId)
 					connectedAtByWalletId.delete(walletId)
@@ -216,8 +263,14 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 		start: (nextUpdateCandidates) => {
 			if (typeof window === 'undefined') return () => {}
 
+			activeStop?.()
+			const startEpoch = ++nextStartEpoch
+			activeStartEpoch = startEpoch
 			updateCandidates = nextUpdateCandidates
 			const onRegisterWallet = (event: RegisterWalletEvent) => {
+				if (activeStartEpoch !== startEpoch)
+					return
+
 				// oxlint-disable-next-line no-runtime-shape-guards/guards -- Wallet Standard supports callback registration and the repo's legacy registry fixture.
 				if (typeof event.detail === 'function')
 					event.detail(registry)
@@ -230,27 +283,45 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 			}))
 			emitCandidates()
 
-			return () => {
+			const stop = () => {
+				if (activeStop !== stop)
+					return
+
+				activeStop = undefined
+				activeStartEpoch = 0
 				window.removeEventListener('wallet-standard:register-wallet', onRegisterWallet)
 				updateCandidates = undefined
+				for (const [walletId, wallet] of walletById)
+					invalidateWallet(walletId, wallet)
 				walletById.clear()
 				connectedAtByWalletId.clear()
 				accountByWalletId.clear()
 				networkByWalletId.clear()
 			}
+			activeStop = stop
+			return stop
 		},
 		connect: async (walletId) => {
 			const wallet = walletById.get(walletId)
 			const features = wallet == null ? undefined : aptosFeatures(wallet)
 			if (wallet == null || features == null) return undefined
+			const startEpoch = activeStartEpoch
+			const registrationEpoch = registrationEpochByWalletId.get(walletId)
+			if (startEpoch === 0 || registrationEpoch === undefined)
+				return undefined
+			const lifecycleEpoch = nextEpoch(lifecycleEpochByWalletId, walletId)
 
 			const response = await features['aptos:connect']?.connect()
+			if (!isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch))
+				throw new Error(`${wallet.name} registration changed during Aptos connection`)
 			if (response == null)
 				throw new Error(`${wallet.name} does not implement aptos:connect 1.0.0`)
 			if (response.status === 'Rejected')
 				throw new Error(`${wallet.name} rejected Aptos account access`)
 
 			const network = await features['aptos:network']?.network()
+			if (!isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch))
+				throw new Error(`${wallet.name} registration changed during Aptos network acquisition`)
 			if (network == null)
 				throw new Error(`${wallet.name} does not implement aptos:network 1.0.0`)
 
@@ -272,6 +343,11 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 			const features = wallet == null ? undefined : aptosFeatures(wallet)
 			if (wallet == null || features == null)
 				throw new Error('Aptos AIP-62 wallet is unavailable')
+			const startEpoch = activeStartEpoch
+			const registrationEpoch = registrationEpochByWalletId.get(walletId)
+			const lifecycleEpoch = lifecycleEpochByWalletId.get(walletId)
+			if (startEpoch === 0 || registrationEpoch === undefined || lifecycleEpoch === undefined)
+				throw new Error('Aptos AIP-62 wallet is unavailable')
 
 			const account = accountByWalletId.get(walletId)
 			const network = networkByWalletId.get(walletId)
@@ -290,6 +366,12 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 				nonce: globalThis.crypto.randomUUID(),
 				account: aptosSignMessageAccount(account, network),
 			})
+			if (
+				!isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch)
+				|| accountByWalletId.get(walletId) !== account
+				|| networkByWalletId.get(walletId) !== network
+			)
+				throw new Error(`${wallet.name} registration changed during Aptos message signing`)
 			if (response.status === 'Rejected')
 				throw new Error(`${wallet.name} rejected message signing`)
 
@@ -297,9 +379,20 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 		},
 		disconnect: async (walletId) => {
 			const wallet = walletById.get(walletId)
-			if (wallet == null) return
+			if (wallet == null)
+				return
+
+			const startEpoch = activeStartEpoch
+			const registrationEpoch = registrationEpochByWalletId.get(walletId)
+			if (startEpoch === 0 || registrationEpoch === undefined)
+				return
+
+			const lifecycleEpoch = nextEpoch(lifecycleEpochByWalletId, walletId)
 
 			await aptosFeatures(wallet)?.['aptos:disconnect']?.disconnect()
+			if (!isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch))
+				return
+
 			connectedAtByWalletId.delete(walletId)
 			accountByWalletId.delete(walletId)
 			networkByWalletId.delete(walletId)
@@ -307,21 +400,40 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 		subscribeConnection: (walletId, updateConnection) => {
 			const wallet = walletById.get(walletId)
 			const features = wallet == null ? undefined : aptosFeatures(wallet)
-			if (features == null) return () => {}
+			if (features == null)
+				return () => {}
+
+			if (wallet == null)
+				return () => {}
+
+			const startEpoch = activeStartEpoch
+			const registrationEpoch = registrationEpochByWalletId.get(walletId)
+			if (startEpoch === 0 || registrationEpoch === undefined)
+				return () => {}
+
+			const lifecycleEpoch = lifecycleEpochByWalletId.get(walletId)
+			const subscriptionEpoch = nextEpoch(subscriptionEpochByWalletId, walletId)
+			if (lifecycleEpoch === undefined)
+				return () => {}
 
 			let subscribed = true
 			let updateVersion = 0
 			void features['aptos:onAccountChange']?.onAccountChange((account) => {
 				const version = ++updateVersion
-				if (account == null) {
-					accountByWalletId.delete(walletId)
-					connectedAtByWalletId.delete(walletId)
-				}
-				else
-					accountByWalletId.set(walletId, account)
 				void features['aptos:network']?.network().then((network) => {
-					if (!subscribed || version !== updateVersion || network == null) return
+					if (
+						!subscribed
+						|| version !== updateVersion
+						|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
+					)
+						return
 
+					if (account == null) {
+						accountByWalletId.delete(walletId)
+						connectedAtByWalletId.delete(walletId)
+					}
+					else
+						accountByWalletId.set(walletId, account)
 					networkByWalletId.set(walletId, network)
 					updateConnection(aptosConnection(
 						walletId,
@@ -333,10 +445,17 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 				})
 			})
 			void features['aptos:onNetworkChange']?.onNetworkChange((network) => {
+				if (
+					!subscribed
+					|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
+				)
+					return
+
 				updateVersion++
 				networkByWalletId.set(walletId, network)
 				const account = accountByWalletId.get(walletId)
-				if (!subscribed || account == null) return
+				if (account == null)
+					return
 
 				updateConnection(aptosConnection(
 					walletId,
@@ -347,43 +466,59 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 				))
 			})
 
-			if (!connectedAtByWalletId.has(walletId)) {
-				const version = updateVersion
-				void features['aptos:connect']?.connect(true).then(async (response) => {
-					if (!subscribed || version !== updateVersion) return
-					if (response.status === 'Rejected') {
-						const network = networkByWalletId.get(walletId) ?? await features['aptos:network']?.network()
-						if (network == null) return
+				if (!connectedAtByWalletId.has(walletId)) {
+					const version = updateVersion
+					void features['aptos:connect']?.connect(true).then(async (response) => {
+						if (
+							!subscribed
+							|| version !== updateVersion
+							|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
+						)
+							return
 
+						if (response.status === 'Rejected') {
+							const network = networkByWalletId.get(walletId) ?? await features['aptos:network']?.network()
+							if (
+								version !== updateVersion
+								|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
+							)
+								return
+
+							updateConnection(aptosConnection(
+								walletId,
+								features,
+								null,
+								network
+							))
+							return
+						}
+
+						const network = await features['aptos:network']?.network()
+						if (
+							version !== updateVersion
+							|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
+						)
+							return
+
+						const connectedAt = Date.now()
+						connectedAtByWalletId.set(walletId, connectedAt)
+						accountByWalletId.set(walletId, response.args)
+						networkByWalletId.set(walletId, network)
 						updateConnection(aptosConnection(
 							walletId,
 							features,
-							null,
-							network
+							response.args,
+							network,
+							connectedAt
 						))
-						return
-					}
-
-					const network = await features['aptos:network']?.network()
-					if (!subscribed || version !== updateVersion || network == null) return
-
-					const connectedAt = Date.now()
-					connectedAtByWalletId.set(walletId, connectedAt)
-					accountByWalletId.set(walletId, response.args)
-					networkByWalletId.set(walletId, network)
-					updateConnection(aptosConnection(
-						walletId,
-						features,
-						response.args,
-						network,
-						connectedAt
-					))
-				}).catch(() => {})
-			}
+					}).catch(() => {})
+				}
 
 			return () => {
 				subscribed = false
 				updateVersion++
+				if (subscriptionEpochByWalletId.get(walletId) === subscriptionEpoch)
+					nextEpoch(subscriptionEpochByWalletId, walletId)
 			}
 		},
 	}

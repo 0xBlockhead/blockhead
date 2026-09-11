@@ -6,6 +6,7 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	disableTahoTelemetry,
 	isTahoPopupPageUrl,
 	tahoBlockedObservation,
 	tahoDriver,
@@ -18,6 +19,8 @@ test('maps headed Connect chrome to Taho popup.html URLs', () => {
 	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/popup.html`, extensionId), true)
 	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/popup.html#/`, extensionId), true)
 	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/tab.html#/onboarding`, extensionId), false)
+	assert.equal(isTahoPopupPageUrl(`chrome-extension://${extensionId}/popup.html.evil`, extensionId), false)
+	assert.equal(isTahoPopupPageUrl(`https://${extensionId}/popup.html`, extensionId), false)
 	assert.equal(isTahoPopupPageUrl(`chrome-extension://other/popup.html`, extensionId), false)
 })
 
@@ -29,6 +32,7 @@ test('exposes the Taho WalletDriver contract', () => {
 	assert.equal(typeof tahoDriver.approveConnection, 'function')
 	assert.equal(typeof tahoDriver.rejectConnection, 'function')
 	assert.equal(typeof tahoDriver.selectAccount, 'function')
+	assert.equal(typeof disableTahoTelemetry, 'function')
 })
 
 test('keeps the Taho account lifecycle shard free of invented blank-add-wallet / recover passes', () => {
@@ -114,11 +118,11 @@ test('keeps the proven Taho first-account bridge separate from blocked account r
 						tahoBlockedObservation(scenario)
 					:
 						{
-							accountAddress: '0xtaho1',
-							outcome: 'pass',
+							outcome: 'unsupported',
 							evidence: {
-								code: scenario.lifecycleEdgeCase,
-								source: 'unit-bridge-contract',
+								code: 'real-driver-required',
+								detail: 'Compatibility success requires the real Taho extension driver',
+								source: 'request-construction-only',
 							},
 						}
 				),
@@ -126,7 +130,7 @@ test('keeps the proven Taho first-account bridge separate from blocked account r
 			scenarios,
 		}),
 		[
-			'pass',
+			'unsupported',
 			'blocked',
 			'blocked',
 		],

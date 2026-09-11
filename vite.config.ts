@@ -97,6 +97,13 @@ export default defineConfig({
 		devtoolsJson(),
 	],
 	server: {
+		fs: {
+			allow: [
+				import.meta.dirname,
+				realpathSync(resolve(import.meta.dirname, 'node_modules')),
+				realpathSync(resolve(import.meta.dirname, 'node_modules/.pnpm')),
+			],
+		},
 		strictPort: true,
 		fs: {
 			allow: [

@@ -542,6 +542,40 @@ describe('Aptos injected wallet adapter', () => {
 		unsubscribe()
 	})
 
+	it('fences delayed connect when the injected global is replaced', async () => {
+		vi.useFakeTimers()
+		const first = createMockAptosWallet(
+			{ name: 'Mainnet', chainId: 1 },
+			{ address: '0xa11ce', publicKey: '0x01' }
+		)
+		const pending = Promise.withResolvers<{
+			address: string
+			publicKey: string
+		}>()
+		first.wallet.connect.mockImplementationOnce(() => pending.promise)
+		const injectedWindow: { aptos: typeof first.wallet } = { aptos: first.wallet }
+		vi.stubGlobal('window', injectedWindow)
+		const adapter = createAptosInjectedAdapter()
+		const cleanup = adapter.start(() => {})
+		const connecting = adapter.connect('aptos:petra')
+
+		const replacement = createMockAptosWallet(
+			{ name: 'Testnet', chainId: 2 },
+			{ address: '0xcafe', publicKey: '0x02' }
+		)
+		injectedWindow.aptos = replacement.wallet
+		await vi.advanceTimersByTimeAsync(100)
+		pending.resolve({ address: '0xa11ce', publicKey: '0x01' })
+
+		await expect(connecting).rejects.toThrow('changed during connection')
+		await expect(adapter.connect('aptos:petra')).resolves.toMatchObject({
+			status: BlockheadConnectionStatus.Connected,
+			scopes: [expect.objectContaining({ reference: '2' })],
+		})
+		cleanup()
+		vi.useRealTimers()
+	})
+
 	it.each([
 		'',
 		'01',

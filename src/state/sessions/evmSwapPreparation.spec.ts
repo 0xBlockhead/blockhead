@@ -37,14 +37,20 @@ const action = {
 	sessionId: 'session-1',
 	actionId: 'action-1',
 	indexInSequence: 0,
-	actionType: ActionType.Swap,
 	selectedProtocol: 'LiFi',
-	actionParams: {
-		chainId: 1,
-		tokenIn: zeroAddress,
-		tokenOut,
-		amount: 1_000n,
-		slippage: 0.005,
+	$action: {
+		id: 'action-1',
+		content: {
+			type: ActionType.Swap,
+			params: {
+				chainId: 1,
+				tokenIn: zeroAddress,
+				tokenOut,
+				amount: 1_000n,
+				slippage: 0.005,
+			},
+		},
+		contentRevisionHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 	},
 }
 
@@ -152,6 +158,12 @@ it('prepares quote and simulation evidence without invoking any wallet provider'
 			gasUsed: 120_000n,
 		},
 	})
+	expect(quoteSource.getQuote).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
+		chainId: 1,
+		tokenIn: action.$action.content.params.tokenIn,
+		tokenOut: action.$action.content.params.tokenOut,
+		amount: action.$action.content.params.amount,
+	}))
 	expect(Object.hasOwn(preparation, 'txHash')).toBe(false)
 	expect(Object.hasOwn(preparation, 'evmTransaction')).toBe(false)
 })
@@ -212,6 +224,72 @@ it('persists intent, quote, simulation, and only a prepared wallet request', asy
 	expect(Object.hasOwn(preparation, 'evmTransaction')).toBe(false)
 })
 
+it('uses one concrete timestamp for all persisted preparation evidence when omitted', async () => {
+	vi.spyOn(Date, 'now').mockReturnValue(321)
+	const context = Object.create(null)
+
+	await applyEvmSwapPreparation({
+		context,
+		session: { id: 'session-1', lockedAt: 1 },
+		action,
+		fromAddress,
+		walletConnections: [walletConnection],
+		quoteSource,
+		simulationTransport,
+		simulationId: 'simulation-1',
+	})
+
+	const quote = localMutationMocks.writeLocalBlockheadIntentQuote.mock.calls[0]
+	const simulation = localMutationMocks.writeLocalBlockheadSessionSimulation.mock.calls[0]
+	const walletRequest = localMutationMocks.writeLocalBlockheadWalletRequest.mock.calls[0]
+	const walletRequestTimestamp = localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp.mock.calls[0]
+	expect(quote[3]).toMatchObject({ requestedAt: 321 })
+	expect(quote[4]).toMatchObject({ timestampMs: 321 })
+	expect(simulation[2]).toMatchObject({ createdAt: 321, completedAt: 321 })
+	expect(walletRequest[1]).toMatchObject({ requestedAt: 321 })
+	expect(walletRequestTimestamp[2]).toMatchObject({ timestampMs: 321 })
+	vi.restoreAllMocks()
+})
+
+it.each(['account', 'connection', 'permission', 'capability', 'chain'] as const)('refuses stale %s authority after asynchronous simulation', async (change) => {
+	const connections = [structuredClone(walletConnection)]
+	await expect(applyEvmSwapPreparation({
+		context: Object.create(null),
+		session: { id: 'session-1', lockedAt: 1 },
+		action,
+		fromAddress,
+		walletConnections: connections,
+		quoteSource,
+		simulationTransport: {
+			...simulationTransport,
+			simulate: async () => {
+				connections[0] = {
+					...walletConnection,
+					...(change === 'permission' && { status: BlockheadConnectionStatus.Disconnected }),
+					...(change === 'capability' && {
+						accounts: [{ ...walletConnection.accounts[0], capabilities: [] }],
+					}),
+					...(change === 'chain' && {
+						accounts: [{ ...walletConnection.accounts[0], reference: '10' }],
+					}),
+					...(change === 'connection' && { connectionKey: 'replacement-connection' }),
+					activeAccount: {
+						...walletConnection.activeAccount,
+						accountAddress: change === 'account' ? routerAddress : fromAddress,
+						...(change === 'capability' && { capabilities: [] }),
+						...(change === 'chain' && { reference: '10' }),
+					},
+				}
+				return { output: '0x01', gasUsed: 120_000n }
+			},
+		},
+		simulationId: 'stale-simulation',
+		timestampMs: 100,
+	})).rejects.toThrow('Swap preparation lost the selected wallet binding.')
+	expect(localMutationMocks.writeLocalBlockheadSwapIntent).not.toHaveBeenCalled()
+	expect(localMutationMocks.writeLocalBlockheadWalletRequest).not.toHaveBeenCalled()
+})
+
 it('stops before persistence when simulation fails', async () => {
 	await expect(applyEvmSwapPreparation({
 		context: Object.create(null),
@@ -238,4 +316,22 @@ it('stops before persistence when simulation fails', async () => {
 	expect(localMutationMocks.writeLocalBlockheadSessionSimulation).not.toHaveBeenCalled()
 	expect(localMutationMocks.writeLocalBlockheadWalletRequest).not.toHaveBeenCalled()
 	expect(localMutationMocks.writeLocalBlockheadWalletRequest_Timestamp).not.toHaveBeenCalled()
+})
+
+it('stops before persistence when quote acquisition fails', async () => {
+	const quoteFailure = new Error('solver unavailable')
+	await expect(prepareEvmSwap({
+		session: { id: 'session-1', lockedAt: 1 },
+		action,
+		fromAddress,
+		walletConnections: [walletConnection],
+		quoteSource: {
+			...quoteSource,
+			getQuote: async () => { throw quoteFailure },
+		},
+		simulationTransport,
+		simulationId: 'simulation-quote-failure',
+		timestampMs: 100,
+	})).rejects.toBe(quoteFailure)
+	expect(simulationTransport.simulate).not.toHaveBeenCalled()
 })

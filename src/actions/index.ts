@@ -190,3 +190,11 @@ export type Action<_ActionType extends ActionType = ActionType> = {
 		params: ActionParamsByActionType[_Type]
 	}
 }[_ActionType]
+
+export const actionContent = type.or(
+	type({ type: "'Transfer'", params: actionTypeDefinitions[2].params }).onUndeclaredKey('reject'),
+	type({ type: "'Swap'", params: actionTypeDefinitions[0].params }).onUndeclaredKey('reject'),
+	type({ type: "'Bridge'", params: actionTypeDefinitions[1].params }).onUndeclaredKey('reject')
+)
+
+export type ActionContent = typeof actionContent.infer

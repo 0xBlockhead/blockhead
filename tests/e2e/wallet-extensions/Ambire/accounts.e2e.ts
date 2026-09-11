@@ -1,11 +1,7 @@
 import { randomBytes } from 'node:crypto'
 
 import { ambireDriver } from '../../../../scripts/wallet-extensions/Ambire/driver.ts'
-import { ambireWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Ambire/matrix.ts'
 import { createEphemeralWalletSecret } from '../../../../scripts/wallet-extensions/WalletExtensionHarness.ts'
-import {
-	runWalletCompatibilityMatrix,
-} from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import { connectWalletButtonForDriver } from '../_walletPageSelectors.ts'
 import { expect, test } from '../wallet.fixture.ts'
 
@@ -189,37 +185,4 @@ test('runs the Ambire view-only account lifecycle through Blockhead', async ({
 
 	await dashboardPage.close()
 	await walletPage.close()
-	const matrixResults = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'ambire',
-			run: async (scenario) => (
-				scenario.initializationFlow === 'recover' ?
-					{
-						outcome: 'blocked',
-						evidence: {
-							code: 'ambire-internal-account-derivation-failed',
-							source: 'real-extension',
-						},
-					}
-				:
-					{
-						accountAddress: accountAddresses[scenario.accountOrdinal - 1],
-						outcome: 'pass',
-						evidence: {
-							code: `ambire-${scenario.lifecycleEdgeCase}-verified`,
-							source: 'real-extension',
-						},
-					}
-			),
-		},
-		scenarios: ambireWalletMatrixScenarios(extension.manifest.version),
-		step: (name, run) => test.step(name, run),
-	})
-	expect(matrixResults.map(({ outcome }) => outcome)).toEqual([
-		'pass',
-		'pass',
-		'blocked',
-	])
-	expect(matrixResults.every((result) => !('accountAddress' in result))).toBe(true)
-	console.log(JSON.stringify(matrixResults, null, 2))
 })

@@ -63,6 +63,7 @@ describe('Bitcoin injected wallet adapter', () => {
 			accounts: [{
 				reference: '000000000933ea01ad0ee984209779ba',
 				accountAddress: testnetBase58P2pkh,
+				capabilities: expect.not.arrayContaining([WalletCapability.SignTransaction]),
 			}],
 		}))
 		listeners.get('networkChanged')?.('testnet')
@@ -670,12 +671,19 @@ describe('Bitcoin injected wallet adapter', () => {
 		}
 		vi.stubGlobal('window', { unisat: provider })
 		const adapter = createBitcoinInjectedAdapter()
-		adapter.start(() => {})
+		const candidateUpdates: object[][] = []
+		adapter.start((candidates) => candidateUpdates.push(candidates))
+		expect(candidateUpdates[0]).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				id: 'bitcoin:unisat',
+				capabilities: expect.not.arrayContaining([WalletCapability.SignTransaction]),
+			}),
+		]))
 
 		const connection = await adapter.connect('bitcoin:unisat')
 		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignMessage)
 		expect(connection?.scopes[0]?.methods).toContain('signMessage')
-		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignTransaction)
+		expect(connection?.accounts[0]?.capabilities).not.toContain(WalletCapability.SignTransaction)
 		expect(connection?.accounts[0]?.capabilities).not.toContain(WalletCapability.SignTypedData)
 		expect(connection?.accounts[0]?.capabilities).not.toContain(WalletCapability.SwitchScope)
 
@@ -685,6 +693,35 @@ describe('Bitcoin injected wallet adapter', () => {
 			'Sign this Bitcoin challenge'
 		)).resolves.toBe('unisat-signature')
 		expect(signMessage).toHaveBeenCalledWith('Sign this Bitcoin challenge', 'ecdsa')
+	})
+
+	it('advertises SignTransaction when UniSat provides signPsbt', async () => {
+		const provider = {
+			requestAccounts: vi.fn(async () => [mainnetWitnessV0]),
+			getAccounts: vi.fn(async () => [mainnetWitnessV0]),
+			getChain: vi.fn(async () => ({
+				enum: 'BITCOIN_MAINNET',
+				name: 'Bitcoin Mainnet',
+				network: 'livenet',
+			})),
+			signPsbt: vi.fn(),
+			on: vi.fn(),
+			removeListener: vi.fn(),
+		}
+		vi.stubGlobal('window', { unisat: provider })
+		const adapter = createBitcoinInjectedAdapter()
+		const candidateUpdates: object[][] = []
+		adapter.start((candidates) => candidateUpdates.push(candidates))
+
+		expect(candidateUpdates[0]).toEqual(expect.arrayContaining([
+			expect.objectContaining({
+				id: 'bitcoin:unisat',
+				capabilities: expect.arrayContaining([WalletCapability.SignTransaction]),
+			}),
+		]))
+		const connection = await adapter.connect('bitcoin:unisat')
+		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignTransaction)
+		expect(connection?.scopes[0]?.methods).toContain('signPsbt')
 	})
 
 	it('advertises SignMessage and signs via Sats Connect signMessage when connected', async () => {

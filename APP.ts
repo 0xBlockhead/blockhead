@@ -912,6 +912,9 @@ export enum EntityType {
 	BitTorrentTracker = "BitTorrentTracker",
 	BitTorrentTrackerScrape_Timestamp = "BitTorrentTrackerScrape_Timestamp",
 	BlockheadAccount = "BlockheadAccount",
+	BlockheadAction = "BlockheadAction",
+	BlockheadActionAuthorityRequest = "BlockheadActionAuthorityRequest",
+	BlockheadActionDispatchOccurrence = "BlockheadActionDispatchOccurrence",
 	BlockheadActionOutcome = "BlockheadActionOutcome",
 	BlockheadActionOutcome_Timestamp = "BlockheadActionOutcome_Timestamp",
 	BlockheadActionReadinessCheck = "BlockheadActionReadinessCheck",
@@ -1893,6 +1896,36 @@ export const schema = {
 				type: { primitive: "bigint" },
 			},
 			{
+				id: "BlockheadActionContent",
+				imports: [{ from: "$/actions/index.ts", names: ["actionContent"] }],
+				type: { raw: "actionContent" },
+			},
+			{
+				id: "BlockheadActionRevisionBinding",
+				imports: [{ from: "$/actions/execution.ts", names: ["actionRevisionBinding"] }],
+				type: { raw: "actionRevisionBinding" },
+			},
+			{
+				id: "BlockheadAuthorityDecision",
+				imports: [{ from: "$/actions/execution.ts", names: ["authorityDecision"] }],
+				type: { raw: "authorityDecision" },
+			},
+			{
+				id: "BlockheadAuthorityRequestEnvelope",
+				imports: [{ from: "$/actions/execution.ts", names: ["authorityRequestEnvelope"] }],
+				type: { raw: "authorityRequestEnvelope" },
+			},
+			{
+				id: "BlockheadDispatchAddress",
+				imports: [{ from: "$/actions/execution.ts", names: ["dispatchAddress"] }],
+				type: { raw: "dispatchAddress" },
+			},
+			{
+				id: "BlockheadDispatchEvidence",
+				imports: [{ from: "$/actions/execution.ts", names: ["dispatchEvidence"] }],
+				type: { raw: "dispatchEvidence" },
+			},
+			{
 				id: "boolean",
 				type: { primitive: "boolean" },
 			},
@@ -2843,6 +2876,8 @@ export const schema = {
 				"$$blockheadAccounts": { label: "blockhead accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadAccount, defaultSources: [Source.Local_Internal] },
 				"$$blockheadWalletTransportSessions": { label: "blockhead wallet transport sessions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletTransportSession },
 				"$$blockheadWalletRequests": { label: "blockhead wallet requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletRequest },
+				"$$blockheadAuthorityRequests": { label: "authority requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadActionAuthorityRequest },
+				"$$blockheadDispatchOccurrences": { label: "dispatch occurrences", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadActionDispatchOccurrence },
 				"$$blockheadWalletCapabilityGrants": { label: "blockhead wallet capability grants", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletCapabilityGrant },
 				"$$blockheadWalletAuthentications": { label: "blockhead wallet authentications", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletAuthentication },
 				"$$blockheadSessions": { label: "blockhead sessions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSession },
@@ -13166,6 +13201,109 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.BlockheadAction,
+				labels: { singular: "blockhead action", plural: "blockhead actions" },
+			})({
+				"id": { label: "ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"content": { label: "content", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "BlockheadActionContent" },
+				"contentRevisionHash": { label: "content revision hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "Hash32" },
+				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"updatedAt": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"$$sessionActions": { label: "session actions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSessionAction },
+			})({ selectors: { Id: ["id"] }, views: { singular: { query: { sources: [Source.Local_Internal], fields: ["content", "contentRevisionHash", "createdAt", "updatedAt"] }, summary: { title: ["contentRevisionHash"] }, content: { dl: [["id", "contentRevisionHash"], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }]] } }, plural: { component: "BlockheadActionsView", title: "Actions" } } }),
+
+			entity({
+				entityType: EntityType.BlockheadActionAuthorityRequest,
+				labels: {
+					singular: "authority request",
+					plural: "authority requests",
+				},
+				description: "One immutable consent envelope presented by Blockhead to one addressed authority.",
+			})({
+				"id": { label: "id", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"actionRevisionBindings": { label: "action revision bindings", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "BlockheadActionRevisionBinding" },
+				"$$sessionActions": { label: "session actions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSessionAction },
+				"$walletConnection": { label: "wallet connection", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWalletConnection },
+				"$account": { label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Account },
+				"envelope": { label: "envelope", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "BlockheadAuthorityRequestEnvelope" },
+				"envelopeHash": { label: "envelope hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "Hash32" },
+				"presentedAt": { label: "presented at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"decision": { label: "decision", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "BlockheadAuthorityDecision" },
+				"$$dispatchOccurrences": { label: "dispatch occurrences", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadActionDispatchOccurrence },
+			})({
+				selectors: {
+					"Id": ["id"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Local_Internal],
+							fields: ["presentedAt"],
+							openFields: ["decision", "envelopeHash"],
+						},
+						summary: { title: ["id"], value: ["decision"], HeadingAfter: [{ field: "presentedAt", format: "timestamp" }] },
+						closed: ["$walletConnection", "$account", "envelopeHash"],
+						content: { dl: [["id", "$walletConnection", "$account", "decision"], ["actionRevisionBindings", "envelope", "envelopeHash", { field: "presentedAt", format: "timestamp" }]] },
+						lists: [
+							{ field: "$$sessionActions", component: "BlockheadSessionActionsView", emptyText: "No session actions bound." },
+							{ field: "$$dispatchOccurrences", component: "BlockheadActionDispatchOccurrencesView", emptyText: "No dispatch occurrences recorded." },
+						],
+					},
+					plural: {
+						component: "BlockheadActionAuthorityRequestsView",
+						title: "Authority requests",
+						emptyText: "No authority requests recorded.",
+					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.BlockheadActionDispatchOccurrence,
+				labels: {
+					singular: "dispatch occurrence",
+					plural: "dispatch occurrences",
+				},
+				description: "One durable local record for one actual effectful boundary call.",
+			})({
+				"id": { label: "id", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$authorityRequest": { label: "authority request", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadActionAuthorityRequest },
+				"$walletConnection": { label: "wallet connection", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadWalletConnection },
+				"address": { label: "address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "BlockheadDispatchAddress" },
+				"startedAt": { label: "started at", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger" },
+				"localEffectFingerprint": { label: "local effect fingerprint", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "Hash32" },
+				"evidence": { label: "evidence", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "BlockheadDispatchEvidence" },
+				"$$evmTransactions": { label: "EVM transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction },
+				"$$xrplTransactions": { label: "XRPL transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XrplTransaction },
+				"$$cosmosTransactions": { label: "Cosmos transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosTransaction },
+			})({
+				selectors: {
+					"Id": ["id"],
+				},
+				views: {
+					singular: {
+						query: {
+							sources: [Source.Local_Internal],
+							fields: ["startedAt"],
+							openFields: ["localEffectFingerprint", "evidence"],
+						},
+						summary: { title: ["id"], HeadingAfter: [{ field: "startedAt", format: "timestamp" }] },
+						closed: ["$authorityRequest", "$walletConnection", "address"],
+						content: { dl: [["id", "$authorityRequest", "$walletConnection", "address"], [{ field: "startedAt", format: "timestamp" }, "localEffectFingerprint", "evidence"]] },
+						lists: [
+							{ field: "$$evmTransactions", component: "EvmTransactionsView", emptyText: "No EVM transactions recorded." },
+							{ field: "$$xrplTransactions", component: "XrplTransactionsView", emptyText: "No XRPL transactions recorded." },
+							{ field: "$$cosmosTransactions", component: "CosmosTransactionsView", emptyText: "No Cosmos transactions recorded." },
+						],
+					},
+					plural: {
+						component: "BlockheadActionDispatchOccurrencesView",
+						title: "Dispatch occurrences",
+						emptyText: "No dispatch occurrences recorded.",
+					},
+				},
+			}),
+
+			entity({
 				entityType: EntityType.BlockheadActionOutcome,
 				labels: {
 					singular: "blockhead action outcome",
@@ -17354,9 +17492,8 @@ export const schema = {
 				"actionId": { label: "action ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$session": { label: "session", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadSession },
 				"indexInSequence": { label: "index in sequence", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"actionType": { label: "action type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$action": { label: "authored action", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadAction },
 				"selectedProtocol": { label: "selected protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"actionParams": { label: "action params", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"updatedAt": { label: "Updated", description: "The time when the subject was last updated according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"$originInvocation": { label: "origin invocation", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadIntentInvocation },
@@ -17364,6 +17501,7 @@ export const schema = {
 				"$$quotes": { label: "quotes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadIntentQuote },
 				"$$orders": { label: "orders", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadIntentOrder },
 				"$$walletRequests": { label: "wallet requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadWalletRequest },
+				"$$authorityRequests": { label: "authority requests", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadActionAuthorityRequest },
 				"$$outcomes": { label: "outcomes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadActionOutcome },
 			})({
 				selectors: {
@@ -17373,14 +17511,13 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["indexInSequence", "actionType", "createdAt", "updatedAt"],
-							openFields: ["selectedProtocol", "actionParams"],
+							fields: ["indexInSequence", "selectedProtocol", "createdAt", "updatedAt"],
 						},
-						summary: { title: ["actionType"], value: ["selectedProtocol"], HeadingAfter: [{ field: "indexInSequence", format: "number" }] },
+						summary: { title: ["selectedProtocol"], value: ["indexInSequence"], HeadingAfter: [{ field: "indexInSequence", format: "number" }] },
 						closed: ["$session", "actionId", { field: "indexInSequence", format: "number" }],
 						content: {
 							dl: [
-								["$session", "actionId", { field: "indexInSequence", format: "number" }, "actionType", "selectedProtocol"],
+								["$session", "$action", "actionId", { field: "indexInSequence", format: "number" }, "selectedProtocol"],
 								[{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }, "$originInvocation"],
 							],
 						},
@@ -70419,6 +70556,48 @@ export const routes = defineRoutes(schema)({
 						},
 					],
 				},
+				"action": {
+					children: {
+						"[actionId]": {
+							selectors: {
+								[EntityType.BlockheadAction]: {
+									"Id": {
+										params: { "actionId": ["id"] },
+										page: {},
+									},
+								},
+							},
+						},
+					},
+				},
+				"authority-request": {
+					children: {
+						"[id]": {
+							selectors: {
+								[EntityType.BlockheadActionAuthorityRequest]: {
+									"Id": {
+										params: { "id": ["id"] },
+										page: false,
+									},
+								},
+							},
+						},
+					},
+				},
+				"dispatch-occurrence": {
+					children: {
+						"[id]": {
+							selectors: {
+								[EntityType.BlockheadActionDispatchOccurrence]: {
+									"Id": {
+										params: { "id": ["id"] },
+										page: false,
+									},
+								},
+							},
+						},
+					},
+				},
 				"session": {
 					children: {
 						"[sessionId]": {
@@ -70457,13 +70636,13 @@ export const routes = defineRoutes(schema)({
 																			children: {
 																				"[source]": {
 																					selectors: {
-																						[EntityType.BlockheadActionOutcome_Timestamp]: {
-																							"OutcomeTimestampMsSource": {
+																														[EntityType.BlockheadActionOutcome_Timestamp]: {
+																															"OutcomeTimestampMsSource": {
 																								params: {},
 																								derivations: { "timestampMs": { kind: "param", name: "timestampMs" }, "source": { kind: "param", name: "source" } },
 																								page: {},
 																							}
-																						}
+																														}
 																					},
 																					params: { "source": ["string"] },
 																				}

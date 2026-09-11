@@ -18,6 +18,8 @@ test('maps headed Connect chrome to Ambire request-window.html URLs', () => {
 	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/request-window.html`, extensionId), true)
 	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/request-window.html#/`, extensionId), true)
 	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/tab.html`, extensionId), false)
+	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/tab.html#/request-window.html`, extensionId), false)
+	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/request-window.html/other`, extensionId), false)
 	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://other/request-window.html`, extensionId), false)
 })
 
@@ -94,11 +96,11 @@ test('keeps proven Ambire watch-only bridges separate from blocked signer recove
 						ambireBlockedObservation(scenario)
 					:
 						{
-							accountAddress: `0xambire${scenario.accountOrdinal}`,
-							outcome: 'pass',
+							outcome: 'unsupported',
 							evidence: {
-								code: scenario.lifecycleEdgeCase,
-								source: 'unit-bridge-contract',
+								code: 'real-driver-required',
+								detail: 'Compatibility success requires the real Ambire extension driver',
+								source: 'request-construction-only',
 							},
 						}
 				),
@@ -106,8 +108,8 @@ test('keeps proven Ambire watch-only bridges separate from blocked signer recove
 			scenarios,
 		}),
 		[
-			'pass',
-			'pass',
+			'unsupported',
+			'unsupported',
 			'blocked',
 		],
 		'ambire proven bridge / blocked recovery'

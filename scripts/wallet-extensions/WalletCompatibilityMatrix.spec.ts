@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
 import { ambireWalletMatrixScenarios } from './Ambire/matrix.ts'
@@ -9,6 +10,7 @@ import { keplrWalletMatrixScenarios } from './Keplr/matrix.ts'
 import { laceWalletMatrixScenarios } from './Lace/matrix.ts'
 import { metamaskWalletMatrixScenarios } from './MetaMask/matrix.ts'
 import { petraWalletMatrixScenarios } from './Petra/matrix.ts'
+import { phantomWalletMatrixScenarios } from './Phantom/matrix.ts'
 import { polkadotJsWalletMatrixScenarios } from './PolkadotJs/matrix.ts'
 import { rabbyWalletMatrixScenarios } from './Rabby/matrix.ts'
 import { tahoWalletMatrixScenarios } from './Taho/matrix.ts'
@@ -44,6 +46,7 @@ const realWalletMatrixDefinitions = [
 	['lace', () => laceWalletMatrixScenarios('2.2.0')],
 	['metamask', () => metamaskWalletMatrixScenarios('13.41.0')],
 	['petra', () => petraWalletMatrixScenarios('2.5.0')],
+	['phantom', () => phantomWalletMatrixScenarios('public-source')],
 	['polkadot-js', () => polkadotJsWalletMatrixScenarios('0.63.1')],
 	['rabby', () => rabbyWalletMatrixScenarios('0.94.1')],
 	['taho', () => tahoWalletMatrixScenarios('0.66.0')],
@@ -69,6 +72,36 @@ test('runs every real wallet matrix through the shared denominator', async () =>
 	assert.equal(new Set(results.map(({ walletKind }) => walletKind)).size, realWalletMatrixDefinitions.length)
 	assert.equal(results.length, realWalletMatrixDefinitions.reduce((total, [, createScenarios]) => total + createScenarios().length, 0))
 	assert.ok(results.every(({ outcome }) => outcome === 'unsupported'))
+})
+
+test('enrolls every manifest wallet with an executable driver', async () => {
+	const manifest = JSON.parse(await readFile(new URL('./wallets.json', import.meta.url), 'utf8')) as Record<string, unknown>
+	const enrolled = new Set(realWalletMatrixDefinitions.map(([kind]) => kind))
+	const manifestKinds = Object.keys(manifest)
+	assert.deepEqual(
+		manifestKinds.filter((kind) => !enrolled.has(kind)),
+		[],
+		'Manifest wallet with a driver must be enrolled in the executable matrix suite'
+	)
+})
+
+test('keeps three source-faithful cells for every non-EVM extension ecosystem', () => {
+	const scenarios = realWalletMatrixDefinitions.flatMap(([, createScenarios]) => createScenarios())
+	const nonEvm = new Set([
+		WalletHarnessEcosystem.Solana,
+		WalletHarnessEcosystem.Cosmos,
+		WalletHarnessEcosystem.Aptos,
+		WalletHarnessEcosystem.Polkadot,
+		WalletHarnessEcosystem.Cardano,
+		WalletHarnessEcosystem.Ton,
+		WalletHarnessEcosystem.Starknet,
+		WalletHarnessEcosystem.Bitcoin,
+	])
+	for (const ecosystem of nonEvm) {
+		const rows = scenarios.filter((scenario) => scenario.ecosystem === ecosystem)
+		assert.ok(rows.length >= 3, `${ecosystem} denominator has fewer than three cells`)
+		assert.ok(rows.every((scenario) => scenario.chain && scenario.requestMethod && scenario.lifecycleEdgeCase))
+	}
 })
 
 test('rejects empty or duplicate matrix inputs', async () => {
@@ -123,4 +156,37 @@ test('rejects invalid outcome evidence', async () => {
 	await assert.rejects(() => run('pass'), /did not produce an account address/)
 	await assert.rejects(() => run('blocked'), /secret-free/)
 	await assert.rejects(() => run('blocked', '0xblocked-account'), /must not produce an account address/)
+})
+
+test('stops later wallet effects when a scenario driver rejects', async () => {
+	const laterScenario = {
+		...scenario,
+		id: 'petra-create-account-2',
+		accountOrdinal: 2 as const,
+	}
+	const calls: string[] = []
+	await assert.rejects(() => runWalletCompatibilityMatrix({
+		driver: {
+			kind: 'petra',
+			run: async (current) => {
+				calls.push(current.id)
+				if (current.id === scenario.id)
+					throw new Error('driver rejection')
+				return {
+					accountAddress: '0x2222',
+					outcome: 'pass' as const,
+					evidence: { code: 'must-not-run' },
+				}
+			},
+		},
+		scenarios: [scenario, laterScenario],
+		step: async (name, run) => {
+			calls.push(`step:${name}`)
+			return run()
+		},
+	}), /driver rejection/)
+	assert.deepEqual(calls, [
+		`step:${scenario.id}`,
+		scenario.id,
+	])
 })

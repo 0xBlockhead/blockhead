@@ -6,6 +6,7 @@ import {
 	walletConnectionMethods,
 	walletProtocols,
 } from '$/constants/Wallet.ts'
+import { stringify } from 'devalue'
 import {
 	Caip2Namespace,
 	Caip2Reference,
@@ -21,14 +22,27 @@ import {
 	writeLocalBlockheadWalletRequest,
 	writeLocalBlockheadWalletRequest_Timestamp,
 	writeLocalBlockheadWalletRequestSubmittedAt,
+	writeLocalBlockheadActionAuthorityRequest,
+	writeLocalBlockheadActionAuthorityDecision,
+	writeLocalBlockheadActionDispatchOccurrenceStart,
+	writeLocalBlockheadActionDispatchEvidence,
 } from '$/collections/localMutations.ts'
 import {
+	actionAuthorityRequestEnvelopeHash,
+	authorityRequestEnvelope,
+	dispatchEvidence,
+	dispatchAddress,
+} from '$/actions/execution.ts'
+import {
 	EntityMetaKey,
+	entityFieldAddressKey,
+	entitySelectorKey,
 	type EntitySelector,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import type { schema } from '$/schema/index.ts'
+import { entityDefinitionByType, schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { SvelteMap, SvelteSet } from 'svelte/reactivity'
 import { createAptosAip62Adapter } from './adapters/aptosAip62.ts'
 import { createAptosInjectedAdapter } from './adapters/aptosInjected.ts'
@@ -37,12 +51,24 @@ import { createCardanoCip30Adapter } from './adapters/cardanoCip30.ts'
 import { createCosmosOfflineSignerAdapter } from './adapters/cosmosOfflineSigner.ts'
 import { createEip6963Adapter } from './adapters/eip6963.ts'
 import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWeb3.ts'
+import { createXrplXamanAdapter } from './adapters/xrplXaman.ts'
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
 import { createTonConnectAdapter } from './adapters/tonConnect.ts'
 import { createTronInjectedAdapter } from './adapters/tronInjected.ts'
-import type { WalletAccount, WalletAdapter, WalletCandidate, WalletConnection, WalletTypedData } from './adapters/types.ts'
 import {
-	applyWalletConnectionSelection,
+	isWalletAdapterPreDispatchFailure,
+	isWalletAdapterProviderRejection,
+	isWalletAdapterResponseAuditFailure,
+	type WalletAccount,
+	type WalletAdapter,
+	type WalletCandidate,
+	type WalletConnection,
+	type WalletTonInternalMessages,
+	type WalletStarknetTypedData,
+	type WalletTypedData,
+	type WalletXrplTransactionRequest,
+} from './adapters/types.ts'
+import {
 	buildWalletConnection,
 	disconnectWalletConnection,
 	isSelectedWalletConnection,
@@ -60,10 +86,16 @@ import {
 	type PreparedWalletRequestRejectionObservation,
 } from './preparedWalletRequestRejection.ts'
 import { createWalletStandardAdapter } from './adapters/walletStandard.ts'
+import { createSuiWalletStandardAdapter } from './adapters/suiWalletStandard.ts'
 import {
 	createWalletConnectV2Adapter,
 	walletConnectV2ClientFromSignClient,
 } from './adapters/walletConnectV2.ts'
+import {
+	createWalletConnectApplicationConsumer,
+	type WalletConnectApplicationConsumer,
+} from './walletConnectApplicationConsumer.ts'
+import type { TauriWalletLinkHost } from './tauriWalletLink.ts'
 import { browser } from '$app/environment'
 import { env } from '$env/dynamic/public'
 
@@ -73,13 +105,30 @@ type WalletRuntime = {
 	registerAdapter(adapter: WalletAdapter): void
 	connect(walletId: string): Promise<void>
 	reconnect(walletId: string): Promise<void>
-	signMessage(connectionKey: string, message: string): Promise<{
+	openWalletConnectApplication(walletConnectUri: string): Promise<void>
+	signMessage(input: WalletMessageSignInput): Promise<{
 		accountAddress: string
 		signature: string
+	}>
+	signTonInternalMessages(input: WalletTonInternalMessageSignInput): Promise<{
+		accountAddress: string
+		internalBoc: string
 	}>
 	signTypedData(connectionKey: string, typedData: WalletTypedData): Promise<{
 		accountAddress: string
 		signature: string
+	}>
+	signXrplTransaction(connectionKey: string, request: WalletXrplTransactionRequest): Promise<{
+		accountAddress: string
+		signature: string
+	}>
+	signStarknetTypedData(
+		connectionKey: string,
+		typedData: WalletStarknetTypedData,
+		apiVersion?: string
+	): Promise<{
+		accountAddress: string
+		signature: string[]
 	}>
 	switchScope(
 		connectionKey: string,
@@ -95,8 +144,26 @@ type WalletRuntime = {
 	): Promise<void>
 	disconnect(connectionKey: string): Promise<void>
 	remove(connectionKey: string): Promise<void>
-	selectAccount(connectionKey: string, account: WalletAccount): void
+	selectAccount(connectionKey: string, account: WalletAccount): Promise<void>
 	destroy(): void
+}
+
+export type WalletMessageSignInput = {
+	connectionKey: string
+	message: string
+	authorityPresentation: {
+		submittedAt: number
+		validUntil?: number
+	}
+}
+
+export type WalletTonInternalMessageSignInput = {
+	connectionKey: string
+	request: WalletTonInternalMessages
+	authorityPresentation: {
+		submittedAt: number
+		validUntil?: number
+	}
 }
 
 const blockheadWalletConnectionsSelector = {
@@ -110,12 +177,83 @@ const hashWalletEvidence = async (value: string) => (
 	))].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`)
 )
 
+const snapshotTonInternalMessages = (
+	request: WalletTonInternalMessages
+): WalletTonInternalMessages => {
+	const snapshotMessage = (message: WalletTonInternalMessages['messages'][number]) => ({
+		address: message.address,
+		amount: message.amount,
+		...(message.payload !== undefined && { payload: message.payload }),
+		...(message.stateInit !== undefined && { stateInit: message.stateInit }),
+		...(message.extra_currency !== undefined && {
+			extra_currency: Object.fromEntries(
+				Object.entries(message.extra_currency).sort(
+					([left], [right]) => left.localeCompare(right)
+				)
+			),
+		}),
+	})
+	const [firstMessage, ...remainingMessages] = request.messages
+	return {
+		network: request.network,
+		from: request.from,
+		...(request.valid_until !== undefined && { valid_until: request.valid_until }),
+		messages: [
+			snapshotMessage(firstMessage),
+			...remainingMessages.map(snapshotMessage),
+		],
+	}
+}
+
+const walletConnectionIdentity = (connection: WalletConnection) => ({
+	connectionKey: connection.connectionKey,
+	walletId: connection.walletId,
+	protocol: connection.protocol,
+	transportKind: connection.transportKind,
+	scopes: connection.scopes.map((scope) => ({
+		namespace: scope.namespace,
+		reference: scope.reference,
+		methods: [...scope.methods],
+		events: [...scope.events],
+	})),
+	sessionId: connection.sessionId,
+	sessionTopic: connection.sessionTopic,
+})
+
+const sameWalletConnectionIdentity = (
+	left: WalletConnection,
+	right: WalletConnection
+) => stringify(walletConnectionIdentity(left)) === stringify(walletConnectionIdentity(right))
+
+const sameWalletAccountAuthority = (
+	left: WalletAccount,
+	right: WalletAccount
+) => stringify({
+	namespace: left.namespace,
+	reference: left.reference,
+	accountAddress: left.accountAddress,
+	capabilities: [...left.capabilities],
+}) === stringify({
+	namespace: right.namespace,
+	reference: right.reference,
+	accountAddress: right.accountAddress,
+	capabilities: [...right.capabilities],
+})
+
 const createWalletRuntimeState = (
-	context: LocalMutationContext & Pick<ClientContext<typeof schema>, 'select'>
+	context: LocalMutationContext & Pick<ClientContext<typeof schema>, 'select'>,
+	{
+		onDestroy,
+		openWalletConnectApplication,
+	}: {
+		onDestroy?: () => void
+		openWalletConnectApplication(walletConnectUri: string): Promise<void>
+	}
 ): WalletRuntime => {
 	const cleanupByConnectionKey = new SvelteMap<string, () => void>()
 	const connectionAttemptByConnectionKey = new SvelteMap<string, number>()
 	const adapterByWalletId = new SvelteMap<string, WalletAdapter>()
+	const adapterRegistrationEpochByWalletId = new SvelteMap<string, number>()
 	const registeredAdapterIds = new SvelteSet<string>()
 	const adapterCleanups: (() => void)[] = []
 	const candidatesByAdapterId = new SvelteMap<string, WalletCandidate[]>()
@@ -123,6 +261,30 @@ const createWalletRuntimeState = (
 	let candidates = $state<WalletCandidate[]>([])
 	let connections = $state<WalletConnection[]>([])
 	const runtimeMutatedConnectionKeys = new SvelteSet<string>()
+	const preserveAdapterSelection = (
+		previous: WalletConnection | undefined,
+		next: WalletConnection
+	) => {
+		const previousActiveAccount = previous?.activeAccount
+		// Polkadot publishes an account list, not the product's selected account.
+		const refreshedActiveAccount = previousActiveAccount != null
+			&& next.status === BlockheadConnectionStatus.Connected
+			&& next.protocol === WalletProtocol.PolkadotInjectedWeb3 ?
+				next.accounts.find((account) => (
+					account.namespace === previousActiveAccount.namespace
+					&& account.reference === previousActiveAccount.reference
+					&& account.accountAddress === previousActiveAccount.accountAddress
+				))
+			:
+				undefined
+		return preserveWalletConnectionSelection(
+			previous,
+			refreshedActiveAccount == null ? next : {
+				...next,
+				activeAccount: refreshedActiveAccount,
+			}
+		)
+	}
 
 	const upsertConnection = async (
 		connection: WalletConnection,
@@ -211,14 +373,12 @@ const createWalletRuntimeState = (
 					const previous = connections.find((candidate) => (
 						walletConnectionKey(candidate) === connectionKey
 					))
+					const next = buildWalletConnection({
+						...nextConnection,
+						connectionKey,
+					})
 					void upsertConnection(
-						preserveWalletConnectionSelection(
-							previous,
-							buildWalletConnection({
-								...nextConnection,
-								connectionKey,
-							})
-						)
+						preserveAdapterSelection(previous, next)
 					)
 				},
 				connection.connectionKey
@@ -243,11 +403,32 @@ const createWalletRuntimeState = (
 							`Wallet adapter ${adapter.id} candidate ${candidate.id} has no connection method for ${candidate.protocol}/${candidate.discoveryKind}/${candidate.transportKind}`
 						)
 
+				const previousCandidateIds = new Set(
+					candidatesByAdapterId.get(adapter.id)?.map((candidate) => candidate.id)
+				)
 				candidatesByAdapterId.set(adapter.id, nextCandidates)
+				for (const candidateId of previousCandidateIds) {
+					if (
+						!nextCandidates.some((candidate) => candidate.id === candidateId)
+						&& adapterByWalletId.get(candidateId) === adapter
+					) {
+						adapterByWalletId.delete(candidateId)
+						adapterRegistrationEpochByWalletId.set(
+							candidateId,
+							(adapterRegistrationEpochByWalletId.get(candidateId) ?? 0) + 1
+						)
+					}
+				}
 
 				for (const candidate of nextCandidates) {
 					const newlyAvailable = !adapterByWalletId.has(candidate.id)
-					adapterByWalletId.set(candidate.id, adapter)
+					if (adapterByWalletId.get(candidate.id) !== adapter) {
+						adapterByWalletId.set(candidate.id, adapter)
+						adapterRegistrationEpochByWalletId.set(
+							candidate.id,
+							(adapterRegistrationEpochByWalletId.get(candidate.id) ?? 0) + 1
+						)
+					}
 					if (newlyAvailable) {
 						writeLocalBlockheadWallet(context, candidate)
 						for (const connection of connections)
@@ -262,8 +443,13 @@ const createWalletRuntimeState = (
 		catch (error) {
 			candidatesByAdapterId.delete(adapter.id)
 			for (const [walletId, registeredAdapter] of adapterByWalletId)
-				if (registeredAdapter === adapter)
+				if (registeredAdapter === adapter) {
 					adapterByWalletId.delete(walletId)
+					adapterRegistrationEpochByWalletId.set(
+						walletId,
+						(adapterRegistrationEpochByWalletId.get(walletId) ?? 0) + 1
+					)
+				}
 			candidates = [...candidatesByAdapterId.values()].flat()
 			throw error
 		}
@@ -273,6 +459,7 @@ const createWalletRuntimeState = (
 
 	registerAdapter(createEip6963Adapter())
 	registerAdapter(createWalletStandardAdapter())
+	registerAdapter(createSuiWalletStandardAdapter())
 	registerAdapter(createAptosAip62Adapter())
 	registerAdapter(createAptosInjectedAdapter())
 	registerAdapter(createCardanoCip30Adapter())
@@ -287,6 +474,7 @@ const createWalletRuntimeState = (
 	registerAdapter(createTronInjectedAdapter())
 	registerAdapter(createStarknetWalletApiAdapter())
 	registerAdapter(createPolkadotInjectedWeb3Adapter())
+	registerAdapter(createXrplXamanAdapter())
 
 	void context.select(
 		EntityType._Global,
@@ -436,6 +624,14 @@ const createWalletRuntimeState = (
 	const connect = async (walletId: string) => {
 		const adapter = adapterByWalletId.get(walletId)
 		if (adapter == null) return
+		const adapterRegistrationEpoch = adapterRegistrationEpochByWalletId.get(walletId)
+		if (adapterRegistrationEpoch === undefined)
+			return
+
+		const isCurrentAdapterRegistration = () => (
+			adapterByWalletId.get(walletId) === adapter
+			&& adapterRegistrationEpochByWalletId.get(walletId) === adapterRegistrationEpoch
+		)
 		if (connections.some((connection) => (
 			connection.walletId === walletId
 			&& connection.status === BlockheadConnectionStatus.Connecting
@@ -455,8 +651,19 @@ const createWalletRuntimeState = (
 
 		try {
 			const connection = await adapter.connect(walletId)
+			if (
+				connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt
+				|| !isCurrentAdapterRegistration()
+			)
+				return
+
 			await connectingPersistence
-			if (connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt) return
+			if (
+				connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt
+				|| !isCurrentAdapterRegistration()
+			)
+				return
+
 			if (connection == null) {
 				await upsertConnection(buildWalletConnection({
 					walletId,
@@ -471,37 +678,50 @@ const createWalletRuntimeState = (
 			}
 
 			const connectionKey = walletConnectionKey(connection)
-			connectionAttemptByConnectionKey.delete(walletId)
 			cleanupByConnectionKey.get(connectionKey)?.()
-			cleanupByConnectionKey.set(
-				connectionKey,
-				adapter.subscribeConnection(
-					walletId,
-					(nextConnection) => {
-						const previous = connections.find((candidate) => (
-							walletConnectionKey(candidate) === connectionKey
-						))
-						void upsertConnection(
-							preserveWalletConnectionSelection(
-								previous,
-								buildWalletConnection({
-									...nextConnection,
-									connectionKey,
-								})
-							)
+			const cleanup = adapter.subscribeConnection(
+				walletId,
+				(nextConnection) => {
+					const previous = connections.find((candidate) => (
+						walletConnectionKey(candidate) === connectionKey
+					))
+					void upsertConnection(
+						preserveAdapterSelection(
+							previous,
+							buildWalletConnection({
+								...nextConnection,
+								connectionKey,
+							})
 						)
-					},
-					connectionKey
-				)
+					)
+				},
+				connectionKey
 			)
+			if (
+				connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt
+				|| !isCurrentAdapterRegistration()
+			) {
+				cleanup()
+				return
+			}
+			cleanupByConnectionKey.set(connectionKey, cleanup)
+			connectionAttemptByConnectionKey.delete(walletId)
 			await upsertConnection(buildWalletConnection({
 				...connection,
 				connectionKey,
 			}), walletId)
+			if (!isCurrentAdapterRegistration())
+				return
+
 		}
 		catch (error) {
 			await connectingPersistence
-			if (connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt) return
+			if (
+				connectionAttemptByConnectionKey.get(walletId) !== connectionAttempt
+				|| !isCurrentAdapterRegistration()
+			)
+				return
+
 			await upsertConnection(buildWalletConnection({
 				walletId,
 				status: BlockheadConnectionStatus.Error,
@@ -525,11 +745,22 @@ const createWalletRuntimeState = (
 
 		runtimeMutatedConnectionKeys.add(connectionKey)
 		const { walletId } = connection
+		const adapter = adapterByWalletId.get(walletId)
+		const adapterRegistrationEpoch = adapterRegistrationEpochByWalletId.get(walletId)
+		const isCurrentAdapterRegistration = () => adapter == null || (
+			adapterRegistrationEpoch !== undefined
+			&& adapterByWalletId.get(walletId) === adapter
+			&& adapterRegistrationEpochByWalletId.get(walletId) === adapterRegistrationEpoch
+		)
 		connectionAttemptByConnectionKey.set(
 			connectionKey,
 			(connectionAttemptByConnectionKey.get(connectionKey) ?? 0) + 1
-		)
-		await adapterByWalletId.get(walletId)?.disconnect(walletId, connectionKey)
+			)
+			await adapter?.disconnect(walletId, connectionKey)
+			if (!isCurrentAdapterRegistration())
+				return
+
+
 		cleanupByConnectionKey.get(connectionKey)?.()
 		cleanupByConnectionKey.delete(connectionKey)
 		const disconnected = disconnectWalletConnection(connection)
@@ -555,6 +786,13 @@ const createWalletRuntimeState = (
 		if (connection == null) return
 
 		runtimeMutatedConnectionKeys.add(connectionKey)
+		const adapter = adapterByWalletId.get(connection.walletId)
+		const adapterRegistrationEpoch = adapterRegistrationEpochByWalletId.get(connection.walletId)
+		const isCurrentAdapterRegistration = () => adapter == null || (
+			adapterRegistrationEpoch !== undefined
+			&& adapterByWalletId.get(connection.walletId) === adapter
+			&& adapterRegistrationEpochByWalletId.get(connection.walletId) === adapterRegistrationEpoch
+		)
 		connectionAttemptByConnectionKey.set(
 			connectionKey,
 			(connectionAttemptByConnectionKey.get(connectionKey) ?? 0) + 1
@@ -562,30 +800,63 @@ const createWalletRuntimeState = (
 		cleanupByConnectionKey.get(connectionKey)?.()
 		cleanupByConnectionKey.delete(connectionKey)
 		try {
-			await adapterByWalletId.get(connection.walletId)?.disconnect(connection.walletId, connectionKey)
+			await adapter?.disconnect(connection.walletId, connectionKey)
 		}
 		catch {}
+		if (!isCurrentAdapterRegistration())
+			return
+
 		await deleteLocalBlockheadWalletConnection(context, connectionKey)
 		connections = connections.filter((candidate) => (
 			walletConnectionKey(candidate) !== connectionKey
 		))
 	}
 
-	const signMessage = async (
-		connectionKey: string,
-		message: string
-	) => {
+	const signMessage = async (input: WalletMessageSignInput) => {
+		const requestInput = $state.snapshot(input)
+		const validationClock = Date.now()
+		const { connectionKey, message, authorityPresentation } = requestInput
+		if (
+			!Number.isFinite(authorityPresentation.submittedAt)
+			|| !Number.isSafeInteger(authorityPresentation.submittedAt)
+			|| authorityPresentation.submittedAt < 0
+			|| authorityPresentation.submittedAt > validationClock
+			|| (
+				authorityPresentation.validUntil !== undefined
+				&& (
+					!Number.isFinite(authorityPresentation.validUntil)
+					|| !Number.isSafeInteger(authorityPresentation.validUntil)
+					|| authorityPresentation.validUntil < authorityPresentation.submittedAt
+				)
+			)
+		)
+			throw new Error('Wallet signing requires a valid authority presentation time range.')
+		if (authorityPresentation.validUntil !== undefined && validationClock > authorityPresentation.validUntil)
+			throw new Error('Wallet authority presentation expired before history creation.')
 		const selection = resolveWalletPrepSelection(connections)
 		if (!selection.ready)
 			throw new Error(selection.error)
 		if (selection.connectionKey !== connectionKey)
 			throw new Error('Wallet request connectionKey does not match the selected wallet connection.')
 
-		const { account, connection } = selection
-		if (!account.capabilities.includes(WalletCapability.SignMessage))
+		const snapshot = Object.freeze({
+			connectionKey,
+			account: $state.snapshot(selection.account),
+			connection: $state.snapshot(selection.connection),
+			message,
+			authorityPresentation,
+		})
+		if (!snapshot.account.capabilities.includes(WalletCapability.SignMessage))
 			throw new Error('Selected wallet account does not authorize message signing')
 
-		const sign = adapterByWalletId.get(connection.walletId)?.signMessage
+		const adapter = adapterByWalletId.get(snapshot.connection.walletId)
+		const adapterRegistrationEpoch = adapterRegistrationEpochByWalletId.get(snapshot.connection.walletId)
+		const adapterSignMessage = adapter?.signMessage
+		const adapterDispatch = Object.freeze({
+			adapter,
+			signMessage: adapterSignMessage?.bind(adapter),
+		})
+		const sign = adapterDispatch.signMessage
 		if (sign == null)
 			throw new Error('Connected wallet does not expose executable message signing')
 
@@ -594,54 +865,246 @@ const createWalletRuntimeState = (
 		} as const satisfies EntitySelector<typeof schema, EntityType.BlockheadWalletRequest>
 		const accountSelector = {
 			caip10: {
-				namespace: account.namespace,
-				reference: account.reference,
-				accountAddress: account.accountAddress,
+				namespace: snapshot.account.namespace,
+				reference: snapshot.account.reference,
+				accountAddress: snapshot.account.accountAddress,
 			},
 		} as const satisfies EntitySelector<typeof schema, EntityType.Account>
-		const requestedAt = Date.now()
+		const requestedAt = snapshot.authorityPresentation.submittedAt
 		const requestMethod = (
-			account.namespace === 'eip155' ?
+			snapshot.account.namespace === 'eip155' ?
 				'personal_sign'
-			: account.namespace === 'solana' ?
+			: snapshot.account.namespace === 'solana' ?
 				'solana:signMessage'
-			: account.namespace === 'aptos' ?
+			: snapshot.account.namespace === 'sui' ?
+				'sui:signPersonalMessage'
+			: snapshot.account.namespace === 'aptos' ?
 				'aptos:signMessage'
+			: snapshot.account.namespace === 'bip122' ?
+				'signMessage'
+			: snapshot.account.namespace === 'cip34' ?
+				'signData'
+			: snapshot.account.namespace === 'cosmos' ?
+				'signArbitrary'
+			: snapshot.account.namespace === 'tron' ?
+				'personal_sign'
 			:
-				`${account.namespace}:signMessage`
+				undefined
 		)
+		if (requestMethod === undefined)
+			throw new Error('Selected wallet account has no authority-compatible message signing method')
+		const envelope = authorityRequestEnvelope.assert(
+			snapshot.account.namespace === 'eip155' ?
+				{
+					adapterKey: 'evm.personal-sign',
+					adapterVersion: '1',
+					value: {
+						chainId: Number(snapshot.account.reference),
+						accountAddress: snapshot.account.accountAddress,
+						message: snapshot.message,
+					},
+				}
+			:
+				{
+					adapterKey: 'wallet.message-sign',
+					adapterVersion: '1',
+					value: snapshot.account.namespace === 'cosmos' ?
+						{
+							namespace: snapshot.account.namespace,
+							method: requestMethod,
+							chainId: snapshot.account.reference,
+							accountAddress: snapshot.account.accountAddress,
+							message: snapshot.message,
+						}
+					:
+						{
+							namespace: snapshot.account.namespace,
+							method: requestMethod,
+							accountAddress: snapshot.account.accountAddress,
+							message: snapshot.message,
+						},
+				}
+		)
+		const requestPayload = JSON.stringify({
+			version: 1,
+			method: requestMethod,
+			account: accountSelector.caip10,
+			message: snapshot.message,
+		})
+		const authorityRequestSelector = {
+			id: `authority-request-${globalThis.crypto.randomUUID()}`,
+		} as const satisfies EntitySelector<typeof schema, EntityType.BlockheadActionAuthorityRequest>
+		const occurrenceSelector = {
+			id: `dispatch-occurrence-${globalThis.crypto.randomUUID()}`,
+		} as const satisfies EntitySelector<typeof schema, EntityType.BlockheadActionDispatchOccurrence>
+		const occurrenceAddress = dispatchAddress.assert({
+			kind: 'wallet-connection',
+			connectionKey: snapshot.connectionKey,
+			method: requestMethod,
+		})
+		const assertAuthorityStillSelected = () => {
+			const currentAdapter = adapterByWalletId.get(snapshot.connection.walletId)
+			if (
+				currentAdapter !== adapterDispatch.adapter
+				|| adapterRegistrationEpochByWalletId.get(snapshot.connection.walletId) !== adapterRegistrationEpoch
+				|| currentAdapter?.signMessage !== adapterSignMessage
+			)
+				throw new Error('Wallet adapter registration changed before dispatch.')
+			if (
+				snapshot.authorityPresentation.validUntil !== undefined
+				&& Date.now() > snapshot.authorityPresentation.validUntil
+			)
+				throw new Error('Wallet authority presentation expired before dispatch.')
+			const currentSelection = resolveWalletPrepSelection(connections)
+			if (
+				!currentSelection.ready
+				|| currentSelection.connectionKey !== snapshot.connectionKey
+				|| !sameWalletConnectionIdentity(currentSelection.connection, snapshot.connection)
+				|| !sameWalletAccountAuthority(currentSelection.account, snapshot.account)
+			)
+				throw new Error('Wallet authority changed before dispatch.')
+		}
+		const authorityRequestSelectorKey = entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadActionAuthorityRequest],
+			authorityRequestSelector
+		)
+		const localAuthorityRows = (fieldName: string) => (
+			context.entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][
+				entityFieldAddressKey(EntityType.BlockheadActionAuthorityRequest, [], fieldName)
+			].toArray.filter((row) => (
+				row[EntityMetaKey.Source] === Source.Local_Internal
+				&& row[EntityMetaKey.ParentSelectorKey] === authorityRequestSelectorKey
+			))
+		)
+		const persistedAccountReferenceKey = `Entity:${entitySelectorKey(schema, entityDefinitionByType[EntityType.Account], accountSelector)}`
+		const assertPersistedAuthority = () => {
+			assertAuthorityStillSelected()
+			const exactPrimitive = (fieldName: string, expected: JsonValue) => {
+				const rows = localAuthorityRows(fieldName)
+				if (rows.length !== 1 || stringify(rows[0][EntityMetaKey.Value]) !== stringify(expected))
+					throw new Error(`Persisted wallet authority ${fieldName} changed before dispatch.`)
+			}
+			exactPrimitive('envelope', envelope)
+			exactPrimitive('envelopeHash', actionAuthorityRequestEnvelopeHash(envelope))
+			if (localAuthorityRows('actionRevisionBindings').length !== 0)
+				throw new Error('Persisted wallet authority gained an action revision before dispatch.')
+			if (localAuthorityRows('$$sessionActions').length !== 0)
+				throw new Error('Persisted wallet authority gained an authored action before dispatch.')
+			const accountRows = localAuthorityRows('$account')
+			if (
+				accountRows.length !== 1
+				|| accountRows[0].valueKey !== persistedAccountReferenceKey
+			)
+				throw new Error('Persisted wallet authority account changed before dispatch.')
+			if (localAuthorityRows('decision').length !== 0)
+				throw new Error('Wallet authority request was decided without dispatch.')
+		}
+		const requestPayloadHash = await hashWalletEvidence(requestPayload)
+		assertAuthorityStillSelected()
+		await writeLocalBlockheadActionAuthorityRequest(context, {
+			id: authorityRequestSelector.id,
+			actionRevisionBindings: [],
+			sessionActions: [],
+			account: accountSelector,
+			envelope,
+			envelopeHash: actionAuthorityRequestEnvelopeHash(envelope),
+			presentedAt: snapshot.authorityPresentation.submittedAt,
+		})
+		const validateBeforeOccurrence = () => {
+			try {
+				assertPersistedAuthority()
+			}
+			catch (error) {
+				if (localAuthorityRows('decision').length !== 0)
+					throw error
+				return writeLocalBlockheadActionAuthorityDecision(context, authorityRequestSelector, {
+					kind: 'prepared-without-dispatch',
+					decidedAt: Date.now(),
+				}).then(() => Promise.reject(error))
+			}
+		}
+		const authorityRequestFailure = validateBeforeOccurrence()
+		if (authorityRequestFailure !== undefined)
+			await authorityRequestFailure
 		await writeLocalBlockheadWalletRequest(context, {
 			id: walletRequestSelector.id,
 			walletConnection: {
-				connectionKey,
+				connectionKey: snapshot.connectionKey,
 			},
 			account: accountSelector,
 			requestKind: 'message-signature',
 			requestMethod,
-			requestPayloadHash: await hashWalletEvidence(JSON.stringify({
-				version: 1,
-				method: requestMethod,
-				account: accountSelector.caip10,
-				message,
-			})),
+			requestPayloadHash,
 			requestedAt,
-		}, connections)
+		}, [snapshot.connection])
+		const walletRequestFailure = validateBeforeOccurrence()
+		if (walletRequestFailure !== undefined)
+			await walletRequestFailure
 		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
 			timestampMs: requestedAt,
 			source: Source.Local_Internal,
 			status: 'requested',
 		})
+		const walletTimestampFailure = validateBeforeOccurrence()
+		if (walletTimestampFailure !== undefined)
+			await walletTimestampFailure
+		assertPersistedAuthority()
+		const occurrenceStartedAt = Date.now()
+		await writeLocalBlockheadActionDispatchOccurrenceStart(context, {
+			id: occurrenceSelector.id,
+			authorityRequest: authorityRequestSelector,
+			walletConnection: { connectionKey: snapshot.connectionKey },
+			address: occurrenceAddress,
+			startedAt: occurrenceStartedAt,
+		})
+		try {
+			assertPersistedAuthority()
+		}
+		catch (error) {
+			await writeLocalBlockheadActionDispatchEvidence(context, occurrenceSelector, {
+				kind: 'pre-dispatch-failure',
+				error: error instanceof Error ? error.message : 'Wallet authority changed before provider invocation.',
+			})
+			throw error
+		}
 
 		let signature: string
 		try {
 			signature = await sign(
-				connection.walletId,
-				account.accountAddress,
-				message,
-				connectionKey
+				snapshot.connection.walletId,
+				snapshot.account.accountAddress,
+				snapshot.message,
+				snapshot.connectionKey
 			)
 		}
 		catch (error) {
+			const adapterError = Object(error)
+			const errorMessage = error instanceof Error && error.message.length > 0 ? error.message : 'Wallet signing request failed'
+			const dispatchFailureEvidence = isWalletAdapterPreDispatchFailure(adapterError) ?
+				dispatchEvidence.assert({
+					kind: 'pre-dispatch-failure',
+					error: errorMessage,
+				})
+			: isWalletAdapterResponseAuditFailure(adapterError) ?
+				dispatchEvidence.assert({
+					kind: 'response-audit-failure',
+					returnedValueHash: await hashWalletEvidence(stringify(adapterError.returnedValue)),
+					returnedValueCount: Array.isArray(adapterError.returnedValue) ? adapterError.returnedValue.length : 1,
+					error: errorMessage,
+				})
+			: isWalletAdapterProviderRejection(adapterError) ?
+				dispatchEvidence.assert({
+					kind: 'definite-rejection',
+					error: errorMessage,
+				})
+			:
+				dispatchEvidence.assert({
+					kind: 'ambiguous',
+					reason: 'response-unreadable',
+					error: errorMessage,
+				})
+			await writeLocalBlockheadActionDispatchEvidence(context, occurrenceSelector, dispatchFailureEvidence)
 			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
 				timestampMs: Math.max(Date.now(), requestedAt + 1),
 				source: Source.Local_Internal,
@@ -660,6 +1123,27 @@ const createWalletRuntimeState = (
 			})
 			throw error
 		})
+		const returnedEvidence = dispatchEvidence.assert(structuredClone(
+			snapshot.account.namespace === 'eip155' ? {
+				kind: 'returned',
+				response: {
+					adapterKey: 'evm.signature',
+					adapterVersion: '1',
+					value: { signatureHash },
+				},
+			} : {
+				kind: 'returned',
+				response: {
+					adapterKey: 'wallet.signature',
+					adapterVersion: '1',
+					value: {
+						namespace: snapshot.account.namespace,
+						signatureHash,
+					},
+				},
+			}
+		))
+		await writeLocalBlockheadActionDispatchEvidence(context, occurrenceSelector, returnedEvidence)
 
 		const submittedAt = Math.max(Date.now(), requestedAt + 1)
 		try {
@@ -690,8 +1174,329 @@ const createWalletRuntimeState = (
 		}
 
 		return {
-			accountAddress: account.accountAddress,
+			accountAddress: snapshot.account.accountAddress,
 			signature,
+		}
+	}
+
+	const signTonInternalMessages = async (
+		input: WalletTonInternalMessageSignInput
+	) => {
+		const requestInput = $state.snapshot(input)
+		const validationClock = Date.now()
+		const {
+			connectionKey,
+			authorityPresentation,
+		} = requestInput
+		if (
+			!Number.isFinite(authorityPresentation.submittedAt)
+			|| !Number.isSafeInteger(authorityPresentation.submittedAt)
+			|| authorityPresentation.submittedAt < 0
+			|| authorityPresentation.submittedAt > validationClock
+			|| (
+				authorityPresentation.validUntil !== undefined
+				&& (
+					!Number.isFinite(authorityPresentation.validUntil)
+					|| !Number.isSafeInteger(authorityPresentation.validUntil)
+					|| authorityPresentation.validUntil < authorityPresentation.submittedAt
+				)
+			)
+		)
+			throw new Error('Wallet signing requires a valid authority presentation time range.')
+		if (
+			authorityPresentation.validUntil !== undefined
+			&& validationClock > authorityPresentation.validUntil
+		)
+			throw new Error('Wallet authority presentation expired before history creation.')
+		const selection = resolveWalletPrepSelection(connections)
+		if (!selection.ready)
+			throw new Error(selection.error)
+		if (selection.connectionKey !== connectionKey)
+			throw new Error('Wallet request connectionKey does not match the selected wallet connection.')
+		if (
+			selection.account.namespace !== 'ton'
+			|| !selection.account.capabilities.includes(WalletCapability.SignTransaction)
+		)
+			throw new Error('Selected wallet account does not authorize TON internal-message signing')
+
+		const snapshot = Object.freeze({
+			connectionKey,
+			account: $state.snapshot(selection.account),
+			connection: $state.snapshot(selection.connection),
+			request: snapshotTonInternalMessages(requestInput.request),
+			authorityPresentation: structuredClone(authorityPresentation),
+		})
+		const adapter = adapterByWalletId.get(snapshot.connection.walletId)
+		const adapterRegistrationEpoch = adapterRegistrationEpochByWalletId.get(
+			snapshot.connection.walletId
+		)
+		const adapterSignTonInternalMessages = adapter?.signTonInternalMessages
+		const sign = adapterSignTonInternalMessages?.bind(adapter)
+		if (sign == null)
+			throw new Error('Connected wallet does not expose executable TON internal-message signing')
+
+		const walletRequestSelector = {
+			id: `wallet-request-${globalThis.crypto.randomUUID()}`,
+		} as const satisfies EntitySelector<typeof schema, EntityType.BlockheadWalletRequest>
+		const accountSelector = {
+			caip10: {
+				namespace: snapshot.account.namespace,
+				reference: snapshot.account.reference,
+				accountAddress: snapshot.account.accountAddress,
+			},
+		} as const satisfies EntitySelector<typeof schema, EntityType.Account>
+		const envelope = authorityRequestEnvelope.assert({
+			adapterKey: 'ton.internal-message-sign',
+			adapterVersion: '1',
+			value: {
+				namespace: 'ton',
+				reference: snapshot.account.reference,
+				accountAddress: snapshot.account.accountAddress,
+				method: 'signMessage',
+				network: snapshot.request.network,
+				from: snapshot.request.from,
+				...(snapshot.request.valid_until !== undefined && {
+					valid_until: snapshot.request.valid_until,
+				}),
+				messages: snapshot.request.messages,
+			},
+		})
+		const requestedAt = snapshot.authorityPresentation.submittedAt
+		const requestPayloadHash = await hashWalletEvidence(JSON.stringify({
+			version: 1,
+			method: 'signMessage',
+			account: accountSelector.caip10,
+			request: snapshot.request,
+		}))
+		const authorityRequestSelector = {
+			id: `authority-request-${globalThis.crypto.randomUUID()}`,
+		} as const satisfies EntitySelector<typeof schema, EntityType.BlockheadActionAuthorityRequest>
+		const occurrenceSelector = {
+			id: `dispatch-occurrence-${globalThis.crypto.randomUUID()}`,
+		} as const satisfies EntitySelector<typeof schema, EntityType.BlockheadActionDispatchOccurrence>
+		const occurrenceAddress = dispatchAddress.assert({
+			kind: 'wallet-connection',
+			connectionKey: snapshot.connectionKey,
+			method: 'signMessage',
+		})
+		const assertAuthorityStillSelected = () => {
+			const currentAdapter = adapterByWalletId.get(snapshot.connection.walletId)
+			if (
+				currentAdapter !== adapter
+				|| adapterRegistrationEpochByWalletId.get(snapshot.connection.walletId)
+					!== adapterRegistrationEpoch
+				|| currentAdapter?.signTonInternalMessages !== adapterSignTonInternalMessages
+			)
+				throw new Error('Wallet adapter registration changed before dispatch.')
+			if (
+				snapshot.authorityPresentation.validUntil !== undefined
+				&& Date.now() > snapshot.authorityPresentation.validUntil
+			)
+				throw new Error('Wallet authority presentation expired before dispatch.')
+			const currentSelection = resolveWalletPrepSelection(connections)
+			if (
+				!currentSelection.ready
+				|| currentSelection.connectionKey !== snapshot.connectionKey
+				|| !sameWalletConnectionIdentity(currentSelection.connection, snapshot.connection)
+				|| !sameWalletAccountAuthority(currentSelection.account, snapshot.account)
+			)
+				throw new Error('Wallet authority changed before dispatch.')
+		}
+		const authorityRequestSelectorKey = entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadActionAuthorityRequest],
+			authorityRequestSelector
+		)
+		const localAuthorityRows = (fieldName: string) => (
+			context.entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][
+				entityFieldAddressKey(EntityType.BlockheadActionAuthorityRequest, [], fieldName)
+			].toArray.filter((row) => (
+				row[EntityMetaKey.Source] === Source.Local_Internal
+				&& row[EntityMetaKey.ParentSelectorKey] === authorityRequestSelectorKey
+			))
+		)
+		const persistedAccountReferenceKey = `Entity:${entitySelectorKey(schema, entityDefinitionByType[EntityType.Account], accountSelector)}`
+		const assertPersistedAuthority = () => {
+			assertAuthorityStillSelected()
+			const exactPrimitive = (fieldName: string, expected: JsonValue) => {
+				const rows = localAuthorityRows(fieldName)
+				if (rows.length !== 1 || stringify(rows[0][EntityMetaKey.Value]) !== stringify(expected))
+					throw new Error(`Persisted wallet authority ${fieldName} changed before dispatch.`)
+			}
+			exactPrimitive('envelope', envelope)
+			exactPrimitive('envelopeHash', actionAuthorityRequestEnvelopeHash(envelope))
+			const accountRows = localAuthorityRows('$account')
+			if (
+				accountRows.length !== 1
+				|| accountRows[0].valueKey !== persistedAccountReferenceKey
+			)
+				throw new Error('Persisted wallet authority account changed before dispatch.')
+			if (
+				localAuthorityRows('actionRevisionBindings').length !== 0
+				|| localAuthorityRows('$$sessionActions').length !== 0
+			)
+				throw new Error('Persisted wallet authority gained an authored action before dispatch.')
+			if (localAuthorityRows('decision').length !== 0)
+				throw new Error('Wallet authority request was decided without dispatch.')
+		}
+		assertAuthorityStillSelected()
+		await writeLocalBlockheadActionAuthorityRequest(context, {
+			id: authorityRequestSelector.id,
+			actionRevisionBindings: [],
+			sessionActions: [],
+			account: accountSelector,
+			envelope,
+			envelopeHash: actionAuthorityRequestEnvelopeHash(envelope),
+			presentedAt: requestedAt,
+		})
+		const validateBeforeOccurrence = () => {
+			try {
+				assertPersistedAuthority()
+			}
+			catch (error) {
+				if (localAuthorityRows('decision').length !== 0)
+					throw error
+				return writeLocalBlockheadActionAuthorityDecision(context, authorityRequestSelector, {
+					kind: 'prepared-without-dispatch',
+					decidedAt: Date.now(),
+				})
+					.then(() => Promise.reject(error))
+			}
+		}
+		const authorityRequestFailure = validateBeforeOccurrence()
+		if (authorityRequestFailure !== undefined)
+			await authorityRequestFailure
+		await writeLocalBlockheadWalletRequest(context, {
+			id: walletRequestSelector.id,
+			walletConnection: { connectionKey: snapshot.connectionKey },
+			account: accountSelector,
+			requestKind: 'ton-internal-message-signature',
+			requestMethod: 'signMessage',
+			requestPayloadHash,
+			requestedAt,
+		}, [snapshot.connection])
+		const walletRequestFailure = validateBeforeOccurrence()
+		if (walletRequestFailure !== undefined)
+			await walletRequestFailure
+		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+			timestampMs: requestedAt,
+			source: Source.Local_Internal,
+			status: 'requested',
+		})
+		const walletTimestampFailure = validateBeforeOccurrence()
+		if (walletTimestampFailure !== undefined)
+			await walletTimestampFailure
+		assertPersistedAuthority()
+		await writeLocalBlockheadActionDispatchOccurrenceStart(context, {
+			id: occurrenceSelector.id,
+			authorityRequest: authorityRequestSelector,
+			walletConnection: { connectionKey: snapshot.connectionKey },
+			address: occurrenceAddress,
+			startedAt: Date.now(),
+		})
+		try {
+			assertPersistedAuthority()
+		}
+		catch (error) {
+			await writeLocalBlockheadActionDispatchEvidence(context, occurrenceSelector, {
+				kind: 'pre-dispatch-failure',
+				error: error instanceof Error ? error.message : 'Wallet authority changed before provider invocation.',
+			})
+			throw error
+		}
+
+		let internalBoc: string
+		try {
+			internalBoc = await sign(
+				snapshot.connection.walletId,
+				snapshot.account.accountAddress,
+				snapshot.request,
+				snapshot.connectionKey
+			)
+		}
+		catch (error) {
+			const adapterError = Object(error)
+			const errorMessage = (
+				error instanceof Error && error.message.length > 0 ?
+					error.message
+				:
+					'TON internal-message signing request failed'
+			)
+			let failureEvidence: typeof dispatchEvidence.infer
+			if (isWalletAdapterPreDispatchFailure(adapterError))
+				failureEvidence = dispatchEvidence.assert({
+					kind: 'pre-dispatch-failure',
+					error: errorMessage,
+				})
+			else if (isWalletAdapterResponseAuditFailure(adapterError))
+				failureEvidence = dispatchEvidence.assert({
+					kind: 'response-audit-failure',
+					returnedValueHash: await hashWalletEvidence(stringify(adapterError.returnedValue)),
+					returnedValueCount: Array.isArray(adapterError.returnedValue) ? adapterError.returnedValue.length : 1,
+					error: errorMessage,
+				})
+			else if (isWalletAdapterProviderRejection(adapterError))
+				failureEvidence = dispatchEvidence.assert({
+					kind: 'definite-rejection',
+					error: errorMessage,
+				})
+			else
+				failureEvidence = dispatchEvidence.assert({
+					kind: 'ambiguous',
+					reason: 'response-unreadable',
+					error: errorMessage,
+				})
+			await writeLocalBlockheadActionDispatchEvidence(context, occurrenceSelector, failureEvidence)
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: Math.max(Date.now(), requestedAt + 1),
+				source: Source.Local_Internal,
+				status: 'failed',
+				error: errorMessage,
+			})
+			throw error
+		}
+
+		let internalBocHash: typeof Hash32.infer | undefined
+		const submittedAt = Math.max(Date.now(), requestedAt + 1)
+		try {
+			internalBocHash = await hashWalletEvidence(internalBoc)
+			await writeLocalBlockheadActionDispatchEvidence(
+				context,
+				occurrenceSelector,
+				dispatchEvidence.assert({
+					kind: 'returned',
+					response: {
+						adapterKey: 'ton.internal-message-sign',
+						adapterVersion: '1',
+						value: { internalBocHash },
+					},
+				})
+			)
+			await writeLocalBlockheadWalletRequestSubmittedAt(context, walletRequestSelector, submittedAt)
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: submittedAt,
+				source: Source.Local_Internal,
+				status: 'signed',
+				signatureHash: internalBocHash,
+			})
+		}
+		catch {
+			try {
+				await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+					timestampMs: Math.max(Date.now(), submittedAt + 1),
+					source: Source.Local_Internal,
+					status: 'audit-failed',
+					...(internalBocHash !== undefined && { signatureHash: internalBocHash }),
+					error: 'TON internal-message signing succeeded but terminal history persistence failed',
+				})
+			}
+			catch {}
+			throw new Error('TON internal-message signing succeeded but audit persistence failed; do not retry as a wallet rejection')
+		}
+
+		return {
+			accountAddress: snapshot.account.accountAddress,
+			internalBoc,
 		}
 	}
 
@@ -811,6 +1616,157 @@ const createWalletRuntimeState = (
 		}
 	}
 
+	const signXrplTransaction = async (
+		connectionKey: string,
+		request: WalletXrplTransactionRequest
+	) => {
+		const selection = resolveWalletPrepSelection(connections)
+		if (!selection.ready)
+			throw new Error(selection.error)
+		if (selection.connectionKey !== connectionKey || selection.account.namespace !== 'xrpl')
+			throw new Error('XRPL signing request does not match the selected wallet connection')
+		const { account, connection } = selection
+		if (!account.capabilities.includes(WalletCapability.SignTransaction))
+			throw new Error('Selected wallet account does not authorize XRPL transaction signing')
+		if (request.Account !== account.accountAddress)
+			throw new Error('XRPL transaction account does not match the selected wallet account')
+		throw new Error('Durable XRPL authority dispatch is not implemented')
+	}
+
+	const signStarknetTypedData = async (
+		connectionKey: string,
+		typedData: WalletStarknetTypedData,
+		apiVersion?: string
+	) => {
+		const selection = resolveWalletPrepSelection(connections)
+		if (!selection.ready)
+			throw new Error(selection.error)
+		if (selection.connectionKey !== connectionKey)
+			throw new Error('Wallet request connectionKey does not match the selected wallet connection.')
+
+		const { account, connection } = selection
+		if (!account.capabilities.includes(WalletCapability.SignStarknetTypedData))
+			throw new Error('Selected wallet account does not authorize Starknet typed data signing')
+		if (account.namespace !== 'starknet')
+			throw new Error('Starknet typed data signing requires a Starknet wallet account')
+
+		const selectedAdapter = adapterByWalletId.get(connection.walletId)
+		const selectedSign = selectedAdapter?.signStarknetTypedData
+		if (selectedAdapter == null || selectedSign == null)
+			throw new Error('Connected wallet does not expose executable Starknet typed data signing')
+
+		const selectedWalletId = connection.walletId
+		const selectedConnectionKey = connectionKey
+		const selectedAccountAddress = account.accountAddress
+		const selectedReference = account.reference
+		const selectedApiVersion = apiVersion
+		const selectedTypedData = structuredClone(typedData)
+		const sign = selectedSign.bind(selectedAdapter)
+
+		const walletRequestSelector = {
+			id: `wallet-request-${globalThis.crypto.randomUUID()}`,
+		} as const satisfies EntitySelector<typeof schema, EntityType.BlockheadWalletRequest>
+		const accountSelector = {
+			caip10: {
+				namespace: 'starknet',
+				reference: selectedReference,
+				accountAddress: selectedAccountAddress,
+			},
+		} as const satisfies EntitySelector<typeof schema, EntityType.Account>
+		const requestedAt = Date.now()
+		await writeLocalBlockheadWalletRequest(context, {
+			id: walletRequestSelector.id,
+			walletConnection: {
+				connectionKey: selectedConnectionKey,
+			},
+			account: accountSelector,
+			requestKind: 'typed-data-signature',
+			requestMethod: 'wallet_signTypedData',
+			requestPayloadHash: await hashWalletEvidence(JSON.stringify({
+				version: 1,
+				method: 'wallet_signTypedData',
+				account: accountSelector.caip10,
+				typedData: selectedTypedData,
+					...(selectedApiVersion !== undefined && { apiVersion: selectedApiVersion }),
+			})),
+			requestedAt,
+		}, connections)
+		await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+			timestampMs: requestedAt,
+			source: Source.Local_Internal,
+			status: 'requested',
+		})
+
+		let signature: string[]
+		try {
+			const returnedSignature = await sign(
+				selectedWalletId,
+				selectedAccountAddress,
+				selectedReference,
+				selectedTypedData,
+				selectedApiVersion,
+				selectedConnectionKey
+			)
+			signature = [...returnedSignature]
+		}
+		catch (error) {
+			const responseAuditFailure = isWalletAdapterResponseAuditFailure(Object(error))
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: Math.max(Date.now(), requestedAt + 1),
+				source: Source.Local_Internal,
+				status: responseAuditFailure ? 'audit-failed' : 'failed',
+				error: responseAuditFailure ?
+					'Wallet Starknet typed data signature response could not be audited'
+				:
+					'Wallet Starknet typed data signing request failed',
+			})
+			throw error
+		}
+
+		const signatureHash = await hashWalletEvidence(JSON.stringify(signature)).catch(async (error) => {
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: Math.max(Date.now(), requestedAt + 1),
+				source: Source.Local_Internal,
+				status: 'audit-failed',
+				error: 'Wallet Starknet typed data signature evidence hashing failed',
+			})
+			throw error
+		})
+
+		const submittedAt = Math.max(Date.now(), requestedAt + 1)
+		try {
+			await writeLocalBlockheadWalletRequestSubmittedAt(
+				context,
+				walletRequestSelector,
+				submittedAt
+			)
+			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+				timestampMs: submittedAt,
+				source: Source.Local_Internal,
+				status: 'signed',
+				signatureHash,
+			})
+		}
+		catch {
+			try {
+				await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
+					timestampMs: Math.max(Date.now(), submittedAt + 1),
+					source: Source.Local_Internal,
+					status: 'audit-failed',
+					signatureHash,
+					error: 'Wallet Starknet typed data signature succeeded but signed history persistence failed',
+				})
+			}
+			catch {}
+			throw new Error('Wallet signature succeeded but audit persistence failed; do not retry as a wallet rejection')
+		}
+
+		return {
+			accountAddress: selectedAccountAddress,
+			signature,
+		}
+	}
+
 	const switchScope = async (
 		connectionKey: string,
 		scope: {
@@ -872,22 +1828,21 @@ const createWalletRuntimeState = (
 		)
 	}
 
-	const selectAccount = (
+	const selectAccount = async (
 		connectionKey: string,
 		account: WalletAccount
-	) => {
+	): Promise<void> => {
 		const selectedConnection = connections.find((connection) => (
 			walletConnectionKey(connection) === connectionKey
 		))
 		if (selectedConnection == null || selectedConnection.status !== BlockheadConnectionStatus.Connected)
 			return
 
-		connections = applyWalletConnectionSelection(connections, connectionKey, account)
-		for (const connection of connections) {
-			runtimeMutatedConnectionKeys.add(walletConnectionKey(connection))
-			if (connection.status === BlockheadConnectionStatus.Connected)
-				void writeLocalBlockheadWalletConnection(context, connection)
-		}
+		await upsertConnection({
+			...selectedConnection,
+			selected: true,
+			activeAccount: account,
+		})
 	}
 
 	return {
@@ -900,8 +1855,12 @@ const createWalletRuntimeState = (
 		registerAdapter,
 		connect,
 		reconnect: connect,
+		openWalletConnectApplication,
 		signMessage,
+		signTonInternalMessages,
 		signTypedData,
+		signXrplTransaction,
+		signStarknetTypedData,
 		switchScope,
 		rejectPreparedTransactionRequest,
 		disconnect,
@@ -917,9 +1876,11 @@ const createWalletRuntimeState = (
 			cleanupByConnectionKey.clear()
 			connectionAttemptByConnectionKey.clear()
 			adapterByWalletId.clear()
+			adapterRegistrationEpochByWalletId.clear()
 			registeredAdapterIds.clear()
 			runtimeMutatedConnectionKeys.clear()
 			candidatesByAdapterId.clear()
+			onDestroy?.()
 			walletRuntime = null
 		},
 	}
@@ -927,12 +1888,36 @@ const createWalletRuntimeState = (
 
 let walletRuntime = $state<WalletRuntime | null>(null)
 
+export type WalletConnectionRuntimeOptions = Readonly<{
+	tauriWalletLinkHost?: TauriWalletLinkHost
+}>
+
 export const mountWalletConnectionRuntime = (
-	context: LocalMutationContext & Pick<ClientContext<typeof schema>, 'select'>
+	context: LocalMutationContext & Pick<ClientContext<typeof schema>, 'select'>,
+	options: WalletConnectionRuntimeOptions = {}
 ) => {
 	if (walletRuntime != null) return walletRuntime
 
-	walletRuntime = createWalletRuntimeState(context)
+	const applicationConsumer: WalletConnectApplicationConsumer | undefined = (
+		options.tauriWalletLinkHost == null ?
+			undefined
+		:
+			createWalletConnectApplicationConsumer({
+				host: options.tauriWalletLinkHost,
+			})
+	)
+	walletRuntime = createWalletRuntimeState(context, {
+		onDestroy: () => applicationConsumer?.destroy(),
+		openWalletConnectApplication: async (walletConnectUri) => {
+			if (applicationConsumer == null) {
+				globalThis.location.assign(walletConnectUri)
+				return
+			}
+
+			await applicationConsumer.start()
+			await applicationConsumer.openPairing(walletConnectUri)
+		},
+	})
 	const mountedWalletRuntime = walletRuntime
 	const walletConnectProjectId = env.PUBLIC_WALLETCONNECT2_PROJECT_ID?.trim()
 	const walletConnectRelayUrl = env.PUBLIC_WALLETCONNECT2_RELAY_URL?.trim()
@@ -963,6 +1948,7 @@ export const mountWalletConnectionRuntime = (
 				}
 
 				mountedWalletRuntime.registerAdapter(createWalletConnectV2Adapter({
+					applicationConsumer,
 					client: walletConnectV2ClientFromSignClient(signClient),
 					requestedScopes: [
 						{

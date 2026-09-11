@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
+import { account, base } from '$/state/wallets/walletRequestPreparation.fixtures.ts'
+import { WalletCapability } from '$/constants/Wallet.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
 import { Source } from '$/sources/Source.ts'
 import { sessionSimulationObservation } from '$/state/sessions/sessionLifecycleState.ts'
@@ -23,28 +24,11 @@ import {
 } from './walletRequestPreparation.ts'
 
 
-const account = {
-	namespace: 'eip155',
-	reference: '1',
-	accountAddress: '0x1111111111111111111111111111111111111111',
-	capabilities: [WalletCapability.SendTransaction],
-} as const
-
 const connectionKey = 'call-prep-conn'
 
 const selectedConnection = connectedWalletConnection({
-	walletId: 'eip6963:com.example',
-	protocol: WalletProtocol.Eip6963,
-	transportKind: WalletTransportKind.InjectedProvider,
+	...base,
 	connectionKey,
-	scopes: [{
-		namespace: 'eip155',
-		reference: '1',
-		methods: ['eth_sendTransaction'],
-		events: [],
-	}],
-	accounts: [account],
-	activeAccount: account,
 	selected: true,
 })
 

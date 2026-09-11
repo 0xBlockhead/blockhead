@@ -7,6 +7,8 @@ import {
 	WalletTransportKind,
 } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type { Xumm } from 'xumm'
 
 
 export type WalletCandidate = {
@@ -207,6 +209,102 @@ export type WalletTypedData = {
 	message: Record<string, string | number | boolean | Record<string, string | number | boolean>>
 }
 
+export type WalletXrplTransactionRequest = Extract<
+	Parameters<NonNullable<Xumm['payload']>['createAndSubscribe']>[0],
+	{ txjson: object }
+>['txjson'] & { Account: string }
+
+export type WalletStarknetTypedData = {
+	types: Record<string, {
+		name: string
+		type: string
+		contains?: string
+	}[]>
+	primaryType: string
+	domain: {
+		name: string
+		version: string
+		chainId: string
+		revision?: string
+	}
+	message: Record<string, JsonValue>
+}
+
+export type WalletTonInternalMessage = {
+	address: string
+	amount: string
+	payload?: string
+	stateInit?: string
+	extra_currency?: Record<string, string>
+}
+
+export type WalletTonInternalMessages = {
+	network: string
+	from: string
+	valid_until?: number
+	messages: readonly [
+		WalletTonInternalMessage,
+		...WalletTonInternalMessage[],
+	]
+}
+
+const walletAdapterPreDispatchFailures = new WeakSet<object>()
+
+/** An adapter-owned failure proving that its provider request was not invoked. */
+export class WalletAdapterPreDispatchFailure extends Error {
+	constructor(message: string) {
+		super(message)
+		this.name = 'WalletAdapterPreDispatchFailure'
+		walletAdapterPreDispatchFailures.add(this)
+		Object.freeze(this)
+	}
+}
+
+export const isWalletAdapterPreDispatchFailure = (
+	error: object
+): error is WalletAdapterPreDispatchFailure => (
+	walletAdapterPreDispatchFailures.has(error)
+)
+
+const walletAdapterProviderRejections = new WeakSet<object>()
+
+/** An adapter-owned failure proving that its provider explicitly rejected the request. */
+export class WalletAdapterProviderRejection extends Error {
+	constructor(message: string, readonly code?: number) {
+		super(message)
+		this.name = 'WalletAdapterProviderRejection'
+		walletAdapterProviderRejections.add(this)
+		Object.freeze(this)
+	}
+}
+
+export const isWalletAdapterProviderRejection = (
+	error: object
+): error is WalletAdapterProviderRejection => (
+	walletAdapterProviderRejections.has(error)
+)
+
+const walletAdapterResponseAuditFailures = new WeakSet<object>()
+
+/** An adapter-owned failure proving that a provider response violated its contract. */
+export class WalletAdapterResponseAuditFailure extends Error {
+	constructor(
+		message: string,
+		readonly returnedValue: JsonValue
+	) {
+		super(message)
+		this.name = 'WalletAdapterResponseAuditFailure'
+		walletAdapterResponseAuditFailures.add(this)
+		Object.freeze(this)
+	}
+}
+
+export const isWalletAdapterResponseAuditFailure = (
+	error: object
+): error is WalletAdapterResponseAuditFailure => (
+	walletAdapterResponseAuditFailures.has(error)
+)
+
 export type WalletAdapter = {
 	id: string
 	start(updateCandidates: (candidates: WalletCandidate[]) => void): () => void
@@ -221,6 +319,26 @@ export type WalletAdapter = {
 		walletId: string,
 		accountAddress: string,
 		typedData: WalletTypedData,
+		connectionKey?: string
+	): Promise<string>
+	signStarknetTypedData?(
+		walletId: string,
+		accountAddress: string,
+		reference: string,
+		typedData: WalletStarknetTypedData,
+		apiVersion?: string,
+		connectionKey?: string
+	): Promise<string[]>
+	signTonInternalMessages?(
+		walletId: string,
+		accountAddress: string,
+		request: WalletTonInternalMessages,
+		connectionKey?: string
+	): Promise<string>
+	signXrplTransaction?(
+		walletId: string,
+		accountAddress: string,
+		request: WalletXrplTransactionRequest,
 		connectionKey?: string
 	): Promise<string>
 	switchScope?(

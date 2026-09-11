@@ -5,11 +5,14 @@ import {
 	createPolkadotJsAccounts,
 	openPolkadotJs,
 } from '../../../../scripts/wallet-extensions/PolkadotJs/driver.ts'
-import { polkadotJsWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/PolkadotJs/matrix.ts'
-import { runWalletCompatibilityMatrix } from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
-	connectWalletButtonForDriver,
+	connectWalletButtonById,
 	disconnectWalletButton,
+	selectedWalletAccount,
+	selectedWalletAccountLabel,
+	walletConnectionCardById,
+	walletConnectionsStatus,
+	waitForWalletPageReady,
 } from '../_walletPageSelectors.ts'
 import { expect, test } from '../wallet.fixture.ts'
 
@@ -17,7 +20,7 @@ import { expect, test } from '../wallet.fixture.ts'
 test.skip(process.env.WALLET_EXTENSIONS_E2E !== '1', 'Real polkadot.js extension tests are opt-in')
 test.setTimeout(180_000)
 
-test('runs the declarative polkadot.js compatibility matrix', async ({
+test('connects, selects, disconnects, and reloads polkadot.js accounts through Blockhead', async ({
 	baseURL,
 	context,
 	extensions,
@@ -31,61 +34,42 @@ test('runs the declarative polkadot.js compatibility matrix', async ({
 	expect(extension.manifest.version).toBe('0.63.1')
 	expect(JSON.parse(await readFile('scripts/wallet-extensions/wallets.json', 'utf8'))['polkadot-js'].sha256).toBe('382871bea456d654c215442a069106d18e31bd867021f0c41fe9455fb7022ac1')
 
+	const applicationOrigin = baseURL ?? 'http://127.0.0.1:5173'
+	const walletPageUrl = `${applicationOrigin}/~/wallets`
+	await page.goto(walletPageUrl)
+	await waitForWalletPageReady(page)
 	await createPolkadotJsAccounts(await openPolkadotJs(context, extension))
-	await page.goto(`${baseURL ?? 'http://127.0.0.1:5173'}/~/wallets`)
 	await expect.poll(() => page.evaluate(() => Object.keys(window.injectedWeb3 ?? {}))).toContain('polkadot-js')
+	const connect = connectWalletButtonById(page, 'polkadot:polkadot-js')
+	await expect(connect).toBeVisible()
 
-	const [, accounts] = await Promise.all([
-		approvePolkadotJsConnection(context, extension.id),
-		page.evaluate(async () => {
-			const wallet = window.injectedWeb3?.['polkadot-js']
-			if (!wallet)
-				throw new Error('polkadot.js disappeared after injectedWeb3 discovery')
-
-			return (await wallet.enable('Blockhead')).accounts.get()
-		}),
+	await Promise.all([
+		approvePolkadotJsConnection(context, extension.id, walletPageUrl),
+		connect.click(),
 	])
-	expect(accounts).toHaveLength(2)
-	expect(new Set(accounts.map(({ address }) => address)).size).toBe(2)
-	await expect(connectWalletButtonForDriver(page, 'PolkadotJs')).toHaveCount(0)
-	await expect(disconnectWalletButton(page)).toHaveCount(0)
-	await expect(page.locator('input[type="radio"]')).toHaveCount(0)
+	const connection = walletConnectionCardById(page, 'polkadot:polkadot-js')
+	await expect(connection).toBeVisible({ timeout: 45_000 })
+	await expect(connection.locator('input[type="radio"]')).toHaveCount(2)
+	await expect(selectedWalletAccount(connection)).toHaveCount(1)
+	const accountLabels = await connection.locator('label:has(input[type="radio"])').allTextContents()
+	expect(new Set(accountLabels).size).toBe(2)
+	await connection.getByRole('radio').nth(1).click()
+	await expect(connection.locator('fieldset:has(input[type="radio"])')).toHaveAttribute('aria-busy', 'false')
+	await expect(selectedWalletAccountLabel(connection)).toHaveText(accountLabels[1])
+	await expect(walletConnectionsStatus(page)).toContainText('Saved connections: 1.', {
+		timeout: 45_000,
+	})
 
 	await page.reload()
 	await expect.poll(() => page.evaluate(() => Object.keys(window.injectedWeb3 ?? {}))).toContain('polkadot-js')
-	await expect(connectWalletButtonForDriver(page, 'PolkadotJs')).toHaveCount(0)
-	await expect(disconnectWalletButton(page)).toHaveCount(0)
-
-	const results = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'polkadot-js',
-			run: async (scenario) => (
-				scenario.accountOrdinal === 3 ?
-					{
-						outcome: 'blocked',
-						evidence: {
-							code: 'third-initialization-flow-not-independently-available',
-							source: 'real-extension',
-						},
-					}
-				:
-					{
-						outcome: 'inaccessible',
-						evidence: {
-							code: 'injected-account-visible-product-bridge-missing',
-							source: 'wallet-connections',
-						},
-					}
-			),
-		},
-		scenarios: polkadotJsWalletMatrixScenarios(extension.manifest.version),
-		step: (name, run) => test.step(name, run),
+	await expect(walletConnectionsStatus(page)).toContainText('Saved connections: 1.', {
+		timeout: 45_000,
 	})
-	expect(results).toHaveLength(3)
-	expect(results.filter(({ outcome }) => outcome === 'inaccessible')).toHaveLength(2)
-	expect(results.filter(({ outcome }) => outcome === 'blocked')).toHaveLength(1)
-	expect(results.every((result) => !('accountAddressHash' in result))).toBe(true)
-	expect(JSON.stringify(results)).not.toContain(accounts[0].address)
-	expect(JSON.stringify(results)).not.toContain(accounts[1].address)
-	console.log(JSON.stringify(results, null, 2))
+	await expect(selectedWalletAccountLabel(walletConnectionCardById(page, 'polkadot:polkadot-js'))).toHaveText(accountLabels[1], {
+		timeout: 45_000,
+	})
+	await disconnectWalletButton(walletConnectionCardById(page, 'polkadot:polkadot-js')).click()
+	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.', { timeout: 45_000 })
+	await page.reload()
+	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
 })

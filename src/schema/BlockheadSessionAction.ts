@@ -28,16 +28,12 @@ export default entity({
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
 	},
-	actionType: {
-		primitiveType: type('string'),
+	$action: {
+		entityType: EntityType.BlockheadAction,
 		cardinality: EntityFieldCardinality.One,
 	},
 	selectedProtocol: {
 		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	actionParams: {
-		primitiveType: type('unknown'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	createdAt: {
@@ -66,6 +62,10 @@ export default entity({
 	},
 	$$walletRequests: {
 		entityType: EntityType.BlockheadWalletRequest,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$authorityRequests: {
+		entityType: EntityType.BlockheadActionAuthorityRequest,
 		cardinality: EntityFieldCardinality.Many,
 	},
 	$$outcomes: {

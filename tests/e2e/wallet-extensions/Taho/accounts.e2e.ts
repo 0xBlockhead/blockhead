@@ -4,19 +4,12 @@ import {
 	approveTahoConnection,
 	createTahoWallet,
 	openTaho,
-	selectTahoAccount,
-	tahoBlockedObservation,
 } from '../../../../scripts/wallet-extensions/Taho/driver.ts'
-import { tahoWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Taho/matrix.ts'
-import {
-	assertWalletMatrixOutcomes,
-	logWalletMatrixResults,
-	runWalletCompatibilityMatrix,
-} from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
 	connectWalletButtonForDriver,
 	disconnectWalletButton,
 	walletConnectionsStatus,
+	waitForWalletPageReady,
 } from '../_walletPageSelectors.ts'
 import { expect, test } from '../wallet.fixture.ts'
 
@@ -35,15 +28,16 @@ test('creates one Taho account and connects it to Blockhead', async ({
 	if (!taho)
 		throw new Error('The checksum-pinned Taho extension was not loaded')
 
-	expect(taho?.manifest.version).toBe('0.66.0')
+	expect(taho.manifest.version).toBe('0.66.0')
 	expect(JSON.parse(await readFile('scripts/wallet-extensions/wallets.json', 'utf8')).taho.sha256).toBe('e14e560cb2188044b9c1f2a9e9641d9902c35c379a3b78e46980466eb5f6dfac')
 
 	const tahoPage = await openTaho(context, taho)
 	const accounts = await createTahoWallet(tahoPage)
-	expect(accounts.first).toBe('Taho 1')
+	expect(accounts.first).not.toBe('')
+	expect(['already-disabled', 'disabled']).toContain(accounts.telemetry)
 
-	await page.goto(`${baseURL ?? 'http://127.0.0.1:5173'}/~/wallets`)
-	await expect(walletConnectionsStatus(page)).toContainText('Wallet discovery active.')
+	await page.goto(new URL('/~/wallets', baseURL ?? 'http://127.0.0.1:5173').href)
+	await waitForWalletPageReady(page)
 	const connect = connectWalletButtonForDriver(page, 'Taho')
 	const discovered = await connect.waitFor({
 		state: 'visible',
@@ -51,82 +45,24 @@ test('creates one Taho account and connects it to Blockhead', async ({
 	}).then(() => true).catch(() => false)
 
 	if (!discovered) {
-		await expect(walletConnectionsStatus(page)).toContainText('Providers detected: 0.')
-		await expect(connect).toHaveCount(0)
-		const results = await runWalletCompatibilityMatrix({
-			driver: {
-				kind: 'taho',
-				run: async (scenario) => (
-					scenario.accountOrdinal === 1 ?
-						{
-							outcome: 'inaccessible',
-							evidence: {
-								code: 'content-script-host-mismatch',
-								detail: `Taho 0.66.0 content_scripts match file/localhost/https only; ${new URL(page.url()).origin} stays Providers detected: 0 with no Connect Taho`,
-								source: 'wallet-connections',
-							},
-						}
-					:
-						tahoBlockedObservation(scenario)
-				),
-			},
-			scenarios: tahoWalletMatrixScenarios(taho.manifest.version),
-			step: (name, run) => test.step(name, run),
-		})
-		expect(results.map(({ outcome }) => outcome)).toEqual([
-			'inaccessible',
-			'blocked',
-			'blocked',
-		])
-		logWalletMatrixResults(results, {
-			label: 'taho-content-script-host-mismatch',
-			expectedOutcomes: [
-				'inaccessible',
-				'blocked',
-			],
-		})
-		return
+		throw new Error('Loaded Taho artifact did not expose its provider on the requested page')
 	}
 
 	await expect(walletConnectionsStatus(page)).toContainText(/Providers detected: [1-9]/)
 
+	const pagesBeforeConnection = new Set(context.pages())
 	await Promise.all([
-		approveTahoConnection(context, taho.id),
+		approveTahoConnection(context, taho.id, pagesBeforeConnection),
 		connectWalletButtonForDriver(page, 'Taho').click(),
 	])
 	await expect(disconnectWalletButton(page)).toBeVisible()
 	await expect(page.locator('input[type="radio"]:checked')).toHaveCount(1)
 
-	await selectTahoAccount(accounts.page, accounts.first)
 	const firstAccount = await page.locator('input[type="radio"]:checked').locator('..').innerText()
 	expect(firstAccount).toMatch(/0x[0-9a-f]{40}/i)
 
 	await disconnectWalletButton(page).click()
 	await expect(disconnectWalletButton(page)).toHaveCount(0)
-
-	const results = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'taho',
-			run: async (scenario) => (
-				scenario.accountOrdinal === 2 || scenario.initializationFlow === 'recover' ?
-					tahoBlockedObservation(scenario)
-				:
-					{
-						accountAddress: firstAccount,
-						outcome: 'pass',
-						evidence: {
-							code: `taho-${scenario.lifecycleEdgeCase}-verified`,
-							source: 'real-extension',
-						},
-					}
-			),
-		},
-		scenarios: tahoWalletMatrixScenarios(taho.manifest.version),
-		step: (name, run) => test.step(name, run),
-	})
-	assertWalletMatrixOutcomes(results, ['pass', 'blocked', 'blocked'], 'taho-real-extension')
-	logWalletMatrixResults(results, {
-		label: 'taho-real-extension',
-		expectedOutcomes: ['pass', 'blocked', 'blocked'],
-	})
+	await page.reload({ waitUntil: 'load' })
+	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
 })

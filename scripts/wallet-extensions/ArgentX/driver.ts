@@ -60,6 +60,19 @@ const click = async (
 	}).click()
 }
 
+/** Disable both first-party reporting preferences enabled by the pinned artifact. */
+export const disableArgentXTelemetry = async (page: Page) => {
+	await page.goto(`chrome-extension://${new URL(page.url()).host}/index.html#/settings/privacy`)
+	const settings = [
+		page.getByRole('button', { name: 'Automatic Error Reporting' }),
+		page.getByRole('button', { name: 'Share anonymous data' }),
+	]
+	for (const setting of settings) {
+		await expect(setting, 'Argent X did not expose both pinned privacy controls').toHaveCount(1)
+		await setting.click()
+	}
+}
+
 export const argentXDriver = {
 	kind: 'argent-x',
 	open: async (context: BrowserContext, extension: LoadedWalletExtension) => {
@@ -84,6 +97,7 @@ export const argentXDriver = {
 		})).toBeVisible({
 			timeout: 60_000,
 		})
+		await disableArgentXTelemetry(page)
 		await page.goto(`chrome-extension://${new URL(page.url()).host}/index.html`)
 		await click(page, 'Show account list')
 		await expect(page.getByTestId('account-name')).toHaveCount(1)
@@ -123,7 +137,7 @@ export const argentXDriver = {
 		)
 		while (Date.now() < deadline) {
 			for (const page of context.pages()) {
-				if (!page.url().startsWith(`chrome-extension://${extensionId}/`))
+				if (!isArgentXIndexPageUrl(page.url(), extensionId))
 					continue
 				if (!await page.getByText(/Connect to /).isVisible().catch(() => false))
 					continue
@@ -148,11 +162,16 @@ export const argentXDriver = {
 		page: Page,
 		accountOrdinal: 1 | 2
 	) => {
-		const accountNames = page.getByTestId('account-name')
-		if (await accountNames.count() !== 2)
+		const accountRows = page.getByTestId('account-name').locator('xpath=ancestor::button[1]')
+		if (await accountRows.count() !== 2)
 			await click(page, 'Show account list')
 
-		await accountNames.nth(accountOrdinal - 1).click()
+		await expect(accountRows, 'Argent X account list did not expose two selectable account rows').toHaveCount(2, {
+			timeout: 15_000,
+		})
+		const accountRow = accountRows.nth(accountOrdinal - 1)
+		await expect(accountRow, `Argent X account selection phase could not find ordinal ${accountOrdinal}`).toBeVisible()
+		await accountRow.click()
 	},
 } as const satisfies {
 	kind: 'argent-x'

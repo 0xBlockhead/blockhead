@@ -48,6 +48,11 @@
 	let walletControlStatus = $state(
 		''
 	)
+	let walletControlFailure = $state<{
+		error: Error
+	}>()
+	let walletAccountSelectionPending = $state(false)
+	let walletConnectionMutationPending = $state<string>()
 
 
 	// Components
@@ -79,6 +84,10 @@
 	</output>
 
 	<output aria-live="polite">{walletControlStatus}</output>
+	<Boundary
+		failure={walletControlFailure}
+		boundaryKey="Wallet application open"
+	/>
 </article>
 
 {#if walletRuntime}
@@ -93,6 +102,10 @@
 				data-column-item="flexible"
 				data-card
 				data-scroll-container
+				data-connection-status={connection.status}
+				data-wallet-id={connection.walletId}
+				data-wallet-name={candidate?.name ?? connection.walletId}
+				data-wallet-state="connection"
 			>
 				<EntityView
 					entityType={EntityType.BlockheadWalletConnection}
@@ -135,7 +148,22 @@
 					<p>
 						<button
 							type="button"
-							onclick={() => globalThis.location.assign(candidate.connectionUri)}
+							onclick={async () => {
+								walletControlFailure = undefined
+								walletControlStatus = 'Opening wallet application.'
+								try {
+									await walletRuntime.openWalletConnectApplication(
+										candidate.connectionUri
+									)
+									walletControlStatus = 'Wallet application opened.'
+								}
+								catch (error) {
+									walletControlStatus = ''
+									walletControlFailure = {
+										error: normalizeBoundaryError(error),
+									}
+								}
+							}}
 						>
 							Open {candidate.name} to continue
 						</button>
@@ -155,7 +183,12 @@
 				{/if}
 
 				{#if connection.status === BlockheadConnectionStatus.Connected && connection.accounts.length > 0}
-					<fieldset data-column="gap-1">
+					<fieldset
+						data-column="gap-1"
+						data-wallet-action="select-account"
+						disabled={walletAccountSelectionPending}
+						aria-busy={walletAccountSelectionPending}
+					>
 						<legend>Active account and network</legend>
 
 						{#each connection.accounts as account (`${account.namespace}:${account.reference}:${account.accountAddress}`)}
@@ -165,17 +198,26 @@
 							>
 								<input
 									type="radio"
+									data-wallet-action="select-account"
 									name={`${id}-${connectionKey}-active-account`}
 									checked={
-										connection.selected
+										!walletAccountSelectionPending
+										&& connection.selected
 										&& connection.activeAccount?.namespace === account.namespace
 										&& connection.activeAccount.reference === account.reference
 										&& connection.activeAccount.accountAddress === account.accountAddress
 									}
-									onchange={() => walletRuntime.selectAccount(
-										connectionKey,
-										account,
-									)}
+									onchange={async () => {
+										walletAccountSelectionPending = true
+										walletControlFailure = undefined
+										try {
+											await walletRuntime.selectAccount(connectionKey, account)
+										} catch (error) {
+											walletControlFailure = { error: normalizeBoundaryError(error) }
+										} finally {
+											walletAccountSelectionPending = false
+										}
+									}}
 								/>
 								<TruncatedValue value={account.accountAddress} />
 								<span data-text="muted">{account.namespace}:{account.reference}</span>
@@ -195,6 +237,7 @@
 						boundaryKey="Wallet message signing"
 					>
 						<form
+							data-wallet-action="sign-message"
 							onsubmit={async (event) => {
 								event.preventDefault()
 								const form = event.currentTarget
@@ -202,11 +245,15 @@
 								walletRequestPending = true
 								walletControlStatus = 'Wallet request pending.'
 								try {
-									const result = await walletRuntime.signMessage(
+									const submittedAt = Date.now()
+									const result = await walletRuntime.signMessage({
 										connectionKey,
-										String(new FormData(form).get('message'))
-									)
-									walletControlStatus = `Message signed by ${result.accountAddress}. Request history was saved.`
+										message: String(new FormData(form).get('message')),
+										authorityPresentation: {
+											submittedAt,
+										},
+									})
+									walletControlStatus = `Message signed by ${result.accountAddress}. Authority and dispatch history were saved.`
 									form.reset()
 								}
 								catch (error) {
@@ -229,6 +276,7 @@
 							/>
 							<button
 								type="submit"
+								data-wallet-action="sign-message"
 								disabled={walletRequestPending}
 							>
 								Sign message
@@ -247,6 +295,7 @@
 					))}
 						<button
 							type="button"
+							data-wallet-action="retry"
 							onclick={() => walletRuntime.connect(connection.walletId)}
 						>
 							Retry {connection.status === BlockheadConnectionStatus.Error ? 'connection' : 'connect'}
@@ -256,7 +305,23 @@
 					{#if connection.status === BlockheadConnectionStatus.Connected && candidate != null}
 						<button
 							type="button"
-							onclick={() => walletRuntime.disconnect(connectionKey)}
+							data-wallet-action="disconnect"
+							aria-busy={walletConnectionMutationPending === connectionKey}
+							disabled={walletConnectionMutationPending === connectionKey}
+							onclick={async () => {
+								walletConnectionMutationPending = connectionKey
+								walletControlFailure = undefined
+								walletControlStatus = 'Disconnecting wallet.'
+								try {
+									await walletRuntime.disconnect(connectionKey)
+									walletControlStatus = 'Wallet disconnected.'
+								} catch (error) {
+									walletControlStatus = ''
+									walletControlFailure = { error: normalizeBoundaryError(error) }
+								} finally {
+									walletConnectionMutationPending = undefined
+								}
+							}}
 						>
 							{candidate.capabilities.includes(WalletCapability.Disconnect) ?
 								'Disconnect wallet'
@@ -266,6 +331,7 @@
 					{:else}
 						<button
 							type="button"
+							data-wallet-action="remove"
 							onclick={() => walletRuntime.remove(connectionKey)}
 						>
 							{connection.status === BlockheadConnectionStatus.Connecting ?
@@ -285,6 +351,9 @@
 				data-column-item="flexible"
 				data-card
 				data-scroll-container
+				data-wallet-id={candidate.id}
+				data-wallet-name={candidate.name}
+				data-wallet-state="candidate"
 			>
 				<BlockheadWalletView
 					selection={select(EntityType.BlockheadWallet, {
@@ -305,6 +374,7 @@
 				{#if candidate.capabilities.includes(WalletCapability.Connect)}
 					<button
 						type="button"
+						data-wallet-action="connect"
 						data-row="start align-center gap-1"
 						onclick={() => walletRuntime.connect(candidate.id)}
 					>

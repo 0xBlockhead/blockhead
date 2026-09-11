@@ -3,8 +3,13 @@ import test from 'node:test'
 
 import {
 	assertEveryRealWalletKindHasEcosystem,
+	assertWalletHarnessProtocolRegistry,
+	WalletHarnessEvidenceKind,
 	WalletHarnessCoverageKind,
+	WalletHarnessConnectionProtocol,
 	WalletHarnessEcosystem,
+	walletHarnessConnectionProtocolsByExtensionKind,
+	walletHarnessEvidenceByExtensionKind,
 	walletHarnessEcosystems,
 	walletHarnessEcosystemsByExtensionKind,
 } from './ecosystems.ts'
@@ -18,6 +23,7 @@ const realWalletKinds = [
 	'lace',
 	'metamask',
 	'petra',
+	'phantom',
 	'polkadot-js',
 	'rabby',
 	'taho',
@@ -28,8 +34,29 @@ const realWalletKinds = [
 
 test('maps every real wallet kind into an ecosystem', () => {
 	assertEveryRealWalletKindHasEcosystem(realWalletKinds)
+	assertWalletHarnessProtocolRegistry(realWalletKinds)
 	for (const kind of realWalletKinds)
 		assert.ok(walletHarnessEcosystemsByExtensionKind(kind).length)
+	assert.deepEqual(walletHarnessConnectionProtocolsByExtensionKind('backpack'), [
+		WalletHarnessConnectionProtocol.Eip6963,
+		WalletHarnessConnectionProtocol.Eip1193,
+		WalletHarnessConnectionProtocol.WalletConnectV2,
+		WalletHarnessConnectionProtocol.WalletStandard,
+	])
+})
+
+test('requires one strongest evidence classification for every manifest wallet', () => {
+	const evidenceKinds = Object.keys(walletHarnessEvidenceByExtensionKind).sort()
+	assert.deepEqual(evidenceKinds, [...realWalletKinds].sort())
+	assert.equal(walletHarnessEvidenceByExtensionKind.backpack, WalletHarnessEvidenceKind.CryptographicFixture)
+	assert.equal(walletHarnessEvidenceByExtensionKind['polkadot-js'], WalletHarnessEvidenceKind.JourneyImplementation)
+	assert.equal(walletHarnessEvidenceByExtensionKind.taho, WalletHarnessEvidenceKind.JourneyImplementation)
+	assert.equal(walletHarnessEvidenceByExtensionKind.tonkeeper, WalletHarnessEvidenceKind.VerifiedRealHeadedJourney)
+	assert.deepEqual(Object.entries(walletHarnessEvidenceByExtensionKind).filter(([, evidence]) => (
+		evidence === WalletHarnessEvidenceKind.VerifiedRealHeadedJourney
+	)).map(([kind]) => kind), ['tonkeeper'])
+	assert.equal(walletHarnessEvidenceByExtensionKind.unisat, WalletHarnessEvidenceKind.CryptographicFixture)
+	assert.ok(realWalletKinds.every((kind) => walletHarnessEvidenceByExtensionKind[kind] != null))
 })
 
 test('keeps architecture-only and identity-overlay rows out of extension mappings', () => {

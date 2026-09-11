@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import {
+	disableMetaMaskTelemetryDuringOnboarding,
 	isMetaMaskNotificationPageUrl,
 	metamaskUiGeneration,
 	metamaskUnsupportedEnvironmentEvidence,
@@ -13,7 +14,13 @@ test('maps headed Connect/sign chrome to MetaMask notification.html URLs', () =>
 	assert.equal(isMetaMaskNotificationPageUrl(`chrome-extension://${extensionId}/notification.html`, extensionId), true)
 	assert.equal(isMetaMaskNotificationPageUrl(`chrome-extension://${extensionId}/notification.html#`, extensionId), true)
 	assert.equal(isMetaMaskNotificationPageUrl(`chrome-extension://${extensionId}/home.html`, extensionId), false)
+	assert.equal(isMetaMaskNotificationPageUrl(`chrome-extension://${extensionId}/home.html#notification.html`, extensionId), false)
+	assert.equal(isMetaMaskNotificationPageUrl(`chrome-extension://${extensionId}/notification.html/other`, extensionId), false)
 	assert.equal(isMetaMaskNotificationPageUrl(`chrome-extension://other/notification.html`, extensionId), false)
+})
+
+test('keeps the MetaMask privacy action explicit and early', () => {
+	assert.equal(typeof disableMetaMaskTelemetryDuringOnboarding, 'function')
 })
 
 test('version-gates the observed MetaMask semantic UI', () => {

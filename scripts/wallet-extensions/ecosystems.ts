@@ -53,6 +53,17 @@ export enum WalletHarnessCoverageKind {
 	IdentityOverlay = 'identity-overlay',
 }
 
+export enum WalletHarnessEvidenceKind {
+	/** A real-wallet browser journey exists, but no retained successful execution proves capability. */
+	JourneyImplementation = 'journey-implementation',
+	/** A retained zero-retry browser result proves the declared wallet capability. */
+	VerifiedRealHeadedJourney = 'verified-real-headed-journey',
+	CryptographicFixture = 'cryptographic-fixture',
+	RequestConstruction = 'request-construction',
+	Refusal = 'refusal',
+	Unavailable = 'unavailable',
+}
+
 export type WalletHarnessEcosystemDefinition = {
 	ecosystem: WalletHarnessEcosystem
 	label: string
@@ -93,6 +104,7 @@ export const walletHarnessEcosystems = [
 		],
 		extensionKinds: [
 			'backpack',
+			'phantom',
 		],
 	},
 	{
@@ -252,6 +264,40 @@ export const walletHarnessEcosystemsByExtensionKind = (
 		(row.extensionKinds as readonly string[]).includes(kind)
 	))
 )
+
+export const walletHarnessConnectionProtocolsByExtensionKind = (
+	kind: RealWalletKind
+) => [
+	...new Set(walletHarnessEcosystemsByExtensionKind(kind).flatMap(({
+		connectionProtocols,
+	}) => connectionProtocols)),
+]
+
+export const assertWalletHarnessProtocolRegistry = (kinds: readonly RealWalletKind[]) => {
+	const missing = kinds.filter((kind) => (
+		walletHarnessConnectionProtocolsByExtensionKind(kind).length === 0
+	))
+	if (missing.length)
+		throw new Error(`RealWalletKind missing protocol metadata: ${missing.join(', ')}`)
+}
+
+/** Strongest evidence actually present in this corpus; absence is never promoted to success. */
+export const walletHarnessEvidenceByExtensionKind = {
+	ambire: WalletHarnessEvidenceKind.RequestConstruction,
+	'argent-x': WalletHarnessEvidenceKind.RequestConstruction,
+	backpack: WalletHarnessEvidenceKind.CryptographicFixture,
+	keplr: WalletHarnessEvidenceKind.RequestConstruction,
+	lace: WalletHarnessEvidenceKind.RequestConstruction,
+	metamask: WalletHarnessEvidenceKind.RequestConstruction,
+	petra: WalletHarnessEvidenceKind.RequestConstruction,
+	phantom: WalletHarnessEvidenceKind.CryptographicFixture,
+	'polkadot-js': WalletHarnessEvidenceKind.JourneyImplementation,
+	rabby: WalletHarnessEvidenceKind.RequestConstruction,
+	taho: WalletHarnessEvidenceKind.JourneyImplementation,
+	tonkeeper: WalletHarnessEvidenceKind.VerifiedRealHeadedJourney,
+	unisat: WalletHarnessEvidenceKind.CryptographicFixture,
+	zerion: WalletHarnessEvidenceKind.RequestConstruction,
+} as const satisfies Record<RealWalletKind, WalletHarnessEvidenceKind>
 
 /** Every RealWalletKind must appear in at least one ecosystem extensionKinds list. */
 export const assertEveryRealWalletKindHasEcosystem = (

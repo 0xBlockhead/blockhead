@@ -1,0 +1,4 @@
+export const unisatOfficialPublicKey = '026887958bcc4cb6f8c04ea49260f0d10e312c41baf485252953b14724db552aac'
+export const unisatOfficialAddress = '16dpFB5oUCL9Cj2Mq9fUEJCLLqTzn6bQQg'
+export const unisatOfficialMessage = 'abcdefghijk123456789'
+export const unisatOfficialSignature = 'G+LrYa7T5dUMDgQduAErw+i6ebK4GqTXYVWIDM+snYk7Yc6LdPitmaqM6j+iJOeID1CsMXOJFpVopvPiHBdulkE='

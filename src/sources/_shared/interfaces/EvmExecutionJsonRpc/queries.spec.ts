@@ -24,6 +24,7 @@ const {
 	getBlockByNumber,
 	getTransactionByHash,
 	getTransactionReceipt,
+	estimateGas,
 } = evmExecutionJsonRpc({
 	binding,
 	endpoint,
@@ -480,6 +481,24 @@ describe('shared EVM execution JSON-RPC queries', () => {
 		await expect(query()).rejects.toThrow(
 			`EVM execution JSON-RPC ${method}: malformed result`
 		)
+	})
+
+	it('rejects a malformed non-null eth_estimateGas result at the wire boundary', async () => {
+		jsonRpc2.mockResolvedValue('malformed')
+
+		await expect(estimateGas({
+			to: '0x0000000000000000000000000000000000000001',
+			input: '0x',
+		})).rejects.toThrow('EVM execution JSON-RPC eth_estimateGas: malformed result')
+	})
+
+	it.each(['21000', '-1', '', '0x', '0x00', '0X5208'])('rejects a non-quantity eth_estimateGas result: %s', async (result) => {
+		jsonRpc2.mockResolvedValue(result)
+
+		await expect(estimateGas({
+			to: '0x0000000000000000000000000000000000000001',
+			input: '0x',
+		})).rejects.toThrow('EVM execution JSON-RPC eth_estimateGas: malformed result')
 	})
 
 	it.each([

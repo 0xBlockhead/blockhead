@@ -2,6 +2,7 @@ import { ActionType } from '$/actions/index.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { schema } from '$/schema/index.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 
 
 type TransferDraftFields = {
@@ -46,6 +47,7 @@ type SessionActionDraftEditIdentity = {
 	selector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
 	indexInSequence: number
 	createdAt: number
+	expectedContentRevisionHash?: typeof Hash32.infer
 }
 
 export type SessionActionDraft =
@@ -154,6 +156,8 @@ export const emptyDraftFieldsForActionType = (
 				actionType,
 				fields: emptyBridgeDraftFields(),
 			}
+		default:
+			throw new Error(`Unsupported session action type: ${String(actionType)}`)
 	}
 }
 
@@ -191,6 +195,9 @@ export const retargetSessionActionDraft = (
 			selector: draft.selector,
 			indexInSequence: draft.indexInSequence,
 			createdAt: draft.createdAt,
+			...(draft.expectedContentRevisionHash === undefined ? {} : {
+				expectedContentRevisionHash: draft.expectedContentRevisionHash,
+			}),
 		}
 
 	return {
@@ -251,8 +258,10 @@ export const beginSessionComposerPreparation = (): Extract<SessionComposerNotice
 export const completeSessionComposerPreparation = (
 	walletRequestId: string | undefined,
 	readinessCheckIds: readonly SessionComposerReadinessCheckId[] = []
-): Extract<SessionComposerNotice, { status: 'prepared' | 'preparedWithWalletRequest' }> => (
-	walletRequestId == null ?
+): Extract<SessionComposerNotice, { status: 'prepared' | 'preparedWithWalletRequest' }> => {
+	if (walletRequestId != null && walletRequestId.trim() === '')
+		throw new Error('Cannot complete preparation with an empty wallet request ID.')
+	return walletRequestId == null ?
 		{
 			status: 'prepared',
 			message: 'EVM native transfer preparation succeeded.',
@@ -265,7 +274,7 @@ export const completeSessionComposerPreparation = (
 			walletRequestId,
 			readinessCheckIds,
 		}
-)
+}
 
 export const blockSessionComposerPreparation = (
 	error: string,
@@ -299,7 +308,8 @@ export const finishSessionComposerPreparation = (
 ): Exclude<SessionComposerNotice, { status: 'idle' | 'info' | 'error' | 'preparing' }> => {
 	const readinessCheckIds = (
 		preparation.readiness
-			?.map(({ checkId }) => checkId)
+			?.map(({ checkId }) => checkId.trim())
+			.filter((checkId) => checkId !== '')
 		?? []
 	)
 	return (
@@ -308,7 +318,7 @@ export const finishSessionComposerPreparation = (
 				preparation.error ?? 'Unknown preparation failure.',
 				readinessCheckIds
 			)
-		: preparation.walletRequest?.id == null || preparation.walletRequest.id === '' ?
+		: preparation.walletRequest?.id == null || preparation.walletRequest.id.trim() === '' ?
 			failSessionComposerPreparation(
 				'Preparation finished without creating a wallet request.',
 				readinessCheckIds

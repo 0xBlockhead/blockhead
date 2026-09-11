@@ -10,6 +10,8 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { delimiter, join, resolve } from 'node:path'
+import { type } from 'arktype'
+import { Hex, PersonalMessage, Secp256k1, Signature, TypedData } from 'ox'
 
 import {
 	chromium,
@@ -32,6 +34,7 @@ export type WalletKind =
 	| 'lace'
 	| 'metamask'
 	| 'petra'
+	| 'phantom'
 	| 'polkadot-js'
 	| 'rabby'
 	| 'taho'
@@ -222,16 +225,18 @@ const namedExtensionDirectoryEnvKeys = [
 ] as const
 
 export const resolveWalletExtensionDirectories = ({
+	environment = process.env,
 	fixtureDirectory = resolve('tests/e2e/wallet-extensions/fixture-extension'),
 }: {
+	environment?: NodeJS.ProcessEnv
 	fixtureDirectory?: string
 } = {}) => {
-	const fromDirs = parseExtensionDirectories(process.env.WALLET_EXTENSION_DIRS)
+	const fromDirs = parseExtensionDirectories(environment.WALLET_EXTENSION_DIRS)
 	if (fromDirs.length > 0)
 		return fromDirs.map((directory) => resolve(directory))
 
 	const named = namedExtensionDirectoryEnvKeys.flatMap((key) => {
-		const value = process.env[key]
+		const value = environment[key]
 		return value ?
 			[
 				resolve(value),
@@ -282,6 +287,25 @@ const assert: (condition: boolean, message: string) => asserts condition = (cond
 		throw new Error(message)
 }
 
+const typedDataScalar = type('string | number | boolean')
+const typedDataHex = type('string').pipe((value) => {
+	Hex.assert(value, { strict: true })
+	return value
+})
+// The native wallet's supported EIP-712 wire shape, not a generic Actions payload.
+const walletTypedDataWire = type({
+	domain: {
+		'name?': 'string',
+		'version?': 'string',
+		'chainId?': 'number',
+		'verifyingContract?': typedDataHex,
+		'salt?': typedDataHex,
+	},
+	types: type({ '[string]': type({ name: 'string', type: 'string' }).array() }),
+	primaryType: 'string',
+	message: type({ '[string]': typedDataScalar.or(type({ '[string]': typedDataScalar })) }),
+})
+
 export const exerciseWalletSigningRequest = async ({
 	contract,
 	request,
@@ -291,9 +315,18 @@ export const exerciseWalletSigningRequest = async ({
 	request: WalletTestRequest
 	decision: 'approve' | 'reject'
 }): Promise<WalletSigningTestResult> => {
+	if (
+		decision === 'approve'
+		&& request.ecosystem === WalletHarnessEcosystem.Evm
+		&& request.kind === 'typed-data'
+		&& request.method !== 'eth_signTypedData_v4'
+	)
+		throw new Error('This harness only verifies EIP-712 v4 approvals; older typed-data methods are not qualified.')
+
 	const metadata = walletTestRequestMetadata(request)
 	await assertWalletSigningNotSubmitted(contract.observePersistence)
 
+	const requestReady = contract.driver.waitForRequest(metadata)
 	const providerOutcome = contract.provider.request({
 		method: request.method,
 		params: request.params,
@@ -307,7 +340,7 @@ export const exerciseWalletSigningRequest = async ({
 			error,
 		})
 	)
-	await contract.driver.waitForRequest(metadata)
+	await requestReady
 	await assertWalletSigningNotSubmitted(contract.observePersistence)
 	await contract.driver[decision](metadata)
 
@@ -326,6 +359,45 @@ export const exerciseWalletSigningRequest = async ({
 	if (!outcome.resolved)
 		throw outcome.error
 
+	if (request.ecosystem === WalletHarnessEcosystem.Evm && request.method === 'personal_sign') {
+		try {
+			const [message, account] = type(['string', 'string']).assert(request.params)
+			Hex.assert(message, { strict: true })
+			Hex.assert(outcome.result, { strict: true })
+			const signer = Secp256k1.recoverAddress({
+				payload: PersonalMessage.getSignPayload(message),
+				signature: Signature.fromHex(outcome.result),
+			})
+			assert(
+				account.toLowerCase() === request.accountAddress.toLowerCase()
+				&& signer.toLowerCase() === request.accountAddress.toLowerCase(),
+				'Personal-sign authority mismatch.'
+			)
+		}
+		catch {
+			throw new Error('Approved personal_sign response does not verify against the requested message and account.')
+		}
+	}
+	if (request.ecosystem === WalletHarnessEcosystem.Evm && request.method === 'eth_signTypedData_v4') {
+		try {
+			const [account, json] = type(['string', 'string']).assert(request.params)
+			const typedData = walletTypedDataWire.assert(JSON.parse(json))
+			TypedData.assert(typedData)
+			Hex.assert(outcome.result, { strict: true })
+			const signer = Secp256k1.recoverAddress({
+				payload: TypedData.getSignPayload(typedData),
+				signature: Signature.fromHex(outcome.result),
+			})
+			assert(
+				account.toLowerCase() === request.accountAddress.toLowerCase()
+				&& signer.toLowerCase() === request.accountAddress.toLowerCase(),
+				'Typed-data authority mismatch.'
+			)
+		}
+		catch {
+			throw new Error('Approved EIP-712 v4 response does not verify against the requested typed data and account.')
+		}
+	}
 	if (
 		request.ecosystem === WalletHarnessEcosystem.Evm
 		&& request.kind === 'transaction'
@@ -479,9 +551,6 @@ export const launchWalletExtensions = async ({
 	headless?: boolean
 	serviceWorkerTimeoutMs?: number
 }) => {
-	if (headless)
-		throw new Error('Wallet extensions require headed Chromium. Remove PLAYWRIGHT_WALLET_HEADLESS=1 and run in a desktop session.')
-
 	if (extensionDirectories.length === 0)
 		throw new Error('No unpacked extensions supplied. Set WALLET_EXTENSION_DIRS to one or more paths separated by the platform path delimiter.')
 
@@ -497,7 +566,8 @@ export const launchWalletExtensions = async ({
 	const extensionPaths = extensions.map(({ path }) => path).join(',')
 	const profileDirectory = await mkdtemp(join(tmpdir(), 'blockhead-wallet-extensions-'))
 	const context = await chromium.launchPersistentContext(profileDirectory, {
-		headless: false,
+		headless,
+		...(headless && { channel: 'chromium' }),
 		args: [
 			`--disable-extensions-except=${extensionPaths}`,
 			`--load-extension=${extensionPaths}`,

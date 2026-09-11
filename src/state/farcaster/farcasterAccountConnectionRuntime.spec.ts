@@ -154,6 +154,14 @@ describe('Farcaster account connection EIP-191 recovery', () => {
 })
 
 describe('Farcaster account connection runtime', () => {
+	it('claims a challenge attempt synchronously and exactly once', () => {
+		const current = runtime()
+		current.issueChallenge(challenge)
+
+		expect(current.claimChallengeAttempt(challenge)).toEqual(challenge)
+		expect(() => current.claimChallengeAttempt(challenge)).toThrow('already claimed')
+	})
+
 	it('accepts current custody proof and rejects stale custody transfers', async () => {
 		const current = runtime()
 		current.issueChallenge(challenge)

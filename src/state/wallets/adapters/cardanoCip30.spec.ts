@@ -1,13 +1,23 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ed25519 } from '@noble/curves/ed25519.js'
+import { hex } from '@scure/base'
+import { Blake2 } from '@tevm/voltaire/Blake2'
+import { encode } from 'cborg'
 
 import { WalletCapability } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { createCardanoCip30Adapter } from './cardanoCip30.ts'
 import type { WalletConnection } from './types.ts'
+import { ed25519SigningPrivateKey as signingPrivateKey } from './ed25519Signing.fixtures.ts'
 
 const mainnetAddress = '019493315cd92eb5d8c4304e67b7e16ae36d61d34502694657811a2c8e337b62cfff6403a06a3acbc34f8c46003c69fe79a3628cefa9c47251'
 const secondMainnetAddress = '018493315cd92eb5d8c4304e67b7e16ae36d61d34502694657811a2c8e337b62cfff6403a06a3acbc34f8c46003c69fe79a3628cefa9c47251'
 const mainnetPointerAddress = `41${'11'.repeat(28)}000000`
+const signingPublicKey = ed25519.getPublicKey(signingPrivateKey)
+const signingAddress = hex.encode(new Uint8Array([
+	0x61,
+	...Blake2.hash(signingPublicKey, 28),
+]))
 
 describe('Cardano CIP-30 wallet adapter', () => {
 	afterEach(() => {
@@ -280,13 +290,45 @@ describe('Cardano CIP-30 wallet adapter', () => {
 	})
 
 	it('advertises SignMessage and signs via signData when connected', async () => {
-		const signData = vi.fn(async () => ({
-			signature: 'cip30-signature',
-			key: 'cip30-key',
-		}))
+		const signData = vi.fn(async (address: string, payload: string) => {
+			const protectedHeaders = encode(new Map<
+				number | string,
+				number | Uint8Array
+			>([
+				[1, -8],
+				['address', hex.decode(address)],
+			]))
+			const payloadBytes = hex.decode(payload)
+			const signature = ed25519.sign(
+				encode([
+					'Signature1',
+					protectedHeaders,
+					new Uint8Array(),
+					payloadBytes,
+				]),
+				signingPrivateKey
+			)
+
+			return {
+				key: hex.encode(encode(new Map<number, number | Uint8Array>([
+					[1, 1],
+					[3, -8],
+					[-1, 6],
+					[-2, signingPublicKey],
+				]))),
+				signature: hex.encode(encode([
+					protectedHeaders,
+					new Map([
+						['hashed', false],
+					]),
+					payloadBytes,
+					signature,
+				])),
+			}
+		})
 		const enable = vi.fn(async () => ({
 			getNetworkId: async () => 1,
-			getUsedAddresses: async () => [mainnetAddress],
+			getUsedAddresses: async () => [signingAddress],
 			signData,
 		}))
 		vi.stubGlobal('window', {
@@ -303,16 +345,18 @@ describe('Cardano CIP-30 wallet adapter', () => {
 		const accountAddress = connection!.accounts[0].accountAddress
 		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignMessage)
 		expect(connection?.scopes[0]?.methods).toContain('signData')
-		expect(connection?.accounts[0]?.capabilities).toContain(WalletCapability.SignTransaction)
+		expect(connection?.accounts[0]?.capabilities).not.toContain(WalletCapability.SignTransaction)
+		expect(connection?.scopes[0]?.methods).not.toContain('signTx')
+		expect(connection?.scopes[0]?.methods).not.toContain('submitTx')
 
 		await expect(adapter.signMessage?.(
 			'cip30:nami',
 			accountAddress,
 			'Sign this Cardano challenge'
-		)).resolves.toBe('cip30-signature')
+		)).resolves.toMatch(/^[0-9a-f]+$/)
 		expect(signData).toHaveBeenCalledWith(
-			mainnetAddress,
-			expect.stringMatching(/^0x/)
+			signingAddress,
+			hex.encode(new TextEncoder().encode('Sign this Cardano challenge'))
 		)
 	})
 })

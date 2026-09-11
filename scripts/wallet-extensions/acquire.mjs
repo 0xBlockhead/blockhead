@@ -5,8 +5,10 @@ import {
 } from 'node:crypto'
 import {
 	access,
+	lstat,
 	mkdir,
 	readFile,
+	readdir,
 	rename,
 	rm,
 	writeFile,
@@ -19,12 +21,51 @@ import { promisify } from 'node:util'
 const execute = promisify(execFile)
 const acquisitionByArtifactDirectory = new Map()
 
+const extractedFingerprint = async (directory) => {
+	if (!(await lstat(directory)).isDirectory())
+		throw new Error('Wallet artifact root must be a real directory')
+	const hash = createHash('sha256')
+	const visit = async (current, relative) => {
+		const entries = (await readdir(current, { withFileTypes: true })).sort((left, right) => Buffer.from(left.name).compare(Buffer.from(right.name)))
+		for (const entry of entries) {
+			if (relative === '' && entry.name === '.acquisition.json')
+				continue
+			const nextRelative = join(relative, entry.name)
+			const nextPath = join(current, entry.name)
+			const stats = await lstat(nextPath)
+			if (stats.isSymbolicLink())
+				throw new Error(`Wallet artifact contains unsupported symlink: ${nextRelative}`)
+			if (entry.isDirectory()) {
+				hash.update(`${JSON.stringify(['directory', nextRelative])}\n`)
+				await visit(nextPath, nextRelative)
+			} else if (entry.isFile()) {
+				const content = await readFile(nextPath)
+				const contentHash = createHash('sha256').update(content).digest('hex')
+				hash.update(`${JSON.stringify(['file', nextRelative, content.length, contentHash])}\n`)
+			} else {
+				throw new Error(`Wallet artifact contains unsupported entry: ${nextRelative}`)
+			}
+		}
+	}
+	await visit(directory, '')
+	return hash.digest('hex')
+}
+
 const publishArtifact = async (
 	stagingDirectory,
 	artifactDirectory,
-	manifestPath
+	manifestPath,
+	metadata
 ) => {
 	const lockDirectory = `${artifactDirectory}.lock`
+	const cacheIsValid = async () => {
+		try {
+			const cached = JSON.parse(await readFile(join(artifactDirectory, '.acquisition.json'), 'utf8'))
+			return cached.sha256 === metadata.sha256 && cached.version === metadata.version && cached.manifestRoot === metadata.manifestRoot && cached.contentSha256 === await extractedFingerprint(artifactDirectory)
+		} catch {
+			return false
+		}
+	}
 
 	while (true) {
 		try {
@@ -35,8 +76,8 @@ const publishArtifact = async (
 			break
 		} catch (error) {
 			try {
-				await access(manifestPath)
-				return
+				if (await cacheIsValid())
+					return
 			} catch {
 			}
 
@@ -51,10 +92,12 @@ const publishArtifact = async (
 
 	try {
 		try {
-			await access(manifestPath)
-			return
+			if (await cacheIsValid())
+				return
 		} catch {
 		}
+		if (await access(manifestPath).then(() => true).catch(() => false))
+			throw new Error(`Wallet artifact cache is invalid: ${artifactDirectory}`)
 
 		await rm(artifactDirectory, {
 			force: true,
@@ -99,8 +142,13 @@ export const acquireWalletExtension = async (
 
 		try {
 			await access(join(extensionDirectory, 'manifest.json'))
-			return extensionDirectory
-		} catch {
+			const cached = JSON.parse(await readFile(join(artifactDirectory, '.acquisition.json'), 'utf8'))
+			if (cached.sha256 === descriptor.sha256 && cached.version === descriptor.version && cached.manifestRoot === descriptor.manifestRoot && cached.contentSha256 === await extractedFingerprint(artifactDirectory))
+				return extensionDirectory
+			throw new Error(`Wallet artifact cache is invalid: ${artifactDirectory}`)
+		} catch (error) {
+			if (await lstat(artifactDirectory).then(() => true).catch(() => false))
+				throw new Error(`Wallet artifact cache is invalid: ${artifactDirectory}`, { cause: error })
 		}
 
 		if (acquisitionByArtifactDirectory.has(artifactDirectory))
@@ -127,10 +175,17 @@ export const acquireWalletExtension = async (
 				await extract(archive, stagingDirectory)
 				await rm(archive)
 				await access(join(stagingDirectory, descriptor.manifestRoot, 'manifest.json'))
+				await writeFile(join(stagingDirectory, '.acquisition.json'), JSON.stringify({
+					sha256: descriptor.sha256,
+					version: descriptor.version,
+					manifestRoot: descriptor.manifestRoot,
+					contentSha256: await extractedFingerprint(stagingDirectory),
+				}))
 				await publishArtifact(
 					stagingDirectory,
 					artifactDirectory,
-					join(extensionDirectory, 'manifest.json')
+					join(extensionDirectory, 'manifest.json'),
+					descriptor
 				)
 				return extensionDirectory
 			} finally {

@@ -34,10 +34,16 @@ export const keplrBlockedObservation = (
 export const isKeplrPopupPageUrl = (
 	url: string,
 	extensionId: string
-) => (
-	url.startsWith(`chrome-extension://${extensionId}/`)
-	&& url.includes('/popup.html')
-)
+) => {
+	try {
+		const parsed = new URL(url)
+		return parsed.protocol === 'chrome-extension:'
+			&& parsed.hostname === extensionId
+			&& parsed.pathname === '/popup.html'
+	} catch {
+		return false
+	}
+}
 
 export const keplrDriver = {
 	kind: 'keplr',

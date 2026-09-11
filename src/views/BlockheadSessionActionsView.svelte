@@ -28,7 +28,6 @@
 	resource={
 		selection({
 			fields: {
-				actionType: true,
 				selectedProtocol: true,
 				indexInSequence: true,
 			},
@@ -51,11 +50,11 @@
 			}
 		>
 			{#snippet Title()}
-				{blockheadSessionAction.actionType || 'blockhead session action'}
+				{(blockheadSessionAction.selectedProtocol ?? '') || 'blockhead session action'}
 			{/snippet}
 
 			{#snippet Value()}
-				{blockheadSessionAction.selectedProtocol ?? ''}
+				{blockheadSessionAction.indexInSequence}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

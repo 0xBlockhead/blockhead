@@ -22,7 +22,7 @@
 			Source.Local_Internal,
 		],
 		fields: {
-			actionType: true,
+			selectedProtocol: true,
 		},
 	}))
 
@@ -35,7 +35,7 @@
 
 <svelte:head>
 	{#if pageSelection != null}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead session action' : pageSelection.entity.actionType || 'blockhead session action')} • blockhead session action • Blockhead</title>
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead session action' : (pageSelection.entity.selectedProtocol ?? '') || 'blockhead session action')} • blockhead session action • Blockhead</title>
 	{:else}
 		<title>{data?.title ?? 'blockhead session action'} • blockhead session action • Blockhead</title>
 	{/if}

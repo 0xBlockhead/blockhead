@@ -1,4 +1,5 @@
 import {
+	EvmRpcQuantity,
 	ZeroExHex,
 	type EvmAddress,
 } from '$/schema/ZeroExHex.ts'
@@ -90,6 +91,13 @@ const stringResult = (result: JsonValue, method: string) => {
 		throw new Error(`EVM execution JSON-RPC ${method}: malformed result`)
 
 	return result
+}
+
+const quantityHexResult = (result: JsonValue, method: string) => {
+	const value = stringResult(result, method)
+	if (!EvmRpcQuantity.allows(value))
+		throw new Error(`EVM execution JSON-RPC ${method}: malformed result`)
+	return value
 }
 
 const stringArray = (value: JsonValue | undefined) => (
@@ -384,7 +392,7 @@ export const evmExecutionJsonRpc = ({
 				callTransaction(transaction),
 				...(blockTag == null ? [] : [blockTag]),
 			]
-		).then((result) => BigInt(stringResult(result, 'eth_estimateGas'))),
+		).then((result) => BigInt(quantityHexResult(result, 'eth_estimateGas'))),
 		getTxpoolStatus: () => request('txpool_status', [])
 			.then(txpoolStatusResult),
 	}

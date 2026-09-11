@@ -15,6 +15,7 @@ import type {
 	WalletScope,
 } from './types.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
+import type { WalletConnectApplicationConsumer } from '../walletConnectApplicationConsumer.ts'
 
 export type WalletConnectV2RequestedScope = {
 	namespace: string
@@ -651,10 +652,12 @@ const validSessionExpiry = (expiry: number) => (
 )
 
 export const createWalletConnectV2Adapter = ({
+	applicationConsumer,
 	client,
 	requestedScopes,
 	onDisplayUri,
 }: {
+	applicationConsumer?: WalletConnectApplicationConsumer
 	client: WalletConnectV2Client
 	requestedScopes: readonly WalletConnectV2RequestedScope[]
 	onDisplayUri?: (uri: string | undefined) => void
@@ -679,6 +682,10 @@ export const createWalletConnectV2Adapter = ({
 	let started = false
 	let connectAttempt = 0
 	let displayUriAttempt: number | undefined
+	let applicationPairing: {
+		attempt: number
+		uri: string
+	} | undefined
 	let updateWalletConnectCandidates: ((candidates: WalletCandidate[]) => void) | undefined
 
 	const clearExpiryTimer = (topic: string) => {
@@ -749,6 +756,28 @@ export const createWalletConnectV2Adapter = ({
 		displayUriAttempt = undefined
 		onDisplayUri?.(undefined)
 		updateWalletConnectCandidates?.([walletConnectCandidate(candidateCapabilities)])
+	}
+
+	const finishApplicationPairing = (attempt: number) => {
+		if (applicationPairing?.attempt === attempt)
+			applicationPairing = undefined
+	}
+
+	const cancelApplicationPairing = (attempt?: number) => {
+		if (
+			applicationPairing == null
+			|| (
+				attempt != null
+				&& applicationPairing.attempt !== attempt
+			)
+		) return
+
+		const { uri } = applicationPairing
+		applicationPairing = undefined
+		try {
+			applicationConsumer?.rejectPairing(uri)
+		}
+		catch {}
 	}
 
 	const disconnectRejectedSession = async (
@@ -922,6 +951,7 @@ export const createWalletConnectV2Adapter = ({
 			return () => {
 				started = false
 				connectAttempt += 1
+				cancelApplicationPairing()
 				clearDisplayedUri()
 				stopClientEvents()
 				stopClientEvents = () => {}
@@ -936,6 +966,7 @@ export const createWalletConnectV2Adapter = ({
 			if (!started || walletId !== WALLET_ID) return undefined
 
 			const attempt = ++connectAttempt
+			cancelApplicationPairing()
 			clearDisplayedUri()
 			const proposal = await client.connect({
 				requiredNamespaces: {},
@@ -946,6 +977,10 @@ export const createWalletConnectV2Adapter = ({
 
 			if (proposal.uri != null) {
 				displayUriAttempt = attempt
+				applicationPairing = {
+					attempt,
+					uri: proposal.uri,
+				}
 				onDisplayUri?.(proposal.uri)
 				updateWalletConnectCandidates?.([{
 					...walletConnectCandidate(candidateCapabilities),
@@ -957,6 +992,11 @@ export const createWalletConnectV2Adapter = ({
 			try {
 				session = await proposal.approval()
 			}
+			catch (error) {
+				if (attempt === connectAttempt)
+					cancelApplicationPairing(attempt)
+				throw error
+			}
 			finally {
 				clearDisplayedUri(attempt)
 			}
@@ -967,6 +1007,19 @@ export const createWalletConnectV2Adapter = ({
 					'WalletConnect connection request was superseded'
 				)
 				throw new Error('WalletConnect connection request was superseded')
+			}
+			if (proposal.uri != null) {
+				try {
+					applicationConsumer?.approvePairing(proposal.uri, session.topic)
+					finishApplicationPairing(attempt)
+				}
+				catch (error) {
+					await disconnectRejectedSession(
+						session,
+						'WalletConnect application result did not match the active pairing'
+					)
+					throw error
+				}
 			}
 			if (!validSessionExpiry(session.expiry)) {
 				await disconnectRejectedSession(
@@ -1044,6 +1097,19 @@ export const createWalletConnectV2Adapter = ({
 			return signature
 		},
 		disconnect: async (walletId, connectionKey) => {
+			if (
+				walletId === WALLET_ID
+				&& displayUriAttempt != null
+				&& (
+					connectionKey == null
+					|| connectionKey === WALLET_ID
+				)
+			) {
+				connectAttempt += 1
+				cancelApplicationPairing()
+				clearDisplayedUri()
+				return
+			}
 			if (
 				walletId !== WALLET_ID
 				|| connectionKey == null

@@ -1,7 +1,10 @@
 import {
+	type ActionParamsByActionType,
 	type ActionType,
 	actionTypeDefinitionByActionType,
 } from '$/actions/index.ts'
+import * as Hash from 'ox/Hash'
+import * as Hex from 'ox/Hex'
 import type { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { walletConnectionMethodByProtocolDiscoveryKindTransportKind } from '$/constants/Wallet.ts'
 import type { WalletConnection } from '$/state/wallets/adapters/types.ts'
@@ -39,6 +42,17 @@ import {
 	localMutationAuthorityKey,
 	type MutationCollection,
 } from '$/client/$client.svelte.ts'
+import {
+	actionRevisionBinding,
+	actionAuthorityRequestEnvelopeHash,
+	authorityRequestEnvelope,
+	authorityDecision,
+	dispatchAddress,
+	dispatchEvidence,
+	type ActionAuthorityRequestEnvelope,
+	type ActionDispatchEvidence,
+	type ActionDispatchResponse,
+} from '$/actions/execution.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { SocialProtocol } from '$/schema/SocialProtocol.ts'
@@ -59,6 +73,7 @@ import type {
 } from '$/schema/$schema.ts'
 import { entityDefinitionByType, schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { Hash32 } from '$/schema/ZeroExHex.ts'
 import { stringify } from 'devalue'
 
 type LocalEntityRow = {
@@ -95,6 +110,11 @@ export type LocalMutationContext = {
 }
 
 const sessionActionCreationQueueByKey = new Map<string, Promise<void>>()
+
+export const hashLocalBlockheadSessionActionRevision = <_ActionType extends ActionType>(
+	actionType: _ActionType,
+	actionParams: ActionParamsByActionType[_ActionType]
+) => Hash32.assert(Hash.sha256(Hex.fromString(stringify({ actionType, actionParams }))))
 
 const withSessionActionCreationLock = <_Result>(
 	sessionSelectorKey: string,
@@ -620,21 +640,7 @@ const writeLocalEntityReferenceFieldCount = (
 		authority.authorityKey,
 		authority.resolution
 	)
-	const fieldAuthority = localMutationAuthority(entityType, entitySelector, {
-		fieldName,
-		facetPathKey: stringify([]),
-		resolution: 'resolved',
-	})
-	return Promise.all([
-		countApplication,
-		fieldCollection.utils.replaceRowsWithAuthority(
-			() => false,
-			[],
-			fieldAuthority.selectorKey,
-			fieldAuthority.authorityKey,
-			fieldAuthority.resolution
-		),
-	]).then(() => {})
+	return countApplication
 }
 
 const deleteLocalEntityReferenceField = (
@@ -850,7 +856,7 @@ const replaceLocalPrimitiveManyField = (
 	entityType: EntityType,
 	entitySelector: object,
 	fieldName: string,
-	values: readonly string[]
+	values: readonly LocalPrimitiveFieldValue[]
 ) => {
 	const collection = context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)]
 	const parentSelectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], entitySelector)
@@ -1227,11 +1233,11 @@ export const writeLocalBlockheadSessionName = async (
 		.map((collection) => collection.utils.waitForPersistence()))
 }
 
-export const writeLocalBlockheadSessionAction = (
+export const writeLocalBlockheadSessionAction = <_ActionType extends ActionType>(
 	context: LocalMutationContext,
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
-	actionType: ActionType,
-	actionParams?: object
+	actionType: _ActionType,
+	actionParams?: ActionParamsByActionType[_ActionType]
 ) => {
 	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams ?? {})
 	const sessionSelectorKey = entitySelectorKey(
@@ -1265,12 +1271,35 @@ export const writeLocalBlockheadSessionAction = (
 				String(indexInSequence + 1)
 			)
 		const now = Date.now()
+		const actionContent = {
+			type: actionType,
+			params: validatedActionParams,
+		}
+		const contentRevisionHash = hashLocalBlockheadSessionActionRevision(actionType, validatedActionParams)
+		const actionSelector = {
+			id: globalThis.crypto.randomUUID(),
+		}
 		const entitySelector = {
 			sessionId: sessionEntitySelector.id,
-			actionId: globalThis.crypto.randomUUID(),
+			actionId: actionSelector.id,
 		}
+		writeLocalPresence(context, EntityType.BlockheadAction, actionSelector)
+		writeLocalPrimitiveFields(context, EntityType.BlockheadAction, actionSelector, {
+			id: actionSelector.id,
+			content: actionContent,
+			contentRevisionHash,
+			createdAt: now,
+			updatedAt: now,
+		})
 		writeLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
 		const relationshipApplications = [
+			writeLocalEntityReferenceField(
+				context,
+				EntityType.BlockheadAction,
+				actionSelector,
+				'$$sessionActions',
+				entitySelector
+			),
 			writeLocalEntityReferenceField(
 				context,
 				EntityType.BlockheadSessionAction,
@@ -1281,11 +1310,16 @@ export const writeLocalBlockheadSessionAction = (
 		]
 		writeLocalPrimitiveFields(context, EntityType.BlockheadSessionAction, entitySelector, {
 			indexInSequence,
-			actionType,
-			actionParams: validatedActionParams,
 			createdAt: now,
 			updatedAt: now,
 		})
+		relationshipApplications.push(writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadSessionAction,
+			entitySelector,
+			'$action',
+			actionSelector
+		))
 		relationshipApplications.push(writeLocalEntityReferenceField(
 			context,
 			EntityType.BlockheadSession,
@@ -1307,12 +1341,15 @@ export const writeLocalBlockheadSessionAction = (
 		}
 		await Promise.all([
 			...relationshipApplications,
+			context.entityCollections[EntityType.BlockheadAction].utils.waitForPersistence(),
 			context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
+			...['id', 'content', 'contentRevisionHash', 'createdAt', 'updatedAt', '$$sessionActions'].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadAction][
+				entityFieldAddressKey(EntityType.BlockheadAction, [], fieldName)
+			].utils.waitForPersistence()),
 			...[
 				'$session',
+				'$action',
 				'indexInSequence',
-				'actionType',
-				'actionParams',
 				'createdAt',
 				'updatedAt',
 			].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionAction][
@@ -1326,6 +1363,7 @@ export const writeLocalBlockheadSessionAction = (
 				entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
 			]?.utils.waitForPersistence(),
 		])
+		return entitySelector
 	})
 }
 
@@ -1379,6 +1417,7 @@ export const deleteLocalBlockheadSession = (
 		throw new Error(`BlockheadSession ${entitySelector.id} is not removable (status ${previous.status})`)
 
 	let deletedAction = false
+	const authoredActionRelationshipApplications: Array<Promise<void>> = []
 	for (const actionRow of context.entityFieldCollections[EntityType.BlockheadSession][
 		entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
 	].toArray.filter((row) => (
@@ -1389,6 +1428,14 @@ export const deleteLocalBlockheadSession = (
 			Object(actionRow[EntityMetaKey.Value]),
 			EntityMetaKey.Selector
 		)?.value)
+		const authoredActionSelector = localBlockheadSessionActionAuthoredSelector(context, actionSelector)
+		authoredActionRelationshipApplications.push(deleteLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadAction,
+			authoredActionSelector,
+			'$$sessionActions',
+			actionSelector
+		))
 		deletedAction = true
 		deleteLocalEntityFields(context, EntityType.BlockheadSessionAction, actionSelector)
 		deleteLocalPresence(context, EntityType.BlockheadSessionAction, actionSelector)
@@ -1404,6 +1451,7 @@ export const deleteLocalBlockheadSession = (
 	deleteLocalPresence(context, EntityType.BlockheadSession, entitySelector)
 	return Promise.all([
 		relationshipApplication,
+		...authoredActionRelationshipApplications,
 		context.entityCollections[EntityType.BlockheadSession].utils.waitForPersistence(),
 		...(deletedAction ? [
 			context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
@@ -1431,15 +1479,23 @@ export const deleteLocalBlockheadSessionAction = async (
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
 ) => {
-	const relationshipApplication = deleteLocalEntityReferenceField(
+	const relationshipApplications = [deleteLocalEntityReferenceField(
 		context,
 		EntityType.BlockheadSession,
 		sessionEntitySelector,
 		'$$actions',
 		entitySelector
-	)
+	)]
+	const actionSelector = localBlockheadSessionActionAuthoredSelector(context, entitySelector)
+	relationshipApplications.push(deleteLocalEntityReferenceField(
+		context,
+		EntityType.BlockheadAction,
+		actionSelector,
+		'$$sessionActions',
+		entitySelector
+	))
 	await Promise.all([
-		relationshipApplication,
+		...relationshipApplications,
 		context.entityFieldCollections[EntityType.BlockheadSession][
 			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
 		].utils.waitForPersistence(),
@@ -1646,16 +1702,66 @@ export const deleteLocalBlockheadWalletCapabilityGrantsForConnection = async (
 	)
 }
 
-export const updateLocalBlockheadSessionActionType = async (
+export class StaleSessionActionRevisionError extends Error {
+	constructor() {
+		super('Session action edit is stale: expected content revision does not match the persisted authored action revision.')
+	}
+}
+
+const localBlockheadSessionActionAuthoredSelector = (
+	context: LocalMutationContext,
+	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
+) => {
+	const actionReferenceRows = context.entityFieldCollections[EntityType.BlockheadSessionAction][
+		entityFieldAddressKey(EntityType.BlockheadSessionAction, [], '$action')
+	].toArray.filter((row) => (
+		row[EntityMetaKey.Source] === Source.Local_Internal
+		&& row[EntityMetaKey.ParentSelectorKey] === entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadSessionAction],
+			entitySelector
+		)
+	))
+	const actionSelector = Object(Object.getOwnPropertyDescriptor(
+		Object(actionReferenceRows[0]?.[EntityMetaKey.Value]),
+		EntityMetaKey.Selector
+	)?.value)
+	if (typeof actionSelector.id !== 'string')
+		throw new Error('Session action is missing its authored action reference.')
+	return { id: actionSelector.id }
+}
+
+export const updateLocalBlockheadSessionActionType = async <_ActionType extends ActionType>(
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
 	sessionSelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	indexInSequence: number,
 	createdAt: number,
-	actionType: ActionType,
-	actionParams: object = {}
+	actionType: _ActionType,
+	actionParams?: ActionParamsByActionType[_ActionType],
+	expectedContentRevisionHash?: typeof Hash32.infer
 ) => {
-	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams)
+	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams ?? {})
+	const actionSelector = localBlockheadSessionActionAuthoredSelector(context, entitySelector)
+	if (expectedContentRevisionHash !== undefined) {
+		const currentContentRevisionHash = localPrimitiveFieldValue(
+			context,
+			EntityType.BlockheadAction,
+			actionSelector,
+			'contentRevisionHash'
+		)
+		if (currentContentRevisionHash !== expectedContentRevisionHash)
+			throw new StaleSessionActionRevisionError()
+	}
+	writeLocalPresence(context, EntityType.BlockheadAction, actionSelector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadAction, actionSelector, {
+		content: {
+			type: actionType,
+			params: validatedActionParams,
+		},
+		contentRevisionHash: hashLocalBlockheadSessionActionRevision(actionType, validatedActionParams),
+		updatedAt: Date.now(),
+	})
 	writeLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
 	const relationshipApplication = writeLocalEntityReferenceField(
 		context,
@@ -1666,8 +1772,6 @@ export const updateLocalBlockheadSessionActionType = async (
 	)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadSessionAction, entitySelector, {
 		indexInSequence,
-		actionType,
-		actionParams: validatedActionParams,
 		createdAt,
 		updatedAt: Date.now(),
 	})
@@ -1684,16 +1788,19 @@ export const updateLocalBlockheadSessionActionType = async (
 	}
 	await Promise.all([
 		relationshipApplication,
+		context.entityCollections[EntityType.BlockheadAction].utils.waitForPersistence(),
 		context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
 		...[
 			'$session',
+			'$action',
 			'indexInSequence',
-			'actionType',
-			'actionParams',
 			'createdAt',
 			'updatedAt',
 		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionAction][
 			entityFieldAddressKey(EntityType.BlockheadSessionAction, [], fieldName)
+		].utils.waitForPersistence()),
+		...['content', 'contentRevisionHash', 'updatedAt'].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadAction][
+			entityFieldAddressKey(EntityType.BlockheadAction, [], fieldName)
 		].utils.waitForPersistence()),
 		context.entityFieldCollections[EntityType.BlockheadSession][
 			entityFieldAddressKey(EntityType.BlockheadSession, [], 'updatedAt')
@@ -2082,6 +2189,63 @@ export const writeLocalBlockheadActionOutcome = async (
 		bridgeTransferId: observation.bridgeTransferId,
 		sourcePayloadHash: observation.sourcePayloadHash,
 		error: observation.error,
+	}
+	const existingOutcome = context.entityCollections[EntityType.BlockheadActionOutcome].toArray.find((row) => (
+		row[EntityMetaKey.SelectorKey] === entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadActionOutcome],
+			entitySelector
+		)
+	))
+	if (existingOutcome !== undefined) {
+		const existingFields: (keyof typeof primitiveFields)[] = [
+			'outcomeKind',
+			'transactionId',
+			'bridgeTransferId',
+			'createdAt',
+			'outcomePayloadHash',
+		]
+		if (existingFields.some((fieldName) => (
+			stringify(localPrimitiveFieldValue(context, EntityType.BlockheadActionOutcome, entitySelector, fieldName)) !==
+			stringify(primitiveFields[fieldName])
+		)) || localReferenceValueKey(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$walletRequest'
+		) !== (outcome.walletRequest === undefined ? undefined : localEntityReferenceValueKey(
+			EntityType.BlockheadActionOutcome,
+			'$walletRequest',
+			outcome.walletRequest
+		)) || localReferenceValueKey(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$intentOrder'
+		) !== (outcome.intentOrder === undefined ? undefined : localEntityReferenceValueKey(
+			EntityType.BlockheadActionOutcome,
+			'$intentOrder',
+			outcome.intentOrder
+		)) || localReferenceValueKey(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$simulation'
+		) !== (outcome.simulation === undefined ? undefined : localEntityReferenceValueKey(
+			EntityType.BlockheadActionOutcome,
+			'$simulation',
+			outcome.simulation
+		)) || stringify(localReferenceValueKeys(
+			context,
+			EntityType.BlockheadActionOutcome,
+			entitySelector,
+			'$$evmTransactions'
+		)) !== stringify((outcome.evmTransactions ?? []).map((selector) => localEntityReferenceValueKey(
+			EntityType.BlockheadActionOutcome,
+			'$$evmTransactions',
+			selector
+		))))
+			throw new Error('Local_BlockheadActionOutcome: conflicting immutable outcome')
 	}
 	writeLocalPresence(context, EntityType.BlockheadActionOutcome, entitySelector)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadActionOutcome, entitySelector, primitiveFields)
@@ -3741,4 +3905,360 @@ export const writeLocalBlockheadWalletRequest = async (
 			entityFieldAddressKey(EntityType._Global, [], '$$blockheadWalletRequests')
 		]?.utils.waitForPersistence(),
 	])
+}
+
+type LocalBlockheadActionAuthorityRequest = {
+	id: string
+	actionRevisionBindings: readonly (typeof actionRevisionBinding.infer)[]
+	sessionActions: readonly EntitySelector<typeof schema, EntityType.BlockheadSessionAction>[]
+	walletConnection?: EntitySelector<typeof schema, EntityType.BlockheadWalletConnection>
+	account?: EntitySelector<typeof schema, EntityType.Account>
+	envelope: ActionAuthorityRequestEnvelope
+	envelopeHash: typeof Hash32.infer
+	presentedAt: number
+	decision?: typeof authorityDecision.infer
+}
+type LocalBlockheadActionDispatchOccurrence = {
+	id: string
+	authorityRequest?: EntitySelector<typeof schema, EntityType.BlockheadActionAuthorityRequest>
+	walletConnection?: EntitySelector<typeof schema, EntityType.BlockheadWalletConnection>
+	address: typeof dispatchAddress.infer
+	startedAt: number
+	localEffectFingerprint?: typeof Hash32.infer
+}
+type LocalBlockheadActionDispatchEvidence = ActionDispatchEvidence
+
+const localAuthorityRequestDispatchMethod = (
+	envelope: ActionAuthorityRequestEnvelope
+) => {
+	switch (envelope.adapterKey) {
+		case 'evm.transaction': return 'eth_sendTransaction'
+		case 'evm.personal-sign': return 'personal_sign'
+		case 'evm.typed-data': return 'eth_signTypedData_v4'
+		case 'ton.transaction': return 'sendTransaction'
+		case 'ton.internal-message-sign': return 'signMessage'
+		case 'wallet.message-sign': return envelope.value.method
+	}
+}
+
+const localDispatchResponseMatchesAddress = (
+	address: LocalBlockheadActionDispatchOccurrence['address'],
+	response: ActionDispatchResponse,
+	authorityEnvelope?: ActionAuthorityRequestEnvelope
+) => {
+	const namespace = response.adapterKey === 'wallet.signature' ? response.value.namespace : undefined
+	const compatible = (
+		address.method === 'eth_sendTransaction' ? response.adapterKey === 'evm.transaction'
+		: address.method === 'eth_signTypedData_v4' ? response.adapterKey === 'evm.signature'
+		: address.method === 'personal_sign' ? response.adapterKey === 'evm.signature' || namespace === 'tron'
+		: address.method === 'aptos:signMessage' ? namespace === 'aptos'
+		: address.method === 'signArbitrary' ? namespace === 'cosmos'
+		: address.method === 'signData' ? namespace === 'cip34'
+		: address.method === 'signMessage' ? (
+			authorityEnvelope?.adapterKey === 'ton.internal-message-sign' ?
+				response.adapterKey === 'ton.internal-message-sign'
+			: authorityEnvelope?.adapterKey === 'wallet.message-sign'
+				&& authorityEnvelope.value.namespace === 'bip122' ?
+					namespace === 'bip122'
+			:
+				false
+		)
+		: address.method === 'solana:signMessage' ? namespace === 'solana'
+		: address.method === 'sui:signPersonalMessage' ? namespace === 'sui'
+		: false
+	)
+	if (!compatible)
+		throw new Error(`Dispatch response does not match the persisted ${address.method} address.`)
+}
+
+const localEntityReferenceValueKey = (
+	entityType: EntityType,
+	fieldName: string,
+	referencedEntitySelector: object
+) => {
+	const fieldDefinition = entityFieldDefinitions(entityDefinitionByType[entityType]).find(
+		(definition) => definition.name === fieldName
+	)
+	if (fieldDefinition?.type !== EntityFieldType.EntityReference && fieldDefinition?.type !== EntityFieldType.EntitiesReference)
+		throw new Error(`Local mutation field is not an entity reference: ${entityType}.${fieldName}`)
+	return `Entity:${entitySelectorKey(
+		schema,
+		entityDefinitionByType[fieldDefinition.entityType],
+		referencedEntitySelector
+	)}`
+}
+
+const localReferenceValueKeys = (
+	context: LocalMutationContext,
+	entityType: EntityType,
+	selector: object,
+	fieldName: string
+) => {
+	const parentSelectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], selector)
+	const field = context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)]
+	return field.toArray
+		.filter((row) => (
+			row[EntityMetaKey.Source] === Source.Local_Internal
+			&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+		))
+		.sort((left, right) => (left.valueIndex ?? 0) - (right.valueIndex ?? 0))
+		.map((row) => row.valueKey)
+}
+
+const localReferenceValueKey = (
+	context: LocalMutationContext,
+	entityType: EntityType,
+	selector: object,
+	fieldName: string
+) => localReferenceValueKeys(context, entityType, selector, fieldName).at(0)
+
+const localAuthorityEnvelopeForOccurrence = (
+	context: LocalMutationContext,
+	selector: EntitySelector<typeof schema, EntityType.BlockheadActionDispatchOccurrence>
+): ActionAuthorityRequestEnvelope | undefined => {
+	const authorityRequestValueKey = localReferenceValueKey(
+		context,
+		EntityType.BlockheadActionDispatchOccurrence,
+		selector,
+		'$authorityRequest'
+	)
+	if (authorityRequestValueKey === undefined)
+		return undefined
+
+	const envelopeRows = context.entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][
+		entityFieldAddressKey(EntityType.BlockheadActionAuthorityRequest, [], 'envelope')
+	].toArray.filter((row) => (
+		row[EntityMetaKey.Source] === Source.Local_Internal
+		&& `Entity:${row[EntityMetaKey.ParentSelectorKey]}` === authorityRequestValueKey
+		&& row.facetPathKey === stringify([])
+	))
+	if (envelopeRows.length !== 1)
+		throw new Error('Dispatch evidence requires one immutable authority request envelope.')
+
+	return authorityRequestEnvelope.assert(envelopeRows[0][EntityMetaKey.Value])
+}
+
+const localPrimitiveManyFieldValues = (
+	context: LocalMutationContext,
+	entityType: EntityType,
+	selector: object,
+	fieldName: string
+) => {
+	const parentSelectorKey = entitySelectorKey(schema, entityDefinitionByType[entityType], selector)
+	return context.entityFieldCollections[entityType][entityFieldAddressKey(entityType, [], fieldName)].toArray
+		.filter((row) => (
+			row[EntityMetaKey.Source] === Source.Local_Internal
+			&& row[EntityMetaKey.ParentSelectorKey] === parentSelectorKey
+		))
+		.sort((left, right) => (left.valueIndex ?? 0) - (right.valueIndex ?? 0))
+		.map((row) => row[EntityMetaKey.Value])
+}
+
+export const writeLocalBlockheadActionAuthorityRequest = async (
+	context: LocalMutationContext,
+	request: LocalBlockheadActionAuthorityRequest
+) => {
+	const persistedRequest = {
+		...request,
+		actionRevisionBindings: request.actionRevisionBindings.map((binding) => (
+			actionRevisionBinding.assert(structuredClone(binding))
+		)),
+		sessionActions: structuredClone(request.sessionActions),
+		walletConnection: request.walletConnection === undefined ? undefined : structuredClone(request.walletConnection),
+		account: request.account === undefined ? undefined : structuredClone(request.account),
+		envelope: authorityRequestEnvelope.assert(structuredClone(request.envelope)),
+		decision: request.decision === undefined ? undefined : authorityDecision.assert(structuredClone(request.decision)),
+	}
+	if ((persistedRequest.walletConnection === undefined) === (persistedRequest.account === undefined))
+		throw new Error('Authority request must address exactly one wallet connection or account authority.')
+	if (persistedRequest.actionRevisionBindings.length !== persistedRequest.sessionActions.length)
+		throw new Error('Authority request action bindings must match linked authored actions.')
+	for (const [index, binding] of persistedRequest.actionRevisionBindings.entries()) {
+		const action = persistedRequest.sessionActions[index]
+		if (action.sessionId !== binding.sessionId || action.actionId !== binding.actionId)
+			throw new Error('Authority request action revision binding does not match its authored action.')
+		const authoredAction = localBlockheadSessionActionAuthoredSelector(context, action)
+		if (authoredAction.id !== binding.actionId || localPrimitiveFieldValue(
+			context,
+			EntityType.BlockheadAction,
+			authoredAction,
+			'contentRevisionHash'
+		) !== binding.contentRevisionHash)
+			throw new Error('Authority request action revision binding is not the persisted authored action revision.')
+	}
+	if (persistedRequest.envelopeHash !== actionAuthorityRequestEnvelopeHash(persistedRequest.envelope))
+		throw new Error('Authority request envelopeHash does not bind the exact consent envelope.')
+	const selector = { id: persistedRequest.id }
+	const selectorKey = entitySelectorKey(
+		schema,
+		entityDefinitionByType[EntityType.BlockheadActionAuthorityRequest],
+		selector
+	)
+	if (context.entityCollections[EntityType.BlockheadActionAuthorityRequest].toArray.some((row) => (
+		row[EntityMetaKey.Source] === Source.Local_Internal
+		&& row[EntityMetaKey.SelectorKey] === selectorKey
+	))) {
+		const same = (
+			localPrimitiveFieldValue(context, EntityType.BlockheadActionAuthorityRequest, selector, 'envelopeHash') === persistedRequest.envelopeHash
+			&& stringify(localPrimitiveFieldValue(context, EntityType.BlockheadActionAuthorityRequest, selector, 'envelope')) === stringify(persistedRequest.envelope)
+			&& stringify(localPrimitiveManyFieldValues(context, EntityType.BlockheadActionAuthorityRequest, selector, 'actionRevisionBindings')) === stringify(persistedRequest.actionRevisionBindings)
+			&& localPrimitiveFieldValue(context, EntityType.BlockheadActionAuthorityRequest, selector, 'presentedAt') === persistedRequest.presentedAt
+			&& stringify(localPrimitiveFieldValue(context, EntityType.BlockheadActionAuthorityRequest, selector, 'decision')) === stringify(persistedRequest.decision)
+			&& stringify(localReferenceValueKeys(context, EntityType.BlockheadActionAuthorityRequest, selector, '$$sessionActions')) === stringify(persistedRequest.sessionActions.map((action) => localEntityReferenceValueKey(EntityType.BlockheadActionAuthorityRequest, '$$sessionActions', action)))
+			&& localReferenceValueKey(context, EntityType.BlockheadActionAuthorityRequest, selector, '$walletConnection') === (persistedRequest.walletConnection === undefined ? undefined : localEntityReferenceValueKey(EntityType.BlockheadActionAuthorityRequest, '$walletConnection', persistedRequest.walletConnection))
+			&& localReferenceValueKey(context, EntityType.BlockheadActionAuthorityRequest, selector, '$account') === (persistedRequest.account === undefined ? undefined : localEntityReferenceValueKey(EntityType.BlockheadActionAuthorityRequest, '$account', persistedRequest.account))
+		)
+		if (same)
+			return selector
+		throw new Error(`Authority request definition already exists with conflicting immutable data: ${persistedRequest.id}`)
+	}
+	writeLocalPresence(context, EntityType.BlockheadActionAuthorityRequest, selector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadActionAuthorityRequest, selector, {
+		id: persistedRequest.id,
+		envelope: persistedRequest.envelope,
+		envelopeHash: persistedRequest.envelopeHash,
+		presentedAt: persistedRequest.presentedAt,
+		decision: persistedRequest.decision,
+	})
+	await Promise.all([
+		replaceLocalPrimitiveManyField(context, EntityType.BlockheadActionAuthorityRequest, selector, 'actionRevisionBindings', persistedRequest.actionRevisionBindings),
+		replaceLocalEntityReferenceFieldRows(context, EntityType.BlockheadActionAuthorityRequest, selector, '$$sessionActions', persistedRequest.sessionActions),
+		persistedRequest.walletConnection === undefined ? deleteLocalEntityReferenceFieldRows(context, EntityType.BlockheadActionAuthorityRequest, selector, '$walletConnection') : writeLocalEntityReferenceField(context, EntityType.BlockheadActionAuthorityRequest, selector, '$walletConnection', persistedRequest.walletConnection),
+		persistedRequest.account === undefined ? deleteLocalEntityReferenceFieldRows(context, EntityType.BlockheadActionAuthorityRequest, selector, '$account') : writeLocalEntityReferenceField(context, EntityType.BlockheadActionAuthorityRequest, selector, '$account', persistedRequest.account),
+		writeLocalEntityReferenceField(context, EntityType._Global, { scope: '$$blockheadAuthorityRequests' }, '$$blockheadAuthorityRequests', selector),
+		...persistedRequest.sessionActions.map((action) => writeLocalEntityReferenceField(context, EntityType.BlockheadSessionAction, action, '$$authorityRequests', selector)),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.BlockheadActionAuthorityRequest].utils.waitForPersistence(),
+		...['id', 'actionRevisionBindings', 'envelope', 'envelopeHash', 'presentedAt', 'decision', '$$sessionActions', '$walletConnection', '$account'].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(EntityType.BlockheadActionAuthorityRequest, [], fieldName)].utils.waitForPersistence()),
+		context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(EntityType._Global, [], '$$blockheadAuthorityRequests')].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(EntityType._Global, [], '$$blockheadAuthorityRequests')]?.utils.waitForPersistence(),
+	])
+	return selector
+}
+
+export const writeLocalBlockheadActionAuthorityDecision = async (
+	context: LocalMutationContext,
+	selector: EntitySelector<typeof schema, EntityType.BlockheadActionAuthorityRequest>,
+	inputDecision: typeof authorityDecision.infer
+) => {
+	const decision = authorityDecision.assert(structuredClone(inputDecision))
+	const existing = localPrimitiveFieldValue(context, EntityType.BlockheadActionAuthorityRequest, selector, 'decision')
+	if (existing !== undefined) {
+		if (stringify(existing) === stringify(decision)) return
+		throw new Error(`Authority request decision is immutable: ${selector.id}`)
+	}
+	writeLocalPrimitiveFields(context, EntityType.BlockheadActionAuthorityRequest, selector, { decision })
+	await context.entityFieldCollections[EntityType.BlockheadActionAuthorityRequest][entityFieldAddressKey(EntityType.BlockheadActionAuthorityRequest, [], 'decision')].utils.waitForPersistence()
+}
+
+export const writeLocalBlockheadActionDispatchOccurrenceStart = async (
+	context: LocalMutationContext,
+	inputOccurrence: LocalBlockheadActionDispatchOccurrence
+) => {
+	const occurrence = {
+		...structuredClone(inputOccurrence),
+		address: dispatchAddress.assert(structuredClone(inputOccurrence.address)),
+	} satisfies LocalBlockheadActionDispatchOccurrence
+	if (occurrence.authorityRequest !== undefined) {
+		const persistedDecision = localPrimitiveFieldValue(context, EntityType.BlockheadActionAuthorityRequest, occurrence.authorityRequest, 'decision')
+		if (persistedDecision !== undefined)
+			throw new Error('Dispatch occurrence cannot start after an authority decision has been persisted.')
+		const persistedEnvelope = localPrimitiveFieldValue(context, EntityType.BlockheadActionAuthorityRequest, occurrence.authorityRequest, 'envelope')
+		if (persistedEnvelope === undefined)
+			throw new Error('Dispatch occurrence authority request must exist before dispatch.')
+		const envelope = authorityRequestEnvelope.assert(persistedEnvelope)
+		if (occurrence.address.method !== localAuthorityRequestDispatchMethod(envelope))
+			throw new Error('Dispatch occurrence address does not match its immutable authority request.')
+		const authorityConnectionValueKey = localReferenceValueKey(
+			context,
+			EntityType.BlockheadActionAuthorityRequest,
+			occurrence.authorityRequest,
+			'$walletConnection'
+		)
+		const dispatchConnectionKey = entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadWalletConnection],
+			{ connectionKey: occurrence.address.connectionKey }
+		)
+		const dispatchConnectionValueKey = `Entity:${dispatchConnectionKey}`
+		if (authorityConnectionValueKey !== undefined && authorityConnectionValueKey !== dispatchConnectionValueKey)
+			throw new Error('Dispatch occurrence does not match its immutable wallet connection authority.')
+		if (occurrence.walletConnection !== undefined && entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadWalletConnection],
+			occurrence.walletConnection
+		) !== dispatchConnectionKey)
+			throw new Error('Dispatch occurrence wallet connection does not match its dispatch address.')
+		for (const persistedBinding of localPrimitiveManyFieldValues(
+			context,
+			EntityType.BlockheadActionAuthorityRequest,
+			occurrence.authorityRequest,
+			'actionRevisionBindings'
+		)) {
+			let binding: typeof actionRevisionBinding.infer
+			try {
+				binding = actionRevisionBinding.assert(persistedBinding)
+			}
+			catch {
+				throw new Error('Dispatch occurrence authority request has an invalid authored action revision binding.')
+			}
+			const authoredAction = localBlockheadSessionActionAuthoredSelector(context, {
+				sessionId: binding.sessionId,
+				actionId: binding.actionId,
+			})
+			const persistedContentRevisionHash = localPrimitiveFieldValue(
+				context,
+				EntityType.BlockheadAction,
+				authoredAction,
+				'contentRevisionHash'
+			)
+			if (persistedContentRevisionHash !== binding.contentRevisionHash)
+				throw new Error('Dispatch occurrence authority request no longer matches the persisted authored action revision.')
+		}
+	}
+	const selector = { id: occurrence.id }
+	const selectorKey = entitySelectorKey(schema, entityDefinitionByType[EntityType.BlockheadActionDispatchOccurrence], selector)
+	if (context.entityCollections[EntityType.BlockheadActionDispatchOccurrence].toArray.some((row) => row[EntityMetaKey.Source] === Source.Local_Internal && row[EntityMetaKey.SelectorKey] === selectorKey)) {
+		const same = (
+			stringify(localPrimitiveFieldValue(context, EntityType.BlockheadActionDispatchOccurrence, selector, 'address')) === stringify(occurrence.address)
+			&& localPrimitiveFieldValue(context, EntityType.BlockheadActionDispatchOccurrence, selector, 'startedAt') === occurrence.startedAt
+			&& stringify(localPrimitiveFieldValue(context, EntityType.BlockheadActionDispatchOccurrence, selector, 'localEffectFingerprint')) === stringify(occurrence.localEffectFingerprint)
+			&& localReferenceValueKey(context, EntityType.BlockheadActionDispatchOccurrence, selector, '$authorityRequest') === (occurrence.authorityRequest === undefined ? undefined : localEntityReferenceValueKey(EntityType.BlockheadActionDispatchOccurrence, '$authorityRequest', occurrence.authorityRequest))
+			&& localReferenceValueKey(context, EntityType.BlockheadActionDispatchOccurrence, selector, '$walletConnection') === (occurrence.walletConnection === undefined ? undefined : localEntityReferenceValueKey(EntityType.BlockheadActionDispatchOccurrence, '$walletConnection', occurrence.walletConnection))
+		)
+		if (same)
+			return selector
+		throw new Error(`Dispatch occurrence already exists with conflicting immutable data: ${occurrence.id}`)
+	}
+	writeLocalPresence(context, EntityType.BlockheadActionDispatchOccurrence, selector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadActionDispatchOccurrence, selector, { id: occurrence.id, address: occurrence.address, startedAt: occurrence.startedAt, localEffectFingerprint: occurrence.localEffectFingerprint })
+	await Promise.all([occurrence.authorityRequest === undefined ? deleteLocalEntityReferenceFieldRows(context, EntityType.BlockheadActionDispatchOccurrence, selector, '$authorityRequest') : writeLocalEntityReferenceField(context, EntityType.BlockheadActionDispatchOccurrence, selector, '$authorityRequest', occurrence.authorityRequest), occurrence.walletConnection === undefined ? deleteLocalEntityReferenceFieldRows(context, EntityType.BlockheadActionDispatchOccurrence, selector, '$walletConnection') : writeLocalEntityReferenceField(context, EntityType.BlockheadActionDispatchOccurrence, selector, '$walletConnection', occurrence.walletConnection), writeLocalEntityReferenceField(context, EntityType._Global, { scope: '$$blockheadDispatchOccurrences' }, '$$blockheadDispatchOccurrences', selector), ...(occurrence.authorityRequest === undefined ? [] : [writeLocalEntityReferenceField(context, EntityType.BlockheadActionAuthorityRequest, occurrence.authorityRequest, '$$dispatchOccurrences', selector)])])
+	await Promise.all([context.entityCollections[EntityType.BlockheadActionDispatchOccurrence].utils.waitForPersistence(), ...['id', 'address', 'startedAt', 'localEffectFingerprint', '$authorityRequest', '$walletConnection'].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadActionDispatchOccurrence][entityFieldAddressKey(EntityType.BlockheadActionDispatchOccurrence, [], fieldName)].utils.waitForPersistence()), context.entityFieldCollections[EntityType._Global][entityFieldAddressKey(EntityType._Global, [], '$$blockheadDispatchOccurrences')].utils.waitForPersistence(), context.entityFieldCountCollections[EntityType._Global][entityFieldAddressKey(EntityType._Global, [], '$$blockheadDispatchOccurrences')]?.utils.waitForPersistence()])
+	return selector
+}
+
+export const writeLocalBlockheadActionDispatchEvidence = async (
+	context: LocalMutationContext,
+	selector: EntitySelector<typeof schema, EntityType.BlockheadActionDispatchOccurrence>,
+	inputEvidence: LocalBlockheadActionDispatchEvidence
+) => {
+	const evidence = dispatchEvidence.assert(structuredClone(inputEvidence))
+	const persistedAddress = localPrimitiveFieldValue(context, EntityType.BlockheadActionDispatchOccurrence, selector, 'address')
+	if (persistedAddress === undefined)
+		throw new Error('Dispatch evidence requires a persisted dispatch occurrence.')
+	const address = dispatchAddress.assert(persistedAddress)
+	if ((evidence.kind === 'returned' || evidence.kind === 'response-audit-failure') && 'response' in evidence)
+		localDispatchResponseMatchesAddress(
+			address,
+			evidence.response,
+			localAuthorityEnvelopeForOccurrence(context, selector)
+		)
+	const existing = localPrimitiveFieldValue(context, EntityType.BlockheadActionDispatchOccurrence, selector, 'evidence')
+	if (existing !== undefined) {
+		if (stringify(existing) === stringify(evidence)) return
+		throw new Error(`Dispatch occurrence evidence is already terminal: ${selector.id}`)
+	}
+	writeLocalPrimitiveFields(context, EntityType.BlockheadActionDispatchOccurrence, selector, { evidence })
+	await context.entityFieldCollections[EntityType.BlockheadActionDispatchOccurrence][entityFieldAddressKey(EntityType.BlockheadActionDispatchOccurrence, [], 'evidence')].utils.waitForPersistence()
 }

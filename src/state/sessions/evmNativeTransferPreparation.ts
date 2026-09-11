@@ -51,11 +51,10 @@ type SessionAction = (
 	& Omit<
 		Pick<
 			EntityFieldValues<typeof schema, EntityType.BlockheadSessionAction>,
-			'sessionId' | 'actionId' | 'indexInSequence' | 'actionType' | 'actionParams'
+			'sessionId' | 'actionId' | 'indexInSequence'
 		>,
-		'actionType'
-	>
-	& { actionType: ActionType }
+		{ $action: Pick<EntityFieldValues<typeof schema, EntityType.BlockheadAction>, 'id' | 'content' | 'contentRevisionHash'> }
+>
 )
 
 type ExecutionCall = {
@@ -181,7 +180,7 @@ export const prepareEvmNativeTransfer = async ({
 			'Transfer action belongs to a different session.'
 		: action.indexInSequence !== 0 ?
 			'The single transfer action must be first in the session sequence.'
-		: action.actionType !== ActionType.Transfer ?
+		: action.$action.content.type !== ActionType.Transfer ?
 			'The session action must be a Transfer action.'
 		:
 			undefined
@@ -192,10 +191,10 @@ export const prepareEvmNativeTransfer = async ({
 	if (actionShapeError == null && action != null) {
 		try {
 			const validatedTransferParams = actionTypeDefinitionByActionType[ActionType.Transfer].params.assert(
-				action.actionParams ?? {}
+				action.$action.content.params
 			)
 			transferParams = validatedTransferParams
-			if (!Number.isSafeInteger(validatedTransferParams.chainId))
+			if (!Number.isSafeInteger(validatedTransferParams.chainId) || validatedTransferParams.chainId <= 0)
 				nativeParamsError = 'Transfer chain ID must be a positive safe integer.'
 			else if (validatedTransferParams.tokenAddress.toLowerCase() !== zeroAddress)
 				nativeParamsError = 'Only native EVM transfers are supported by this preparation path.'
@@ -417,7 +416,7 @@ export const prepareEvmNativeTransfer = async ({
 		session.id,
 		action.sessionId,
 		action.actionId,
-		action.actionType,
+		action.$action.content.type,
 		{
 			chainId: normalizedParams.chainId,
 			fromActor: normalizedParams.fromActor,
@@ -609,7 +608,10 @@ export const prepareEvmNativeTransfer = async ({
 	: callOutputError
 	const gasError = gasResult.status === 'rejected' ? (
 		gasResult.reason instanceof Error ? gasResult.reason.message : String(gasResult.reason)
-	) : undefined
+	) : gasResult.value < 0n ?
+		'EVM execution transport returned invalid negative eth_estimateGas data.'
+	: undefined
+	const gasValue = gasResult.status === 'fulfilled' && gasError == null ? gasResult.value : undefined
 	const simulationError = [
 		...(callError == null ? [] : [`eth_call: ${callError}`]),
 		...(gasError == null ? [] : [`eth_estimateGas: ${gasError}`]),
@@ -628,12 +630,12 @@ export const prepareEvmNativeTransfer = async ({
 		...(callOutput != null && {
 			outputDataHash: Hash.sha256(callOutput),
 		}),
-		...(gasResult.status === 'fulfilled' && { gasUsed: gasResult.value }),
+		...(gasValue != null && { gasUsed: gasValue }),
 		...(callError == null && { reverted: false }),
 		...(simulationError != null && { error: simulationError }),
 	} satisfies BlockheadSessionSimulationCallPayload
 
-	if (callError != null || gasResult.status === 'rejected')
+	if (callError != null || gasValue == null)
 		return {
 			ready: false,
 			error: simulationError,
@@ -651,7 +653,7 @@ export const prepareEvmNativeTransfer = async ({
 				forkBlockNumber,
 				forkRpcOrigin,
 				actionCount: 1,
-				...(gasResult.status === 'fulfilled' && { gasUsed: gasResult.value }),
+				...(gasValue != null && { gasUsed: gasValue }),
 				error: simulationError,
 			},
 			simulationCall: simulationCallPayload,
@@ -659,7 +661,7 @@ export const prepareEvmNativeTransfer = async ({
 
 	const resultPayloadHash = sha256Text(JSON.stringify([
 		callOutput,
-		gasResult.value.toString(),
+		gasValue?.toString(),
 		forkBlockNumber.toString(),
 		forkRpcOrigin,
 	]))
@@ -679,7 +681,7 @@ export const prepareEvmNativeTransfer = async ({
 			forkBlockNumber,
 			forkRpcOrigin,
 			actionCount: 1,
-			gasUsed: gasResult.value,
+			gasUsed: gasValue,
 			resultPayloadHash,
 		},
 		simulationCall: simulationCallPayload,
@@ -689,12 +691,12 @@ export const prepareEvmNativeTransfer = async ({
 const transferParamsFromAction = (
 	action: SessionAction | undefined
 ) => {
-	if (action?.actionType !== ActionType.Transfer)
+	if (action?.$action.content.type !== ActionType.Transfer)
 		return undefined
 
 	try {
 		return actionTypeDefinitionByActionType[ActionType.Transfer].params.assert(
-			action.actionParams ?? {}
+			action.$action.content.params
 		)
 	} catch {
 		return undefined

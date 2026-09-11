@@ -8,6 +8,7 @@ import {
 import {
 	argentXBlockedObservation,
 	argentXDriver,
+	disableArgentXTelemetry,
 	isArgentXIndexPageUrl,
 } from './driver.ts'
 import { argentXWalletMatrixScenarios } from './matrix.ts'
@@ -19,6 +20,16 @@ test('maps headed Connect chrome to Argent X index.html URLs', () => {
 	assert.equal(isArgentXIndexPageUrl(`chrome-extension://${extensionId}/index.html#/connect`, extensionId), true)
 	assert.equal(isArgentXIndexPageUrl(`chrome-extension://${extensionId}/background.js`, extensionId), false)
 	assert.equal(isArgentXIndexPageUrl(`chrome-extension://other/index.html`, extensionId), false)
+})
+
+test('scopes connection decisions to Argent X index.html and excludes extension-owned helpers', () => {
+	const extensionId = 'dlcobpjiigpikoobohmabehhmhfoodbb'
+	assert.equal(isArgentXIndexPageUrl(`chrome-extension://${extensionId}/background.html`, extensionId), false)
+	assert.equal(isArgentXIndexPageUrl(`chrome-extension://${extensionId}/notification.html`, extensionId), false)
+})
+
+test('exposes the pinned Argent X reporting opt-outs as an explicit driver step', () => {
+	assert.equal(typeof disableArgentXTelemetry, 'function')
 })
 
 test('keeps the Argent X account lifecycle shard free of invented recover passes', () => {

@@ -144,6 +144,7 @@ describe('Farcaster wallet proof bridge', () => {
 		await expect(signFarcasterAccountConnectionChallenge({
 			connectionKey: 'wallet',
 			challenge,
+			submittedAt: 1,
 			walletRuntime: {
 				connections: [eip155ProofConnection],
 				signMessage,
@@ -152,16 +153,21 @@ describe('Farcaster wallet proof bridge', () => {
 			accountAddress: challenge.signerAddress,
 			signature: '0xsigned',
 		})
-		expect(signMessage).toHaveBeenCalledWith(
-			'wallet',
-			JSON.stringify(challenge)
-		)
+		expect(signMessage).toHaveBeenCalledWith({
+			connectionKey: 'wallet',
+			message: JSON.stringify(challenge),
+			authorityPresentation: {
+				submittedAt: 1,
+				validUntil: 2,
+			},
+		})
 	})
 
 	it('rejects a wallet account that differs from the challenge signer', async () => {
 		await expect(signFarcasterAccountConnectionChallenge({
 			connectionKey: 'wallet',
 			challenge,
+			submittedAt: 1,
 			walletRuntime: {
 				connections: [{
 					...eip155ProofConnection,
@@ -184,6 +190,7 @@ describe('Farcaster wallet proof bridge', () => {
 		await expect(signFarcasterAccountConnectionChallenge({
 			connectionKey: 'missing',
 			challenge,
+			submittedAt: 1,
 			walletRuntime: {
 				connections: [eip155ProofConnection],
 				signMessage,

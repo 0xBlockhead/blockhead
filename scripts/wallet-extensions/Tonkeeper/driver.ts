@@ -8,10 +8,14 @@ import type {
 	WalletMatrixScenario,
 } from '../WalletCompatibilityMatrix.ts'
 import {
-	acquireExtensionPage,
 	openExtensionPage,
 	type LoadedWalletExtension,
 } from '../WalletExtensionHarness.ts'
+import {
+	captureWalletExtensionSurfaceCheckpoint,
+	type WalletExtensionSurfaceCheckpoint,
+	waitForWalletExtensionPhase,
+} from '../WalletExtensionRequestCheckpoint.ts'
 
 
 const tonkeeperBlockedDetail = (lifecycleEdgeCase: string) => (
@@ -43,6 +47,76 @@ export const isTonkeeperIndexPageUrl = (
 	&& url.includes('/index.html')
 )
 
+// The pinned 26.6.1 request component renders its decision as the form's
+// submit button and disables it for loading, unsupported, or manifest-mismatch
+// states. Keep the selector independent of the locale-provided button label.
+export const tonkeeperConnectionApprovalSelector = 'button[type="submit"]'
+
+export const isTonkeeperConnectionRequestSurface = ({
+	extensionId,
+	visibleFormCount,
+	visibleSubmitButtonCount,
+	url,
+}: {
+	extensionId: string
+	visibleFormCount: number
+	visibleSubmitButtonCount: number
+	url: string
+}) => {
+	if (!isTonkeeperIndexPageUrl(url, extensionId))
+		return false
+
+	return visibleFormCount === 1 && visibleSubmitButtonCount === 1
+}
+
+export const tonkeeperConnectionRequestSurfaceIndex = ({
+	checkpoint,
+	extensionId,
+}: {
+	checkpoint: WalletExtensionSurfaceCheckpoint
+	extensionId: string
+}) => checkpoint.extensionPages.findIndex(({ extensionUrl, visibleFormCount, visibleSubmitButtonCount }) => (
+	isTonkeeperConnectionRequestSurface({
+		extensionId,
+		visibleFormCount,
+		visibleSubmitButtonCount,
+		url: extensionUrl,
+	})
+))
+
+const waitForTonkeeperConnectionRequest = async (
+	context: BrowserContext,
+	extension: LoadedWalletExtension,
+	previousPages: Set<Page>
+) => waitForWalletExtensionPhase({
+	capture: async () => {
+		const extensionPages = context.pages().filter((page) => (
+			page.url().startsWith(`chrome-extension://${extension.id}/`)
+		)).sort((left, right) => (
+			Number(previousPages.has(left)) - Number(previousPages.has(right))
+		))
+		const checkpoint = await captureWalletExtensionSurfaceCheckpoint(extensionPages)
+		const requestIndex = tonkeeperConnectionRequestSurfaceIndex({
+			checkpoint,
+			extensionId: extension.id,
+		})
+		return {
+			checkpoint,
+			ownedSurface: extensionPages[requestIndex] ?? null,
+		}
+	},
+	onCheckpoint: (checkpoint) => {
+		process.stderr.write(`${JSON.stringify({
+			checkpoint,
+			phase: 'Tonkeeper connection authority',
+		})}\n`)
+	},
+	phase: 'Tonkeeper connection authority',
+}).then(async (page) => {
+	await page.waitForLoadState('domcontentloaded')
+	return page
+})
+
 const createWallet = async (
 	page: Page,
 	name: string,
@@ -67,7 +141,7 @@ const createWallet = async (
 
 	const recoveryWords = await page.locator('span').evaluateAll((spans) => (
 		spans.flatMap((span) => {
-			const match = span.textContent?.match(/^\s*(\d+)\.\s+([a-z]+)\s*$/)
+			const match = span.textContent.match(/^\s*(\d+)\.\s+([a-z]+)\s*$/)
 			return match ?
 				[[
 					Number(match[1]),
@@ -93,6 +167,16 @@ const createWallet = async (
 	await page.getByRole('button', {
 		name: 'Continue',
 	}).click()
+	if (existingPassword) {
+		const unlockPassword = page.locator('#unlock-password')
+		await unlockPassword.fill(password)
+		await page.getByRole('button', {
+			name: 'Confirm',
+		}).click()
+		await unlockPassword.waitFor({
+			state: 'hidden',
+		})
+	}
 
 	if (!existingPassword) {
 		await page.locator('#create-password').fill(password)
@@ -114,7 +198,11 @@ const createWallet = async (
 		() => false
 	)
 	if (!namePageReady)
-		return false
+		throw new Error(`Tonkeeper ${existingPassword ? 'existing-password second-wallet' : 'initial'} onboarding did not reach wallet naming; phase observations: ${JSON.stringify({
+			headingCount: await page.getByRole('heading').count(),
+			passwordInputVisible: await page.locator('input[type="password"]').first().isVisible().catch(() => false),
+			modalPresent: await page.locator('#react-portal-modal-container').count() > 0,
+		})}`)
 
 	await page.locator('#wallet-name').fill(name)
 	await page.locator('#wallet-name').press('Enter')
@@ -149,6 +237,7 @@ export const tonkeeperDriver = {
 		password: string
 	) => {
 		const page = await openExtensionPage(context, extension, 'index.html')
+		page.setDefaultTimeout(30_000)
 		await page.getByRole('button', {
 			name: 'Get started',
 		}).click()
@@ -169,41 +258,25 @@ export const tonkeeperDriver = {
 		context: BrowserContext,
 		extension: LoadedWalletExtension,
 		previousPages: Set<Page>
-	) => {
-		const existing = context.pages().find((page) => (
-			!previousPages.has(page)
-			&& isTonkeeperIndexPageUrl(page.url(), extension.id)
-		))
-		if (existing)
-			return Promise.resolve(existing)
-
-		return context.waitForEvent('page', {
-			predicate: (page) => (
-				!previousPages.has(page)
-				&& isTonkeeperIndexPageUrl(page.url(), extension.id)
-			),
-			timeout: 60_000,
-		}).catch(() => (
-			acquireExtensionPage(context, extension, {
-				previousPages,
-				timeoutMs: 60_000,
-			})
-		))
-	},
+	) => waitForTonkeeperConnectionRequest(context, extension, previousPages),
 	approveConnection: async (page: Page, password: string) => {
-		const connectButton = page.getByRole('button', {
-			name: 'Connect wallet',
-		})
-		if (!await connectButton.waitFor({
-			timeout: 15_000,
-		}).then(
-			() => true,
-			() => false
-		))
-			return false
+		const passwordInput = page.locator('#unlock-password')
+		if (await passwordInput.isVisible()) {
+			await passwordInput.fill(password)
+			await page.getByRole('button', {
+				name: 'Confirm',
+			}).click()
+			await passwordInput.waitFor({ state: 'hidden' })
+		}
+
+		const connectButton = page.locator(tonkeeperConnectionApprovalSelector)
+		await connectButton.waitFor({ state: 'visible' })
+		if (!await connectButton.isVisible())
+			throw new Error('Tonkeeper connection authority surface disappeared before its decision')
+		if (await connectButton.isDisabled())
+			throw new Error('Tonkeeper connection request is disabled; inspect structural diagnostics before approving')
 
 		await connectButton.click()
-		const passwordInput = page.locator('#react-portal-modal-container').getByRole('textbox')
 		if (await passwordInput.isVisible()) {
 			await passwordInput.fill(password)
 			await page.getByRole('button', {

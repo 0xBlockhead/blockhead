@@ -18,6 +18,8 @@ test('maps headed Connect chrome to polkadot-js notification.html URLs', () => {
 	assert.equal(isPolkadotJsNotificationPageUrl(`chrome-extension://${extensionId}/notification.html`, extensionId), true)
 	assert.equal(isPolkadotJsNotificationPageUrl(`chrome-extension://${extensionId}/notification.html#/`, extensionId), true)
 	assert.equal(isPolkadotJsNotificationPageUrl(`chrome-extension://${extensionId}/index.html`, extensionId), false)
+	assert.equal(isPolkadotJsNotificationPageUrl(`chrome-extension://${extensionId}/notification.html.evil`, extensionId), false)
+	assert.equal(isPolkadotJsNotificationPageUrl(`https://${extensionId}/notification.html`, extensionId), false)
 	assert.equal(isPolkadotJsNotificationPageUrl(`chrome-extension://other/notification.html`, extensionId), false)
 })
 

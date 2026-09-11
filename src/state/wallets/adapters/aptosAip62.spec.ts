@@ -151,6 +151,9 @@ describe('Aptos AIP-62 discovery adapter', () => {
 		const unregisterBeforeApp = discovery.announceBeforeApp(beforeApp)
 		const stop = adapter.start((nextCandidates) => candidates.push(nextCandidates))
 		discovery.announce(afterApp)
+		expect(candidates.at(-1)?.flatMap(({ capabilities }) => capabilities)).not.toContain(
+			WalletCapability.SignTransaction
+		)
 
 		expect(candidates.at(-1)).toEqual([
 			{
@@ -401,5 +404,79 @@ describe('Aptos AIP-62 discovery adapter', () => {
 			canonicalAccountA,
 			'hello'
 		)).rejects.toThrow('Petra rejected message signing')
+	})
+
+	it('rejects an empty approved aptos:signMessage response', async () => {
+		const discovery = setup()
+		const synthetic = createSyntheticAip62Wallet()
+		const adapter = createAptosAip62Adapter()
+		adapter.start(() => {})
+		discovery.announce(synthetic.wallet)
+		await adapter.connect('aptos-aip62:Petra')
+		synthetic.wallet.features['aptos:signMessage'].signMessage.mockResolvedValueOnce({
+			status: 'Approved',
+			args: { signature: '' },
+		})
+
+		await expect(adapter.signMessage?.(
+			'aptos-aip62:Petra',
+			canonicalAccountA,
+			'hello'
+		)).rejects.toThrow('invalid aptos:signMessage signature')
+	})
+
+	it('fences a delayed signMessage response after provider replacement', async () => {
+		const discovery = setup()
+		const first = createSyntheticAip62Wallet()
+		const pending = Promise.withResolvers<{
+			status: 'Approved'
+			args: { signature: string }
+		}>()
+		first.wallet.features['aptos:signMessage'].signMessage.mockImplementationOnce(() => pending.promise)
+		const adapter = createAptosAip62Adapter()
+		adapter.start(() => {})
+		const unregister = discovery.announce(first.wallet)
+		await adapter.connect('aptos-aip62:Petra')
+		const signing = adapter.signMessage?.(
+			'aptos-aip62:Petra',
+			canonicalAccountA,
+			'hello'
+		)
+
+		unregister()
+		discovery.announce(createSyntheticAip62Wallet().wallet)
+		pending.resolve({
+			status: 'Approved',
+			args: { signature: '0xstale-signature' },
+		})
+
+		await expect(signing).rejects.toThrow('registration changed during Aptos message signing')
+	})
+
+	it('fences a delayed connection across unregister and same-name replacement', async () => {
+		const discovery = setup()
+		const first = createSyntheticAip62Wallet()
+		const pending = Promise.withResolvers<{
+			status: 'Approved'
+			args: { address: string }
+		}>()
+		first.wallet.features['aptos:connect'].connect.mockImplementationOnce(() => pending.promise)
+		const adapter = createAptosAip62Adapter()
+		adapter.start(() => {})
+		const unregister = discovery.announce(first.wallet)
+		const connecting = adapter.connect('aptos-aip62:Petra')
+
+		unregister()
+		const replacement = createSyntheticAip62Wallet()
+		discovery.announce(replacement.wallet)
+		pending.resolve({
+			status: 'Approved',
+			args: { address: '0xA11CE' },
+		})
+
+		await expect(connecting).rejects.toThrow('registration changed')
+		await expect(adapter.connect('aptos-aip62:Petra')).resolves.toMatchObject({
+			status: BlockheadConnectionStatus.Connected,
+		})
 	})
 })

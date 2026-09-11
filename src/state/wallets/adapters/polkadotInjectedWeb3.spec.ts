@@ -8,6 +8,10 @@ import type { WalletCandidate, WalletConnection } from './types.ts'
 const polkadotAddress = '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5'
 const genericAliceAddress = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'
 const kusamaAddress = 'HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F'
+const polkadotGenesisHash = '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3'
+const trailingPolkadotGenesisHash = `${polkadotGenesisHash}00`
+const malformedPolkadotGenesisHash = `${polkadotGenesisHash.slice(0, -1)}g`
+const mismatchedPolkadotGenesisHash = `${polkadotGenesisHash.slice(0, -1)}2`
 
 describe('Polkadot injectedWeb3 wallet adapter', () => {
 	afterEach(() => {
@@ -41,8 +45,10 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		adapter.start((nextCandidates) => candidates.push(nextCandidates))
 
 		expect(candidates[0]?.[0]?.capabilities).toEqual([
+			WalletCapability.Discover,
 			WalletCapability.Connect,
 			WalletCapability.Reconnect,
+			WalletCapability.Disconnect,
 			WalletCapability.ListAccounts,
 			WalletCapability.WatchAccounts,
 		])
@@ -63,7 +69,7 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		}))
 		expect(get).toHaveBeenCalledWith(
 			undefined,
-			'0x91b171bb158e2d3848fa23a9f1c25182'
+			polkadotGenesisHash
 		)
 	})
 
@@ -113,7 +119,7 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 				get: async () => [
 					{
 						address: genericAliceAddress,
-						genesisHash: '0x91b171bb158e2d3848fa23A9F1C25182d',
+						genesisHash: polkadotGenesisHash.toUpperCase(),
 					},
 					{
 						address: kusamaAddress,
@@ -258,11 +264,11 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 								},
 								{
 									address: `${polkadotAddress.slice(0, -1)}6`,
-									genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182',
+									genesisHash: trailingPolkadotGenesisHash,
 								},
 								{
 									address: 'not-base58-0',
-									genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182',
+									genesisHash: malformedPolkadotGenesisHash,
 								},
 							],
 							subscribe: () => () => {},
@@ -292,7 +298,7 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 							get: async () => [
 								{
 									address: kusamaAddress,
-									genesisHash: '0xb0a8d493285c2df73290dfb7e61f870f',
+									genesisHash: mismatchedPolkadotGenesisHash,
 								},
 								{
 									address: genericAliceAddress,
@@ -354,7 +360,7 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 			accounts: {
 				get: async () => [{
 					address: genericAliceAddress,
-					genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182d',
+					genesisHash: polkadotGenesisHash,
 				}],
 				subscribe,
 			},
@@ -408,7 +414,7 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		}])
 		initialAccounts.resolve([{
 			address: genericAliceAddress,
-			genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182d',
+			genesisHash: polkadotGenesisHash,
 		}])
 		await initialAccounts.promise
 		await Promise.resolve()
@@ -420,5 +426,49 @@ describe('Polkadot injectedWeb3 wallet adapter', () => {
 		])
 
 		cleanup()
+	})
+
+	it('fences delayed enable when an injected source is replaced', async () => {
+		vi.useFakeTimers()
+		const firstEnable = Promise.withResolvers<{
+			accounts: {
+				get(): Promise<{ address: string, genesisHash?: string | null }[]>
+				subscribe(callback: () => void): () => void
+			}
+		}>()
+		const first = {
+			enable: vi.fn(() => firstEnable.promise),
+		}
+		const replacement = {
+			enable: vi.fn(async () => ({
+			accounts: {
+				get: async () => [{ address: genericAliceAddress, genesisHash: null }],
+				subscribe: () => () => {},
+			},
+		})),
+		}
+		const injectedWindow: { injectedWeb3: Record<string, typeof first> } = {
+			injectedWeb3: { talisman: first },
+		}
+		vi.stubGlobal('window', injectedWindow)
+		const adapter = createPolkadotInjectedWeb3Adapter()
+		const cleanup = adapter.start(() => {})
+		const connecting = adapter.connect('polkadot:talisman')
+
+		injectedWindow.injectedWeb3 = { talisman: replacement }
+		await vi.advanceTimersByTimeAsync(100)
+		firstEnable.resolve({
+			accounts: {
+				get: async () => [],
+				subscribe: () => () => {},
+			},
+		})
+
+		await expect(connecting).rejects.toThrow('changed during authorization')
+		await expect(adapter.connect('polkadot:talisman')).resolves.toMatchObject({
+			status: BlockheadConnectionStatus.Connected,
+		})
+		cleanup()
+		vi.useRealTimers()
 	})
 })

@@ -33,10 +33,16 @@ export const ambireBlockedObservation = (
 export const isAmbireRequestWindowPageUrl = (
 	url: string,
 	extensionId: string
-) => (
-	url.startsWith(`chrome-extension://${extensionId}/`)
-	&& url.includes('/request-window.html')
-)
+) => {
+	try {
+		const parsed = new URL(url)
+		return parsed.protocol === 'chrome-extension:'
+			&& parsed.hostname === extensionId
+			&& parsed.pathname === '/request-window.html'
+	} catch {
+		return false
+	}
+}
 
 export const ambireDriver = {
 	approveConnection: async (page) => {

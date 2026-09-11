@@ -52,7 +52,7 @@
 			}
 		>
 			{#snippet Title()}
-				{blockheadBridgeIntent.$sessionAction.actionType || 'blockhead session action'}
+				{(blockheadBridgeIntent.$sessionAction.selectedProtocol ?? '') || 'blockhead session action'}
 			{/snippet}
 
 			{#snippet Value()}

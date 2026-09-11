@@ -134,6 +134,14 @@ export default entity({
 		entityType: EntityType.BlockheadWalletRequest,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$blockheadAuthorityRequests: {
+		entityType: EntityType.BlockheadActionAuthorityRequest,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$blockheadDispatchOccurrences: {
+		entityType: EntityType.BlockheadActionDispatchOccurrence,
+		cardinality: EntityFieldCardinality.Many,
+	},
 	$$blockheadWalletCapabilityGrants: {
 		entityType: EntityType.BlockheadWalletCapabilityGrant,
 		cardinality: EntityFieldCardinality.Many,

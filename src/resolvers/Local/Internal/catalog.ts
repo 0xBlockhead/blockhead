@@ -1,11 +1,11 @@
 import { entitySelectorKey, type EntitySelector } from '$/schema/$schema.ts'
-import { ActionType } from '$/actions/index.ts'
+import { ActionType, type Action } from '$/actions/index.ts'
 import { networkByCaip2 } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurnStatus.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSessionStatus.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
-import { EvmAddress } from '$/schema/ZeroExHex.ts'
+import { EvmAddress, Hash32 } from '$/schema/ZeroExHex.ts'
 import { XmtpConversationConsentState } from '$/schema/XmtpConversationConsentState.ts'
 import {
 	WalletCapability,
@@ -170,8 +170,14 @@ export type NormalizedBlockheadSessionAction = {
 	sessionId: string
 	actionId: string
 	indexInSequence: number
-	actionType: ActionType
-	actionParams?: unknown
+	createdAt: number
+	updatedAt: number
+}
+
+export type NormalizedBlockheadAction = {
+	id: string
+	content: Action
+	contentRevisionHash: typeof Hash32.infer
 	createdAt: number
 	updatedAt: number
 }
@@ -410,6 +416,7 @@ export type NormalizedLocalInternal = {
 	blockheadWalletRequestCalls: readonly NormalizedBlockheadWalletRequestCall[]
 	blockheadWalletRequestTimestamps: readonly NormalizedBlockheadWalletRequest_Timestamp[]
 	blockheadSessions: readonly NormalizedBlockheadSession[]
+	blockheadActions: readonly NormalizedBlockheadAction[]
 	blockheadSessionActions: readonly NormalizedBlockheadSessionAction[]
 	blockheadWorkspaces: readonly NormalizedBlockheadWorkspace[]
 	blockheadPanelTrees: readonly NormalizedBlockheadPanelTree[]
@@ -591,19 +598,28 @@ const probeBlockheadDirectSession = {
 
 const probeBlockheadSessionAction = {
 	sessionId: probeBlockheadSession.id,
-	actionId: 'e2e-probe-session-action-0',
 	indexInSequence: 0,
-	actionType: ActionType.Swap,
-	actionParams: {
+	actionId: 'e2e-probe-action-0',
+	createdAt: 0,
+	updatedAt: 0,
+} as const satisfies NormalizedBlockheadSessionAction
+
+const probeBlockheadAction = {
+	id: 'e2e-probe-action-0',
+	content: {
+		type: ActionType.Swap,
+		params: {
 		chainId: 1,
 		tokenIn: '0x0000000000000000000000000000000000000000',
 		tokenOut: '0x0000000000000000000000000000000000000000',
 		amount: 0n,
 		slippage: 0.005,
+		},
 	},
+	contentRevisionHash: `0x${'0'.repeat(64)}`,
 	createdAt: 0,
 	updatedAt: 0,
-} as const satisfies NormalizedBlockheadSessionAction
+} as const satisfies NormalizedBlockheadAction
 
 const probeBlockheadRoomPeer = {
 	id: 'e2e-probe-room-peer',
@@ -907,6 +923,7 @@ const defaultNormalizedLocalInternal = {
 		probeBlockheadSession,
 		probeBlockheadDirectSession,
 	],
+	blockheadActions: [probeBlockheadAction],
 	blockheadSessionActions: [probeBlockheadSessionAction],
 	blockheadWorkspaces: [probeBlockheadWorkspace],
 	blockheadPanelTrees: [probeBlockheadPanelTree],

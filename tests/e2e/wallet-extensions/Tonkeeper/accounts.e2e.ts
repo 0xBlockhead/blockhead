@@ -2,13 +2,10 @@ import { randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 
 import { tonkeeperDriver } from '../../../../scripts/wallet-extensions/Tonkeeper/driver.ts'
-import { tonkeeperWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/Tonkeeper/matrix.ts'
-import {
-	runWalletCompatibilityMatrix,
-} from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
 	connectWalletButtonForDriver,
 	disconnectWalletButton,
+	walletConnectionCard,
 	walletConnectionsStatusById,
 } from '../_walletPageSelectors.ts'
 import { expect, test } from '../wallet.fixture.ts'
@@ -33,6 +30,37 @@ test('onboards two ephemeral Tonkeeper accounts and exercises TON Connect in Blo
 		license: 'Apache-2.0',
 		sha256: '32f16f38e23c79e195a3d5c033dc3316752dc53959d7b44607cd4c6e1300993e',
 	})
+	const manifestUrl = `${baseURL ?? 'http://127.0.0.1:5173'}/tonconnect-manifest.json`
+	await test.step('verify the served manifest identifies this app before wallet setup', async () => {
+		const response = await context.request.get(manifestUrl)
+		expect(response.ok()).toBe(true)
+		expect(await response.json()).toMatchObject({
+			url: new URL(manifestUrl).origin,
+			iconUrl: new URL('/favicon.png', manifestUrl).toString(),
+		})
+	})
+	let manifestProxyRequests = 0
+	const requestedManifestUrls: string[] = []
+	await test.step('substitute only the remote manifest proxy with the actual local app response', async () => {
+		await context.route('https://c.tonapi.io/json?*', async (route) => {
+			const encodedUrl = new URL(route.request().url()).searchParams.get('url')
+			const requestedManifestUrl = encodedUrl == null ? null : Buffer.from(encodedUrl, 'base64').toString()
+			if (requestedManifestUrl != null)
+				requestedManifestUrls.push(requestedManifestUrl)
+			if (requestedManifestUrl !== manifestUrl) {
+				await route.abort('blockedbyclient')
+				return
+			}
+			const response = await context.request.get(manifestUrl)
+			expect(response.ok()).toBe(true)
+			manifestProxyRequests += 1
+			await route.fulfill({
+				status: response.status(),
+				body: await response.body(),
+				contentType: response.headers()['content-type'],
+			})
+		})
+	})
 
 	let password = `Tk!${randomBytes(24).toString('base64url')}`
 	const onboarding = await tonkeeperDriver.onboardTwoAccounts(
@@ -40,14 +68,10 @@ test('onboards two ephemeral Tonkeeper accounts and exercises TON Connect in Blo
 		extension,
 		password
 	)
-	if (onboarding.secondAccountOnboarded)
-		await expect(onboarding.page.getByText('Blockhead Ephemeral 2', {
-			exact: true,
-		})).toBeVisible()
-	else
-		await expect(onboarding.page.getByRole('heading', {
-			name: 'Name your wallet',
-		})).not.toBeVisible()
+	expect(onboarding.secondAccountOnboarded).toBe(true)
+	await expect(onboarding.page.getByText('Blockhead Ephemeral 2', {
+		exact: true,
+	})).toBeVisible()
 
 	await page.goto(`${baseURL ?? 'http://127.0.0.1:5173'}/~/wallets`, {
 		waitUntil: 'load',
@@ -76,71 +100,29 @@ test('onboards two ephemeral Tonkeeper accounts and exercises TON Connect in Blo
 			context,
 			extension,
 			previousPages
-		),
+		).then(async (requestPage) => {
+			await expect.poll(() => requestedManifestUrls, {
+				message: 'Tonkeeper must fetch the manifest for the actual local dApp origin before authority',
+				timeout: 10_000,
+			}).toEqual([manifestUrl])
+			return requestPage
+		}),
 		password
 	)
 	password = ''
 
-	if (connectionRequestSupported) {
-		await expect(page.getByText('connected', {
-			exact: true,
-		}).first()).toBeAttached({
-			timeout: 120_000,
-		})
-		await expect(walletConnectionsStatusById(page)).toContainText('Active connections: 1.')
-		await expect(page.getByRole('radio')).toHaveCount(1)
-
-		await disconnectWalletButton(page).click()
-		await expect(page.getByText('disconnected', {
-			exact: true,
-		}).first()).toBeAttached({
-			timeout: 120_000,
-		})
-	}
-	await expect(walletConnectionsStatusById(page)).toContainText('Active connections: 0.')
-
-	const results = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'tonkeeper',
-			run: async (scenario) => (
-				scenario.initializationFlow === 'recover' ?
-					{
-						outcome: 'blocked',
-						evidence: {
-							code: 'no-safe-fixture-material',
-							source: 'test-environment',
-						},
-					}
-				: scenario.accountOrdinal === 2 && !onboarding.secondAccountOnboarded ?
-					{
-						outcome: 'blocked',
-						evidence: {
-							code: 'second-account-onboard-unavailable',
-							source: 'real-extension',
-						},
-					}
-				: connectionRequestSupported ?
-					{
-						accountAddress: `tonkeeper-account-${scenario.accountOrdinal}`,
-						outcome: 'pass',
-						evidence: {
-							code: `tonkeeper-${scenario.lifecycleEdgeCase}-verified`,
-							source: 'real-extension',
-						},
-					}
-				:
-					{
-						outcome: 'inaccessible',
-						evidence: {
-							code: 'ton-connect-request-unsupported',
-							source: 'wallet-connections',
-						},
-					}
-			),
-		},
-		scenarios: tonkeeperWalletMatrixScenarios(extension.manifest.version),
-		step: (name, run) => test.step(name, run),
+	expect(connectionRequestSupported).toBe(true)
+	expect(manifestProxyRequests).toBeGreaterThan(0)
+	const connection = walletConnectionCard(page, 'Tonkeeper')
+	await expect(connection).toHaveAttribute('data-connection-status', 'connected', {
+		timeout: 120_000,
 	})
-	expect(results).toHaveLength(3)
-	console.log(JSON.stringify(results, null, 2))
+	await expect(walletConnectionsStatusById(page)).toContainText('Active connections: 1.')
+	await expect(page.getByRole('radio')).toHaveCount(1)
+
+	await disconnectWalletButton(page).click()
+	await expect(connection).toHaveAttribute('data-connection-status', 'disconnected', {
+		timeout: 120_000,
+	})
+	await expect(walletConnectionsStatusById(page)).toContainText('Active connections: 0.')
 })

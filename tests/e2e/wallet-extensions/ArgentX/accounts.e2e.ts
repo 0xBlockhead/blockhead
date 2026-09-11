@@ -2,17 +2,13 @@ import { randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 
 import { argentXDriver } from '../../../../scripts/wallet-extensions/ArgentX/driver.ts'
-import { argentXWalletMatrixScenarios } from '../../../../scripts/wallet-extensions/ArgentX/matrix.ts'
-import {
-	logWalletMatrixResults,
-	runWalletCompatibilityMatrix,
-} from '../../../../scripts/wallet-extensions/WalletCompatibilityMatrix.ts'
 import {
 	connectWalletButtonForDriver,
 	disconnectWalletButton,
 	selectedWalletAccount,
 	walletConnectionCard,
 	walletConnectionsStatus,
+	waitForWalletPageReady,
 } from '../_walletPageSelectors.ts'
 import { expect, test } from '../wallet.fixture.ts'
 
@@ -25,11 +21,10 @@ test.use({
 	video: 'off',
 })
 
-test('runs the declarative Argent X compatibility matrix', async ({
+test('exercises the Argent X account and connection lifecycle', async ({
 	baseURL,
 	context,
 	extensions,
-	page,
 }) => {
 	const extension = extensions.find(({ kind }) => kind === 'argent-x')
 	if (!extension)
@@ -40,7 +35,6 @@ test('runs the declarative Argent X compatibility matrix', async ({
 	expect(walletMetadata.sha256).toBe('86fbe9e1edca1f6300da09a308a90bc1ebbe806424db60b5953e03c71d091b3e')
 	expect(walletMetadata.license).toBe('Argent non-commercial source license')
 
-	const scenarios = argentXWalletMatrixScenarios(extension.manifest.version)
 
 	const {
 		page: walletPage,
@@ -49,9 +43,12 @@ test('runs the declarative Argent X compatibility matrix', async ({
 		extension,
 		randomBytes(24).toString('base64url')
 	)
+	const page = await context.newPage()
 	await page.goto(`${baseURL ?? 'http://127.0.0.1:5173'}/~/wallets`, {
-		waitUntil: 'load',
+		timeout: 60_000,
+		waitUntil: 'domcontentloaded',
 	})
+	await waitForWalletPageReady(page, 60_000)
 	await expect(walletConnectionsStatus(page)).toContainText(/Wallet discovery active\..*Providers detected: [1-9]/, {
 		timeout: 60_000,
 	})
@@ -61,7 +58,7 @@ test('runs the declarative Argent X compatibility matrix', async ({
 	))).toBe(true)
 
 	const [, rejected] = await Promise.all([
-		connectWalletButtonForDriver(page, 'ArgentX').first().click().catch(() => undefined),
+		connectWalletButtonForDriver(page, 'ArgentX').first().click(),
 		argentXDriver.decideConnection(context, extension.id, 'reject'),
 	])
 	expect(rejected).toBe(true)
@@ -112,42 +109,4 @@ test('runs the declarative Argent X compatibility matrix', async ({
 	await disconnectWalletButton(page).click()
 	await page.reload()
 	await expect(walletConnectionsStatus(page)).toContainText('Active connections: 0.')
-
-	const results = await runWalletCompatibilityMatrix({
-		driver: {
-			kind: 'argent-x',
-			run: async (scenario) => (
-				scenario.initializationFlow === 'recover' ?
-					{
-						outcome: 'blocked',
-						evidence: {
-							code: 'no-safe-restore-fixture',
-							detail: 'Source-available build carries Argent non-commercial licensing terms',
-							source: 'test-environment',
-						},
-					}
-				:
-					{
-						accountAddress: scenario.accountOrdinal === 1 ? firstAccount : switchedAccount,
-						outcome: 'pass',
-						evidence: {
-							code: `argent-x-${scenario.lifecycleEdgeCase}-verified`,
-							detail: 'Source-available build carries Argent non-commercial licensing terms',
-							source: 'semantic-selector',
-						},
-					}
-			),
-		},
-		scenarios,
-		step: (name, run) => test.step(name, run),
-	})
-	expect(results.map(({ outcome }) => outcome)).toEqual([
-		'pass',
-		'pass',
-		'blocked',
-	])
-	expect(results.slice(0, 2).every(({ accountAddressHash }) => /^sha256:[0-9a-f]{64}$/.test(accountAddressHash ?? ''))).toBe(true)
-	logWalletMatrixResults(results, {
-		label: 'argent-x-real-extension',
-	})
 })

@@ -41,8 +41,10 @@ type Session = Pick<
 >
 type SessionAction = Pick<
 	EntityFieldValues<typeof schema, EntityType.BlockheadSessionAction>,
-	'sessionId' | 'actionId' | 'indexInSequence' | 'actionType' | 'actionParams' | 'selectedProtocol'
->
+	'sessionId' | 'actionId' | 'indexInSequence' | 'selectedProtocol'
+> & {
+	$action: Pick<EntityFieldValues<typeof schema, EntityType.BlockheadAction>, 'id' | 'content' | 'contentRevisionHash'>
+}
 type PreparedCall = {
 	from: typeof EvmAddress.infer
 	to: typeof EvmAddress.infer
@@ -138,16 +140,17 @@ export const prepareEvmSwap = async ({
 	simulationId?: string
 	timestampMs?: number
 }): Promise<EvmSwapPreparation> => {
+	const preparationTimestampMs = timestampMs
 	if (session.lockedAt == null)
 		throw new Error('Session must be locked before swap preparation.')
 	if (
 		action.sessionId !== session.id
 		|| action.indexInSequence !== 0
-		|| action.actionType !== ActionType.Swap
+		|| action.$action.content.type !== ActionType.Swap
 	)
 		throw new Error('Swap preparation requires the leading Swap action from the locked session.')
 
-	const params = actionTypeDefinitionByActionType[ActionType.Swap].params.assert(action.actionParams ?? {})
+	const params = actionTypeDefinitionByActionType[ActionType.Swap].params.assert(action.$action.content.params)
 	if (params.amount <= 0n)
 		throw new Error('Swap amount must be greater than zero.')
 	if (params.tokenIn.toLowerCase() === params.tokenOut.toLowerCase())
@@ -259,7 +262,7 @@ export const prepareEvmSwap = async ({
 		providerProtocol: sourceQuote.providerProtocol,
 		intentType: ActionType.Swap,
 		userInteropAddress: normalizedFromAddress,
-		requestedAt: timestampMs,
+		requestedAt: preparationTimestampMs,
 		requestPayloadHash: quoteRequestHash,
 		requestSummary: {
 			chainId: params.chainId,
@@ -271,7 +274,7 @@ export const prepareEvmSwap = async ({
 	} satisfies EvmSwapPreparation['quote']
 	const quoteObservation = {
 		$quote: { [EntityMetaKey.Selector]: { id: quote.id } },
-		timestampMs,
+		timestampMs: preparationTimestampMs,
 		source: quoteSource.source,
 		quoteId: sourceQuote.id,
 		validUntil: sourceQuote.validUntil,
@@ -305,8 +308,8 @@ export const prepareEvmSwap = async ({
 		id: simulationId,
 		$session: { [EntityMetaKey.Selector]: { id: session.id } },
 		status: 'succeeded',
-		createdAt: timestampMs,
-		completedAt: timestampMs,
+		createdAt: preparationTimestampMs,
+		completedAt: preparationTimestampMs,
 		paramsHash,
 		forkBlockNumber: blockNumber,
 		forkRpcOrigin: UrlString.assert(simulationTransport.origin),
@@ -369,6 +372,8 @@ export const applyEvmSwapPreparation = async ({
 }: Parameters<typeof prepareEvmSwap>[0] & {
 	context: LocalMutationContext
 }) => {
+	const preparationTimestampMs = timestampMs ?? Date.now()
+	const initialConnectionKey = walletConnections.filter(isSelectedWalletConnection)[0]?.connectionKey
 	const preparation = await prepareEvmSwap({
 		session,
 		action,
@@ -377,8 +382,17 @@ export const applyEvmSwapPreparation = async ({
 		quoteSource,
 		simulationTransport,
 		simulationId,
-		timestampMs,
+		timestampMs: preparationTimestampMs,
 	})
+	const currentWalletGate = resolveWalletTransactionPrepGate({
+		connections: walletConnections,
+		namespace: Caip2Namespace.Eip155,
+		reference: String(preparation.intent.chainId),
+		accountAddress: preparation.preparedCall.from,
+	})
+	if (!currentWalletGate.ready || currentWalletGate.connectionKey !== initialConnectionKey)
+		throw new Error('Swap preparation lost the selected wallet binding.')
+
 	const sessionActionSelector = {
 		sessionId: session.id,
 		actionId: action.actionId,
@@ -425,7 +439,7 @@ export const applyEvmSwapPreparation = async ({
 			preparation.preparedCall.input,
 			preparation.preparedCall.value.toString(),
 		])),
-		requestedAt: timestampMs ?? preparation.simulation.createdAt,
+		requestedAt: preparationTimestampMs,
 		evm: {
 			network: preparation.intent.$network[EntityMetaKey.Selector],
 			simulation: {
@@ -439,7 +453,7 @@ export const applyEvmSwapPreparation = async ({
 		},
 	}, walletConnections)
 	await writeLocalBlockheadWalletRequest_Timestamp(context, preparation.walletRequest, {
-		timestampMs: timestampMs ?? preparation.simulation.createdAt,
+		timestampMs: preparationTimestampMs,
 		source: Source.Local_Internal,
 		status: 'prepared',
 	})
