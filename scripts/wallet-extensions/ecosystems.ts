@@ -265,6 +265,22 @@ export const walletHarnessEcosystemsByExtensionKind = (
 	))
 )
 
+export const walletHarnessConnectionProtocolsByExtensionKind = (
+	kind: RealWalletKind
+) => [
+	...new Set(walletHarnessEcosystemsByExtensionKind(kind).flatMap(({
+		connectionProtocols,
+	}) => connectionProtocols)),
+]
+
+export const assertWalletHarnessProtocolRegistry = (kinds: readonly RealWalletKind[]) => {
+	const missing = kinds.filter((kind) => (
+		walletHarnessConnectionProtocolsByExtensionKind(kind).length === 0
+	))
+	if (missing.length)
+		throw new Error(`RealWalletKind missing protocol metadata: ${missing.join(', ')}`)
+}
+
 /** Strongest evidence actually present in this corpus; absence is never promoted to success. */
 export const walletHarnessEvidenceByExtensionKind = {
 	ambire: WalletHarnessEvidenceKind.RequestConstruction,

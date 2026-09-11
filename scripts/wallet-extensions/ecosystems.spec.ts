@@ -3,9 +3,12 @@ import test from 'node:test'
 
 import {
 	assertEveryRealWalletKindHasEcosystem,
+	assertWalletHarnessProtocolRegistry,
 	WalletHarnessEvidenceKind,
 	WalletHarnessCoverageKind,
+	WalletHarnessConnectionProtocol,
 	WalletHarnessEcosystem,
+	walletHarnessConnectionProtocolsByExtensionKind,
 	walletHarnessEvidenceByExtensionKind,
 	walletHarnessEcosystems,
 	walletHarnessEcosystemsByExtensionKind,
@@ -31,8 +34,15 @@ const realWalletKinds = [
 
 test('maps every real wallet kind into an ecosystem', () => {
 	assertEveryRealWalletKindHasEcosystem(realWalletKinds)
+	assertWalletHarnessProtocolRegistry(realWalletKinds)
 	for (const kind of realWalletKinds)
 		assert.ok(walletHarnessEcosystemsByExtensionKind(kind).length)
+	assert.deepEqual(walletHarnessConnectionProtocolsByExtensionKind('backpack'), [
+		WalletHarnessConnectionProtocol.Eip6963,
+		WalletHarnessConnectionProtocol.Eip1193,
+		WalletHarnessConnectionProtocol.WalletConnectV2,
+		WalletHarnessConnectionProtocol.WalletStandard,
+	])
 })
 
 test('requires one strongest evidence classification for every manifest wallet', () => {
