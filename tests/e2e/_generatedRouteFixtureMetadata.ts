@@ -11380,6 +11380,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/~/action/[actionId]': {
+		routeId: '/~/action/[actionId=stringSegment]',
+		mappings: [
+			{
+				id: 'BlockheadAction.Id',
+				probeAtomPrefixes: ['/~/action/[actionId]:BlockheadAction.Id'],
+				probeCases: [[[0, '1', ['actionId']]]],
+			},
+		],
+	},
 	'/~/agent-network/[networkId]': {
 		routeId: '/~/agent-network/[networkId=stringSegment]',
 		mappings: [

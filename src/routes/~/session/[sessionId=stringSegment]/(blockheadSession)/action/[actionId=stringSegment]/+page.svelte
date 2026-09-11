@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -16,7 +17,14 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadSessionAction, data.selector))
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadSessionAction, data.selector, {
+		sources: [
+			Source.Local_Internal,
+		],
+		fields: {
+			selectedProtocol: true,
+		},
+	}))
 
 
 	// Components
@@ -26,12 +34,18 @@
 
 
 <svelte:head>
-	<title>{data?.title ?? 'blockhead session action'} • blockhead session action • Blockhead</title>
+	{#if pageSelection != null}
+		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead session action' : (pageSelection.entity.selectedProtocol ?? '') || 'blockhead session action')} • blockhead session action • Blockhead</title>
+	{:else}
+		<title>{data?.title ?? 'blockhead session action'} • blockhead session action • Blockhead</title>
+	{/if}
 </svelte:head>
 
 
 <Page>
 	{#if pageSelection != null}
-		<BlockheadSessionActionView selection={pageSelection} />
+	<BlockheadSessionActionView
+		selection={pageSelection}
+	/>
 	{/if}
 </Page>
