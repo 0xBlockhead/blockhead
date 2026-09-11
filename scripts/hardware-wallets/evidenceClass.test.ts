@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { executeHardwareWalletHarness, hardwareWalletHarnessDefinitions, HardwareWalletEvidenceUnavailableError } from './evidenceClass.ts'
+import { discoverHardwareWalletExecutable, executeHardwareWalletHarness, hardwareWalletHarnessDefinitions, HardwareWalletEvidenceUnavailableError } from './evidenceClass.ts'
 const brands = Object.keys(hardwareWalletHarnessDefinitions) as Array<keyof typeof hardwareWalletHarnessDefinitions>
 test('enrolls source-faithful protocols', () => assert.deepEqual(brands.map((brand) => hardwareWalletHarnessDefinitions[brand].protocol), ['json-rpc', 'websocket', 'iso7816-apdu', 'qr', 'apdu', 'http']))
 test('does not invoke transport after readiness failure', async () => {
@@ -25,4 +25,12 @@ test('refuses missing executable before invoking callbacks', async () => {
 	const calls: string[] = []
 	await assert.rejects(executeHardwareWalletHarness({ brand: 'keystone', executable: ' ', readinessProbe: async () => { calls.push('readiness'); return true }, nativeTransport: async () => { calls.push('transport'); return 'response' }, verifyExactSignature: async () => { calls.push('verify'); return true } }), (error: unknown) => error instanceof HardwareWalletEvidenceUnavailableError)
 	assert.deepEqual(calls, [])
+})
+test('discovers only an existing executable without claiming later evidence', async () => {
+	const absent = await discoverHardwareWalletExecutable({ brand: 'trezor-user-env', executable: '/definitely/missing/trezor-user-env' })
+	assert.deepEqual(absent, { brand: 'trezor-user-env', executable: '/definitely/missing/trezor-user-env', status: 'absent' })
+	const ready = await discoverHardwareWalletExecutable({ brand: 'ledger-speculos', executable: process.execPath })
+	assert.equal(ready.status, 'ready')
+	assert.equal(ready.brand, 'ledger-speculos')
+	assert.equal(ready.executable, process.execPath)
 })
