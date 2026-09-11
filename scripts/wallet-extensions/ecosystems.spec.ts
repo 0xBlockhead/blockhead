@@ -20,6 +20,7 @@ const realWalletKinds = [
 	'lace',
 	'metamask',
 	'petra',
+	'phantom',
 	'polkadot-js',
 	'rabby',
 	'taho',

@@ -9,6 +9,7 @@ import { keplrWalletMatrixScenarios } from './Keplr/matrix.ts'
 import { laceWalletMatrixScenarios } from './Lace/matrix.ts'
 import { metamaskWalletMatrixScenarios } from './MetaMask/matrix.ts'
 import { petraWalletMatrixScenarios } from './Petra/matrix.ts'
+import { phantomWalletMatrixScenarios } from './Phantom/matrix.ts'
 import { polkadotJsWalletMatrixScenarios } from './PolkadotJs/matrix.ts'
 import { rabbyWalletMatrixScenarios } from './Rabby/matrix.ts'
 import { tahoWalletMatrixScenarios } from './Taho/matrix.ts'
@@ -44,6 +45,7 @@ const realWalletMatrixDefinitions = [
 	['lace', () => laceWalletMatrixScenarios('2.2.0')],
 	['metamask', () => metamaskWalletMatrixScenarios('13.41.0')],
 	['petra', () => petraWalletMatrixScenarios('2.5.0')],
+	['phantom', () => phantomWalletMatrixScenarios('public-source')],
 	['polkadot-js', () => polkadotJsWalletMatrixScenarios('0.63.1')],
 	['rabby', () => rabbyWalletMatrixScenarios('0.94.1')],
 	['taho', () => tahoWalletMatrixScenarios('0.66.0')],
@@ -69,6 +71,25 @@ test('runs every real wallet matrix through the shared denominator', async () =>
 	assert.equal(new Set(results.map(({ walletKind }) => walletKind)).size, realWalletMatrixDefinitions.length)
 	assert.equal(results.length, realWalletMatrixDefinitions.reduce((total, [, createScenarios]) => total + createScenarios().length, 0))
 	assert.ok(results.every(({ outcome }) => outcome === 'unsupported'))
+})
+
+test('keeps three source-faithful cells for every non-EVM extension ecosystem', () => {
+	const scenarios = realWalletMatrixDefinitions.flatMap(([, createScenarios]) => createScenarios())
+	const nonEvm = new Set([
+		WalletHarnessEcosystem.Solana,
+		WalletHarnessEcosystem.Cosmos,
+		WalletHarnessEcosystem.Aptos,
+		WalletHarnessEcosystem.Polkadot,
+		WalletHarnessEcosystem.Cardano,
+		WalletHarnessEcosystem.Ton,
+		WalletHarnessEcosystem.Starknet,
+		WalletHarnessEcosystem.Bitcoin,
+	])
+	for (const ecosystem of nonEvm) {
+		const rows = scenarios.filter((scenario) => scenario.ecosystem === ecosystem)
+		assert.ok(rows.length >= 3, `${ecosystem} denominator has fewer than three cells`)
+		assert.ok(rows.every((scenario) => scenario.chain && scenario.requestMethod && scenario.lifecycleEdgeCase))
+	}
 })
 
 test('rejects empty or duplicate matrix inputs', async () => {

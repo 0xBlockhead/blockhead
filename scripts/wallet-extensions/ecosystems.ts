@@ -104,6 +104,7 @@ export const walletHarnessEcosystems = [
 		],
 		extensionKinds: [
 			'backpack',
+			'phantom',
 		],
 	},
 	{
@@ -273,6 +274,7 @@ export const walletHarnessEvidenceByExtensionKind = {
 	lace: WalletHarnessEvidenceKind.RequestConstruction,
 	metamask: WalletHarnessEvidenceKind.RequestConstruction,
 	petra: WalletHarnessEvidenceKind.RequestConstruction,
+	phantom: WalletHarnessEvidenceKind.CryptographicFixture,
 	'polkadot-js': WalletHarnessEvidenceKind.JourneyImplementation,
 	rabby: WalletHarnessEvidenceKind.RequestConstruction,
 	taho: WalletHarnessEvidenceKind.JourneyImplementation,

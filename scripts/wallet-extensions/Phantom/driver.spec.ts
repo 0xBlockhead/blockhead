@@ -3,6 +3,7 @@ import test from 'node:test'
 import { ed25519 } from '@noble/curves/ed25519.js'
 import { base58 } from '@scure/base'
 import { isPhantomExtensionPageUrl, isPhantomWalletStandardIdentity, verifyPhantomSignMessageOutput } from './driver.ts'
+import { phantomWalletMatrixScenarios } from './matrix.ts'
 
 test('verifies Phantom signMessage against the exact account and message', () => {
 	const privateKey = new Uint8Array(32).fill(17)
@@ -22,4 +23,14 @@ test('binds Phantom approval observation to the loaded extension origin', () => 
 	assert.equal(isPhantomExtensionPageUrl(`chrome-extension://other/notification.html`, extensionId), false)
 	assert.equal(isPhantomExtensionPageUrl('https://phantom.app/notification.html', extensionId), false)
 	assert.equal(isPhantomExtensionPageUrl(`chrome-extension://${extensionId}/`, extensionId), false)
+})
+
+test('keeps Phantom on the three-cell Solana denominator', () => {
+	const scenarios = phantomWalletMatrixScenarios('public-source')
+	assert.equal(scenarios.length, 3)
+	assert.deepEqual(scenarios.map(({ accountOrdinal }) => accountOrdinal), [1, 2, 3])
+	assert.ok(scenarios.every(({ ecosystem, chain, connectionProtocol }) => (
+		ecosystem === 'solana' && chain === 'solana:mainnet' && connectionProtocol === 'wallet-standard'
+	)))
+	assert.equal(scenarios[2].lifecycleEdgeCase, 'fixture-material-not-provided-unavailable')
 })

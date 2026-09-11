@@ -34,6 +34,7 @@ export type WalletKind =
 	| 'lace'
 	| 'metamask'
 	| 'petra'
+	| 'phantom'
 	| 'polkadot-js'
 	| 'rabby'
 	| 'taho'
