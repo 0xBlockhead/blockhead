@@ -6,6 +6,7 @@ import {
 	runWalletCompatibilityMatrix,
 } from '../WalletCompatibilityMatrix.ts'
 import {
+	disableTahoTelemetry,
 	isTahoPopupPageUrl,
 	tahoBlockedObservation,
 	tahoDriver,
@@ -29,6 +30,7 @@ test('exposes the Taho WalletDriver contract', () => {
 	assert.equal(typeof tahoDriver.approveConnection, 'function')
 	assert.equal(typeof tahoDriver.rejectConnection, 'function')
 	assert.equal(typeof tahoDriver.selectAccount, 'function')
+	assert.equal(typeof disableTahoTelemetry, 'function')
 })
 
 test('keeps the Taho account lifecycle shard free of invented blank-add-wallet / recover passes', () => {

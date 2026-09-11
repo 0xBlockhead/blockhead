@@ -33,11 +33,10 @@ test('creates one Taho account and connects it to Blockhead', async ({
 
 	const tahoPage = await openTaho(context, taho)
 	const accounts = await createTahoWallet(tahoPage)
-	expect(accounts.first).toBe('Taho 1')
+	expect(accounts.first).not.toBe('')
+	expect(['already-disabled', 'disabled']).toContain(accounts.telemetry)
 
-	const applicationUrl = new URL(baseURL ?? 'http://127.0.0.1:5173')
-	applicationUrl.hostname = 'localhost'
-	await page.goto(new URL('/~/wallets', applicationUrl).href)
+	await page.goto(new URL('/~/wallets', baseURL ?? 'http://127.0.0.1:5173').href)
 	await waitForWalletPageReady(page)
 	const connect = connectWalletButtonForDriver(page, 'Taho')
 	const discovered = await connect.waitFor({

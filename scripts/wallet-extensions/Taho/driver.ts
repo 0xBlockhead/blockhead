@@ -17,6 +17,7 @@ import {
 export type TahoAccounts = {
 	first: string
 	page: Page
+	telemetry: 'already-disabled' | 'disabled'
 }
 
 
@@ -207,6 +208,42 @@ export const openTaho = async (
 	})
 )
 
+export const disableTahoTelemetry = async (page: Page) => {
+	const mainNavigation = page.locator('nav[aria-label="Main"]')
+	await expect(mainNavigation).toHaveCount(1)
+	const tabs = mainNavigation.getByRole('link')
+	await expect(tabs).toHaveCount(4)
+	await tabs.last().click()
+
+	const settingsGroups = page.locator('section ul').first().locator(':scope > div')
+	const generalSettings = settingsGroups.first().getByRole('button')
+	await expect(generalSettings).toHaveCount(3)
+	await generalSettings.nth(1).click()
+
+	const analyticsState = page.locator('img[alt="correct"], img[alt="error"]')
+	await expect(analyticsState).toHaveCount(1)
+	const toggle = analyticsState.locator('xpath=ancestor::section[1]')
+		.locator('[data-testid="toggle"][role="checkbox"]')
+	await expect(toggle).toHaveCount(1)
+	const enabled = await toggle.getAttribute('aria-checked')
+	if (enabled === 'false') {
+		await mainNavigation.getByRole('link').first().click()
+		return 'already-disabled' as const
+	}
+	if (enabled !== 'true')
+		throw new Error(`Taho analytics toggle exposed invalid aria-checked=${String(enabled)}`)
+
+	await toggle.click()
+	const confirmation = page.locator('[data-testid="slide_up_menu"]:not(.closed)')
+	await expect(confirmation).toBeVisible()
+	const choices = confirmation.getByRole('button')
+	await expect(choices).toHaveCount(3)
+	await choices.nth(2).click()
+	await expect(toggle).toHaveAttribute('aria-checked', 'false')
+	await mainNavigation.getByRole('link').first().click()
+	return 'disabled' as const
+}
+
 export const createTahoWallet = async (
 	page: Page,
 	password = randomBytes(24).toString('base64url')
@@ -229,15 +266,17 @@ export const createTahoWallet = async (
 	const walletUrl = new URL(page.url())
 	if (walletUrl.hash.endsWith('/done'))
 		await page.goto(`${walletUrl.protocol}//${walletUrl.host}/popup.html`)
-	await clickFirstVisible(page, [
-		/^0x/i,
-	])
-	await expect(page.getByRole('heading', {
-		name: 'Taho 1',
-	})).toBeVisible()
+	const telemetry = await disableTahoTelemetry(page)
+	const currentAccount = page.locator('[data-testid="top_menu_profile_button"]')
+	await expect(currentAccount).toHaveCount(1)
+	await expect(currentAccount).toBeVisible()
+	const first = (await currentAccount.innerText()).trim()
+	if (!first)
+		throw new Error('Taho did not expose the created account through its current-account control')
 	return {
-		first: 'Taho 1',
+		first,
 		page,
+		telemetry,
 	}
 }
 
