@@ -330,6 +330,25 @@ describe('TanStackLiveQueryResource', () => {
 		await expect(fixture.resource).resolves.toBe('second')
 	})
 
+	it('retries a promise read when refresh replaces its pending state', async () => {
+		const fixture = createFixture(readySnapshot('first'))
+		await expect(fixture.resource).resolves.toBe('first')
+
+		let settled = false
+		const read = fixture.resource.then((value) => {
+			settled = true
+			return value
+		})
+		fixture.setSnapshot(loadingSnapshot)
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(settled).toBe(false)
+
+		fixture.setSnapshot(readySnapshot('second'))
+		await expect(read).resolves.toBe('second')
+		expect(settled).toBe(true)
+	})
+
 	it('returns getter and promise surfaces to one pending state after authoritative deletion', async () => {
 		const fixture = createFixture(readySnapshot('first'))
 		await expect(fixture.resource).resolves.toBe('first')

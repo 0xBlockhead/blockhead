@@ -130,17 +130,24 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 		this.#start()
 		const trackedPromise = this.#promise
 		void trackedPromise
-		return (onFulfilled, onRejected) => (
-			this.#promise
-				.then(tick)
-				.then(() => {
+		return (onFulfilled, onRejected) => {
+			const read = async () => {
+				for (;;) {
+					const promise = this.#promise
+					await promise
+					await tick()
+					if (promise !== this.#promise)
+						continue
+
 					if (this.#raw === undefined)
 						throw new Error('TanStackLiveQueryResource resolved before current value was available')
 
 					return this.#raw.value
-				})
-				.then(onFulfilled, onRejected)
-		)
+				}
+			}
+
+			return read().then(onFulfilled, onRejected)
+		}
 	}
 
 	get catch(): Promise<Data>['catch'] {
