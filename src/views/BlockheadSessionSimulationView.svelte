@@ -43,6 +43,7 @@
 
 
 	// Components
+	import BlockheadSessionSimulationDownloadView from '$/views/BlockheadSessionSimulationDownloadView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -50,6 +51,7 @@
 	import BlockheadSessionSimulationCallsView from '$/views/BlockheadSessionSimulationCallsView.svelte'
 	import BlockheadSessionSimulationLogsView from '$/views/BlockheadSessionSimulationLogsView.svelte'
 	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -174,7 +176,7 @@
 			</ResourceBoundary>
 
 			<div>
-				<dt>params hash</dt>
+				<dt>simulation request/parameters hash</dt>
 				<dd>
 					<ResourceBoundary
 						resource={blockheadSessionSimulation}
@@ -192,19 +194,61 @@
 				resource={
 					viewSelection({
 						fields: {
+							executionSourceKind: true,
+							executionSourceVersion: true,
 							forkBlockNumber: true,
 						},
 					})
 				}
 			>
 				{#snippet children(entity)}
+					{@const executionSourceKind = entity.executionSourceKind}
+					{@const executionSourceVersion = entity.executionSourceVersion}
 					{@const forkBlockNumber = entity.forkBlockNumber}
+					{#if executionSourceKind != null}
+						<div>
+							<dt>execution source kind</dt>
+							<dd>
+								{executionSourceKind}
+							</dd>
+						</div>
+					{/if}
+
+					{#if executionSourceVersion != null}
+						<div>
+							<dt>execution source version</dt>
+							<dd>
+								{executionSourceVersion}
+							</dd>
+						</div>
+					{/if}
+
 					{#if forkBlockNumber != null}
 						<div>
 							<dt>fork block number</dt>
 							<dd>
 								<NumberValue
 									value={forkBlockNumber}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection.$executionNetwork}
+			>
+				{#snippet children(network)}
+					{#if network != null}
+						{@const networkInitial = untrack(() => network)}
+						<div>
+							<dt>execution network</dt>
+							<dd>
+								<NetworkView
+									selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
+									prefetched={network ?? networkInitial}
+									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
@@ -304,6 +348,10 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<section data-column="gap-2">
+			<BlockheadSessionSimulationDownloadView {selection} />
+		</section>
 	{/snippet}
 
 	{#snippet Details()}

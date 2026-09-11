@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import { EvmInternalCallType } from '$/constants/Evm.ts'
 	import {
 		WalletCapability,
 		WalletDiscoveryKind,
@@ -101,6 +102,7 @@
 	let entityReferenceSessionSelector = $state<{
 		id: string,
 	}>()
+	let durableG15Persisted = $state(false)
 	void walletConnectionRows.then(async (connections) => {
 		walletHydrationEnabled = connections.values.some((connection) => (
 			connection.connectionKey === 'authority-connection-a'
@@ -122,6 +124,8 @@
 
 
 	// Functions
+	import * as Hash from 'ox/Hash'
+
 	const createSessions = async () => {
 		sessionsPersisted = false
 		const client = getAppClient()
@@ -278,6 +282,78 @@
 		)
 	}
 
+	const materializeDurableG15Simulation = async () => {
+		durableG15Persisted = false
+		const session = await writeLocalBlockheadSession(
+			getAppClient(),
+			resourceBoundarySessionParentSelector,
+			'G15 durable reload session'
+		)
+		const rootInput = '0x14bd0a7b000000000000000000000000e7f1725e7734ce288f8367e1bb143e90bb3f0512000000000000000000000000000000000000000000000000000000000000002a'
+		const childInput = '0x60fe47b1000000000000000000000000000000000000000000000000000000000000002a'
+		const rootRevert = '0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d6e6573746564206661696c656400000000000000000000000000000000000000'
+		const childRevert = '0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d746172676574206661696c656400000000000000000000000000000000000000'
+		const logData = '0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002a'
+		await writeLocalBlockheadSessionSimulation(
+			getAppClient(),
+			session,
+			{
+				id: 'simulation-g15-durable',
+				status: 'failed',
+				createdAt: 200,
+				paramsHash: '0x1111111111111111111111111111111111111111111111111111111111111111',
+				error: 'nested failed',
+			},
+			[
+				{
+					callPath: 'root',
+					callIndex: 0,
+					depth: 0,
+					callType: EvmInternalCallType.Call,
+					fromAddress: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+					toAddress: '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512',
+					value: 0n,
+					inputSelector: '0x14bd0a7b',
+					inputDataHash: Hash.sha256(rootInput),
+					outputDataHash: Hash.sha256(rootRevert),
+					gasUsed: 0x7097n,
+					reverted: true,
+					error: 'nested failed',
+				},
+				{
+					callPath: '0',
+					parentCallPath: 'root',
+					callIndex: 0,
+					depth: 1,
+					callType: EvmInternalCallType.Call,
+					fromAddress: '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512',
+					toAddress: '0x5fbdb2315678afecb367f032d93f642f64180aa3',
+					value: 0n,
+					inputSelector: '0x60fe47b1',
+					inputDataHash: Hash.sha256(childInput),
+					outputDataHash: Hash.sha256(childRevert),
+					gasUsed: 0x120fn,
+					reverted: true,
+					error: 'target failed',
+				},
+			],
+			[
+				{
+					logIndex: 0,
+					address: '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512',
+					topic0: '0x850a767d264ab988d24d1ff1a7b843b2902e6cc83a7c7a457d97796c773b2b63',
+					topics: [
+						'0x850a767d264ab988d24d1ff1a7b843b2902e6cc83a7c7a457d97796c773b2b63',
+						'0x000000000000000000000000000000000000000000000000000000000000002a',
+					],
+					dataHash: Hash.sha256(logData),
+					removed: false,
+				},
+			]
+		)
+		durableG15Persisted = true
+	}
+
 
 	// Components
 	import BlockheadSessionsView from '$/views/BlockheadSessionsView.svelte'
@@ -356,6 +432,8 @@
 	<div data-row="wrap gap-2">
 		<button type="button" onclick={materializeEntityReferenceSession}>Materialize entity reference</button>
 		<button type="button" onclick={replaceEntityReferenceSimulation}>Replace entity reference</button>
+		<button type="button" onclick={materializeDurableG15Simulation}>Materialize durable G15 simulation</button>
+		<p data-testid="durable-g15-persisted">{durableG15Persisted ? 'persisted' : 'pending'}</p>
 	</div>
 
 	{#if entityReferenceSessionSelector !== undefined}

@@ -38,6 +38,18 @@ export default entity({
 		primitiveType: Hash32,
 		cardinality: EntityFieldCardinality.One,
 	},
+	executionSourceKind: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	executionSourceVersion: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$executionNetwork: {
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	forkBlockNumber: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

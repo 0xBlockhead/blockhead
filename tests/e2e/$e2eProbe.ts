@@ -1,7 +1,16 @@
 import type {
 	ClientContext,
 	ClientEvent,
+	EntityCollectionItem,
+	EntityFieldCollectionItem,
 } from '$/client/$client.svelte.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import {
+	actionAuthorityRequestEnvelopeHash,
+	authorityRequestEnvelope,
+} from '$/actions/execution.ts'
 import {
 	traceE2ECollections,
 	type E2ECollectionTrace,
@@ -54,8 +63,203 @@ export type ClientProbe = {
 		error?: string
 	}[]
 	traceCollections: () => E2ECollectionTrace
+	g15SimulationGraph: () => Promise<G15SimulationGraph>
 	authorityDispatchGraph: () => Promise<AuthorityDispatchGraph>
 }
+
+type G15Json = null | boolean | number | string | readonly G15Json[] | { readonly [key: string]: G15Json }
+
+type G15EntityRow = {
+	selector: G15Json
+	selectorKey: string
+	source: string
+}
+
+type G15FieldRow = {
+	entityType: EntityType
+	fieldName: string
+	parentSelector: G15Json
+	value: G15Json
+}
+
+export type G15SimulationGraph = {
+	simulations: readonly G15EntityRow[]
+	calls: readonly G15EntityRow[]
+	logs: readonly G15EntityRow[]
+	fields: readonly G15FieldRow[]
+}
+
+export type AuthorityDispatchGraph = {
+	authorityRequests: readonly G15EntityRow[]
+	walletRequests: readonly G15EntityRow[]
+	timestamps: readonly G15EntityRow[]
+	occurrences: readonly G15EntityRow[]
+	fields: readonly G15FieldRow[]
+	envelopeHashBindings: readonly {
+		parentSelector: G15Json
+		matches: boolean
+	}[]
+}
+
+const authorityRequestGraphSelection = {
+	sources: [Source.Local_Internal],
+	fields: {
+		$$blockheadAuthorityRequests: {
+			sources: [Source.Local_Internal],
+			fields: {
+				actionRevisionBindings: true,
+				envelope: true,
+				envelopeHash: true,
+				presentedAt: true,
+				decision: true,
+				$walletConnection: true,
+				$account: true,
+				$$dispatchOccurrences: true,
+			},
+		},
+	},
+} as const
+
+const walletRequestGraphSelection = {
+	sources: [Source.Local_Internal],
+	fields: {
+		$$blockheadWalletRequests: {
+			sources: [Source.Local_Internal],
+			fields: {
+				requestKind: true,
+				requestMethod: true,
+				requestPayloadHash: true,
+				requestedAt: true,
+				submittedAt: true,
+				$walletConnection: true,
+				$account: true,
+				$$timestamps: {
+					sources: [Source.Local_Internal],
+					fields: {
+						$walletRequest: true,
+						timestampMs: true,
+						source: true,
+						status: true,
+						signatureHash: true,
+						error: true,
+					},
+				},
+			},
+		},
+	},
+} as const
+
+const dispatchOccurrenceGraphSelection = {
+	sources: [Source.Local_Internal],
+	fields: {
+		$$blockheadDispatchOccurrences: {
+			sources: [Source.Local_Internal],
+			fields: {
+				address: true,
+				startedAt: true,
+				evidence: true,
+				$authorityRequest: true,
+				$walletConnection: true,
+			},
+		},
+	},
+} as const
+
+const g15SimulationSelector = {
+	id: 'simulation-g15-durable',
+} as const
+
+const g15SimulationGraphSelection = {
+	sources: [Source.Local_Internal],
+	fields: {
+		$session: true,
+		$$calls: {
+			sources: [Source.Local_Internal],
+			fields: {
+				$simulation: true,
+				parentCallPath: true,
+				inputDataHash: true,
+				outputDataHash: true,
+				error: true,
+				reverted: true,
+				value: true,
+				gasUsed: true,
+			},
+		},
+		$$logs: {
+			sources: [Source.Local_Internal],
+			fields: {
+				$simulation: true,
+				callPath: true,
+				topic0: true,
+				topics: true,
+				dataHash: true,
+				removed: true,
+			},
+		},
+	},
+} as const
+
+const compareG15Strings = (left: string, right: string) => {
+	if (left === right) return 0
+	return left < right ? -1 : 1
+}
+
+const compareG15Values = (left: G15Json, right: G15Json) => (
+	compareG15Strings(JSON.stringify(left), JSON.stringify(right))
+)
+
+const compareG15Rows = <_Row extends object>(left: _Row, right: _Row) => (
+	compareG15Strings(JSON.stringify(left), JSON.stringify(right))
+)
+
+// oxlint-disable typescript/no-restricted-types, no-runtime-shape-guards/guards -- This narrow boundary serializes canonical typed collection values across Playwright; Set and bigint retain explicit representations, while unsupported values fail loudly.
+const g15Json = (value: unknown): G15Json => {
+	if (value === undefined || typeof value === 'function')
+		throw new Error('G15 Playwright graph contains an unsupported value')
+	if (value === null || typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string')
+		return value
+	if (typeof value === 'bigint') return `${value}n`
+	if (value instanceof Set) return {
+		$set: [...value].map(g15Json).sort(compareG15Values),
+	}
+	if (value instanceof Array) return value.map(g15Json)
+	if (typeof value === 'object')
+		return Object.fromEntries(
+			Object.entries(value)
+				.sort(([left], [right]) => compareG15Strings(left, right))
+				.map(([key, nested]) => [key, g15Json(nested)])
+		)
+	throw new Error('G15 Playwright graph contains an unsupported value')
+}
+// oxlint-enable typescript/no-restricted-types, no-runtime-shape-guards/guards
+
+const g15EntityRows = (
+	rows: readonly EntityCollectionItem[]
+): G15EntityRow[] => (
+	rows
+		.map((row) => ({
+			selector: g15Json(row[EntityMetaKey.Selector]),
+			selectorKey: row[EntityMetaKey.SelectorKey],
+			source: row[EntityMetaKey.Source],
+		}))
+		.sort(compareG15Rows)
+)
+
+const g15FieldRows = (
+	entityType: EntityType,
+	fieldName: string,
+	rows: readonly EntityFieldCollectionItem[]
+): G15FieldRow[] => (
+	rows
+		.map((row) => ({
+			entityType,
+			fieldName,
+			parentSelector: g15Json(row[EntityMetaKey.ParentSelector]),
+			value: g15Json(row[EntityMetaKey.Value]),
+		}))
+		.sort(compareG15Rows)
+)
 
 declare global {
 	interface Window {
@@ -282,6 +486,27 @@ export const installAppClientProbe = <
 			),
 			traceCollections: () => traceE2ECollections(appClient),
 			authorityDispatchGraph: () => authorityDispatchGraph(appClient, scanPersistedRows),
+			g15SimulationGraph: async () => {
+				await appClient.select(
+					EntityType.BlockheadSessionSimulation,
+					g15SimulationSelector,
+					g15SimulationGraphSelection
+				)
+				return {
+					simulations: g15EntityRows(appClient.entityCollections[EntityType.BlockheadSessionSimulation].toArray),
+					calls: g15EntityRows(appClient.entityCollections[EntityType.BlockheadSessionSimulationCall].toArray),
+					logs: g15EntityRows(appClient.entityCollections[EntityType.BlockheadSessionSimulationLog].toArray),
+					fields: [
+						...g15FieldRows(EntityType.BlockheadSessionSimulation, '$session', appClient.entityFieldCollections[EntityType.BlockheadSessionSimulation][entityFieldAddressKey(EntityType.BlockheadSessionSimulation, [], '$session')].toArray),
+						...g15FieldRows(EntityType.BlockheadSessionSimulation, '$$calls', appClient.entityFieldCollections[EntityType.BlockheadSessionSimulation][entityFieldAddressKey(EntityType.BlockheadSessionSimulation, [], '$$calls')].toArray),
+						...g15FieldRows(EntityType.BlockheadSessionSimulation, '$$logs', appClient.entityFieldCollections[EntityType.BlockheadSessionSimulation][entityFieldAddressKey(EntityType.BlockheadSessionSimulation, [], '$$logs')].toArray),
+						...g15FieldRows(EntityType.BlockheadSessionSimulationCall, '$simulation', appClient.entityFieldCollections[EntityType.BlockheadSessionSimulationCall][entityFieldAddressKey(EntityType.BlockheadSessionSimulationCall, [], '$simulation')].toArray),
+						...['parentCallPath', 'inputDataHash', 'outputDataHash', 'error', 'reverted', 'value', 'gasUsed'].flatMap((fieldName) => g15FieldRows(EntityType.BlockheadSessionSimulationCall, fieldName, appClient.entityFieldCollections[EntityType.BlockheadSessionSimulationCall][entityFieldAddressKey(EntityType.BlockheadSessionSimulationCall, [], fieldName)].toArray)),
+						...g15FieldRows(EntityType.BlockheadSessionSimulationLog, '$simulation', appClient.entityFieldCollections[EntityType.BlockheadSessionSimulationLog][entityFieldAddressKey(EntityType.BlockheadSessionSimulationLog, [], '$simulation')].toArray),
+						...['callPath', 'topic0', 'topics', 'dataHash', 'removed'].flatMap((fieldName) => g15FieldRows(EntityType.BlockheadSessionSimulationLog, fieldName, appClient.entityFieldCollections[EntityType.BlockheadSessionSimulationLog][entityFieldAddressKey(EntityType.BlockheadSessionSimulationLog, [], fieldName)].toArray)),
+					],
+				}
+			},
 		},
 		configurable: true,
 	})
