@@ -111,3 +111,14 @@ test('locates wallet page controls by product semantics', async ({ page }) => {
 	expect(walletConnectNameByDriver.ArgentX).toBe('Argent X')
 	expect(walletConnectNameByDriver.PolkadotJs).toBe('polkadot-js')
 })
+
+test('fails fast at the app-mount seam when the wallet route never mounts', async ({ page }) => {
+	await page.setContent(`
+		<div id="app"></div>
+		<script type="module">globalThis.walletFixtureModuleLoaded = true</script>
+	`)
+
+	await expect(waitForWalletPageReady(page, 25)).rejects.toThrow(
+		'Wallet route readiness failed during mount phase'
+	)
+})

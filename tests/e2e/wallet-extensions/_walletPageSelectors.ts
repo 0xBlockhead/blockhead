@@ -55,11 +55,26 @@ export const waitForWalletPageReady = async (
 		const state = await page.evaluate(() => ({
 			documentReadyState: document.readyState,
 			hasBody: document.body !== null,
+			documentResponse: performance.getEntriesByType('navigation').map((entry) => {
+				const responseStatus = Object.getOwnPropertyDescriptor(entry, 'responseStatus')?.value
+				return {
+					name: entry.name,
+					responseStatus: typeof responseStatus === 'number' ? responseStatus : null,
+				}
+			})[0] ?? null,
+			rootChildCount: document.querySelector('#svelte, #app, body > div')?.children.length ?? 0,
+			moduleScriptCount: document.querySelectorAll('script[type="module"]').length,
 			mainCount: document.querySelectorAll('main').length,
 			routeAlertCount: document.querySelectorAll('main [role="alert"]').length,
 			walletSurfaceCount: document.querySelectorAll('#wallet-connections').length,
 		})).catch(() => ({ evaluationFailed: true }))
-		throw new Error(`Wallet route readiness failed at ${page.url()}: ${JSON.stringify(state)}`, {
+		const phase = 'evaluationFailed' in state ? 'document' : (
+			state.documentResponse?.responseStatus != null && state.documentResponse.responseStatus >= 400 ? 'document-response' :
+			state.moduleScriptCount === 0 ? 'module' :
+			state.mainCount === 0 ? 'mount' :
+			'route'
+		)
+		throw new Error(`Wallet route readiness failed during ${phase} phase at ${page.url()}: ${JSON.stringify(state)}`, {
 			cause: error,
 		})
 	}
