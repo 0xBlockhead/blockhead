@@ -61,6 +61,7 @@
 		RegisteredEntityProxyResource,
 	} from '$/client/$proxy.svelte.ts'
 	import {
+		type ActionParamsByActionType,
 		ActionType,
 		actionTypeDefinitionByActionType,
 		actionTypeDefinitions,
@@ -157,7 +158,10 @@
 		draft = idleSessionActionDraft
 	}
 
-	const writeAction = async (activeDraft: Exclude<SessionActionDraft, { mode: 'idle' }>, actionParams: object) => {
+	const writeAction = async <_ActionType extends ActionType>(
+		activeDraft: Extract<Exclude<SessionActionDraft, { mode: 'idle' }>, { actionType: _ActionType }>,
+		actionParams: ActionParamsByActionType[_ActionType]
+	) => {
 		if (activeDraft.mode === 'edit') {
 			await updateLocalBlockheadSessionActionType(
 				getAppClient(),

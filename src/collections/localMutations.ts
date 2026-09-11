@@ -1,4 +1,5 @@
 import {
+	type ActionParamsByActionType,
 	type ActionType,
 	actionTypeDefinitionByActionType,
 } from '$/actions/index.ts'
@@ -110,9 +111,9 @@ export type LocalMutationContext = {
 
 const sessionActionCreationQueueByKey = new Map<string, Promise<void>>()
 
-export const hashLocalBlockheadSessionActionRevision = (
-	actionType: ActionType,
-	actionParams: object
+export const hashLocalBlockheadSessionActionRevision = <_ActionType extends ActionType>(
+	actionType: _ActionType,
+	actionParams: ActionParamsByActionType[_ActionType]
 ) => Hash32.assert(Hash.sha256(Hex.fromString(stringify({ actionType, actionParams }))))
 
 const withSessionActionCreationLock = <_Result>(
@@ -1232,11 +1233,11 @@ export const writeLocalBlockheadSessionName = async (
 		.map((collection) => collection.utils.waitForPersistence()))
 }
 
-export const writeLocalBlockheadSessionAction = (
+export const writeLocalBlockheadSessionAction = <_ActionType extends ActionType>(
 	context: LocalMutationContext,
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
-	actionType: ActionType,
-	actionParams?: object
+	actionType: _ActionType,
+	actionParams?: ActionParamsByActionType[_ActionType]
 ) => {
 	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams ?? {})
 	const sessionSelectorKey = entitySelectorKey(
@@ -1730,17 +1731,17 @@ const localBlockheadSessionActionAuthoredSelector = (
 	return { id: actionSelector.id }
 }
 
-export const updateLocalBlockheadSessionActionType = async (
+export const updateLocalBlockheadSessionActionType = async <_ActionType extends ActionType>(
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
 	sessionSelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	indexInSequence: number,
 	createdAt: number,
-	actionType: ActionType,
-	actionParams: object = {},
+	actionType: _ActionType,
+	actionParams?: ActionParamsByActionType[_ActionType],
 	expectedContentRevisionHash?: typeof Hash32.infer
 ) => {
-	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams)
+	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams ?? {})
 	const actionSelector = localBlockheadSessionActionAuthoredSelector(context, entitySelector)
 	if (expectedContentRevisionHash !== undefined) {
 		const currentContentRevisionHash = localPrimitiveFieldValue(

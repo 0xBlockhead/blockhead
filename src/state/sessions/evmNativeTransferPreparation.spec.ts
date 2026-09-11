@@ -6,7 +6,12 @@ import {
 	vi,
 } from 'vitest'
 
-import { actionTypeDefinitionByActionType, ActionType, zeroAddress } from '$/actions/index.ts'
+import {
+	type ActionParamsByActionType,
+	actionTypeDefinitionByActionType,
+	ActionType,
+	zeroAddress,
+} from '$/actions/index.ts'
 import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
@@ -58,7 +63,7 @@ const transferAction = ({
 	actionId?: string
 	indexInSequence?: number
 	actionType?: ActionType
-	actionParams?: object
+	actionParams?: ActionParamsByActionType[ActionType]
 } = {}) => ({
 	sessionId,
 	actionId,
