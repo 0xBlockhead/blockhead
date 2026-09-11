@@ -231,20 +231,6 @@ export default indexSourceBindings([
 		source: Source.Pendle_Rest,
 		target: {
 			kind: SourceTargetKind.Eip155Chain,
-			key: '196',
-		},
-		endpoints: [
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: 'https://rpc.xlayer.tech',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		...pendleRestBindingAxes,
-		target: {
-			kind: SourceTargetKind.Eip155Chain,
 			key: '999',
 		},
 		endpoints: [
