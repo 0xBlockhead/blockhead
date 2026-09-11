@@ -94,4 +94,22 @@ describe('TON internal-message execution authority schema', () => {
 			},
 		})).toThrow()
 	})
+
+	it('preserves a returned EVM dispatch with zero native transaction references', () => {
+		expect(dispatchEvidence.assert({
+			kind: 'returned',
+			response: {
+				adapterKey: 'evm.transaction',
+				adapterVersion: '1',
+				value: { transactionIds: [] },
+			},
+		})).toEqual({
+			kind: 'returned',
+			response: {
+				adapterKey: 'evm.transaction',
+				adapterVersion: '1',
+				value: { transactionIds: [] },
+			},
+		})
+	})
 })
