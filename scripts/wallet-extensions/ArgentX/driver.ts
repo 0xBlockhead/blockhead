@@ -60,6 +60,19 @@ const click = async (
 	}).click()
 }
 
+/** Disable both first-party reporting preferences enabled by the pinned artifact. */
+export const disableArgentXTelemetry = async (page: Page) => {
+	await page.goto(`chrome-extension://${new URL(page.url()).host}/index.html#/settings/privacy`)
+	const settings = [
+		page.getByRole('button', { name: 'Automatic Error Reporting' }),
+		page.getByRole('button', { name: 'Share anonymous data' }),
+	]
+	for (const setting of settings) {
+		await expect(setting, 'Argent X did not expose both pinned privacy controls').toHaveCount(1)
+		await setting.click()
+	}
+}
+
 export const argentXDriver = {
 	kind: 'argent-x',
 	open: async (context: BrowserContext, extension: LoadedWalletExtension) => {
@@ -84,6 +97,7 @@ export const argentXDriver = {
 		})).toBeVisible({
 			timeout: 60_000,
 		})
+		await disableArgentXTelemetry(page)
 		await page.goto(`chrome-extension://${new URL(page.url()).host}/index.html`)
 		await click(page, 'Show account list')
 		await expect(page.getByTestId('account-name')).toHaveCount(1)
