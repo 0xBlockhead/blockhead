@@ -18,6 +18,8 @@ test('maps headed Connect chrome to Keplr popup.html URLs', () => {
 	assert.equal(isKeplrPopupPageUrl(`chrome-extension://${extensionId}/popup.html`, extensionId), true)
 	assert.equal(isKeplrPopupPageUrl(`chrome-extension://${extensionId}/popup.html#/suggest-chain`, extensionId), true)
 	assert.equal(isKeplrPopupPageUrl(`chrome-extension://${extensionId}/register.html`, extensionId), false)
+	assert.equal(isKeplrPopupPageUrl(`chrome-extension://${extensionId}/register.html#/popup.html`, extensionId), false)
+	assert.equal(isKeplrPopupPageUrl(`chrome-extension://${extensionId}/popup.html/other`, extensionId), false)
 	assert.equal(isKeplrPopupPageUrl(`chrome-extension://other/popup.html`, extensionId), false)
 })
 

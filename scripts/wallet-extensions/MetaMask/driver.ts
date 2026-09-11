@@ -37,10 +37,16 @@ export const metamaskUnsupportedEnvironmentEvidence = () => ({
 export const isMetaMaskNotificationPageUrl = (
 	url: string,
 	extensionId: string
-) => (
-	url.startsWith(`chrome-extension://${extensionId}/`)
-	&& url.includes('/notification.html')
-)
+) => {
+	try {
+		const parsed = new URL(url)
+		return parsed.protocol === 'chrome-extension:'
+			&& parsed.hostname === extensionId
+			&& parsed.pathname === '/notification.html'
+	} catch {
+		return false
+	}
+}
 
 export const metamaskUiGeneration = (version: string) => {
 	const major = Number.parseInt(version.split('.')[0] ?? '', 10)

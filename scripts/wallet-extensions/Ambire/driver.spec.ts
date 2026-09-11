@@ -18,6 +18,8 @@ test('maps headed Connect chrome to Ambire request-window.html URLs', () => {
 	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/request-window.html`, extensionId), true)
 	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/request-window.html#/`, extensionId), true)
 	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/tab.html`, extensionId), false)
+	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/tab.html#/request-window.html`, extensionId), false)
+	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://${extensionId}/request-window.html/other`, extensionId), false)
 	assert.equal(isAmbireRequestWindowPageUrl(`chrome-extension://other/request-window.html`, extensionId), false)
 })
 
