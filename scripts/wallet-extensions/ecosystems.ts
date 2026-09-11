@@ -54,7 +54,10 @@ export enum WalletHarnessCoverageKind {
 }
 
 export enum WalletHarnessEvidenceKind {
-	RealHeadedJourney = 'real-headed-journey',
+	/** A real-wallet browser journey exists, but no retained successful execution proves capability. */
+	JourneyImplementation = 'journey-implementation',
+	/** A retained zero-retry browser result proves the declared wallet capability. */
+	VerifiedRealHeadedJourney = 'verified-real-headed-journey',
 	CryptographicFixture = 'cryptographic-fixture',
 	RequestConstruction = 'request-construction',
 	Refusal = 'refusal',
@@ -270,10 +273,10 @@ export const walletHarnessEvidenceByExtensionKind = {
 	lace: WalletHarnessEvidenceKind.RequestConstruction,
 	metamask: WalletHarnessEvidenceKind.RequestConstruction,
 	petra: WalletHarnessEvidenceKind.RequestConstruction,
-	'polkadot-js': WalletHarnessEvidenceKind.RealHeadedJourney,
+	'polkadot-js': WalletHarnessEvidenceKind.JourneyImplementation,
 	rabby: WalletHarnessEvidenceKind.RequestConstruction,
-	taho: WalletHarnessEvidenceKind.RealHeadedJourney,
-	tonkeeper: WalletHarnessEvidenceKind.RealHeadedJourney,
+	taho: WalletHarnessEvidenceKind.JourneyImplementation,
+	tonkeeper: WalletHarnessEvidenceKind.JourneyImplementation,
 	unisat: WalletHarnessEvidenceKind.CryptographicFixture,
 	zerion: WalletHarnessEvidenceKind.RequestConstruction,
 } as const satisfies Record<RealWalletKind, WalletHarnessEvidenceKind>
