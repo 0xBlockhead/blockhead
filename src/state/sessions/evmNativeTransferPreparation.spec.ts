@@ -6,7 +6,7 @@ import {
 	vi,
 } from 'vitest'
 
-import { ActionType, zeroAddress } from '$/actions/index.ts'
+import { actionTypeDefinitionByActionType, ActionType, zeroAddress } from '$/actions/index.ts'
 import { WalletCapability, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import { CoinInstanceType } from '$/schema/CoinInstanceType.ts'
@@ -63,8 +63,14 @@ const transferAction = ({
 	sessionId,
 	actionId,
 	indexInSequence,
-	actionType,
-	actionParams,
+	$action: {
+		id: actionId,
+		content: {
+			type: actionType,
+			params: actionParams ?? actionTypeDefinitionByActionType[actionType].params.assert({}),
+		},
+		contentRevisionHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+	},
 })
 
 const connectedWallet = ({

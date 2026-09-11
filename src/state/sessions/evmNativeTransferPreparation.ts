@@ -51,11 +51,10 @@ type SessionAction = (
 	& Omit<
 		Pick<
 			EntityFieldValues<typeof schema, EntityType.BlockheadSessionAction>,
-			'sessionId' | 'actionId' | 'indexInSequence' | 'actionType' | 'actionParams'
+			'sessionId' | 'actionId' | 'indexInSequence'
 		>,
-		'actionType'
-	>
-	& { actionType: ActionType }
+		{ $action: Pick<EntityFieldValues<typeof schema, EntityType.BlockheadAction>, 'id' | 'content' | 'contentRevisionHash'> }
+>
 )
 
 type ExecutionCall = {
@@ -181,7 +180,7 @@ export const prepareEvmNativeTransfer = async ({
 			'Transfer action belongs to a different session.'
 		: action.indexInSequence !== 0 ?
 			'The single transfer action must be first in the session sequence.'
-		: action.actionType !== ActionType.Transfer ?
+		: action.$action.content.type !== ActionType.Transfer ?
 			'The session action must be a Transfer action.'
 		:
 			undefined
@@ -192,7 +191,7 @@ export const prepareEvmNativeTransfer = async ({
 	if (actionShapeError == null && action != null) {
 		try {
 			const validatedTransferParams = actionTypeDefinitionByActionType[ActionType.Transfer].params.assert(
-				action.actionParams ?? {}
+				action.$action.content.params
 			)
 			transferParams = validatedTransferParams
 			if (!Number.isSafeInteger(validatedTransferParams.chainId) || validatedTransferParams.chainId <= 0)
@@ -417,7 +416,7 @@ export const prepareEvmNativeTransfer = async ({
 		session.id,
 		action.sessionId,
 		action.actionId,
-		action.actionType,
+		action.$action.content.type,
 		{
 			chainId: normalizedParams.chainId,
 			fromActor: normalizedParams.fromActor,
@@ -692,12 +691,12 @@ export const prepareEvmNativeTransfer = async ({
 const transferParamsFromAction = (
 	action: SessionAction | undefined
 ) => {
-	if (action?.actionType !== ActionType.Transfer)
+	if (action?.$action.content.type !== ActionType.Transfer)
 		return undefined
 
 	try {
 		return actionTypeDefinitionByActionType[ActionType.Transfer].params.assert(
-			action.actionParams ?? {}
+			action.$action.content.params
 		)
 	} catch {
 		return undefined

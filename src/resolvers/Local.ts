@@ -685,6 +685,26 @@ export default {
 			}),
 
 		defineResolver({
+			entityType: EntityType.BlockheadAction,
+			resolve: {
+				Id: {
+					resolve: async ({ id }) => {
+						const catalog = await readNormalizedLocalInternal()
+						const blockheadAction = catalog.blockheadActions.find((candidate) => candidate.id === id)
+						if (blockheadAction == null) throw new Error('Local_Internal: BlockheadAction not present in local catalog')
+						return blockheadAction
+					},
+				},
+			},
+		})({
+				id: (action) => action.id,
+				content: (action) => action.content,
+				contentRevisionHash: (action) => action.contentRevisionHash,
+				createdAt: (action) => action.createdAt,
+				updatedAt: (action) => action.updatedAt,
+			}),
+
+		defineResolver({
 			entityType: EntityType.BlockheadSessionAction,
 			resolve: {
 				SessionIdActionId: {
@@ -701,9 +721,12 @@ export default {
 								id: blockheadSessionAction.sessionId,
 							},
 						},
+						$action: {
+							[EntityMetaKey.Selector]: {
+								id: blockheadSessionAction.actionId,
+							},
+						},
 						indexInSequence: blockheadSessionAction.indexInSequence,
-						actionType: blockheadSessionAction.actionType,
-						actionParams: blockheadSessionAction.actionParams,
 						createdAt: blockheadSessionAction.createdAt,
 						updatedAt: blockheadSessionAction.updatedAt,
 					}
@@ -712,9 +735,8 @@ export default {
 			},
 		})({
 				$session: (action) => action.$session,
+				$action: (action) => action.$action,
 				indexInSequence: (action) => action.indexInSequence,
-				actionType: (action) => action.actionType,
-				actionParams: (action) => action.actionParams,
 				createdAt: (action) => action.createdAt,
 				updatedAt: (action) => action.updatedAt,
 			}),

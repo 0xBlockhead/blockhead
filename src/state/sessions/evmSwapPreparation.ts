@@ -41,8 +41,10 @@ type Session = Pick<
 >
 type SessionAction = Pick<
 	EntityFieldValues<typeof schema, EntityType.BlockheadSessionAction>,
-	'sessionId' | 'actionId' | 'indexInSequence' | 'actionType' | 'actionParams' | 'selectedProtocol'
->
+	'sessionId' | 'actionId' | 'indexInSequence' | 'selectedProtocol'
+> & {
+	$action: Pick<EntityFieldValues<typeof schema, EntityType.BlockheadAction>, 'id' | 'content' | 'contentRevisionHash'>
+}
 type PreparedCall = {
 	from: typeof EvmAddress.infer
 	to: typeof EvmAddress.infer
@@ -144,11 +146,11 @@ export const prepareEvmSwap = async ({
 	if (
 		action.sessionId !== session.id
 		|| action.indexInSequence !== 0
-		|| action.actionType !== ActionType.Swap
+		|| action.$action.content.type !== ActionType.Swap
 	)
 		throw new Error('Swap preparation requires the leading Swap action from the locked session.')
 
-	const params = actionTypeDefinitionByActionType[ActionType.Swap].params.assert(action.actionParams ?? {})
+	const params = actionTypeDefinitionByActionType[ActionType.Swap].params.assert(action.$action.content.params)
 	if (params.amount <= 0n)
 		throw new Error('Swap amount must be greater than zero.')
 	if (params.tokenIn.toLowerCase() === params.tokenOut.toLowerCase())

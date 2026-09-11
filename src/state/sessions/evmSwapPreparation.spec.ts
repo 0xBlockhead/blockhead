@@ -37,14 +37,20 @@ const action = {
 	sessionId: 'session-1',
 	actionId: 'action-1',
 	indexInSequence: 0,
-	actionType: ActionType.Swap,
 	selectedProtocol: 'LiFi',
-	actionParams: {
-		chainId: 1,
-		tokenIn: zeroAddress,
-		tokenOut,
-		amount: 1_000n,
-		slippage: 0.005,
+	$action: {
+		id: 'action-1',
+		content: {
+			type: ActionType.Swap,
+			params: {
+				chainId: 1,
+				tokenIn: zeroAddress,
+				tokenOut,
+				amount: 1_000n,
+				slippage: 0.005,
+			},
+		},
+		contentRevisionHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 	},
 }
 
@@ -154,9 +160,9 @@ it('prepares quote and simulation evidence without invoking any wallet provider'
 	})
 	expect(quoteSource.getQuote).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
 		chainId: 1,
-		tokenIn: action.actionParams.tokenIn,
-		tokenOut: action.actionParams.tokenOut,
-		amount: action.actionParams.amount,
+		tokenIn: action.$action.content.params.tokenIn,
+		tokenOut: action.$action.content.params.tokenOut,
+		amount: action.$action.content.params.amount,
 	}))
 	expect(Object.hasOwn(preparation, 'txHash')).toBe(false)
 	expect(Object.hasOwn(preparation, 'evmTransaction')).toBe(false)

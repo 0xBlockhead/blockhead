@@ -4,7 +4,6 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -17,14 +16,7 @@
 		data,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadSessionAction, data.selector, {
-		sources: [
-			Source.Local_Internal,
-		],
-		fields: {
-			actionType: true,
-		},
-	}))
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.BlockheadSessionAction, data.selector))
 
 
 	// Components
@@ -34,18 +26,12 @@
 
 
 <svelte:head>
-	{#if pageSelection != null}
-		<title>{data?.title ?? (pageSelection.entity == null ? 'blockhead session action' : pageSelection.entity.actionType || 'blockhead session action')} • blockhead session action • Blockhead</title>
-	{:else}
-		<title>{data?.title ?? 'blockhead session action'} • blockhead session action • Blockhead</title>
-	{/if}
+	<title>{data?.title ?? 'blockhead session action'} • blockhead session action • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	{#if pageSelection != null}
-	<BlockheadSessionActionView
-		selection={pageSelection}
-	/>
+		<BlockheadSessionActionView selection={pageSelection} />
 	{/if}
 </Page>
