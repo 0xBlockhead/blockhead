@@ -1270,12 +1270,35 @@ export const writeLocalBlockheadSessionAction = (
 				String(indexInSequence + 1)
 			)
 		const now = Date.now()
+		const actionContent = {
+			type: actionType,
+			params: validatedActionParams,
+		}
+		const contentRevisionHash = hashLocalBlockheadSessionActionRevision(actionType, validatedActionParams)
+		const actionSelector = {
+			id: globalThis.crypto.randomUUID(),
+		}
 		const entitySelector = {
 			sessionId: sessionEntitySelector.id,
-			actionId: globalThis.crypto.randomUUID(),
+			actionId: actionSelector.id,
 		}
+		writeLocalPresence(context, EntityType.BlockheadAction, actionSelector)
+		writeLocalPrimitiveFields(context, EntityType.BlockheadAction, actionSelector, {
+			id: actionSelector.id,
+			content: actionContent,
+			contentRevisionHash,
+			createdAt: now,
+			updatedAt: now,
+		})
 		writeLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
 		const relationshipApplications = [
+			writeLocalEntityReferenceField(
+				context,
+				EntityType.BlockheadAction,
+				actionSelector,
+				'$$sessionActions',
+				entitySelector
+			),
 			writeLocalEntityReferenceField(
 				context,
 				EntityType.BlockheadSessionAction,
@@ -1286,12 +1309,16 @@ export const writeLocalBlockheadSessionAction = (
 		]
 		writeLocalPrimitiveFields(context, EntityType.BlockheadSessionAction, entitySelector, {
 			indexInSequence,
-			actionType,
-			actionParams: validatedActionParams,
-			contentRevisionHash: hashLocalBlockheadSessionActionRevision(actionType, validatedActionParams),
 			createdAt: now,
 			updatedAt: now,
 		})
+		relationshipApplications.push(writeLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadSessionAction,
+			entitySelector,
+			'$action',
+			actionSelector
+		))
 		relationshipApplications.push(writeLocalEntityReferenceField(
 			context,
 			EntityType.BlockheadSession,
@@ -1313,13 +1340,15 @@ export const writeLocalBlockheadSessionAction = (
 		}
 		await Promise.all([
 			...relationshipApplications,
+			context.entityCollections[EntityType.BlockheadAction].utils.waitForPersistence(),
 			context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
+			...['id', 'content', 'contentRevisionHash', 'createdAt', 'updatedAt', '$$sessionActions'].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadAction][
+				entityFieldAddressKey(EntityType.BlockheadAction, [], fieldName)
+			].utils.waitForPersistence()),
 			...[
 				'$session',
+				'$action',
 				'indexInSequence',
-				'actionType',
-				'actionParams',
-				'contentRevisionHash',
 				'createdAt',
 				'updatedAt',
 			].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionAction][
@@ -1387,6 +1416,7 @@ export const deleteLocalBlockheadSession = (
 		throw new Error(`BlockheadSession ${entitySelector.id} is not removable (status ${previous.status})`)
 
 	let deletedAction = false
+	const authoredActionRelationshipApplications: Array<Promise<void>> = []
 	for (const actionRow of context.entityFieldCollections[EntityType.BlockheadSession][
 		entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
 	].toArray.filter((row) => (
@@ -1397,6 +1427,14 @@ export const deleteLocalBlockheadSession = (
 			Object(actionRow[EntityMetaKey.Value]),
 			EntityMetaKey.Selector
 		)?.value)
+		const authoredActionSelector = localBlockheadSessionActionAuthoredSelector(context, actionSelector)
+		authoredActionRelationshipApplications.push(deleteLocalEntityReferenceField(
+			context,
+			EntityType.BlockheadAction,
+			authoredActionSelector,
+			'$$sessionActions',
+			actionSelector
+		))
 		deletedAction = true
 		deleteLocalEntityFields(context, EntityType.BlockheadSessionAction, actionSelector)
 		deleteLocalPresence(context, EntityType.BlockheadSessionAction, actionSelector)
@@ -1412,6 +1450,7 @@ export const deleteLocalBlockheadSession = (
 	deleteLocalPresence(context, EntityType.BlockheadSession, entitySelector)
 	return Promise.all([
 		relationshipApplication,
+		...authoredActionRelationshipApplications,
 		context.entityCollections[EntityType.BlockheadSession].utils.waitForPersistence(),
 		...(deletedAction ? [
 			context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
@@ -1439,15 +1478,23 @@ export const deleteLocalBlockheadSessionAction = async (
 	sessionEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadSession>,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
 ) => {
-	const relationshipApplication = deleteLocalEntityReferenceField(
+	const relationshipApplications = [deleteLocalEntityReferenceField(
 		context,
 		EntityType.BlockheadSession,
 		sessionEntitySelector,
 		'$$actions',
 		entitySelector
-	)
+	)]
+	const actionSelector = localBlockheadSessionActionAuthoredSelector(context, entitySelector)
+	relationshipApplications.push(deleteLocalEntityReferenceField(
+		context,
+		EntityType.BlockheadAction,
+		actionSelector,
+		'$$sessionActions',
+		entitySelector
+	))
 	await Promise.all([
-		relationshipApplication,
+		...relationshipApplications,
 		context.entityFieldCollections[EntityType.BlockheadSession][
 			entityFieldAddressKey(EntityType.BlockheadSession, [], '$$actions')
 		].utils.waitForPersistence(),
@@ -1660,6 +1707,29 @@ export class StaleSessionActionRevisionError extends Error {
 	}
 }
 
+const localBlockheadSessionActionAuthoredSelector = (
+	context: LocalMutationContext,
+	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>
+) => {
+	const actionReferenceRows = context.entityFieldCollections[EntityType.BlockheadSessionAction][
+		entityFieldAddressKey(EntityType.BlockheadSessionAction, [], '$action')
+	].toArray.filter((row) => (
+		row[EntityMetaKey.Source] === Source.Local_Internal
+		&& row[EntityMetaKey.ParentSelectorKey] === entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadSessionAction],
+			entitySelector
+		)
+	))
+	const actionSelector = Object(Object.getOwnPropertyDescriptor(
+		Object(actionReferenceRows[0]?.[EntityMetaKey.Value]),
+		EntityMetaKey.Selector
+	)?.value)
+	if (typeof actionSelector.id !== 'string')
+		throw new Error('Session action is missing its authored action reference.')
+	return { id: actionSelector.id }
+}
+
 export const updateLocalBlockheadSessionActionType = async (
 	context: LocalMutationContext,
 	entitySelector: EntitySelector<typeof schema, EntityType.BlockheadSessionAction>,
@@ -1671,16 +1741,26 @@ export const updateLocalBlockheadSessionActionType = async (
 	expectedContentRevisionHash?: typeof Hash32.infer
 ) => {
 	const validatedActionParams = actionTypeDefinitionByActionType[actionType].params.assert(actionParams)
+	const actionSelector = localBlockheadSessionActionAuthoredSelector(context, entitySelector)
 	if (expectedContentRevisionHash !== undefined) {
 		const currentContentRevisionHash = localPrimitiveFieldValue(
 			context,
-			EntityType.BlockheadSessionAction,
-			entitySelector,
+			EntityType.BlockheadAction,
+			actionSelector,
 			'contentRevisionHash'
 		)
 		if (currentContentRevisionHash !== expectedContentRevisionHash)
 			throw new StaleSessionActionRevisionError()
 	}
+	writeLocalPresence(context, EntityType.BlockheadAction, actionSelector)
+	writeLocalPrimitiveFields(context, EntityType.BlockheadAction, actionSelector, {
+		content: {
+			type: actionType,
+			params: validatedActionParams,
+		},
+		contentRevisionHash: hashLocalBlockheadSessionActionRevision(actionType, validatedActionParams),
+		updatedAt: Date.now(),
+	})
 	writeLocalPresence(context, EntityType.BlockheadSessionAction, entitySelector)
 	const relationshipApplication = writeLocalEntityReferenceField(
 		context,
@@ -1691,9 +1771,6 @@ export const updateLocalBlockheadSessionActionType = async (
 	)
 	writeLocalPrimitiveFields(context, EntityType.BlockheadSessionAction, entitySelector, {
 		indexInSequence,
-		actionType,
-		actionParams: validatedActionParams,
-		contentRevisionHash: hashLocalBlockheadSessionActionRevision(actionType, validatedActionParams),
 		createdAt,
 		updatedAt: Date.now(),
 	})
@@ -1710,17 +1787,19 @@ export const updateLocalBlockheadSessionActionType = async (
 	}
 	await Promise.all([
 		relationshipApplication,
+		context.entityCollections[EntityType.BlockheadAction].utils.waitForPersistence(),
 		context.entityCollections[EntityType.BlockheadSessionAction].utils.waitForPersistence(),
 		...[
 			'$session',
+			'$action',
 			'indexInSequence',
-			'actionType',
-			'actionParams',
-			'contentRevisionHash',
 			'createdAt',
 			'updatedAt',
 		].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadSessionAction][
 			entityFieldAddressKey(EntityType.BlockheadSessionAction, [], fieldName)
+		].utils.waitForPersistence()),
+		...['content', 'contentRevisionHash', 'updatedAt'].map((fieldName) => context.entityFieldCollections[EntityType.BlockheadAction][
+			entityFieldAddressKey(EntityType.BlockheadAction, [], fieldName)
 		].utils.waitForPersistence()),
 		context.entityFieldCollections[EntityType.BlockheadSession][
 			entityFieldAddressKey(EntityType.BlockheadSession, [], 'updatedAt')
@@ -3985,10 +4064,11 @@ export const writeLocalBlockheadActionAuthorityRequest = async (
 		const action = persistedRequest.sessionActions[index]
 		if (action.sessionId !== binding.sessionId || action.actionId !== binding.actionId)
 			throw new Error('Authority request action revision binding does not match its authored action.')
-		if (localPrimitiveFieldValue(
+		const authoredAction = localBlockheadSessionActionAuthoredSelector(context, action)
+		if (authoredAction.id !== binding.actionId || localPrimitiveFieldValue(
 			context,
-			EntityType.BlockheadSessionAction,
-			action,
+			EntityType.BlockheadAction,
+			authoredAction,
 			'contentRevisionHash'
 		) !== binding.contentRevisionHash)
 			throw new Error('Authority request action revision binding is not the persisted authored action revision.')
@@ -4110,13 +4190,14 @@ export const writeLocalBlockheadActionDispatchOccurrenceStart = async (
 			catch {
 				throw new Error('Dispatch occurrence authority request has an invalid authored action revision binding.')
 			}
+			const authoredAction = localBlockheadSessionActionAuthoredSelector(context, {
+				sessionId: binding.sessionId,
+				actionId: binding.actionId,
+			})
 			const persistedContentRevisionHash = localPrimitiveFieldValue(
 				context,
-				EntityType.BlockheadSessionAction,
-				{
-					sessionId: binding.sessionId,
-					actionId: binding.actionId,
-				},
+				EntityType.BlockheadAction,
+				authoredAction,
 				'contentRevisionHash'
 			)
 			if (persistedContentRevisionHash !== binding.contentRevisionHash)

@@ -34,14 +34,12 @@
 		],
 		fields: {
 			indexInSequence: true,
-			actionType: true,
-			contentRevisionHash: true,
+			selectedProtocol: true,
 			createdAt: true,
 			updatedAt: true,
-			selectedProtocol: true,
 		},
 	}))
-	const titleFallback = $derived((prefetched.actionType ?? '') || 'blockhead session action')
+	const titleFallback = $derived((prefetched.selectedProtocol ?? '') || 'blockhead session action')
 	const viewDomId = $derived('blockhead-session-action-' + encodeURIComponent(stringify(selection.entitySelector)))
 
 
@@ -51,8 +49,8 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
+	import BlockheadActionView from '$/views/BlockheadActionView.svelte'
 	import BlockheadIntentInvocationView from '$/views/BlockheadIntentInvocationView.svelte'
 	import BlockheadActionReadinessChecksView from '$/views/BlockheadActionReadinessChecksView.svelte'
 	import BlockheadIntentQuotesView from '$/views/BlockheadIntentQuotesView.svelte'
@@ -86,7 +84,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={blockheadSessionAction}>
 			{#snippet children(entity)}
-				{entity.actionType || title || titleFallback}
+				{(entity.selectedProtocol ?? '') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -94,7 +92,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={blockheadSessionAction}>
 			{#snippet children(entity)}
-				{(entity.selectedProtocol ?? '') || entity.actionType || titleFallback}
+				{String(entity.indexInSequence)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -132,6 +130,24 @@
 			</div>
 
 			<div>
+				<dt>authored action</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$action}
+					>
+						{#snippet children(blockheadAction)}
+							{@const blockheadActionInitial = untrack(() => blockheadAction)}
+							<BlockheadActionView
+								selection={select(EntityType.BlockheadAction, (blockheadAction ?? blockheadActionInitial)[EntityMetaKey.Selector])}
+								prefetched={blockheadAction ?? blockheadActionInitial}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>action ID</dt>
 				<dd>
 					{selection.entitySelector.actionId}
@@ -153,19 +169,6 @@
 				</dd>
 			</div>
 
-			<div>
-				<dt>action type</dt>
-				<dd>
-					<ResourceBoundary
-						resource={blockheadSessionAction}
-					>
-						{#snippet children(entity)}
-							{entity.actionType}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
 			<ResourceBoundary
 				resource={blockheadSessionAction}
 			>
@@ -181,19 +184,6 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-
-			<div>
-				<dt>content revision hash</dt>
-				<dd>
-					<ResourceBoundary
-						resource={blockheadSessionAction}
-					>
-						{#snippet children(entity)}
-							<TruncatedValue value={entity.contentRevisionHash} />
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 		</dl>
 
 		<dl data-column-item="center">

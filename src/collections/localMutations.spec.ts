@@ -831,11 +831,27 @@ describe('local mutation authority journal', () => {
 		if (actionSelector instanceof arktype.errors)
 			throw actionSelector
 		expect(createdActionSelector).toEqual(actionSelector)
-		const initialRevisionHash = entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
+		const authoredActionSelector = { id: actionSelector.actionId }
+		const authoredActionSelectorKey = entitySelectorKey(
+			schema,
+			entityDefinitionByType[EntityType.BlockheadAction],
+			authoredActionSelector
+		)
+		expect(entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
 			EntityType.BlockheadSessionAction,
 			[],
+			'$action'
+		)].toArray).toContainEqual(expect.objectContaining({
+			[EntityMetaKey.ParentSelectorKey]: actionSelectorKey,
+			[EntityMetaKey.Value]: expect.objectContaining({
+				[EntityMetaKey.Selector]: authoredActionSelector,
+			}),
+		}))
+		const initialRevisionHash = entityFieldCollections[EntityType.BlockheadAction][entityFieldAddressKey(
+			EntityType.BlockheadAction,
+			[],
 			'contentRevisionHash'
-		)].toArray.find((row) => row[EntityMetaKey.ParentSelectorKey] === actionSelectorKey)?.[EntityMetaKey.Value]
+		)].toArray.find((row) => row[EntityMetaKey.ParentSelectorKey] === authoredActionSelectorKey)?.[EntityMetaKey.Value]
 		expect(initialRevisionHash).toBe(hashLocalBlockheadSessionActionRevision(
 			ActionType.Transfer,
 			actionTypeDefinitionByActionType[ActionType.Transfer].params.assert({})
@@ -862,15 +878,15 @@ describe('local mutation authority journal', () => {
 				[EntityMetaKey.SelectorKey]: actionSelectorKey,
 			})
 		)
-		expect(entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
-			EntityType.BlockheadSessionAction,
+		expect(entityFieldCollections[EntityType.BlockheadAction][entityFieldAddressKey(
+			EntityType.BlockheadAction,
 			[],
-			'actionParams'
+			'content'
 		)].toArray).toContainEqual(
 			expect.objectContaining({
-				[EntityMetaKey.ParentSelectorKey]: actionSelectorKey,
+				[EntityMetaKey.ParentSelectorKey]: authoredActionSelectorKey,
 				[EntityMetaKey.Value]: expect.objectContaining({
-					amount: 2n,
+					params: expect.objectContaining({ amount: 2n }),
 				}),
 			})
 		)
@@ -891,11 +907,11 @@ describe('local mutation authority journal', () => {
 		)).toThrow()
 		expect(entityCollections[EntityType.BlockheadSessionAction].toArray).toHaveLength(4)
 
-		const revisionRow = entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
-			EntityType.BlockheadSessionAction,
+		const revisionRow = entityFieldCollections[EntityType.BlockheadAction][entityFieldAddressKey(
+			EntityType.BlockheadAction,
 			[],
 			'contentRevisionHash'
-		)].toArray.find((row) => row[EntityMetaKey.ParentSelectorKey] === actionSelectorKey)
+		)].toArray.find((row) => row[EntityMetaKey.ParentSelectorKey] === authoredActionSelectorKey)
 		if (revisionRow == null)
 			throw new Error('Expected the authored action revision hash')
 		const contentRevisionHash = Hash32.assert(revisionRow[EntityMetaKey.Value])
@@ -904,10 +920,8 @@ describe('local mutation authority journal', () => {
 		const actionRowsBeforeStaleEdit = structuredClone(entityCollections[EntityType.BlockheadSessionAction].toArray)
 		const actionFieldNames = [
 			'$session',
+			'$action',
 			'indexInSequence',
-			'actionType',
-			'actionParams',
-			'contentRevisionHash',
 			'createdAt',
 			'updatedAt',
 		] as const
@@ -915,6 +929,15 @@ describe('local mutation authority journal', () => {
 			fieldName,
 			structuredClone(entityFieldCollections[EntityType.BlockheadSessionAction][entityFieldAddressKey(
 				EntityType.BlockheadSessionAction,
+				[],
+				fieldName
+			)].toArray),
+		]))
+		const authoredActionFieldNames = ['content', 'contentRevisionHash', 'createdAt', 'updatedAt'] as const
+		const authoredActionFieldRowsBeforeStaleEdit = Object.fromEntries(authoredActionFieldNames.map((fieldName) => [
+			fieldName,
+			structuredClone(entityFieldCollections[EntityType.BlockheadAction][entityFieldAddressKey(
+				EntityType.BlockheadAction,
 				[],
 				fieldName
 			)].toArray),
@@ -936,6 +959,12 @@ describe('local mutation authority journal', () => {
 				[],
 				fieldName
 			)].toArray).toEqual(actionFieldRowsBeforeStaleEdit[fieldName])
+		for (const fieldName of authoredActionFieldNames)
+			expect(entityFieldCollections[EntityType.BlockheadAction][entityFieldAddressKey(
+				EntityType.BlockheadAction,
+				[],
+				fieldName
+			)].toArray).toEqual(authoredActionFieldRowsBeforeStaleEdit[fieldName])
 		const envelope = {
 			adapterKey: 'evm.personal-sign',
 			adapterVersion: '1',

@@ -908,6 +908,7 @@ export enum EntityType {
 	BitTorrentTracker = "BitTorrentTracker",
 	BitTorrentTrackerScrape_Timestamp = "BitTorrentTrackerScrape_Timestamp",
 	BlockheadAccount = "BlockheadAccount",
+	BlockheadAction = "BlockheadAction",
 	BlockheadActionAuthorityRequest = "BlockheadActionAuthorityRequest",
 	BlockheadActionDispatchOccurrence = "BlockheadActionDispatchOccurrence",
 	BlockheadActionOutcome = "BlockheadActionOutcome",
@@ -1888,6 +1889,11 @@ export const schema = {
 			{
 				id: "bigint",
 				type: { primitive: "bigint" },
+			},
+			{
+				id: "BlockheadActionContent",
+				imports: [{ from: "$/actions/index.ts", names: ["actionContent"] }],
+				type: { raw: "actionContent" },
 			},
 			{
 				id: "BlockheadActionRevisionBinding",
@@ -13130,6 +13136,18 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.BlockheadAction,
+				labels: { singular: "blockhead action", plural: "blockhead actions" },
+			})({
+				"id": { label: "ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"content": { label: "content", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "BlockheadActionContent" },
+				"contentRevisionHash": { label: "content revision hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "Hash32" },
+				"createdAt": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"updatedAt": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
+				"$$sessionActions": { label: "session actions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadSessionAction },
+			})({ selectors: { Id: ["id"] }, views: { singular: { query: { sources: [Source.Local_Internal], fields: ["content", "contentRevisionHash", "createdAt", "updatedAt"] }, summary: { title: ["contentRevisionHash"] }, content: { dl: [["id", "contentRevisionHash"], [{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }]] } }, plural: { component: "BlockheadActionsView", title: "Actions" } } }),
+
+			entity({
 				entityType: EntityType.BlockheadActionAuthorityRequest,
 				labels: {
 					singular: "authority request",
@@ -17409,10 +17427,8 @@ export const schema = {
 				"actionId": { label: "action ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$session": { label: "session", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadSession },
 				"indexInSequence": { label: "index in sequence", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"actionType": { label: "action type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$action": { label: "authored action", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadAction },
 				"selectedProtocol": { label: "selected protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"actionParams": { label: "action params", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown" },
-				"contentRevisionHash": { label: "content revision hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "Hash32" },
 				"createdAt": { label: "Created", description: "The time when the subject was created according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"updatedAt": { label: "Updated", description: "The time when the subject was last updated according to the source.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 				"$originInvocation": { label: "origin invocation", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.BlockheadIntentInvocation },
@@ -17430,14 +17446,13 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Local_Internal],
-							fields: ["indexInSequence", "actionType", "contentRevisionHash", "createdAt", "updatedAt"],
-							openFields: ["selectedProtocol", "actionParams"],
+							fields: ["indexInSequence", "selectedProtocol", "createdAt", "updatedAt"],
 						},
-						summary: { title: ["actionType"], value: ["selectedProtocol"], HeadingAfter: [{ field: "indexInSequence", format: "number" }] },
+						summary: { title: ["selectedProtocol"], value: ["indexInSequence"], HeadingAfter: [{ field: "indexInSequence", format: "number" }] },
 						closed: ["$session", "actionId", { field: "indexInSequence", format: "number" }],
 						content: {
 							dl: [
-								["$session", "actionId", { field: "indexInSequence", format: "number" }, "actionType", "selectedProtocol", "contentRevisionHash"],
+								["$session", "$action", "actionId", { field: "indexInSequence", format: "number" }, "selectedProtocol"],
 								[{ field: "createdAt", format: "timestamp" }, { field: "updatedAt", format: "timestamp" }, "$originInvocation"],
 							],
 						},
@@ -70413,6 +70428,20 @@ export const routes = defineRoutes(schema)({
 							}
 						},
 					],
+				},
+				"action": {
+					children: {
+						"[actionId]": {
+							selectors: {
+								[EntityType.BlockheadAction]: {
+									"Id": {
+										params: { "actionId": ["id"] },
+										page: {},
+									},
+								},
+							},
+						},
+					},
 				},
 				"authority-request": {
 					children: {
