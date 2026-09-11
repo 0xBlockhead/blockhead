@@ -81,7 +81,7 @@ test('enrolls every manifest wallet with an executable driver', async () => {
 	assert.deepEqual(
 		manifestKinds.filter((kind) => !enrolled.has(kind)),
 		[],
-		'Manifest wallet with a driver must be enrolled in the executable matrix suite',
+		'Manifest wallet with a driver must be enrolled in the executable matrix suite'
 	)
 })
 
