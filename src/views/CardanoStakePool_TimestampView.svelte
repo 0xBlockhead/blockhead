@@ -224,16 +224,10 @@
 				<dt>owners</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									owners: true,
-								},
-							})
-						}
+						resource={selection.owners}
 					>
-						{#snippet children(entity)}
-							{entity.owners.values.join(', ')}
+						{#snippet children(owners)}
+							{owners.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

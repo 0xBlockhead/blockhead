@@ -407,16 +407,10 @@
 				<dt>Operation paths</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									operationPaths: true,
-								},
-							})
-						}
+						resource={selection.operationPaths}
 					>
-						{#snippet children(entity)}
-							{entity.operationPaths.values.join(', ')}
+						{#snippet children(operationPaths)}
+							{operationPaths.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -426,16 +420,10 @@
 				<dt>Created record CIDs</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									createdRecordCids: true,
-								},
-							})
-						}
+						resource={selection.createdRecordCids}
 					>
-						{#snippet children(entity)}
-							{entity.createdRecordCids.values.join(', ')}
+						{#snippet children(createdRecordCids)}
+							{createdRecordCids.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -445,16 +433,10 @@
 				<dt>Updated record CIDs</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									updatedRecordCids: true,
-								},
-							})
-						}
+						resource={selection.updatedRecordCids}
 					>
-						{#snippet children(entity)}
-							{entity.updatedRecordCids.values.join(', ')}
+						{#snippet children(updatedRecordCids)}
+							{updatedRecordCids.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -464,16 +446,10 @@
 				<dt>Deleted record paths</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									deletedRecordPaths: true,
-								},
-							})
-						}
+						resource={selection.deletedRecordPaths}
 					>
-						{#snippet children(entity)}
-							{entity.deletedRecordPaths.values.join(', ')}
+						{#snippet children(deletedRecordPaths)}
+							{deletedRecordPaths.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -99,16 +99,10 @@
 				<dt>push access</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									pushAccessDescriptions: true,
-								},
-							})
-						}
+						resource={selection.pushAccessDescriptions}
 					>
-						{#snippet children(entity)}
-							{entity.pushAccessDescriptions.values.join(', ')}
+						{#snippet children(pushAccessDescriptions)}
+							{pushAccessDescriptions.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -118,16 +112,10 @@
 				<dt>merge access</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									mergeAccessDescriptions: true,
-								},
-							})
-						}
+						resource={selection.mergeAccessDescriptions}
 					>
-						{#snippet children(entity)}
-							{entity.mergeAccessDescriptions.values.join(', ')}
+						{#snippet children(mergeAccessDescriptions)}
+							{mergeAccessDescriptions.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -137,16 +125,10 @@
 				<dt>unprotect access</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									unprotectAccessDescriptions: true,
-								},
-							})
-						}
+						resource={selection.unprotectAccessDescriptions}
 					>
-						{#snippet children(entity)}
-							{entity.unprotectAccessDescriptions.values.join(', ')}
+						{#snippet children(unprotectAccessDescriptions)}
+							{unprotectAccessDescriptions.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -72,15 +72,11 @@
 								sources: selection.sources ?? [
 									Source.MoneroDaemonRpc_JsonRpc,
 								],
-							})({
-								fields: {
-									rpcEndpoints: true,
-								},
-							})
+							}).rpcEndpoints
 						}
 					>
-						{#snippet children(entity)}
-							{entity.rpcEndpoints.values.map((value) => value.url).join(', ')}
+						{#snippet children(rpcEndpoints)}
+							{rpcEndpoints.values.map((value) => value.url).join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

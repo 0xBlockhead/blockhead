@@ -185,16 +185,10 @@
 				<dt>Fee amount</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									feeAmount: true,
-								},
-							})
-						}
+						resource={selection.feeAmount}
 					>
-						{#snippet children(entity)}
-							{entity.feeAmount.values.map((value) => `${value.amount} ${value.denom}`).join(', ')}
+						{#snippet children(feeAmount)}
+							{feeAmount.values.map((value) => `${value.amount} ${value.denom}`).join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -272,16 +266,10 @@
 				<dt>Signer addresses</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									signerAddresses: true,
-								},
-							})
-						}
+						resource={selection.signerAddresses}
 					>
-						{#snippet children(entity)}
-							{entity.signerAddresses.values.join(', ')}
+						{#snippet children(signerAddresses)}
+							{signerAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -291,16 +279,10 @@
 				<dt>Signatures</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									signatures: true,
-								},
-							})
-						}
+						resource={selection.signatures}
 					>
-						{#snippet children(entity)}
-							{entity.signatures.values.join(', ')}
+						{#snippet children(signatures)}
+							{signatures.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -310,16 +292,10 @@
 				<dt>Event types</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									eventTypes: true,
-								},
-							})
-						}
+						resource={selection.eventTypes}
 					>
-						{#snippet children(entity)}
-							{entity.eventTypes.values.join(', ')}
+						{#snippet children(eventTypes)}
+							{eventTypes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

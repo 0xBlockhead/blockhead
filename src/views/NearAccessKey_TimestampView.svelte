@@ -259,16 +259,10 @@
 				<dt>Method names</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									methodNames: true,
-								},
-							})
-						}
+						resource={viewSelection.methodNames}
 					>
-						{#snippet children(entity)}
-							{entity.methodNames.values.join(', ')}
+						{#snippet children(methodNames)}
+							{methodNames.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

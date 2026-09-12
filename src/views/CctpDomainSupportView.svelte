@@ -211,16 +211,10 @@
 				<dt>Supported tokens</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									supportedTokens: true,
-								},
-							})
-						}
+						resource={viewSelection.supportedTokens}
 					>
-						{#snippet children(entity)}
-							{entity.supportedTokens.values.join(', ')}
+						{#snippet children(supportedTokens)}
+							{supportedTokens.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

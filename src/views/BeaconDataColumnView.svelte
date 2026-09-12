@@ -156,16 +156,10 @@
 				<dt>Column cells</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									columns: true,
-								},
-							})
-						}
+						resource={viewSelection.columns}
 					>
-						{#snippet children(entity)}
-							{entity.columns.values.join(', ')}
+						{#snippet children(columns)}
+							{columns.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -175,16 +169,10 @@
 				<dt>KZG proofs</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									kzgProofs: true,
-								},
-							})
-						}
+						resource={viewSelection.kzgProofs}
 					>
-						{#snippet children(entity)}
-							{entity.kzgProofs.values.join(', ')}
+						{#snippet children(kzgProofs)}
+							{kzgProofs.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -194,16 +182,10 @@
 				<dt>KZG commitments</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									kzgCommitments: true,
-								},
-							})
-						}
+						resource={viewSelection.kzgCommitments}
 					>
-						{#snippet children(entity)}
-							{entity.kzgCommitments.values.join(', ')}
+						{#snippet children(kzgCommitments)}
+							{kzgCommitments.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

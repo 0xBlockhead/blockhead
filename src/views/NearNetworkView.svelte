@@ -102,16 +102,10 @@
 				<dt>RPC endpoints</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									rpcEndpoints: true,
-								},
-							})
-						}
+						resource={viewSelection.rpcEndpoints}
 					>
-						{#snippet children(entity)}
-							{entity.rpcEndpoints.values.map((value) => value.url).join(', ')}
+						{#snippet children(rpcEndpoints)}
+							{rpcEndpoints.values.map((value) => value.url).join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

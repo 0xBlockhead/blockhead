@@ -171,16 +171,10 @@
 				<dt>listen addresses</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									listenAddresses: true,
-								},
-							})
-						}
+						resource={viewSelection.listenAddresses}
 					>
-						{#snippet children(entity)}
-							{entity.listenAddresses.values.join(', ')}
+						{#snippet children(listenAddresses)}
+							{listenAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -190,16 +184,10 @@
 				<dt>external addresses</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									externalAddresses: true,
-								},
-							})
-						}
+						resource={viewSelection.externalAddresses}
 					>
-						{#snippet children(entity)}
-							{entity.externalAddresses.values.join(', ')}
+						{#snippet children(externalAddresses)}
+							{externalAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

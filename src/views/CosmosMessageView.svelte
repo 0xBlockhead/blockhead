@@ -291,16 +291,10 @@
 				<dt>Funds</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									funds: true,
-								},
-							})
-						}
+						resource={selection.funds}
 					>
-						{#snippet children(entity)}
-							{entity.funds.values.map((value) => `${value.amount} ${value.denom}`).join(', ')}
+						{#snippet children(funds)}
+							{funds.values.map((value) => `${value.amount} ${value.denom}`).join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -310,16 +304,10 @@
 				<dt>Event types</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									eventTypes: true,
-								},
-							})
-						}
+						resource={selection.eventTypes}
 					>
-						{#snippet children(entity)}
-							{entity.eventTypes.values.join(', ')}
+						{#snippet children(eventTypes)}
+							{eventTypes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

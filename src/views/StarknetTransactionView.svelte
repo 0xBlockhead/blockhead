@@ -243,16 +243,10 @@
 				<dt>calldata</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									calldata: true,
-								},
-							})
-						}
+						resource={viewSelection.calldata}
 					>
-						{#snippet children(entity)}
-							{entity.calldata.values.join(', ')}
+						{#snippet children(calldata)}
+							{calldata.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -262,16 +256,10 @@
 				<dt>signature</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									signature: true,
-								},
-							})
-						}
+						resource={viewSelection.signature}
 					>
-						{#snippet children(entity)}
-							<TruncatedValue value={entity.signature.values.join(', ')} />
+						{#snippet children(signature)}
+							<TruncatedValue value={signature.values.join(', ')} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

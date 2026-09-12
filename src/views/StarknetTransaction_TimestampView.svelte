@@ -241,16 +241,10 @@
 				<dt>messages sent</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									messagesSent: true,
-								},
-							})
-						}
+						resource={viewSelection.messagesSent}
 					>
-						{#snippet children(entity)}
-							{entity.messagesSent.values.join(', ')}
+						{#snippet children(messagesSent)}
+							{messagesSent.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

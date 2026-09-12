@@ -317,16 +317,10 @@
 				<dt>Blob KZG commitments</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									blobKzgCommitments: true,
-								},
-							})
-						}
+						resource={viewSelection.blobKzgCommitments}
 					>
-						{#snippet children(entity)}
-							{entity.blobKzgCommitments.values.join(', ')}
+						{#snippet children(blobKzgCommitments)}
+							{blobKzgCommitments.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

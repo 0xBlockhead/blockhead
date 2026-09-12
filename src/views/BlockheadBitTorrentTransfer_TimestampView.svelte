@@ -178,16 +178,10 @@
 				<dt>selected file indexes</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									selectedFileIndexes: true,
-								},
-							})
-						}
+						resource={selection.selectedFileIndexes}
 					>
-						{#snippet children(entity)}
-							{entity.selectedFileIndexes.values.join(', ')}
+						{#snippet children(selectedFileIndexes)}
+							{selectedFileIndexes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -197,16 +191,10 @@
 				<dt>file priorities</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									filePriorities: true,
-								},
-							})
-						}
+						resource={selection.filePriorities}
 					>
-						{#snippet children(entity)}
-							{entity.filePriorities.values.join(', ')}
+						{#snippet children(filePriorities)}
+							{filePriorities.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

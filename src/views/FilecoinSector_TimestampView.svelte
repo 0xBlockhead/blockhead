@@ -262,16 +262,10 @@
 				<dt>Deal IDs</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									dealIds: true,
-								},
-							})
-						}
+						resource={viewSelection.dealIds}
 					>
-						{#snippet children(entity)}
-							{entity.dealIds.values.join(', ')}
+						{#snippet children(dealIds)}
+							{dealIds.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

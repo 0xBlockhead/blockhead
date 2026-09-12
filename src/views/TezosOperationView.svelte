@@ -389,16 +389,10 @@
 				<dt>originated contract addresses</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									originatedContractAddresses: true,
-								},
-							})
-						}
+						resource={selection.originatedContractAddresses}
 					>
-						{#snippet children(entity)}
-							{entity.originatedContractAddresses.values.join(', ')}
+						{#snippet children(originatedContractAddresses)}
+							{originatedContractAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

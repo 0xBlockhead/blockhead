@@ -314,10 +314,12 @@
 	)
 
 
-	const network = $derived(selection({
+	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Constants_Internal,
 		],
+	}))
+	const network = $derived(viewSelection({
 		fields: {
 			name: true,
 			namespace: true,
@@ -837,10 +839,10 @@
 				<dt>Ledger models</dt>
 				<dd>
 					<ResourceBoundary
-						resource={network}
+						resource={viewSelection.ledgerModels}
 					>
-						{#snippet children(entity)}
-							{entity.ledgerModels.values.join(', ')}
+						{#snippet children(ledgerModels)}
+							{ledgerModels.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -850,10 +852,10 @@
 				<dt>Execution models</dt>
 				<dd>
 					<ResourceBoundary
-						resource={network}
+						resource={viewSelection.executionModels}
 					>
-						{#snippet children(entity)}
-							{entity.executionModels.values.join(', ')}
+						{#snippet children(executionModels)}
+							{executionModels.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

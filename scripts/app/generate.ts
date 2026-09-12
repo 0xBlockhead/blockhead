@@ -7992,10 +7992,7 @@ const unresolvedPrimitiveContentFieldReferences = (
 ) => {
 	if (
 		viewItemSourceSelection(entity, indexes, viewEntry) != null
-		|| typeof viewEntry === 'object' && (
-			'kind' in viewEntry
-			|| 'primitiveList' in viewEntry && viewEntry.primitiveList != null
-		)
+		|| typeof viewEntry === 'object' && 'kind' in viewEntry
 	)
 		return
 
@@ -9852,8 +9849,10 @@ const generateSingularViewFile = (
 	)
 	const contentRowResourceOwners = contentRows.flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => {
 		const fieldReferences = unresolvedPrimitiveContentFieldReferences(entity, indexes, viewEntry)
+		const field = fieldDefinitionByReference(entity, itemFieldReferences(viewEntry)[0], indexes)
 		return fieldReferences == null ? [] : [
-			fieldReferences.every((field) => queryFieldKeys.has(fieldReferenceKey(field))) ?
+			!(field?.type === EntityFieldType.Primitive && fieldCardinalityIsMany(field))
+			&& fieldReferences.every((field) => queryFieldKeys.has(fieldReferenceKey(field))) ?
 				'entity' as const
 			:
 				'viewSelection' as const,
@@ -11139,14 +11138,19 @@ const renderContentItem = (
 
 	const fieldValueName = localIdentifier(fieldName)
 	const projectionFieldResource = isProjectionFieldReference(fieldReference)
+	const primitiveManyResource = fieldDefinition.type === EntityFieldType.Primitive && fieldCardinalityIsMany(fieldDefinition)
 	const itemSources = viewItemSourceSelection(entity, indexes, viewEntry)
 	const itemSelection = itemSources == null ? undefined : { sources: itemSources }
 	const itemQueryFields = viewItemFieldReferences(viewEntry)
 	const query = renderQuery(
 		itemSelection,
-		projectionFieldResource ? [] : itemQueryFields
+		projectionFieldResource || primitiveManyResource ? [] : itemQueryFields
 	)
-	const projectionFieldResourceExpression = projectionFieldResource ? fieldProxyResourceExpression(fieldResourceBase, renderedFieldReference, query) : undefined
+	const projectionFieldResourceExpression = projectionFieldResource ? fieldProxyResourceExpression(fieldResourceBase, renderedFieldReference, query) : primitiveManyResource ? fieldResourceExpression(
+		itemSources == null && fieldResourceBase === 'selection' ? querySelectionExpression : fieldResourceBase,
+		renderedFieldReference,
+		query
+	) : undefined
 	const resourceExpression = (
 		projectionFieldResourceExpression
 		?? (
@@ -11160,12 +11164,12 @@ const renderContentItem = (
 	)
 	if (primitiveList != null) {
 		const valueName = camel(label.replace(/s$/, ''))
-		const valueExpression = fieldExpression('entity', fieldName)
+		const valueExpression = fieldValueName
 
 		return wrapWhen(viewEntry, openExpression, renderResourceBoundary(
 			level,
-			projectionFieldResourceExpression ?? `selection(${query})`,
-			renderSvelteSnippet(level + 1, 'children(entity)', renderDefinitionListItem(level + 2, label, [
+			resourceExpression,
+			renderSvelteSnippet(level + 1, `children(${fieldValueName})`, renderDefinitionListItem(level + 2, label, [
 					`${'\t'.repeat(level + 4)}{#if ${valueExpression}.values.length}`,
 					`${'\t'.repeat(level + 5)}<ul>`,
 					`${'\t'.repeat(level + 6)}{#each ${valueExpression}.values as ${valueName}}`,

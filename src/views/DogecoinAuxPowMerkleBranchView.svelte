@@ -96,16 +96,10 @@
 				<dt>Branch hashes</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									branchHashes: true,
-								},
-							})
-						}
+						resource={viewSelection.branchHashes}
 					>
-						{#snippet children(entity)}
-							{entity.branchHashes.values.join(', ')}
+						{#snippet children(branchHashes)}
+							{branchHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -157,16 +157,10 @@
 				<dt>Coinbase tag regexes</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									coinbaseTagRegexes: true,
-								},
-							})
-						}
+						resource={viewSelection.coinbaseTagRegexes}
 					>
-						{#snippet children(entity)}
-							{entity.coinbaseTagRegexes.values.join(', ')}
+						{#snippet children(coinbaseTagRegexes)}
+							{coinbaseTagRegexes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

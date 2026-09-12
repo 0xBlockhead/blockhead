@@ -287,16 +287,10 @@
 				<dt>signatures</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									signatures: true,
-								},
-							})
-						}
+						resource={selection.signatures}
 					>
-						{#snippet children(entity)}
-							{entity.signatures.values.join(', ')}
+						{#snippet children(signatures)}
+							{signatures.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

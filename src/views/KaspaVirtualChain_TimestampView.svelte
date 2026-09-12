@@ -128,16 +128,10 @@
 				<dt>added chain block hashes</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									addedChainBlockHashes: true,
-								},
-							})
-						}
+						resource={viewSelection.addedChainBlockHashes}
 					>
-						{#snippet children(entity)}
-							{entity.addedChainBlockHashes.values.join(', ')}
+						{#snippet children(addedChainBlockHashes)}
+							{addedChainBlockHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -149,16 +143,10 @@
 				<dt>removed chain block hashes</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									removedChainBlockHashes: true,
-								},
-							})
-						}
+						resource={viewSelection.removedChainBlockHashes}
 					>
-						{#snippet children(entity)}
-							{entity.removedChainBlockHashes.values.join(', ')}
+						{#snippet children(removedChainBlockHashes)}
+							{removedChainBlockHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

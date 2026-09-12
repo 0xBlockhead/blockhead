@@ -168,16 +168,10 @@
 				<dt>parameters</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									parameters: true,
-								},
-							})
-						}
+						resource={selection.parameters}
 					>
-						{#snippet children(entity)}
-							{entity.parameters.values.join(', ')}
+						{#snippet children(parameters)}
+							{parameters.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -187,16 +181,10 @@
 				<dt>return types</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									returnTypes: true,
-								},
-							})
-						}
+						resource={selection.returnTypes}
 					>
-						{#snippet children(entity)}
-							{entity.returnTypes.values.join(', ')}
+						{#snippet children(returnTypes)}
+							{returnTypes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -230,16 +230,10 @@
 				<dt>clone urls</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									cloneUrls: true,
-								},
-							})
-						}
+						resource={selection.cloneUrls}
 					>
-						{#snippet children(entity)}
-							{entity.cloneUrls.values.join(', ')}
+						{#snippet children(cloneUrls)}
+							{cloneUrls.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

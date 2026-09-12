@@ -86,19 +86,20 @@
 				<ResourceBoundary
 					resource={
 						selection({
-							fields: {
-								signatures: true,
-							},
-						})
+							sources: selection.sources ?? [
+								Source.Openchain_Rest,
+								Source.FourByteDirectory_Rest,
+							],
+						}).signatures
 					}
 				>
-					{#snippet children(entity)}
+					{#snippet children(signatures)}
 						<div>
 							<dt>Signatures</dt>
 							<dd>
-								{#if entity.signatures.values.length}
+								{#if signatures.values.length}
 									<ul>
-										{#each entity.signatures.values as signature}
+										{#each signatures.values as signature}
 											<li><code>{signature}</code></li>
 										{/each}
 									</ul>

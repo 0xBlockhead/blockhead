@@ -153,16 +153,10 @@
 				<dt>trackers</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									trackers: true,
-								},
-							})
-						}
+						resource={selection.trackers}
 					>
-						{#snippet children(entity)}
-							{entity.trackers.values.join(', ')}
+						{#snippet children(trackers)}
+							{trackers.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -172,16 +166,10 @@
 				<dt>Web seeds</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									webSeeds: true,
-								},
-							})
-						}
+						resource={selection.webSeeds}
 					>
-						{#snippet children(entity)}
-							{entity.webSeeds.values.join(', ')}
+						{#snippet children(webSeeds)}
+							{webSeeds.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -191,16 +179,10 @@
 				<dt>acceptable sources</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									acceptableSources: true,
-								},
-							})
-						}
+						resource={selection.acceptableSources}
 					>
-						{#snippet children(entity)}
-							{entity.acceptableSources.values.join(', ')}
+						{#snippet children(acceptableSources)}
+							{acceptableSources.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

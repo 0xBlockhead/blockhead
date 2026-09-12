@@ -178,16 +178,10 @@
 				<dt>Owned serial numbers</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									ownedSerialNumbers: true,
-								},
-							})
-						}
+						resource={selection.ownedSerialNumbers}
 					>
-						{#snippet children(entity)}
-							{entity.ownedSerialNumbers.values.join(', ')}
+						{#snippet children(ownedSerialNumbers)}
+							{ownedSerialNumbers.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

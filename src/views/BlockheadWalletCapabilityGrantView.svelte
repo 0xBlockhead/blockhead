@@ -173,16 +173,10 @@
 				<dt>methods</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									methods: true,
-								},
-							})
-						}
+						resource={viewSelection.methods}
 					>
-						{#snippet children(entity)}
-							{entity.methods.values.join(', ')}
+						{#snippet children(methods)}
+							{methods.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -192,16 +186,10 @@
 				<dt>resources</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									resources: true,
-								},
-							})
-						}
+						resource={viewSelection.resources}
 					>
-						{#snippet children(entity)}
-							{entity.resources.values.join(', ')}
+						{#snippet children(resources)}
+							{resources.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

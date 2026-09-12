@@ -184,16 +184,10 @@
 				<dt>listen addresses</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									listenAddresses: true,
-								},
-							})
-						}
+						resource={viewSelection.listenAddresses}
 					>
-						{#snippet children(entity)}
-							{entity.listenAddresses.values.join(', ')}
+						{#snippet children(listenAddresses)}
+							{listenAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -345,16 +339,10 @@
 				<dt>subscribed pubsub topics</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									subscribedPubsubTopics: true,
-								},
-							})
-						}
+						resource={viewSelection.subscribedPubsubTopics}
 					>
-						{#snippet children(entity)}
-							{entity.subscribedPubsubTopics.values.join(', ')}
+						{#snippet children(subscribedPubsubTopics)}
+							{subscribedPubsubTopics.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -364,16 +352,10 @@
 				<dt>subscribed content topics</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									subscribedContentTopics: true,
-								},
-							})
-						}
+						resource={viewSelection.subscribedContentTopics}
 					>
-						{#snippet children(entity)}
-							{entity.subscribedContentTopics.values.join(', ')}
+						{#snippet children(subscribedContentTopics)}
+							{subscribedContentTopics.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

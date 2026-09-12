@@ -144,16 +144,10 @@
 				<dt>keys</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									keys: true,
-								},
-							})
-						}
+						resource={viewSelection.keys}
 					>
-						{#snippet children(entity)}
-							{entity.keys.values.join(', ')}
+						{#snippet children(keys)}
+							{keys.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -163,16 +157,10 @@
 				<dt>data</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									data: true,
-								},
-							})
-						}
+						resource={viewSelection.data}
 					>
-						{#snippet children(entity)}
-							{entity.data.values.join(', ')}
+						{#snippet children(data)}
+							{data.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

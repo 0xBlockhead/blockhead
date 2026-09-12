@@ -111,16 +111,10 @@
 				<dt>tree object ids</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									treeObjectIds: true,
-								},
-							})
-						}
+						resource={selection.treeObjectIds}
 					>
-						{#snippet children(entity)}
-							{entity.treeObjectIds.values.join(', ')}
+						{#snippet children(treeObjectIds)}
+							{treeObjectIds.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -8885,6 +8885,16 @@ test('preserves facet syntax and paths and unwraps primitive-list resources', ()
 		stageReadOnlyGeneratedFixture(generatedOutputRoot)
 
 		const networkView = readFileSync(path.join(generatedOutputRoot, 'src/views/NetworkView.svelte'), 'utf8')
+		for (const field of ['ledgerModels', 'executionModels']) {
+			assert.match(networkView, new RegExp(`resource=\\{viewSelection\\.${field}\\}`))
+			assert.doesNotMatch(networkView, new RegExp(`entity\\.${field}\\.values`))
+		}
+		for (const view of ['EvmError', 'EvmSelector', 'EvmTopic']) {
+			const content = readFileSync(path.join(generatedOutputRoot, `src/views/${view}View.svelte`), 'utf8')
+			assert.doesNotMatch(content, /\bviewSelection\b/)
+			assert.match(content, /sources: selection\.sources \?\? \[[\s\S]*?\}\)\.signatures/)
+			assert.match(content, /\{#snippet children\(signatures\)\}[\s\S]*?\{#each signatures\.values as signature\}/)
+		}
 		assert.match(networkView, /<ProjectionBoundary\s+resource=\{selection\.Evm\}/)
 		assert.match(networkView, /\{#snippet Applicable\(projection\)\}/)
 		assert.match(

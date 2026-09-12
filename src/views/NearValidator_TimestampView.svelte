@@ -373,16 +373,10 @@
 				<dt>Shards</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									shards: true,
-								},
-							})
-						}
+						resource={viewSelection.shards}
 					>
-						{#snippet children(entity)}
-							{entity.shards.values.join(', ')}
+						{#snippet children(shards)}
+							{shards.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

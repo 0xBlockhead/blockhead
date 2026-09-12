@@ -187,16 +187,10 @@
 				<dt>listen addresses</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									listenAddresses: true,
-								},
-							})
-						}
+						resource={viewSelection.listenAddresses}
 					>
-						{#snippet children(entity)}
-							{entity.listenAddresses.values.join(', ')}
+						{#snippet children(listenAddresses)}
+							{listenAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -206,16 +200,10 @@
 				<dt>announce addresses</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									announceAddresses: true,
-								},
-							})
-						}
+						resource={viewSelection.announceAddresses}
 					>
-						{#snippet children(entity)}
-							{entity.announceAddresses.values.join(', ')}
+						{#snippet children(announceAddresses)}
+							{announceAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -167,16 +167,10 @@
 				<dt>type arguments</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									typeArguments: true,
-								},
-							})
-						}
+						resource={selection.typeArguments}
 					>
-						{#snippet children(entity)}
-							{entity.typeArguments.values.join(', ')}
+						{#snippet children(typeArguments)}
+							{typeArguments.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

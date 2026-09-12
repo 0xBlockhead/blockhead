@@ -219,16 +219,10 @@
 				<dt>Topics</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									topics: true,
-								},
-							})
-						}
+						resource={viewSelection.topics}
 					>
-						{#snippet children(entity)}
-							{entity.topics.values.join(', ')}
+						{#snippet children(topics)}
+							{topics.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

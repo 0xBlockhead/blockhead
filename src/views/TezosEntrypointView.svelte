@@ -80,16 +80,10 @@
 				<dt>annotations</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									annotations: true,
-								},
-							})
-						}
+						resource={selection.annotations}
 					>
-						{#snippet children(entity)}
-							{entity.annotations.values.join(', ')}
+						{#snippet children(annotations)}
+							{annotations.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

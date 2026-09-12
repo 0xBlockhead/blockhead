@@ -185,16 +185,10 @@
 				<dt>parent hashes</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									parentHashes: true,
-								},
-							})
-						}
+						resource={viewSelection.parentHashes}
 					>
-						{#snippet children(entity)}
-							{entity.parentHashes.values.join(', ')}
+						{#snippet children(parentHashes)}
+							{parentHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

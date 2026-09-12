@@ -192,16 +192,10 @@
 				<dt>URLs</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									urls: true,
-								},
-							})
-						}
+						resource={viewSelection.urls}
 					>
-						{#snippet children(entity)}
-							{entity.urls.values.join(', ')}
+						{#snippet children(urls)}
+							{urls.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

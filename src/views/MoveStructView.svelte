@@ -139,16 +139,10 @@
 				<dt>abilities</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									abilities: true,
-								},
-							})
-						}
+						resource={selection.abilities}
 					>
-						{#snippet children(entity)}
-							{entity.abilities.values.join(', ')}
+						{#snippet children(abilities)}
+							{abilities.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

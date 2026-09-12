@@ -125,16 +125,10 @@
 				<dt>listen addresses</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									listenAddresses: true,
-								},
-							})
-						}
+						resource={selection.listenAddresses}
 					>
-						{#snippet children(entity)}
-							{entity.listenAddresses.values.join(', ')}
+						{#snippet children(listenAddresses)}
+							{listenAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

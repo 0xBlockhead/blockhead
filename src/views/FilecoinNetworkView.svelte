@@ -73,15 +73,11 @@
 								sources: selection.sources ?? [
 									Source.Lotus_JsonRpc,
 								],
-							})({
-								fields: {
-									rpcEndpoints: true,
-								},
-							})
+							}).rpcEndpoints
 						}
 					>
-						{#snippet children(entity)}
-							{entity.rpcEndpoints.values.map((value) => value.url).join(', ')}
+						{#snippet children(rpcEndpoints)}
+							{rpcEndpoints.values.map((value) => value.url).join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

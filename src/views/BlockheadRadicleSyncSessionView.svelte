@@ -206,16 +206,10 @@
 				<dt>requested refs</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									requestedRefs: true,
-								},
-							})
-						}
+						resource={viewSelection.requestedRefs}
 					>
-						{#snippet children(entity)}
-							{entity.requestedRefs.values.join(', ')}
+						{#snippet children(requestedRefs)}
+							{requestedRefs.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

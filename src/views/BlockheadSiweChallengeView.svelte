@@ -395,16 +395,10 @@
 				<dt>resources</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									resources: true,
-								},
-							})
-						}
+						resource={viewSelection.resources}
 					>
-						{#snippet children(entity)}
-							{entity.resources.values.join(', ')}
+						{#snippet children(resources)}
+							{resources.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -79,16 +79,10 @@
 				<dt>claim topics</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									claimTopics: true,
-								},
-							})
-						}
+						resource={selection.claimTopics}
 					>
-						{#snippet children(entity)}
-							{entity.claimTopics.values.join(', ')}
+						{#snippet children(claimTopics)}
+							{claimTopics.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -490,16 +490,10 @@
 				<dt>Dexscreener labels</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									dexscreenerLabels: true,
-								},
-							})
-						}
+						resource={viewSelection.dexscreenerLabels}
 					>
-						{#snippet children(entity)}
-							{entity.dexscreenerLabels.values.join(', ')}
+						{#snippet children(dexscreenerLabels)}
+							{dexscreenerLabels.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

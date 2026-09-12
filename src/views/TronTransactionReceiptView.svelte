@@ -359,16 +359,10 @@
 				<dt>Contract result hex</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									contractResultHex: true,
-								},
-							})
-						}
+						resource={selection.contractResultHex}
 					>
-						{#snippet children(entity)}
-							{entity.contractResultHex.values.join(', ')}
+						{#snippet children(contractResultHex)}
+							{contractResultHex.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

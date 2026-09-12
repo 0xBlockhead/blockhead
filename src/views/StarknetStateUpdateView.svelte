@@ -170,16 +170,10 @@
 				<dt>Deprecated declared class hashes</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									deprecatedDeclaredClassHashes: true,
-								},
-							})
-						}
+						resource={selection.deprecatedDeclaredClassHashes}
 					>
-						{#snippet children(entity)}
-							{entity.deprecatedDeclaredClassHashes.values.join(', ')}
+						{#snippet children(deprecatedDeclaredClassHashes)}
+							{deprecatedDeclaredClassHashes.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

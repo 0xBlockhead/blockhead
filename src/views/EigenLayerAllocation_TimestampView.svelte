@@ -197,16 +197,10 @@
 				<dt>quorum numbers</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									quorumNumbers: true,
-								},
-							})
-						}
+						resource={viewSelection.quorumNumbers}
 					>
-						{#snippet children(entity)}
-							{entity.quorumNumbers.values.join(', ')}
+						{#snippet children(quorumNumbers)}
+							{quorumNumbers.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

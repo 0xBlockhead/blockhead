@@ -207,16 +207,10 @@
 				<dt>Witness</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									witness: true,
-								},
-							})
-						}
+						resource={selection.witness}
 					>
-						{#snippet children(entity)}
-							{entity.witness.values.join(', ')}
+						{#snippet children(witness)}
+							{witness.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

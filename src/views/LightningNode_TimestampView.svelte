@@ -246,16 +246,10 @@
 				<dt>Network addresses</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									networkAddresses: true,
-								},
-							})
-						}
+						resource={selection.networkAddresses}
 					>
-						{#snippet children(entity)}
-							{entity.networkAddresses.values.join(', ')}
+						{#snippet children(networkAddresses)}
+							{networkAddresses.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

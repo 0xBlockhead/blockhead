@@ -141,16 +141,10 @@
 				<dt>Executes on</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									executesOn: true,
-								},
-							})
-						}
+						resource={selection.executesOn}
 					>
-						{#snippet children(entity)}
-							{entity.executesOn.values.join(', ')}
+						{#snippet children(executesOn)}
+							{executesOn.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -160,16 +154,10 @@
 				<dt>Configuration kinds</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									configurationKinds: true,
-								},
-							})
-						}
+						resource={selection.configurationKinds}
 					>
-						{#snippet children(entity)}
-							{entity.configurationKinds.values.join(', ')}
+						{#snippet children(configurationKinds)}
+							{configurationKinds.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

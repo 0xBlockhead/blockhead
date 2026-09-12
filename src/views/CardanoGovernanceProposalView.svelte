@@ -336,16 +336,10 @@
 				<dt>treasury withdrawals</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									treasuryWithdrawals: true,
-								},
-							})
-						}
+						resource={selection.treasuryWithdrawals}
 					>
-						{#snippet children(entity)}
-							{entity.treasuryWithdrawals.values.map((value) => `${value.recipientNetwork}:${value.recipientCredential} • ${value.lovelace.toString()} lovelace`).join(', ')}
+						{#snippet children(treasuryWithdrawals)}
+							{treasuryWithdrawals.values.map((value) => `${value.recipientNetwork}:${value.recipientCredential} • ${value.lovelace.toString()} lovelace`).join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -357,16 +351,10 @@
 				<dt>committee removals</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									committeeRemovedCredentials: true,
-								},
-							})
-						}
+						resource={selection.committeeRemovedCredentials}
 					>
-						{#snippet children(entity)}
-							{entity.committeeRemovedCredentials.values.join(', ')}
+						{#snippet children(committeeRemovedCredentials)}
+							{committeeRemovedCredentials.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -376,16 +364,10 @@
 				<dt>committee additions</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									committeeAdditions: true,
-								},
-							})
-						}
+						resource={selection.committeeAdditions}
 					>
-						{#snippet children(entity)}
-							{entity.committeeAdditions.values.map((value) => `${value.credential} until epoch ${value.expirationEpoch}`).join(', ')}
+						{#snippet children(committeeAdditions)}
+							{committeeAdditions.values.map((value) => `${value.credential} until epoch ${value.expirationEpoch}`).join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

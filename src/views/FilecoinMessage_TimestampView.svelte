@@ -168,16 +168,10 @@
 				<dt>Block CIDs</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									blockCids: true,
-								},
-							})
-						}
+						resource={viewSelection.blockCids}
 					>
-						{#snippet children(entity)}
-							{entity.blockCids.values.join(', ')}
+						{#snippet children(blockCids)}
+							{blockCids.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

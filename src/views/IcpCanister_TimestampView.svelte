@@ -223,16 +223,10 @@
 				<dt>controllers</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									controllers: true,
-								},
-							})
-						}
+						resource={selection.controllers}
 					>
-						{#snippet children(entity)}
-							{entity.controllers.values.join(', ')}
+						{#snippet children(controllers)}
+							{controllers.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

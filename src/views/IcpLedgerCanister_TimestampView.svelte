@@ -177,16 +177,10 @@
 				<dt>archive canister ids</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									archiveCanisterIds: true,
-								},
-							})
-						}
+						resource={selection.archiveCanisterIds}
 					>
-						{#snippet children(entity)}
-							{entity.archiveCanisterIds.values.join(', ')}
+						{#snippet children(archiveCanisterIds)}
+							{archiveCanisterIds.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -196,16 +190,10 @@
 				<dt>supported standards</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									supportedStandards: true,
-								},
-							})
-						}
+						resource={selection.supportedStandards}
 					>
-						{#snippet children(entity)}
-							{entity.supportedStandards.values.join(', ')}
+						{#snippet children(supportedStandards)}
+							{supportedStandards.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

@@ -208,16 +208,10 @@
 				<dt>advertised rids</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									advertisedRids: true,
-								},
-							})
-						}
+						resource={viewSelection.advertisedRids}
 					>
-						{#snippet children(entity)}
-							{entity.advertisedRids.values.join(', ')}
+						{#snippet children(advertisedRids)}
+							{advertisedRids.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

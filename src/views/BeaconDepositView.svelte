@@ -214,16 +214,10 @@
 				<dt>Merkle proof</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									proof: true,
-								},
-							})
-						}
+						resource={selection.proof}
 					>
-						{#snippet children(entity)}
-							{entity.proof.values.join(', ')}
+						{#snippet children(proof)}
+							{proof.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

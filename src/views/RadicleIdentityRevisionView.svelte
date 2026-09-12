@@ -103,16 +103,10 @@
 				<dt>delegate dids</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									delegateDids: true,
-								},
-							})
-						}
+						resource={selection.delegateDids}
 					>
-						{#snippet children(entity)}
-							{entity.delegateDids.values.join(', ')}
+						{#snippet children(delegateDids)}
+							{delegateDids.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -144,16 +138,10 @@
 				<dt>signed by dids</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							selection({
-								fields: {
-									signedByDids: true,
-								},
-							})
-						}
+						resource={selection.signedByDids}
 					>
-						{#snippet children(entity)}
-							{entity.signedByDids.values.join(', ')}
+						{#snippet children(signedByDids)}
+							{signedByDids.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

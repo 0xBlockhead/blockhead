@@ -191,16 +191,10 @@
 				<dt>Reward tokens</dt>
 				<dd>
 					<ResourceBoundary
-						resource={
-							viewSelection({
-								fields: {
-									rewardTokens: true,
-								},
-							})
-						}
+						resource={viewSelection.rewardTokens}
 					>
-						{#snippet children(entity)}
-							{entity.rewardTokens.values.join(', ')}
+						{#snippet children(rewardTokens)}
+							{rewardTokens.values.join(', ')}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
