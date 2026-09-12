@@ -10,41 +10,13 @@ import {
 
 import { EvmTransactionExecutionStatus } from '$/constants/Evm.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
+import receiptFixture from '$/sources/GetBlock/Rpc/fixtures/transaction-receipt.json'
 import {
 	getTransactionByHash,
 	getTransactionReceipt,
 } from '$/sources/GetBlock/Rpc/queries.ts'
 
 const sourceFetch = vi.hoisted(() => vi.fn())
-const resolverBinding = vi.hoisted(() => ({
-	source: 'GetBlockRpc_JsonRpc',
-	target: {
-		kind: 'Eip155Chain',
-		key: '1',
-	},
-	endpoints: [{
-		endpointKind: 'HttpUrl',
-		locator: 'https://go.getblock.io/{GETBLOCK_API_KEY}/',
-		corsEnabled: false,
-	}],
-	wireProtocol: 'JsonRpc2',
-	apiFamily: 'EvmExecutionJsonRpc',
-	operationGroups: ['EvmRpcCore'],
-	delivery: 'HttpProxy',
-	credentials: [{
-		scope: 'RuntimeSecret',
-	}],
-	artifacts: [
-		{
-			kind: 'OpenRpcSpec',
-			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/src',
-		},
-		{
-			kind: 'GenerationManifest',
-			path: 'src/sources/_shared/interfaces/EvmExecutionJsonRpc/OpenRpc/schema-source.ts',
-		},
-	],
-}))
 
 vi.mock('$/sources/_runtime/http.ts', () => ({
 	firstHttpUrlForBinding: () => 'https://go.getblock.io/runtime-token/',
@@ -56,10 +28,7 @@ const transaction = readFileSync(
 	new URL('../sources/GetBlock/Rpc/fixtures/transaction.json', import.meta.url),
 	'utf8'
 )
-const receipt = readFileSync(
-	new URL('../sources/GetBlock/Rpc/fixtures/transaction-receipt.json', import.meta.url),
-	'utf8'
-)
+const receipt = JSON.stringify(receiptFixture)
 const network = {
 	caip2: {
 		namespace: 'eip155',
@@ -68,7 +37,7 @@ const network = {
 }
 const context = createResolverContext()
 describe('GetBlock RPC transaction source', () => {
-	beforeEach(() => vi.clearAllMocks())
+	beforeEach(() => sourceFetch.mockReset())
 
 	it('executes transaction and receipt JSON-RPC methods', async () => {
 		sourceFetch
@@ -141,14 +110,47 @@ describe('GetBlock RPC transaction source', () => {
 		expect(getBlockRpc.resolvers[0].projections.$$logs.resolveCount(resolved)).toBe(0)
 	})
 
+	it('projects a mined failed receipt without treating inclusion as success', async () => {
+		const failedReceipt = structuredClone(receiptFixture)
+		failedReceipt.result.status = '0x0'
+		sourceFetch
+			.mockResolvedValueOnce(new Response(transaction))
+			.mockResolvedValueOnce(new Response(JSON.stringify(failedReceipt)))
+
+		const resolved = await getBlockRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
+			$network: network,
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		}, context)
+
+		expect(resolved).toMatchObject({
+			$block: expect.any(Object),
+			executionStatus: EvmTransactionExecutionStatus.Failed,
+		})
+	})
+
+	it('rejects a receipt belonging to a different transaction', async () => {
+		const mismatchedReceipt = structuredClone(receiptFixture)
+		mismatchedReceipt.result.transactionHash = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+		sourceFetch
+			.mockResolvedValueOnce(new Response(transaction))
+			.mockResolvedValueOnce(new Response(JSON.stringify(mismatchedReceipt)))
+
+		await expect(getBlockRpc.resolvers[0].resolve['EvmNetworkTxHash'].resolve({
+			$network: network,
+			txHash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+		}, context)).rejects.toThrow('transaction identity mismatch')
+	})
+
 	it('keeps an empty transaction distinct from transport failure', async () => {
 		sourceFetch.mockResolvedValueOnce(new Response(JSON.stringify({
 			jsonrpc: '2.0',
 			id: 1,
 			result: null,
 		})))
-		await expect(getTransactionByHash(resolverBinding, { txHash: '0xmissing' })).resolves.toBeNull()
+		await expect(getTransactionByHash({ txHash: '0xmissing' })).resolves.toBeNull()
+		expect(JSON.parse(sourceFetch.mock.calls[0][2].body).params).toEqual(['0xmissing'])
 		sourceFetch.mockResolvedValueOnce(new Response('upstream failed', { status: 503 }))
-		await expect(getTransactionByHash(resolverBinding, { txHash: '0xfailure' })).rejects.toThrow()
+		await expect(getTransactionByHash({ txHash: '0xfailure' })).rejects.toThrow()
+		expect(JSON.parse(sourceFetch.mock.calls[1][2].body).params).toEqual(['0xfailure'])
 	})
 })
