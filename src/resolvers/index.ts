@@ -178,6 +178,7 @@ const resolverLoaderEntries = [
 	[Source.QuilibriumDocs_Rest, () => import('./QuilibriumDocs-Rest.ts')],
 	[Source.QuilibriumNodeMetrics_Prometheus, () => import('./QuilibriumNodeMetrics-Prometheus.ts')],
 	[Source.QuilibriumNodeRpc_Grpc, () => import('./QuilibriumNodeRpc-Grpc.ts')],
+	[Source.RadicleNode_Control, () => import('./RadicleNode-Rest.ts')],
 	[Source.Reddit_PublicJson, () => import('./Reddit-PublicJson.ts')],
 	[Source.Reddit_Rest, () => import('./Reddit-Rest.ts')],
 	[Source.Rss_Rest, () => import('./Rss-Rest.ts')],

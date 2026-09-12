@@ -116199,6 +116199,10 @@ export const app = {
 				path: "src/resolvers/QuilibriumNodeRpc-Grpc.ts",
 			},
 			{
+				source: Source.RadicleNode_Control,
+				path: "src/resolvers/RadicleNode-Rest.ts",
+			},
+			{
 				source: Source.Reddit_PublicJson,
 				path: "src/resolvers/Reddit-PublicJson.ts",
 			},

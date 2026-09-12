@@ -432,6 +432,12 @@ test('re-derives the complete observation-time writer denominator without blessi
 			provenance: 'LocalRefresh',
 		},
 		{
+			entityType: 'BlockheadRadicleNodeState_Timestamp',
+			selectorName: 'NodeStateTimestampMsSource',
+			source: 'RadicleNode_Control',
+			provenance: 'HttpResponse',
+		},
+		{
 			entityType: 'IpfsResource_Timestamp',
 			selectorName: 'ResourceTimestampMsSource',
 			source: 'Ipfs_Rest',
