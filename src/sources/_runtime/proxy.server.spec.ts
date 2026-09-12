@@ -607,6 +607,22 @@ describe('runtime secret proxy', () => {
 		privateEnv.HEADER_SECRET = 'header-secret'
 	})
 
+	it('redacts transport failure diagnostics instead of exposing upstream errors', async () => {
+		const { event } = proxyEvent(
+			'header',
+			0,
+			'https://api.example.test/v1',
+		)
+		event.fetch.mockRejectedValue(new Error('upstream saw header-secret and client token'))
+
+		await expect(proxySourceHttpRequest(event)).rejects.toMatchObject({
+			status: 502,
+			body: {
+				message: 'Proxy upstream request failed.',
+			},
+		})
+	})
+
 	it('keeps injected secret material out of local responses and request URLs', async () => {
 		const { event } = proxyEvent(
 			'header',
