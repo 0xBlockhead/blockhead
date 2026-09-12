@@ -333,6 +333,7 @@ export type SourceClaimBindingEvidence = Readonly<{
 	delivery: string
 	deliverySupportsExecution: boolean
 	targetMatch: SourceBindingTargetMatch
+	bindingIndex: number
 	verification: 'Unverified'
 }>
 
@@ -421,9 +422,10 @@ export const sourceClaimBindingEvidence = (
 	claim: Pick<SourceClaimFacts, 'source' | 'target'>,
 	authority: AccountabilityAuthority
 ): readonly SourceClaimBindingEvidence[] => (authority.bindingsBySource.get(claim.source) ?? [])
-	.map((binding) => {
+	.map((binding, bindingIndex) => {
 		const access = accessByDelivery.get(binding.delivery)
 		return {
+			bindingIndex,
 			...(binding.target == null ? {} : { target: binding.target }),
 			delivery: binding.delivery,
 			deliverySupportsExecution: access != null && access !== SourceAccess.NonExecutable,
@@ -469,10 +471,10 @@ export const compileSourceClaimBindingCoverage = (
 			...(first.publicRoute == null ? {} : { publicRoute: first.publicRoute }),
 			...(first.conditions == null ? {} : { conditions: first.conditions }),
 			sources: [...new Set(group.map(({ source }) => source))].toSorted(),
-			declaredExecutableBindings: group.reduce((count, claim) => count + claim.bindingEvidence.filter((binding) => (
+			declaredExecutableBindings: new Set(group.flatMap((claim) => claim.bindingEvidence.flatMap((binding) => (
 				binding.deliverySupportsExecution
 				&& binding.targetMatch !== SourceBindingTargetMatch.Differs
-			)).length, 0),
+			) ? [`${claim.source}:${binding.bindingIndex}`] : []))).size,
 			requiredBindings: 2,
 		}
 	})

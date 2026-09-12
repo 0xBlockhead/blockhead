@@ -250,6 +250,46 @@ test('measures two executable bindings per exact field or conditioned route coor
 	assert.deepEqual(dualBindingDeclarationGaps(rows), [conditioned])
 })
 
+test('duplicate claim does not satisfy two distinct source bindings', () => {
+	const authority = indexAccountabilityAuthority({
+		sourceBindings: [{ source: 'Primary', delivery: 'BrowserDirect' }],
+		resolverModules: [{ source: 'Primary' }],
+		fieldSourcedEntityTypes: new Set(),
+		referenceMaterializedEntityTypes: new Set(),
+	})
+	const claim = classifySourceClaim({
+		entityType: 'FixtureEntity',
+		facetPath: ['Network'],
+		fieldName: 'height',
+		source: 'Primary',
+	}, authority)
+
+	const [coverage] = compileSourceClaimBindingCoverage([claim, claim])
+	assert.equal(coverage?.declaredExecutableBindings, 1)
+	assert.equal(dualBindingDeclarationGaps(coverage == null ? [] : [coverage]).length, 1)
+})
+
+test('same source with two distinct bindings remains two bindings', () => {
+	const authority = indexAccountabilityAuthority({
+		sourceBindings: [
+			{ source: 'Primary', delivery: 'BrowserDirect' },
+			{ source: 'Primary', delivery: 'HttpProxy' },
+		],
+		resolverModules: [{ source: 'Primary' }],
+		fieldSourcedEntityTypes: new Set(),
+		referenceMaterializedEntityTypes: new Set(),
+	})
+	const claim = classifySourceClaim({
+		entityType: 'FixtureEntity',
+		facetPath: ['Network'],
+		fieldName: 'height',
+		source: 'Primary',
+	}, authority)
+
+	const [coverage] = compileSourceClaimBindingCoverage([claim, claim])
+	assert.equal(coverage?.declaredExecutableBindings, 2)
+})
+
 test('keeps generated observation clocks unclassified until a writer proves their provenance', () => {
 	const rows = compileObservationTimeAccountability([
 		{
