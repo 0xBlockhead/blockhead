@@ -69,6 +69,12 @@ const CARDANO_PROBE_DREP = 'drep15cfxz9exyn5rx0807zvxfrvslrjqfchrd4d47kv9e0f46ue
 const CARDANO_PROBE_POOL = 'pool1pu5jlj4q9w9jlxeu370a3c9myx47md5j5m2str0naunn2q3lkdy' as const
 const MEV_PROBE_BUILDER_PUBKEY = `0x${'11'.repeat(48)}` as const
 
+/** Distinct canonical Zcash shielded-pool identities used by screenshot-matrix variants. */
+export const e2eZcashShieldedPoolScreenshotFixtures = [
+	{ network: 'zcash', pool: 'sapling' },
+	{ network: 'zcash', pool: 'orchard' },
+] as const
+
 const NOSTR_PROBE_NOTE_EVENT_ID = nostrNetworkSeedNotes[0].eventId
 
 const RSS_PROBE_FEED_URL = rssNetworkSeedFeeds[0].feedUrl
@@ -402,10 +408,10 @@ export const e2eRouteProbeAtomValueById = {
 	"/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.projectId": 'arbitrum',
 	"/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.source": 'Constants_Internal',
 	"/network/[network]/rollup/[projectId]/timestamp/[timestampMs]/[source]:EvmRollup_Timestamp.RollupTimestampMsSource.1.timestampMs": '0',
-	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.1.network": 'zcash',
-	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.1.pool": 'sapling',
-	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.2.network": 'zcash',
-	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.2.pool": 'orchard',
+	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.1.network": e2eZcashShieldedPoolScreenshotFixtures[0].network,
+	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.1.pool": e2eZcashShieldedPoolScreenshotFixtures[0].pool,
+	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.2.network": e2eZcashShieldedPoolScreenshotFixtures[1].network,
+	"/network/[network]/shielded-pool/[pool]:ZcashShieldedPool.NetworkPool.2.pool": e2eZcashShieldedPoolScreenshotFixtures[1].pool,
 	"/network/[network]/slot/[slot]:BeaconSlot.EvmNetworkSlot.1.network": 'eip155:1',
 	"/network/[network]/slot/[slot]:BeaconSlot.EvmNetworkSlot.1.slot": '9500000',
 	"/network/[network]/slot/[slot]/committee/[index]:BeaconCommittee.EvmNetworkSlotIndexInSlot.1.index": '0',
