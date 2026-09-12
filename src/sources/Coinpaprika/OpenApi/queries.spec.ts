@@ -303,6 +303,24 @@ describe('Coinpaprika coin queries', () => {
 		})
 	})
 
+	it.each(['description', 'started_at', 'development_status', 'proof_type', 'org_structure', 'hash_algorithm'])('accepts nullable %s without weakening identity', async (field) => {
+		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+			id: 'aave-new',
+			name: 'Aave',
+			symbol: 'AAVE',
+			[field]: null,
+		})))
+		vi.stubGlobal('fetch', fetchMock)
+		vi.stubGlobal('window', {})
+
+		await expect(getCoinById({ publicEnv: {}, coinpaprikaId: 'aave-new' })).resolves.toMatchObject({
+			id: 'aave-new',
+			name: 'Aave',
+			symbol: 'AAVE',
+		})
+		expect(fetchMock).toHaveBeenCalledOnce()
+	})
+
 	it('fail-closes ticker leftovers with non-numeric circulating_supply', async () => {
 		const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
 			id: 'eth-ethereum',
