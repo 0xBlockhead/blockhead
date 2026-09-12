@@ -548,6 +548,23 @@ describe('runtime secret proxy', () => {
 			.toBeInstanceOf(AbortSignal)
 	})
 
+	it.each([302, 408, 425, 429, 502])('does not reuse a discarded %s response when the final endpoint throws', async (status) => {
+		const { event } = proxyEvent(
+			'fallback',
+			0,
+			'https://primary.example.test/v1/blocks'
+		)
+		event.fetch
+			.mockResolvedValueOnce(new Response('discarded upstream body', { status }))
+			.mockRejectedValueOnce(new Error('terminal transport failure'))
+
+		await expect(proxySourceHttpRequest(event)).rejects.toMatchObject({
+			status: 502,
+			body: { message: 'Proxy upstream request failed.' },
+		})
+		expect(event.fetch).toHaveBeenCalledTimes(2)
+	})
+
 	it('forwards proxied JSON-RPC bodies as application/json', async () => {
 		const { event } = proxyEvent(
 			'json-rpc',

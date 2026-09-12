@@ -310,6 +310,7 @@ export const proxySourceHttpRequest = async (
 				}),
 			})
 		} catch (error) {
+			upstream = undefined
 			upstreamError = error
 			continue
 		}
