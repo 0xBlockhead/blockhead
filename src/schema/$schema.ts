@@ -1342,10 +1342,12 @@ type EntityFieldAddressForPath<
 	_EntityType extends EntityType<_Schema>,
 	_FacetPath extends EntityProjectionPath<_Schema, _EntityType>,
 > = _FacetPath extends EntityProjectionPath<_Schema, _EntityType> ? {
-	readonly entityType: _EntityType
-	readonly facetPath: _FacetPath
-	readonly fieldName: EntityFieldNameAtPath<_Schema, _EntityType, _FacetPath>
-} : never
+	[_FieldName in EntityFieldNameAtPath<_Schema, _EntityType, _FacetPath>]: {
+		readonly entityType: _EntityType
+		readonly facetPath: _FacetPath
+		readonly fieldName: _FieldName
+	}
+}[EntityFieldNameAtPath<_Schema, _EntityType, _FacetPath>] : never
 
 export type EntityFieldAddressFor<
 	_Schema extends Schema,
@@ -1396,13 +1398,17 @@ export type EntityFieldAddressKeyFor<
 export type EntityFieldValuesByAddress<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = Partial<Record<
-	EntityFieldAddressKeyFor<_Schema, _EntityType>,
-	EntityFieldValueFromDefinition<
+> = {
+	[_Address in EntityFieldAddressFor<_Schema, _EntityType> as
+		`${_Address['entityType']}\x1e${EntityFacetPathKey<_Address['facetPath']>}\x1e${_Address['fieldName']}`
+	]?: EntityFieldValueFromDefinition<
 		_Schema,
-		EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>
+		Extract<
+			EntityFieldDefinitionAtPath<_Schema, _Address['entityType'], _Address['facetPath']>,
+			{ readonly name: _Address['fieldName'] }
+		>
 	>
->>
+}
 
 export type EntityFieldDefinitionByName<
 	_Schema extends Schema,
