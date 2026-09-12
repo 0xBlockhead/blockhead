@@ -5,6 +5,7 @@
  * Run with `pnpm run test:e2e:screenshot-quality`.
  */
 import { expect, test } from '@playwright/test'
+import { entityDefinitionByType } from '$/schema/index.ts'
 
 import {
 	getBoundaryProbeEvents,
@@ -141,7 +142,7 @@ test.describe('representative route screenshot quality', () => {
 			if (overlay.routeTitle)
 				await expect(main.getByRole('heading', { name: overlay.routeTitle }).first()).toBeAttached()
 			if (overlay.entityType)
-				await expect(main.getByText(overlay.entityType, { exact: true }).first()).toBeAttached()
+				await expect(main.getByText(entityDefinitionByType[overlay.entityType].labels.singular, { exact: true }).first()).toBeAttached()
 			if (overlay.minDt != null)
 				expect(await main.locator('dt').count()).toBeGreaterThanOrEqual(overlay.minDt)
 			if (overlay.minLinks != null)
