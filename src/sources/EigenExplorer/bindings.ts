@@ -42,6 +42,7 @@ export default indexSourceBindings([
 			{
 				kind: SourceArtifactKind.HandwrittenTypes,
 				path: 'src/sources/EigenExplorer/Rest/types.ts',
+				referenceUrl: 'https://docs.eigenexplorer.com/api-reference/openapi.json',
 			},
 		],
 	},

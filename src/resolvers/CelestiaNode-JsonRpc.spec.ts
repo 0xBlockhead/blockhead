@@ -5,12 +5,17 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { QueryClient } from '@tanstack/query-core'
+import type { PersistenceAdapter } from '@tanstack/db-sqlite-persistence-core'
 
+import { client } from '$/client/$client.svelte.ts'
+import { subscribeEntity } from '$/client/$subscribe.svelte.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 
 const getHeaderByHash = vi.hoisted(() => vi.fn())
@@ -23,7 +28,9 @@ const getNodeReady = vi.hoisted(() => vi.fn())
 const getNodeInfo = vi.hoisted(() => vi.fn())
 const assertSharesAvailable = vi.hoisted(() => vi.fn())
 const getBlob = vi.hoisted(() => vi.fn())
+const getBlobsByNamespace = vi.hoisted(() => vi.fn())
 const getBlobProof = vi.hoisted(() => vi.fn())
+const getShareRange = vi.hoisted(() => vi.fn())
 const isBlobIncluded = vi.hoisted(() => vi.fn())
 const namespaceForNodeRpc = vi.hoisted(() => vi.fn((namespaceId: string) => namespaceId))
 
@@ -38,7 +45,9 @@ vi.mock('$/sources/Celestia/JsonRpc/queries.ts', () => ({
 	getNodeInfo,
 	assertSharesAvailable,
 	getBlob,
+	getBlobsByNamespace,
 	getBlobProof,
+	getShareRange,
 	isBlobIncluded,
 	namespaceForNodeRpc,
 }))
@@ -81,6 +90,14 @@ const blockResolver = celestiaNode.resolvers.find((resolver) => (
 ))
 const blobResolver = celestiaNode.resolvers.find((resolver) => (
 	resolver.entityType === EntityType.CelestiaBlob
+	&& 'shareVersion' in resolver.projections
+))
+const blobOccurrencesResolver = celestiaNode.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaBlob
+	&& '$$occurrences' in resolver.projections
+))
+const blobOccurrenceResolver = celestiaNode.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaBlobOccurrence
 ))
 
 if (
@@ -89,6 +106,8 @@ if (
 	|| timestampResolver == null
 	|| blockResolver == null
 	|| blobResolver == null
+	|| blobOccurrencesResolver == null
+	|| blobOccurrenceResolver == null
 )
 	throw new Error('CelestiaNode-JsonRpc spec missing resolvers')
 
@@ -114,7 +133,9 @@ beforeEach(() => {
 	getNodeInfo.mockReset()
 	assertSharesAvailable.mockReset()
 	getBlob.mockReset()
+	getBlobsByNamespace.mockReset()
 	getBlobProof.mockReset()
+	getShareRange.mockReset()
 	isBlobIncluded.mockReset()
 	namespaceForNodeRpc.mockClear()
 })
@@ -365,5 +386,406 @@ describe('CelestiaNode JsonRpc resolver', () => {
 				height: 100n,
 			},
 		})
+	})
+
+	it('normalizes namespace-height indexes to distinct block-index occurrences', async () => {
+		const namespaceId = `${'A'.repeat(39)}=`
+		const commitment = `${'B'.repeat(43)}=`
+		getBlobsByNamespace.mockResolvedValue([
+			{
+				namespace: namespaceId,
+				data: 'AAAA',
+				shareVersion: 0,
+				commitment,
+				index: 1,
+				sizeBytes: 3n,
+			},
+			{
+				namespace: namespaceId,
+				data: 'AAAA',
+				shareVersion: 0,
+				commitment,
+				index: 2,
+				sizeBytes: 3n,
+			},
+		])
+		const $namespace = {
+			$network: celestiaNetwork,
+			namespaceId,
+		}
+		const first = await blobOccurrenceResolver.resolve.NamespaceHeightIndex.resolve({
+			$namespace,
+			height: 100n,
+			index: 1,
+		}, context)
+		const second = await blobOccurrenceResolver.resolve.NamespaceHeightIndex.resolve({
+			$namespace,
+			height: 100n,
+			index: 2,
+		}, context)
+		if (!('NamespaceHeightCommitment' in blobOccurrencesResolver.resolve))
+			throw new Error('CelestiaNode blob occurrences resolver missing NamespaceHeightCommitment')
+		const occurrences = await blobOccurrencesResolver.resolve.NamespaceHeightCommitment.resolve({
+			$namespace,
+			height: 100n,
+			commitment,
+		}, context)
+
+		expect(blobOccurrenceResolver.projections.$block(first)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: celestiaNetwork,
+				height: 100n,
+			},
+		})
+		expect(blobOccurrenceResolver.projections.index(first)).toBe(1)
+		expect(blobOccurrenceResolver.projections.index(second)).toBe(2)
+		expect(blobOccurrenceResolver.projections.$blob(first)).toEqual(
+			blobOccurrenceResolver.projections.$blob(second)
+		)
+		expect(occurrences.map((occurrence) => (
+			occurrence[EntityMetaKey.Selector]
+		))).toEqual([
+			{
+				$block: {
+					$network: celestiaNetwork,
+					height: 100n,
+				},
+				index: 1,
+			},
+			{
+				$block: {
+					$network: celestiaNetwork,
+					height: 100n,
+				},
+				index: 2,
+			},
+		])
+		expect(occurrences.map((occurrence) => occurrence[EntityMetaKey.Selector])).toEqual([
+			{
+				$block: blobOccurrenceResolver.projections.$block(first)[EntityMetaKey.Selector],
+				index: blobOccurrenceResolver.projections.index(first),
+			},
+			{
+				$block: blobOccurrenceResolver.projections.$block(second)[EntityMetaKey.Selector],
+				index: blobOccurrenceResolver.projections.index(second),
+			},
+		])
+	})
+
+	it('projects BlockIndex through share.GetRange namespace then blob.GetAll', async () => {
+		const namespaceId = `${'A'.repeat(39)}=`
+		const commitment = `${'B'.repeat(43)}=`
+		if (!('BlockIndex' in blobOccurrenceResolver.resolve))
+			throw new Error('CelestiaNode blob occurrence resolver missing BlockIndex')
+		getShareRange.mockResolvedValue({
+			namespace: namespaceId,
+		})
+		getBlobsByNamespace.mockResolvedValue([
+			{
+				namespace: namespaceId,
+				data: 'AAAA',
+				shareVersion: 0,
+				commitment,
+				index: 1,
+				sizeBytes: 3n,
+			},
+		])
+		const snapshot = await blobOccurrenceResolver.resolve.BlockIndex.resolve({
+			$block: {
+				$network: celestiaNetwork,
+				height: 100n,
+			},
+			index: 1,
+		}, context)
+		expect(blobOccurrenceResolver.projections.$namespace(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$network: celestiaNetwork,
+				namespaceId,
+			},
+		})
+		expect(blobOccurrenceResolver.projections.$blob(snapshot)).toEqual({
+			[EntityMetaKey.Selector]: {
+				$namespace: {
+					$network: celestiaNetwork,
+					namespaceId,
+				},
+				height: 100n,
+				commitment,
+			},
+		})
+		expect(getShareRange).toHaveBeenCalledWith({
+			publicEnv: context.publicEnv,
+			height: 100n,
+			from: 1,
+			to: 2,
+		})
+		expect(getBlobsByNamespace).toHaveBeenCalledWith({
+			publicEnv: context.publicEnv,
+			height: 100n,
+			namespaces: [namespaceId],
+		})
+		expect(getHeaderByHeight).not.toHaveBeenCalled()
+	})
+
+	it('rejects missing BlockIndex matches after share range', async () => {
+		if (!('BlockIndex' in blobOccurrenceResolver.resolve))
+			throw new Error('CelestiaNode blob occurrence resolver missing BlockIndex')
+		getShareRange.mockResolvedValue({
+			namespace: `${'A'.repeat(39)}=`,
+		})
+		getBlobsByNamespace.mockResolvedValue([])
+		await expect(blobOccurrenceResolver.resolve.BlockIndex.resolve({
+			$block: {
+				$network: celestiaNetwork,
+				height: 100n,
+			},
+			index: 1,
+		}, context)).rejects.toThrow('expected one blob occurrence at index 1, received 0')
+	})
+
+	it('rejects missing and ambiguous namespace-height indexes', async () => {
+		const namespaceId = `${'A'.repeat(39)}=`
+		const occurrence = {
+			$namespace: {
+				$network: celestiaNetwork,
+				namespaceId,
+			},
+			height: 100n,
+			index: 2,
+		}
+		getBlobsByNamespace.mockResolvedValue([])
+		await expect(blobOccurrenceResolver.resolve.NamespaceHeightIndex.resolve(
+			occurrence,
+			context
+		)).rejects.toThrow('expected one blob occurrence at index 2, received 0')
+
+		const duplicate = {
+			namespace: namespaceId,
+			data: 'AAAA',
+			shareVersion: 0,
+			commitment: `${'B'.repeat(43)}=`,
+			index: 2,
+			sizeBytes: 3n,
+		}
+		getBlobsByNamespace.mockResolvedValue([duplicate, duplicate])
+		await expect(blobOccurrenceResolver.resolve.NamespaceHeightIndex.resolve(
+			occurrence,
+			context
+		)).rejects.toThrow('expected one blob occurrence at index 2, received 2')
+	})
+
+	it('persists alias and canonical selectors as two convergent occurrences', async () => {
+		const namespaceId = `${'A'.repeat(39)}=`
+		const commitment = `${'B'.repeat(43)}=`
+		let providerCalls = 0
+		const $namespace = {
+			$network: celestiaNetwork,
+			namespaceId,
+		}
+		const aliases = [1, 2].map((index) => ({
+			$namespace,
+			height: 100n,
+			index,
+		}))
+		const canonicals = [1, 2].map((index) => ({
+			$block: {
+				$network: celestiaNetwork,
+				height: 100n,
+			},
+			index,
+		}))
+		const occurrenceSnapshot = ({
+			$block,
+			height,
+			index,
+		}: {
+			$block: (typeof canonicals)[number]['$block']
+			height: bigint
+			index: number
+		}) => ({
+			$block: {
+				[EntityMetaKey.Selector]: $block,
+			},
+			index,
+			$namespace: {
+				[EntityMetaKey.Selector]: $namespace,
+			},
+			height,
+			$blob: {
+				[EntityMetaKey.Selector]: {
+					$namespace,
+					height,
+					commitment,
+				},
+			},
+		})
+		const identityCelestiaNode = {
+			source: Source.CelestiaNode,
+			resolvers: [{
+				...blobOccurrenceResolver,
+				resolve: {
+					BlockIndex: {
+						resolve: async ({
+							$block,
+							index,
+						}) => occurrenceSnapshot({
+							$block,
+							height: $block.height,
+							index,
+						}),
+					},
+					NamespaceHeightIndex: {
+						...blobOccurrenceResolver.resolve.NamespaceHeightIndex,
+						resolve: async ({
+							$namespace: _namespace,
+							height,
+							index,
+						}) => {
+							providerCalls += 1
+							return occurrenceSnapshot({
+								$block: {
+									$network: _namespace.$network,
+									height,
+								},
+								height,
+								index,
+							})
+						},
+					},
+				},
+			}],
+		}
+		const rowsByCollectionId = new Map<string, Map<string | number, object>>()
+		const metadataByCollectionId = new Map<string, Map<string, string>>()
+		const persistence = {
+			adapter: {
+				loadSubset: async (collectionId) => [
+					...(rowsByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({ key, value })),
+				applyCommittedTx: async (collectionId, transaction) => {
+					const rows = rowsByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.mutations) {
+						if (mutation.type === 'delete')
+							rows.delete(mutation.key)
+						else
+							rows.set(mutation.key, mutation.value)
+					}
+					rowsByCollectionId.set(collectionId, rows)
+					const metadata = metadataByCollectionId.get(collectionId) ?? new Map()
+					for (const mutation of transaction.collectionMetadataMutations ?? []) {
+						if (mutation.type === 'delete')
+							metadata.delete(mutation.key)
+						else
+							metadata.set(mutation.key, JSON.stringify(mutation.value))
+					}
+					metadataByCollectionId.set(collectionId, metadata)
+				},
+				loadCollectionMetadata: async (collectionId) => [
+					...(metadataByCollectionId.get(collectionId) ?? new Map()),
+				].map(([key, value]) => ({
+					key,
+					value: JSON.parse(value),
+				})),
+				ensureIndex: async () => {},
+			} satisfies PersistenceAdapter,
+		}
+		const createContext = () => client({
+			schema,
+			sourceProviders: [{
+				provider: 'celestia-node-test',
+				label: 'Celestia Node test',
+				sources: {
+					[Source.CelestiaNode]: {
+						label: 'Celestia Node',
+					},
+				},
+				bindings: {},
+			}],
+		})({
+			resolvers: [identityCelestiaNode],
+			sourceIndex: {
+				enabledBindingIds: new Set<string>(),
+				enabledSources: new Set([Source.CelestiaNode]),
+				resolverPublicEnvBySource: new Map([[Source.CelestiaNode, {
+					PUBLIC_CELESTIA_NODE_RPC_URL: 'https://example.com',
+				}]]),
+			},
+		})({
+			queryClient: new QueryClient(),
+			persistence,
+			schemaVersion: 1,
+		})
+		const firstContext = createContext()
+		const aliasResources = aliases.map((alias) => subscribeEntity(
+			firstContext,
+			EntityType.CelestiaBlobOccurrence,
+			alias,
+			{
+				fields: {
+					$block: true,
+					index: true,
+				},
+				sources: [Source.CelestiaNode],
+			}
+		))
+		await Promise.all(aliasResources)
+		for (const [index, canonical] of canonicals.entries())
+			expect(subscribeEntity(
+				firstContext,
+				EntityType.CelestiaBlobOccurrence,
+				canonical,
+				{
+					fields: {
+						$block: true,
+						index: true,
+					},
+					sources: [Source.CelestiaNode],
+				}
+			)).toBe(aliasResources[index])
+		expect(providerCalls).toBe(2)
+		const providerCallsBeforeRestart = providerCalls
+
+		await expect.poll(() => (
+			rowsByCollectionId.get('client.entities.CelestiaBlobOccurrence')?.size
+		)).toBe(4)
+		const restartedContext = createContext()
+		for (const [index, alias] of aliases.entries()) {
+			const aliasResource = subscribeEntity(
+				restartedContext,
+				EntityType.CelestiaBlobOccurrence,
+				alias,
+				{
+					fields: {
+						$block: true,
+						index: true,
+					},
+					sources: [Source.CelestiaNode],
+				}
+			)
+			await expect(aliasResource).resolves.toMatchObject({
+				$block: {
+					entitySelector: canonicals[index].$block,
+				},
+				index: index + 1,
+			})
+			await expect(subscribeEntity(
+				restartedContext,
+				EntityType.CelestiaBlobOccurrence,
+				canonicals[index],
+				{
+					fields: {
+						$block: true,
+						index: true,
+					},
+					sources: [Source.CelestiaNode],
+				}
+			)).resolves.toMatchObject({
+				$block: {
+					entitySelector: canonicals[index].$block,
+				},
+				index: index + 1,
+			})
+		}
+		expect(providerCalls).toBe(providerCallsBeforeRestart)
 	})
 })

@@ -37,33 +37,12 @@ export default entity({
 			Source.CelestiaNode,
 		],
 	},
-	index: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.CelestiaNode,
-		],
-	},
 	sizeBytes: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [
 			Source.Celenium_Rest,
 			Source.CelestiaNode,
-		],
-	},
-	signer: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Celenium_Rest,
-		],
-	},
-	txHash: {
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-		defaultSources: [
-			Source.Celenium_Rest,
 		],
 	},
 	$block: {
@@ -98,6 +77,13 @@ export default entity({
 	payloadRequested: {
 		primitiveType: type('boolean'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.CelestiaNode,
+		],
+	},
+	$$occurrences: {
+		entityType: EntityType.CelestiaBlobOccurrence,
+		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.CelestiaNode,
 		],

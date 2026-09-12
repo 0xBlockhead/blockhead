@@ -176,7 +176,7 @@ describe('Stellar Horizon public-account resolver', () => {
 			sequence: '9223372036854775807',
 			subentry_count: 3,
 			last_modified_ledger: 5_000_000,
-			last_modified_time: '2026-07-22T00:00:00Z',
+			last_modified_time: '2026-07-22T00:00:00.123Z',
 			thresholds: {
 				low_threshold: 1,
 				med_threshold: 2,
@@ -214,7 +214,7 @@ describe('Stellar Horizon public-account resolver', () => {
 			{
 				[EntityMetaKey.Selector]: {
 					$account: account,
-					timestampMs: Date.parse('2026-07-22T00:00:00Z'),
+					timestampMs: Date.parse('2026-07-22T00:00:00.123Z'),
 					source: 'StellarHorizon_Rest',
 				},
 				[EntityMetaKey.Fields]: {

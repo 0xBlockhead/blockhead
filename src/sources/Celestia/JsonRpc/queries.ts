@@ -19,6 +19,7 @@ import {
 	celestiaDasSamplingStatsWire,
 	celestiaExtendedHeaderWire,
 	celestiaNodeInfoWire,
+	celestiaShareRangeWire,
 	celestiaSyncStateWire,
 	type CelestiaBlobProof,
 } from '$/sources/Celestia/JsonRpc/types.ts'
@@ -254,6 +255,78 @@ export const namespaceForNodeRpc = (namespaceId: string) => {
 	return globalThis.btoa(String.fromCharCode(...bytes))
 }
 
+const namespaceFromShareProof = ({
+	namespaceId,
+	namespaceVersion,
+}: {
+	namespaceId: string
+	namespaceVersion: number
+}) => {
+	if (namespacePattern.test(namespaceId))
+		return namespaceId
+	if (namespaceVersion < 0 || namespaceVersion > 255)
+		throw new Error('Celestia Node: invalid share namespace version')
+	if (/^[0-9a-fA-F]{56}$/.test(namespaceId))
+		return namespaceForNodeRpc(
+			namespaceVersion.toString(16).padStart(2, '0') + namespaceId.toLowerCase()
+		)
+	if (!base64Pattern.test(namespaceId))
+		throw new Error('Celestia Node: invalid share namespace id')
+	const idBytes = Uint8Array.from(
+		globalThis.atob(namespaceId),
+		(character) => character.charCodeAt(0)
+	)
+	if (idBytes.length !== 28)
+		throw new Error('Celestia Node: invalid share namespace id')
+	const bytes = new Uint8Array(29)
+	bytes[0] = namespaceVersion
+	bytes.set(idBytes, 1)
+	return globalThis.btoa(String.fromCharCode(...bytes))
+}
+
+export const getShareRange = async ({
+	publicEnv,
+	height,
+	from,
+	to,
+}: {
+	publicEnv: SourcePublicEnv
+	height: bigint
+	from: number
+	to: number
+}) => {
+	assertHeight(height)
+	if (
+		!Number.isInteger(from)
+		|| from < 0
+		|| from > Number.MAX_SAFE_INTEGER
+		|| !Number.isInteger(to)
+		|| to <= from
+		|| to > Number.MAX_SAFE_INTEGER
+	)
+		throw new Error('Celestia Node: invalid share range')
+
+	const wire = assertEnvelope(
+		'share.GetRange',
+		celestiaShareRangeWire,
+		await jsonRpc2(
+			configuredBinding(publicEnv),
+			'share.GetRange',
+			[
+				Number(height),
+				from,
+				to,
+			]
+		)
+	)
+	return {
+		namespace: namespaceFromShareProof({
+			namespaceId: wire.Proof.namespace_id,
+			namespaceVersion: wire.Proof.namespace_version,
+		}),
+	}
+}
+
 export const getBlob = async ({
 	publicEnv,
 	height,
@@ -320,7 +393,13 @@ export const getBlobsByNamespace = async ({
 			]
 		)
 	)
-	return wires.map((wire) => blobFromWire(wire))
+	const blobs = wires.map((wire) => blobFromWire(wire))
+	const requestedNamespaces = new Set(rpcNamespaces)
+	for (const blob of blobs)
+		if (!requestedNamespaces.has(blob.namespace))
+			throw new Error('Celestia Node: blob response has unrequested namespace')
+
+	return blobs
 }
 
 export const getBlobProof = async ({

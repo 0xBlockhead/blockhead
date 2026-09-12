@@ -44,6 +44,8 @@
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import EvmNetworkAccountsView from '$/views/EvmNetworkAccountsView.svelte'
 	import SnapshotProposalsView from '$/views/SnapshotProposalsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
@@ -264,6 +266,430 @@
 		</dl>
 
 		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							cover: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const cover = entity.cover}
+					{#if cover != null}
+						<div>
+							<dt>Cover</dt>
+							<dd>
+								{cover}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							website: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const website = entity.website}
+					{#if website != null}
+						<div>
+							<dt>Website</dt>
+							<dd>
+								<a
+									href={website}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={website} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							twitter: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const twitter = entity.twitter}
+					{#if twitter != null}
+						<div>
+							<dt>Twitter</dt>
+							<dd>
+								{twitter}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							github: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const github = entity.github}
+					{#if github != null}
+						<div>
+							<dt>GitHub</dt>
+							<dd>
+								{github}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							farcaster: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const farcaster = entity.farcaster}
+					{#if farcaster != null}
+						<div>
+							<dt>Farcaster</dt>
+							<dd>
+								{farcaster}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							coingecko: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const coingecko = entity.coingecko}
+					{#if coingecko != null}
+						<div>
+							<dt>CoinGecko</dt>
+							<dd>
+								{coingecko}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							discussions: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const discussions = entity.discussions}
+					{#if discussions != null}
+						<div>
+							<dt>Discussions</dt>
+							<dd>
+								<a
+									href={discussions}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={discussions} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							terms: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const terms = entity.terms}
+					{#if terms != null}
+						<div>
+							<dt>Terms</dt>
+							<dd>
+								<a
+									href={terms}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={terms} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							location: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const location = entity.location}
+					{#if location != null}
+						<div>
+							<dt>Location</dt>
+							<dd>
+								{location}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							domain: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const domain = entity.domain}
+					{#if domain != null}
+						<div>
+							<dt>Domain</dt>
+							<dd>
+								{domain}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							private: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const privateValue = entity.private}
+					{#if privateValue != null}
+						<div>
+							<dt>Private</dt>
+							<dd>
+								{privateValue ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							categories: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const categories = entity.categories}
+					{#if categories != null}
+						<div>
+							<dt>Categories</dt>
+							<dd>
+								{categories.join(', ')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							strategies: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const strategies = entity.strategies}
+					{#if strategies != null}
+						<div>
+							<dt>Strategies</dt>
+							<dd>
+								{JSON.stringify(strategies)}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							delegationType: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const delegationType = entity.delegationType}
+					{#if delegationType != null}
+						<div>
+							<dt>Delegation type</dt>
+							<dd>
+								{delegationType}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							delegationContract: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const delegationContract = entity.delegationContract}
+					{#if delegationContract != null}
+						<div>
+							<dt>Delegation contract</dt>
+							<dd>
+								{delegationContract}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							delegationNetwork: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const delegationNetwork = entity.delegationNetwork}
+					{#if delegationNetwork != null}
+						<div>
+							<dt>Delegation network</dt>
+							<dd>
+								{delegationNetwork}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							delegationApi: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const delegationApi = entity.delegationApi}
+					{#if delegationApi != null}
+						<div>
+							<dt>Delegation API</dt>
+							<dd>
+								<a
+									href={delegationApi}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={delegationApi} />
+								</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							treasuries: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const treasuries = entity.treasuries}
+					{#if treasuries != null}
+						<div>
+							<dt>Treasuries</dt>
+							<dd>
+								{JSON.stringify(treasuries)}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
@@ -291,6 +717,51 @@
 	{/snippet}
 
 	{#snippet Details()}
+		{@const adminsResource = selection.$$admins}
+		<ResourceBoundary
+			resource={adminsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<EvmNetworkAccountsView
+						selection={adminsResource}
+						countResource={adminsResource.count}
+						title='Admins'
+						id='admins'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const membersResource = selection.$$members}
+		<ResourceBoundary
+			resource={membersResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<EvmNetworkAccountsView
+						selection={membersResource}
+						countResource={membersResource.count}
+						title='Members'
+						id='members'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+		{@const moderatorsResource = selection.$$moderators}
+		<ResourceBoundary
+			resource={moderatorsResource}
+		>
+			{#snippet children(entities)}
+				{#if entities.values.length > 0}
+					<EvmNetworkAccountsView
+						selection={moderatorsResource}
+						countResource={moderatorsResource.count}
+						title='Moderators'
+						id='moderators'
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		{@const proposalsResource = selection.$$proposals}
 		<ResourceBoundary
 			resource={proposalsResource}

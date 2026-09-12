@@ -3184,6 +3184,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/(celestia)/block-height/[height]/occurrence/[index]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/block-height/[height=nonNegativeBigInt]/(celestiaBlock)/occurrence/[index=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'CelestiaBlobOccurrence.BlockIndex',
+				probeAtomPrefixes: ['/network/[network]/block-height/[height]/occurrence/[index]:CelestiaBlobOccurrence.BlockIndex'],
+				probeCases: [[[0, '1', ['index', 'height', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(protocol-networks)/(celestia)/celestia/block-hash/[hash]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/celestia/block-hash/[hash=stringSegment]',
 		mappings: [
@@ -3226,6 +3236,16 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/(celestia)/namespace/[namespaceId]/blob/[height]/[commitment]/submission/[txHash]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/namespace/[namespaceId=stringSegment]/(celestiaNamespace)/blob/[height=nonNegativeBigInt]/[commitment=stringSegment]/(celestiaBlob)/submission/[txHash=stringSegment]',
+		mappings: [
+			{
+				id: 'CelestiaBlobSubmission.BlobTransaction',
+				probeAtomPrefixes: ['/network/[network]/namespace/[namespaceId]/blob/[height]/[commitment]/submission/[txHash]:CelestiaBlobSubmission.BlobTransaction'],
+				probeCases: [[[0, '1', ['txHash', 'height', 'commitment', 'namespaceId', 'network']]]],
+			},
+		],
+	},
 	'/(explore)/(networks)/network/[network]/(protocol-networks)/(celestia)/namespace/[namespaceId]/observations/[timestampMs]/[source]': {
 		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/namespace/[namespaceId=stringSegment]/(celestiaNamespace)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 		mappings: [
@@ -3234,6 +3254,20 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionEntity: 'Network',
 				probeAtomPrefixes: ['/network/[network]/namespace/[namespaceId]/observations/[timestampMs]/[source]:CelestiaNamespace_Timestamp.NamespaceTimestampMsSource'],
 				probeCases: [[[0, '1', ['timestampMs', 'source', 'namespaceId', 'network']]]],
+				projectionPath: [
+					'Celestia',
+				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/(protocol-networks)/(celestia)/namespace/[namespaceId]/occurrence/[height]/[index]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/namespace/[namespaceId=stringSegment]/(celestiaNamespace)/occurrence/[height=nonNegativeBigInt]/[index=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'CelestiaBlobOccurrence.NamespaceHeightIndex',
+				projectionEntity: 'Network',
+				probeAtomPrefixes: ['/network/[network]/namespace/[namespaceId]/occurrence/[height]/[index]:CelestiaBlobOccurrence.NamespaceHeightIndex'],
+				probeCases: [[[0, '1', ['height', 'index', 'namespaceId', 'network']]]],
 				projectionPath: [
 					'Celestia',
 				],

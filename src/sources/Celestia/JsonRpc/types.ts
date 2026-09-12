@@ -49,6 +49,11 @@ export type DasSamplingStatsWire = CelestiaSchemas['das_SamplingStats_Result']
  */
 export type NodeInfoWire = CelestiaSchemas['node_Info_Result']
 
+/**
+ * Wire share range from Celestia Node OpenRPC `share.GetRange`.
+ */
+export type ShareRangeWire = CelestiaSchemas['share_GetRange_Result']
+
 
 const safeUnsignedInteger = '0 <= number.integer <= 9007199254740991'
 
@@ -133,3 +138,13 @@ export const celestiaNodeInfoWire = arktype({
 })
 
 export type CelestiaNodeInfo = typeof celestiaNodeInfoWire.infer
+
+/** Fail-closed `share.GetRange` envelope. Namespace lives on the range proof. */
+export const celestiaShareRangeWire = arktype({
+	Proof: {
+		namespace_id: 'string',
+		namespace_version: safeUnsignedInteger,
+	},
+})
+
+export type CelestiaShareRange = typeof celestiaShareRangeWire.infer

@@ -11,13 +11,21 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 
 const listPopularVideos = vi.hoisted(() => vi.fn())
+const getChannel = vi.hoisted(() => vi.fn())
 const getVideo = vi.hoisted(() => vi.fn())
+const getPlaylist = vi.hoisted(() => vi.fn())
+const getComment = vi.hoisted(() => vi.fn())
+const getCommentThread = vi.hoisted(() => vi.fn())
 
 vi.mock('$/sources/Youtube/Rest/queries.ts', async (importOriginal) => {
 	const original = await importOriginal<typeof import('$/sources/Youtube/Rest/queries.ts')>()
 	return {
 		...original,
+		getChannel,
 		getVideo,
+		getPlaylist,
+		getComment,
+		getCommentThread,
 		listPopularVideos,
 	}
 })
@@ -58,6 +66,10 @@ const resolver = (
 beforeEach(() => {
 	vi.restoreAllMocks()
 	getVideo.mockReset()
+	getChannel.mockReset()
+	getPlaylist.mockReset()
+	getComment.mockReset()
+	getCommentThread.mockReset()
 	listPopularVideos.mockReset()
 })
 
@@ -136,6 +148,56 @@ describe('Youtube Rest enrolled leftovers', () => {
 		expect(youtubeRest.resolvers.some((candidate) => (
 			candidate.entityType === EntityType._GlobalYoutubeNetwork_Timestamp
 		))).toBe(false)
+	})
+
+	it('writes every REST observation with its exact selector and local refresh clock', async () => {
+		const timestampMs = 1_700_000_000_202
+		const dateNow = vi.spyOn(Date, 'now').mockReturnValue(timestampMs)
+		const assertLocalRefreshObservation = (
+			observation: { [EntityMetaKey.Selector]: Record<string, unknown> },
+			selector: Record<string, unknown>
+		) => {
+			expect(observation[EntityMetaKey.Selector]).toEqual({
+				...selector,
+				timestampMs,
+				source: Source.Youtube_Rest,
+			})
+		}
+
+		getChannel.mockImplementationOnce(async () => {
+			expect(dateNow).not.toHaveBeenCalled()
+			return { items: [{ statistics: {} }] }
+		})
+		const channel = await resolver(EntityType.YoutubeChannel).resolve.ChannelId.resolve({ channelId: 'channel-1' }, context)
+		assertLocalRefreshObservation(channel.$$timestamps[0], { $channel: { channelId: 'channel-1' } })
+
+		getVideo.mockImplementationOnce(async () => {
+			expect(dateNow).toHaveBeenCalledOnce()
+			return { items: [{ contentDetails: {}, statistics: {} }] }
+		})
+		const video = await resolver(EntityType.YoutubeVideo).resolve.VideoId.resolve({ videoId: 'video-1' }, context)
+		assertLocalRefreshObservation(video.$$timestamps[0], { $video: { videoId: 'video-1' } })
+
+		getPlaylist.mockImplementationOnce(async () => {
+			expect(dateNow).toHaveBeenCalledTimes(2)
+			return { items: [{ contentDetails: {} }] }
+		})
+		const playlist = await resolver(EntityType.YoutubePlaylist).resolve.PlaylistId.resolve({ playlistId: 'playlist-1' }, context)
+		assertLocalRefreshObservation(playlist.$$timestamps[0], { $playlist: { playlistId: 'playlist-1' } })
+
+		getComment.mockImplementationOnce(async () => {
+			expect(dateNow).toHaveBeenCalledTimes(3)
+			return { items: [{ snippet: { videoId: 'video-1' } }] }
+		})
+		getCommentThread.mockResolvedValueOnce({ items: [] })
+		const comment = await resolver(EntityType.YoutubeComment, '$$timestamps').resolve.VideoIdCommentId.resolve({
+			videoId: 'video-1',
+			commentId: 'comment-1',
+		}, context)
+		assertLocalRefreshObservation(comment.$$timestamps[0], {
+			$comment: { videoId: 'video-1', commentId: 'comment-1' },
+		})
+		expect(dateNow).toHaveBeenCalledTimes(4)
 	})
 
 	it('preserves complete ISO 8601 duration precision from video content metadata', async () => {

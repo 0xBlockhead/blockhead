@@ -2,6 +2,7 @@ import {
 	SnapshotHubProposalFragment,
 	SnapshotHubSpaceFragment,
 	SnapshotHubVoteFragment,
+	snapshotHubDelegationPortalEnvelope,
 	snapshotHubProposalDataEnvelope,
 	snapshotHubProposalEnvelope,
 	snapshotHubProposalsPageEnvelope,
@@ -9,6 +10,7 @@ import {
 	snapshotHubSpaceEnvelope,
 	snapshotHubSpacesPageEnvelope,
 	snapshotHubStrategyEnvelope,
+	snapshotHubTreasuryEnvelope,
 	snapshotHubVoteDataEnvelope,
 	snapshotHubVoteEnvelope,
 	snapshotHubVotesPageEnvelope,
@@ -202,6 +204,36 @@ const assertSpace = (
 	}
 	if ((space.strategies?.length ?? 0) > 32)
 		throw new Error('SnapshotHub_Graphql: space has too many strategies')
+	if (space.delegationPortal != null) {
+		assertEnvelope(
+			'delegation portal envelope',
+			snapshotHubDelegationPortalEnvelope,
+			space.delegationPortal
+		)
+		assertOpaqueIdentity(space.delegationPortal.delegationType, 'delegation type')
+		assertOpaqueIdentity(space.delegationPortal.delegationContract, 'delegation contract')
+		assertOpaqueIdentity(space.delegationPortal.delegationNetwork, 'delegation network')
+		assertOpaqueIdentity(space.delegationPortal.delegationApi, 'delegation API')
+	}
+	if ((space.treasuries?.length ?? 0) > 32)
+		throw new Error('SnapshotHub_Graphql: space has too many treasuries')
+	const treasuryKeys = new Set<string>()
+	for (const treasury of space.treasuries ?? []) {
+		if (treasury == null)
+			throw new Error('SnapshotHub_Graphql: space contains an empty treasury')
+
+		assertEnvelope(
+			'treasury envelope',
+			snapshotHubTreasuryEnvelope,
+			treasury
+		)
+		assertOpaqueIdentity(treasury.address, 'treasury address')
+		const treasuryKey = `${treasury.network ?? ''}:${treasury.address}`
+		if (treasuryKeys.has(treasuryKey))
+			throw new Error('SnapshotHub_Graphql: space contains duplicate treasury')
+
+		treasuryKeys.add(treasuryKey)
+	}
 	for (const accountIdentities of [
 		space.admins,
 		space.members,

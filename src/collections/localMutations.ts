@@ -59,6 +59,7 @@ import type {
 } from '$/schema/$schema.ts'
 import { entityDefinitionByType, schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { normalizeRssSubscriptionFeedUrl } from '$/lib/rssOpmlExport.ts'
 import { stringify } from 'devalue'
 
 type LocalEntityRow = {
@@ -2944,6 +2945,125 @@ export const deleteLocalBlockheadAccount = async (
 			.flatMap((collection) => (
 				collection === undefined ? [] : [collection.utils.waitForPersistence()]
 			)),
+	])
+}
+
+export const writeLocalRssSubscription = async (
+	context: LocalMutationContext,
+	subscription: {
+		feedUrl: string
+		title?: string
+	}
+) => {
+	const entitySelector = {
+		feedUrl: normalizeRssSubscriptionFeedUrl(subscription.feedUrl),
+	}
+	const parentEntitySelector = {
+		scope: 'RssNetwork',
+	}
+	writeLocalPresence(context, EntityType.RssFeed, entitySelector)
+	writeLocalPrimitiveFields(context, EntityType.RssFeed, entitySelector, {
+		title: subscription.title?.trim() || undefined,
+	})
+	await Promise.all([
+		writeLocalEntityReferenceField(
+			context,
+			EntityType.RssNetwork,
+			parentEntitySelector,
+			'$$rssFeeds',
+			entitySelector
+		),
+		context.entityCollections[EntityType.RssFeed].utils.waitForPersistence(),
+		context.entityFieldCollections[EntityType.RssFeed][
+			entityFieldAddressKey(EntityType.RssFeed, [], 'title')
+		].utils.waitForPersistence(),
+		context.entityFieldCollections[EntityType.RssNetwork][
+			entityFieldAddressKey(EntityType.RssNetwork, [], '$$rssFeeds')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType.RssNetwork][
+			entityFieldAddressKey(EntityType.RssNetwork, [], '$$rssFeeds')
+		]?.utils.waitForPersistence(),
+	])
+	return entitySelector
+}
+
+export const writeLocalRssItemState = async (
+	context: LocalMutationContext,
+	itemState: {
+		$feed: {
+			feedUrl: string
+		}
+		itemIdentityKind: 'Guid' | 'Link'
+		itemIdentity: string
+		isRead?: boolean
+		isStarred?: boolean
+	}
+) => {
+	const entitySelector = {
+		$feed: {
+			feedUrl: normalizeRssSubscriptionFeedUrl(itemState.$feed.feedUrl),
+		},
+		itemIdentityKind: itemState.itemIdentityKind,
+		itemIdentity: itemState.itemIdentity,
+	}
+	writeLocalPresence(context, EntityType.RssItem, entitySelector)
+	writeLocalPrimitiveFields(context, EntityType.RssItem, entitySelector, {
+		...(itemState.isRead !== undefined && {
+			isRead: itemState.isRead,
+		}),
+		...(itemState.isStarred !== undefined && {
+			isStarred: itemState.isStarred,
+		}),
+	})
+	await Promise.all([
+		context.entityCollections[EntityType.RssItem].utils.waitForPersistence(),
+		...(
+			(['isRead', 'isStarred'] as const)
+				.filter((fieldName) => itemState[fieldName] !== undefined)
+				.map((fieldName) => (
+					context.entityFieldCollections[EntityType.RssItem][
+						entityFieldAddressKey(EntityType.RssItem, [], fieldName)
+					].utils.waitForPersistence()
+				))
+		),
+	])
+	return entitySelector
+}
+
+export const deleteLocalRssSubscription = async (
+	context: LocalMutationContext,
+	feedUrl: string
+) => {
+	const entitySelector = {
+		feedUrl: normalizeRssSubscriptionFeedUrl(feedUrl),
+	}
+	const parentEntitySelector = {
+		scope: 'RssNetwork',
+	}
+	const relationshipApplication = deleteLocalEntityReferenceField(
+		context,
+		EntityType.RssNetwork,
+		parentEntitySelector,
+		'$$rssFeeds',
+		entitySelector
+	)
+	deleteLocalEntityFields(context, EntityType.RssFeed, entitySelector)
+	deleteLocalPresence(context, EntityType.RssFeed, entitySelector)
+	await Promise.all([
+		relationshipApplication,
+		context.entityCollections[EntityType.RssFeed].utils.waitForPersistence(),
+		...Object.values(context.entityFieldCollections[EntityType.RssFeed])
+			.map((collection) => collection.utils.waitForPersistence()),
+		...Object.values(context.entityFieldCountCollections[EntityType.RssFeed])
+			.flatMap((collection) => (
+				collection === undefined ? [] : [collection.utils.waitForPersistence()]
+			)),
+		context.entityFieldCollections[EntityType.RssNetwork][
+			entityFieldAddressKey(EntityType.RssNetwork, [], '$$rssFeeds')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType.RssNetwork][
+			entityFieldAddressKey(EntityType.RssNetwork, [], '$$rssFeeds')
+		]?.utils.waitForPersistence(),
 	])
 }
 

@@ -148,6 +148,26 @@ describe('Celenium mainnet public indexer contracts', () => {
 		await expect(getBlock(BigInt(blockWire.height))).resolves.toEqual(blockWire)
 	})
 
+	it('accepts the genesis block’s empty parent hash without weakening other hash checks', async () => {
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
+			...blockWire,
+			height: 1,
+			parent_hash: '',
+		})
+
+		await expect(getBlock(1n)).resolves.toMatchObject({
+			height: 1,
+			parent_hash: '',
+		})
+
+		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
+			...blockWire,
+			height: 1,
+			parent_hash: 'not-a-hash',
+		})
+		await expect(getBlock(1n)).rejects.toThrow('invalid parent block hash')
+	})
+
 	it('accepts live string block versions and explorer tip stats leftovers', async () => {
 		vi.spyOn(sourceHttp, 'sourceGetJson').mockResolvedValue({
 			...blockWire,

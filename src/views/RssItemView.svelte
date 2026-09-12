@@ -4,6 +4,8 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import EntityView, { EntityLayout, type EntitySelectionViewProps } from '$/components/EntityView.svelte'
+	import { untrack } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -42,11 +44,13 @@
 
 
 	// Components
+	import RssItemStateControl from '$/views/RssItemStateControl.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import RssItem_TimestampsView from '$/views/RssItem_TimestampsView.svelte'
 	import RssFeedView from '$/views/RssFeedView.svelte'
+	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
@@ -225,27 +229,19 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							enclosureUrl: true,
-						},
-					})
-				}
+				resource={selection.$enclosure}
 			>
-				{#snippet children(entity)}
-					{@const enclosureUrl = entity.enclosureUrl}
-					{#if enclosureUrl != null}
+				{#snippet children(media)}
+					{#if media != null}
+						{@const mediaInitial = untrack(() => media)}
 						<div>
-							<dt>Enclosure URL</dt>
+							<dt>Enclosure</dt>
 							<dd>
-								<a
-									href={enclosureUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue value={enclosureUrl} />
-								</a>
+								<MediaView
+									selection={select(EntityType.Media, (media ?? mediaInitial)[EntityMetaKey.Selector])}
+									prefetched={media ?? mediaInitial}
+									layout={EntityLayout.Value}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -299,6 +295,10 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+
+		<section data-column="gap-2">
+			<RssItemStateControl {selection} />
+		</section>
 	{/snippet}
 
 	{#snippet Details()}

@@ -14,13 +14,9 @@
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CelestiaBlock, {
-		$network: data.selector,
-		height: BigInt(params.height),
-	}, {
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CelestiaBlock, data.selector, {
 		fields: {
 			hash: true,
 		},

@@ -1,3 +1,9 @@
+/**
+ * EigenExplorer REST named operations (api.eigenexplorer.com).
+ * @see https://docs.eigenexplorer.com/api-reference/introduction
+ * @see https://docs.eigenexplorer.com/api-reference/quickstart/api-key
+ * @see https://docs.eigenexplorer.com/api-reference/openapi.json
+ */
 import { throwHttpError } from '$/lib/http.ts'
 import bindings from '$/sources/EigenExplorer/bindings.ts'
 import { Source } from '$/sources/Source.ts'

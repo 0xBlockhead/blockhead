@@ -4,6 +4,7 @@ import {
 	defineResolver,
 	type RegisteredSourceResolverModule,
 } from '$/resolvers/defineResolver.ts'
+import { defineObservationTimeWriter } from '$/resolvers/observationTimeWriter.ts'
 import { optionalNonemptyString } from '$/lib/string.ts'
 import { optionalTimestampMs } from '$/lib/time.ts'
 import { mediaFromUrl } from '$/resolvers/media.ts'
@@ -24,6 +25,41 @@ import type {
 	YoutubeApiSnippet,
 	YoutubeApiVideo,
 } from '$/sources/Youtube/Rest/types.ts'
+
+const youtubeGlobalNetworkTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType._GlobalYoutubeNetwork_Timestamp,
+	selectorName: 'HubTimestampMsSource',
+	source: Source.Youtube_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const youtubeChannelTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.YoutubeChannel_Timestamp,
+	selectorName: 'YoutubeChannelTimestampMsSource',
+	source: Source.Youtube_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const youtubeVideoTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.YoutubeVideo_Timestamp,
+	selectorName: 'YoutubeVideoTimestampMsSource',
+	source: Source.Youtube_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const youtubePlaylistTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.YoutubePlaylist_Timestamp,
+	selectorName: 'YoutubePlaylistTimestampMsSource',
+	source: Source.Youtube_Rest,
+	provenance: 'LocalRefresh',
+})
+
+const youtubeCommentTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.YoutubeComment_Timestamp,
+	selectorName: 'YoutubeCommentTimestampMsSource',
+	source: Source.Youtube_Rest,
+	provenance: 'LocalRefresh',
+})
 
 
 const youtubeThumbnailUrl = (thumbnails: YoutubeApiSnippet['thumbnails']) => (
@@ -180,13 +216,11 @@ export default {
 								$icon: iconMedia,
 							}),
 							videoCount: d.statistics?.videoCount,
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
+							$$timestamps: [youtubeChannelTimestampWriter.write({
 									$channel: { channelId },
 									timestampMs: Date.now(),
 									source: Source.Youtube_Rest,
-								},
-								[EntityMetaKey.Fields]: {
+								}, {
 									...(d.statistics?.subscriberCount != null && {
 										[entityFieldAddressKey(EntityType.YoutubeChannel_Timestamp, [], 'subscriberCount')]:
 											Number(d.statistics.subscriberCount),
@@ -199,8 +233,7 @@ export default {
 										[entityFieldAddressKey(EntityType.YoutubeChannel_Timestamp, [], 'viewCount')]:
 											Number(d.statistics.viewCount),
 									}),
-								},
-							}],
+								})],
 						}
 					},
 				}
@@ -295,13 +328,11 @@ export default {
 							...(thumbnailUrl != null && { thumbnailUrl }),
 							...(thumbnailMedia != null && { $thumbnail: thumbnailMedia }),
 							commentCount: d.statistics?.commentCount,
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
+							$$timestamps: [youtubeVideoTimestampWriter.write({
 									$video: { videoId },
 									timestampMs: Date.now(),
 									source: Source.Youtube_Rest,
-								},
-								[EntityMetaKey.Fields]: {
+								}, {
 									...(d.statistics?.viewCount != null && {
 										[entityFieldAddressKey(EntityType.YoutubeVideo_Timestamp, [], 'viewCount')]:
 											Number(d.statistics.viewCount),
@@ -314,8 +345,7 @@ export default {
 										[entityFieldAddressKey(EntityType.YoutubeVideo_Timestamp, [], 'commentCount')]:
 											Number(d.statistics.commentCount),
 									}),
-								},
-							}],
+								})],
 						}
 					},
 				}
@@ -369,19 +399,16 @@ export default {
 							),
 							...(thumbnailMedia != null && { $thumbnail: thumbnailMedia }),
 							itemCount: d.contentDetails?.itemCount,
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
+							$$timestamps: [youtubePlaylistTimestampWriter.write({
 									$playlist: { playlistId },
 									timestampMs: Date.now(),
 									source: Source.Youtube_Rest,
-								},
-								[EntityMetaKey.Fields]: {
+								}, {
 									...(d.contentDetails?.itemCount != null && {
 										[entityFieldAddressKey(EntityType.YoutubePlaylist_Timestamp, [], 'itemCount')]:
 											d.contentDetails.itemCount,
 									}),
-								},
-							}],
+								})],
 						}
 					},
 				}
@@ -682,21 +709,18 @@ export default {
 									:
 										replyCount
 								),
-								$$timestamps: [{
-								[EntityMetaKey.Selector]: {
+								$$timestamps: [youtubeCommentTimestampWriter.write({
 									$comment: entitySelector,
 									timestampMs: Date.now(),
 								source: Source.Youtube_Rest,
-							},
-								[EntityMetaKey.Fields]: {
+								}, {
 									...(comment.snippet?.likeCount != null && {
 										[entityFieldAddressKey(EntityType.YoutubeComment_Timestamp, [], 'likeCount')]: comment.snippet.likeCount,
 									}),
 									...(replyCount != null && {
 										[entityFieldAddressKey(EntityType.YoutubeComment_Timestamp, [], 'replyCount')]: replyCount,
 										}),
-									},
-								}],
+									})],
 							}
 					},
 				}
@@ -864,33 +888,27 @@ export default {
 									return videoId == null ? [] : [videoId]
 								})
 							)
-							return [{
-								[EntityMetaKey.Selector]: {
+							return [youtubeGlobalNetworkTimestampWriter.write({
 									$hub: { scope },
 									timestampMs: Date.now(),
 									source: Source.Youtube_Rest,
-								},
-								[EntityMetaKey.Fields]: {
+								}, {
 									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'observedChannelCount')]:
 										channelIds.size,
 									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'observedVideoCount')]:
 										videoIds.size,
 									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'reachable')]:
 										true,
-								},
-							}]
+								})]
 						} catch {
-							return [{
-								[EntityMetaKey.Selector]: {
+							return [youtubeGlobalNetworkTimestampWriter.write({
 									$hub: { scope },
 									timestampMs: Date.now(),
 									source: Source.Youtube_Rest,
-								},
-								[EntityMetaKey.Fields]: {
+								}, {
 									[entityFieldAddressKey(EntityType._GlobalYoutubeNetwork_Timestamp, [], 'reachable')]:
 										false,
-								},
-							}]
+								})]
 						}
 					},
 				},

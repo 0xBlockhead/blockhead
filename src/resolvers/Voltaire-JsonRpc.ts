@@ -1199,6 +1199,8 @@ export default {
 								)
 								if (block == null)
 									throw new Error('invalid block returned from RPC')
+								if (block.blockNumber !== blockNumberSelector)
+									throw new Error('block number does not match the requested selector')
 								const parentBlockNumber = block[EntityMetaKey.Selector].blockNumber > 0n ?
 									block[EntityMetaKey.Selector].blockNumber - 1n
 								:
@@ -1255,6 +1257,9 @@ export default {
 								)
 								if (block == null)
 									throw new Error('invalid block returned from RPC')
+								const requestedBlockHash = hexLowerOfByteSize(hash, 32)
+								if (requestedBlockHash == null || block.hash !== requestedBlockHash)
+									throw new Error('block hash does not match the requested selector')
 								const parentBlockNumber = block[EntityMetaKey.Selector].blockNumber > 0n ?
 									block[EntityMetaKey.Selector].blockNumber - 1n
 								:
@@ -1983,7 +1988,9 @@ export default {
 									if (voltaireTransactionWire == null)
 										throw new Error('transaction not returned from RPC')
 									const jsonRpcTransaction = voltaireTransactionWire
-									const txHash = hexLowerOfByteSize(jsonRpcTransaction.hash, 32) ?? requestedTxHash
+									const txHash = hexLowerOfByteSize(jsonRpcTransaction.hash, 32)
+									if (txHash == null || txHash !== requestedTxHash)
+										throw new Error('transaction hash does not match the requested selector')
 									const receiptWire = await jsonRpcTransport.getTransactionReceipt({
 										txHash,
 									})

@@ -135,6 +135,10 @@ const blobsResolver = celeniumRest.resolvers.find((resolver) => (
 	&& '$$blobs' in resolver.projections
 	&& typeof resolver.projections.$$blobs === 'function'
 ))
+const blobSubmissionsResolver = celeniumRest.resolvers.find((resolver) => (
+	resolver.entityType === EntityType.CelestiaNetwork
+	&& '$$blobSubmissions' in resolver.projections
+))
 
 if (
 	networkResolver == null
@@ -153,6 +157,7 @@ if (
 	|| namespacesResolver == null
 	|| namespacesCountResolver == null
 	|| blobsResolver == null
+	|| blobSubmissionsResolver == null
 )
 	throw new Error('Celenium REST head resolvers are not registered')
 const resolveTimestamps = (
@@ -179,11 +184,18 @@ const resolveBlobs = (
 	:
 		undefined
 )
+const resolveBlobSubmissions = (
+	'Network' in blobSubmissionsResolver.resolve ?
+		blobSubmissionsResolver.resolve.Network.resolve
+	:
+		undefined
+)
 if (
 	resolveTimestamps == null
 	|| resolveBlocks == null
 	|| resolveNamespaces == null
 	|| resolveBlobs == null
+	|| resolveBlobSubmissions == null
 )
 	throw new Error('Celenium REST discovery resolvers are not registered')
 
@@ -745,6 +757,14 @@ describe('Celenium REST head projection', () => {
 				},
 			},
 		])
+		const $blob = {
+			$namespace: {
+				$network: celestiaNetwork,
+				namespaceId: `00${'aa'.repeat(28)}`,
+			},
+			height: 12_424_743n,
+			commitment: `${'B'.repeat(43)}=`,
+		}
 
 		await expect(resolveBlobs({
 			$network: network,
@@ -756,19 +776,10 @@ describe('Celenium REST head projection', () => {
 			},
 		})).resolves.toEqual([
 			{
-				[EntityMetaKey.Selector]: {
-					$namespace: {
-						$network: celestiaNetwork,
-						namespaceId: `00${'aa'.repeat(28)}`,
-					},
-					height: 12_424_743n,
-					commitment: `${'B'.repeat(43)}=`,
-				},
+				[EntityMetaKey.Selector]: $blob,
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'shareVersion')]: 1,
 					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'sizeBytes')]: 24_857n,
-					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'signer')]: 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
-					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'txHash')]: 'a'.repeat(64),
 					[entityFieldAddressKey(EntityType.CelestiaBlob, [], '$block')]: {
 						[EntityMetaKey.Selector]: {
 							$network: celestiaNetwork,
@@ -781,6 +792,129 @@ describe('Celenium REST head projection', () => {
 		expect(listBlobMetadata).toHaveBeenCalledWith({
 			limit: 1,
 			offset: 4,
+		})
+	})
+
+	it('preserves transaction submissions and paginates by raw provider rows', async () => {
+		const common = {
+			commitment: `${'B'.repeat(43)}=`,
+			size: 24_857,
+			share_version: 0,
+			height: 12_424_743,
+			time: '2026-07-23T04:49:13Z',
+			content_type: 'application/octet-stream',
+			namespace: 'AKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=',
+		}
+		const firstSubmitter = 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u'
+		const secondSubmitter = 'celestia1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq'
+		listBlobMetadata.mockResolvedValueOnce([
+			{
+				...common,
+				tx_hash: 'A'.repeat(64),
+				signer: {
+					hash: firstSubmitter,
+				},
+			},
+			{
+				...common,
+				tx_hash: 'A'.repeat(64),
+				signer: {
+					hash: secondSubmitter,
+				},
+			},
+			{
+				...common,
+				tx_hash: 'C'.repeat(64),
+				signer: {
+					hash: firstSubmitter,
+				},
+			},
+		])
+
+		const snapshot = await resolveBlobSubmissions({
+			$network: network,
+		}, {
+			...context,
+			pagination: {
+				limit: 3,
+				offset: 0,
+			},
+		})
+		const projection = blobSubmissionsResolver.projections.$$blobSubmissions
+		if (
+			typeof projection !== 'object'
+			|| projection.select == null
+			|| projection.continuation == null
+		)
+			throw new Error('Celenium REST blob submissions projection is not pageable')
+		const submissions = projection.select(snapshot, { $network: network }, context)
+		expect(submissions).toHaveLength(2)
+		expect(submissions[1][EntityMetaKey.Selector].$blob).toEqual(
+			submissions[0][EntityMetaKey.Selector].$blob
+		)
+		expect(submissions.map((submission) => (
+			submission[EntityMetaKey.Selector].txHash
+		))).toEqual([
+			'a'.repeat(64),
+			'c'.repeat(64),
+		])
+		expect(submissions.map((submission) => (
+			submission[EntityMetaKey.Fields][
+				entityFieldAddressKey(EntityType.CelestiaBlobSubmission, [], '$transaction')
+			][EntityMetaKey.Selector].txHash
+		))).toEqual([
+			'a'.repeat(64),
+			'c'.repeat(64),
+		])
+		expect(submissions.map((submission) => (
+			submission[EntityMetaKey.Fields][
+				entityFieldAddressKey(EntityType.CelestiaBlobSubmission, [], '$$submitters')
+			].map((submitter) => submitter[EntityMetaKey.Selector].address)
+		))).toEqual([
+			[firstSubmitter, secondSubmitter],
+			[firstSubmitter],
+		])
+		expect(projection.continuation(snapshot, { $network: network }, context)).toEqual({
+			operation: 'network-blob-submissions',
+			target: 'celestia',
+			terminal: false,
+			token: '3',
+		})
+
+		listBlobMetadata.mockResolvedValueOnce([{
+			...common,
+			tx_hash: 'D'.repeat(64),
+			signer: {
+				hash: secondSubmitter,
+			},
+		}])
+		const continuedSnapshot = await resolveBlobSubmissions({
+			$network: network,
+		}, {
+			...context,
+			pagination: {
+				limit: 3,
+				offset: 0,
+			},
+			providerContinuationToken: '3',
+		})
+		expect(listBlobMetadata).toHaveBeenLastCalledWith({
+			limit: 3,
+			offset: 3,
+		})
+		expect(projection.select(
+			continuedSnapshot,
+			{ $network: network },
+			context
+		)[0][EntityMetaKey.Selector].txHash).toBe('d'.repeat(64))
+		expect(projection.continuation(
+			continuedSnapshot,
+			{ $network: network },
+			context
+		)).toEqual({
+			operation: 'network-blob-submissions',
+			target: 'celestia',
+			terminal: true,
 		})
 	})
 
@@ -821,6 +955,14 @@ describe('Celenium REST head projection', () => {
 				},
 			},
 		])
+		const $blockBlob = {
+			$namespace: {
+				$network: celestiaNetwork,
+				namespaceId: `00${'a'.repeat(56)}`,
+			},
+			height: 12_424_743n,
+			commitment: `${'B'.repeat(43)}=`,
+		}
 		await expect(blockBlobsResolver.resolve.NetworkHeight.resolve({
 			$network: celestiaNetwork,
 			height: 12_424_743n,
@@ -832,19 +974,10 @@ describe('Celenium REST head projection', () => {
 			},
 		})).resolves.toEqual([
 			{
-				[EntityMetaKey.Selector]: {
-					$namespace: {
-						$network: celestiaNetwork,
-						namespaceId: `00${'a'.repeat(56)}`,
-					},
-					height: 12_424_743n,
-					commitment: `${'B'.repeat(43)}=`,
-				},
+				[EntityMetaKey.Selector]: $blockBlob,
 				[EntityMetaKey.Fields]: {
 					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'shareVersion')]: 0,
 					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'sizeBytes')]: 379n,
-					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'signer')]: 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
-					[entityFieldAddressKey(EntityType.CelestiaBlob, [], 'txHash')]: 'a'.repeat(64),
 					[entityFieldAddressKey(EntityType.CelestiaBlob, [], '$block')]: {
 						[EntityMetaKey.Selector]: {
 							$network: celestiaNetwork,
@@ -906,8 +1039,6 @@ describe('Celenium REST head projection', () => {
 		})).resolves.toEqual({
 			shareVersion: 0,
 			sizeBytes: 379n,
-			signer: 'celestia1zwpvejau8kzhttlc39wmfggyf8n3eaxlpvd86u',
-			txHash: 'a'.repeat(64),
 			$block: {
 				[EntityMetaKey.Selector]: {
 					$network: celestiaNetwork,

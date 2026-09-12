@@ -4,7 +4,7 @@ import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { getAcpLocalRuntime } from '$/sources/Acp/Local/runtime.ts'
-import type { AcpLocalHistorySnapshot, AcpLocalMessage, AcpLocalMessagePart, AcpLocalPermissionRequest, AcpLocalSessionUpdate, AcpLocalTerminal, AcpLocalToolCall, AcpLocalTurn } from '$/sources/Acp/Local/types.ts'
+import type { AcpLocalHistorySnapshot, AcpLocalMessage, AcpLocalMessagePart, AcpLocalPermissionRequest, AcpLocalRuntime, AcpLocalSessionUpdate, AcpLocalTerminal, AcpLocalToolCall, AcpLocalTurn } from '$/sources/Acp/Local/types.ts'
 
 const redactedKey = /authorization|credential|password|raw|secret|token/i
 
@@ -17,9 +17,6 @@ export const redactAcpLocalValue = (value: unknown): unknown => {
 }
 
 const runtimeSelector = (runtimeId: string) => ({ [EntityMetaKey.Selector]: { runtimeId } })
-const history = async (sessionId: string, context: ResolverContext): Promise<AcpLocalHistorySnapshot> => getAcpLocalRuntime().readHistory(sessionId, {
-	limit: Math.min(context.pagination.limit ?? 100, 1000),
-})
 
 const sessionIdFrom = (selector: { readonly $session: { readonly sessionId: string } }) => selector.$session.sessionId
 
@@ -87,24 +84,58 @@ const permissionRows = (rows: readonly AcpLocalPermissionRequest[], sessionId: s
 	},
 }))
 
-export default {
+export const createAcpLocalResolverModule = (
+	configuredRuntime?: AcpLocalRuntime
+): RegisteredSourceResolverModule<Source.AcpLocal_JsonRpc> => {
+	const runtime = () => configuredRuntime ?? getAcpLocalRuntime()
+	const readSession = async (sessionId: string) => {
+		const activeRuntime = runtime()
+		const session = await activeRuntime.readSession(sessionId)
+		if (session.runtimeId !== activeRuntime.runtimeId)
+			throw new Error(`AcpLocal_JsonRpc: session ${sessionId} belongs to another runtime`)
+		return session
+	}
+	const history = async (sessionId: string, context: ResolverContext): Promise<AcpLocalHistorySnapshot> => {
+		const durable = await runtime().readHistory(sessionId, {
+			limit: Math.min(context.pagination.limit ?? 100, 1000),
+		})
+		if (durable.sessionId !== sessionId || durable.sequenceEnd < durable.sequenceStart)
+			throw new Error('AcpLocal_JsonRpc: invalid durable history boundary')
+		return durable
+	}
+
+	return {
 	source: Source.AcpLocal_JsonRpc,
 	resolvers: [
 		defineResolver({ entityType: EntityType.AcpAgentRuntime, resolve: { RuntimeId: { resolve: async ({ runtimeId }) => {
-			const runtime = getAcpLocalRuntime()
-			if (runtime.runtimeId !== runtimeId) throw new Error(`AcpLocal_JsonRpc: runtime ${runtimeId} unavailable`)
+			const activeRuntime = runtime()
+			if (activeRuntime.runtimeId !== runtimeId) throw new Error(`AcpLocal_JsonRpc: runtime ${runtimeId} unavailable`)
 			return {
-				runtimeId: runtime.runtimeId,
-				transportKind: runtime.transportKind,
-				...(runtime.processId != null && { processId: runtime.processId }),
-				...(runtime.initializedAt != null && { initializedAt: runtime.initializedAt }),
+				runtimeId: activeRuntime.runtimeId,
+				transportKind: activeRuntime.transportKind,
+				...(activeRuntime.processId != null && { processId: activeRuntime.processId }),
+				...(activeRuntime.initializedAt != null && { initializedAt: activeRuntime.initializedAt }),
 			}
 		} } } })({
-		$$sessions: () => [],
-		$$timestamps: () => [],
-	}),
-		defineResolver({ entityType: EntityType.AcpAgentRuntime_Timestamp, resolve: { RuntimeTimestampMsSource: { resolve: async ({ $runtime }) => { const runtime = getAcpLocalRuntime(); const initialized = await runtime.initialize(); return { $runtime, timestampMs: Date.now(), source: Source.AcpLocal_JsonRpc, health: 'ready', ...initialized } } } } })({}),
-		defineResolver({ entityType: EntityType.AcpSession, resolve: { SessionId: { resolve: async ({ sessionId }) => getAcpLocalRuntime().readSession(sessionId) } } })({
+			$$sessions: async (acpRuntime) => {
+				const activeRuntime = runtime()
+				if (activeRuntime.runtimeId !== acpRuntime.runtimeId)
+					throw new Error(`AcpLocal_JsonRpc: runtime ${acpRuntime.runtimeId} unavailable`)
+				return (await activeRuntime.listSessions()).map((session) => {
+					if (session.runtimeId !== activeRuntime.runtimeId)
+						throw new Error(`AcpLocal_JsonRpc: session ${session.sessionId} belongs to another runtime`)
+					return { [EntityMetaKey.Selector]: { $runtime: { runtimeId: activeRuntime.runtimeId }, sessionId: session.sessionId } }
+				})
+			},
+			$$timestamps: (acpRuntime) => acpRuntime.initializedAt == null ? [] : [{ [EntityMetaKey.Selector]: { $runtime: { runtimeId: acpRuntime.runtimeId }, timestampMs: acpRuntime.initializedAt, source: Source.AcpLocal_JsonRpc } }],
+		}),
+		defineResolver({ entityType: EntityType.AcpAgentRuntime_Timestamp, resolve: { RuntimeTimestampMsSource: { resolve: async ({ $runtime, timestampMs, source }) => {
+			const activeRuntime = runtime()
+			if (activeRuntime.runtimeId !== $runtime.runtimeId || activeRuntime.initializedAt !== timestampMs || source !== Source.AcpLocal_JsonRpc)
+				throw new Error(`AcpLocal_JsonRpc: runtime observation unavailable for ${$runtime.runtimeId}`)
+			return { $runtime, timestampMs: activeRuntime.initializedAt, source, health: 'ready', ...(await activeRuntime.initialize()) }
+		} } } })({}),
+		defineResolver({ entityType: EntityType.AcpSession, resolve: { SessionId: { resolve: async ({ sessionId }) => readSession(sessionId) } } })({
 			$runtime: (session) => runtimeSelector(session.runtimeId),
 			$$promptTurns: async (session, selector, context) => turnRows((await history(session.sessionId, context)).turns, session.sessionId),
 		}),
@@ -130,4 +161,7 @@ export default {
 		defineResolver({ entityType: EntityType.AcpFileOperation, resolve: { SessionOperationId: { resolve: async (selector, context) => (await history(sessionIdFrom(selector), context)).fileOperations.filter((row) => row.operationId === selector.operationId).map((row) => ({ [EntityMetaKey.Selector]: selector, [EntityMetaKey.Fields]: Object.fromEntries(Object.entries(row).filter(([key]) => key !== 'operationId').map(([key, value]) => [entityFieldAddressKey(EntityType.AcpFileOperation, [], key), redactAcpLocalValue(value)])) })) } } })({}),
 		defineResolver({ entityType: EntityType.AcpPermissionRequest, resolve: { SessionRequestId: { resolve: async (selector, context) => permissionRows((await history(sessionIdFrom(selector), context)).permissionRequests.filter((row) => row.requestId === selector.requestId), sessionIdFrom(selector)) } } })({}),
 	],
-} satisfies RegisteredSourceResolverModule<Source.AcpLocal_JsonRpc>
+	} satisfies RegisteredSourceResolverModule<Source.AcpLocal_JsonRpc>
+}
+
+export default createAcpLocalResolverModule()

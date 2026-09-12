@@ -41,7 +41,7 @@ export enum MappedSelectorAccountability {
 	ResolverOnlyCapability = 'ResolverOnlyCapability',
 	FieldSourcedIdentity = 'FieldSourcedIdentity',
 	ReferenceMaterializedIdentity = 'ReferenceMaterializedIdentity',
-	SchemaIdentityOnly = 'SchemaIdentityOnly',
+	IntentionallyNonExecutable = 'IntentionallyNonExecutable',
 }
 
 // A timestamp coordinate is historical only when its writer has evidence for
@@ -492,7 +492,7 @@ const mappedSelectorAccountability = (
 		: authority.referenceMaterializedEntityTypes.has(mapping.entityType) ?
 			MappedSelectorAccountability.ReferenceMaterializedIdentity
 		:
-			MappedSelectorAccountability.SchemaIdentityOnly
+			MappedSelectorAccountability.IntentionallyNonExecutable
 	if (!mapping.authoredPage)
 		return MappedSelectorAccountability.ResolverOnlyCapability
 

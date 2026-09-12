@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { Buffer } from 'node:buffer'
 
 
 const feedUrl = 'https://hnrss.org/frontpage'
@@ -140,5 +141,76 @@ test.describe('RSS reading journey', () => {
 		await expect(page.locator(`#main a[href^="${feedPath}/item/"]`).filter({
 			hasText: itemTitle ?? '',
 		}).first()).toBeVisible()
+	})
+
+	test('saved subscriptions dedupe, survive reload, export as OPML, and can be removed', async ({ page }, testInfo) => {
+		test.setTimeout(180_000)
+		await page.addInitScript(({ name, schemaVersion }) => {
+			window.__blockheadWaSqliteDatabaseNameOverride = name
+			window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
+			window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+		}, {
+			name: `bh-rss-subscriptions-${testInfo.workerIndex}-${testInfo.retry}-${Date.now()}.sqlite`,
+			schemaVersion: Date.now(),
+		})
+		const providerRequests: string[] = []
+		page.on('request', (request) => {
+			if (request.url().includes('/api-proxy/'))
+				providerRequests.push(request.url())
+		})
+
+		await page.goto('/rss', { waitUntil: 'domcontentloaded' })
+		const subscriptionControl = page.locator('section[data-card]').filter({
+			has: page.getByRole('heading', { name: 'RSS subscriptions', exact: true }),
+		})
+		const feedUrlInput = subscriptionControl.getByLabel('Feed URL')
+		const titleInput = subscriptionControl.getByLabel('Title')
+		await expect(feedUrlInput).toBeVisible({
+			timeout: 120_000,
+		})
+		const savedSubscription = page.getByRole('link', {
+			name: 'Example subscription https://example.com/feed.xml',
+			exact: true,
+		})
+		await feedUrlInput.fill('https://example.com/feed.xml')
+		await titleInput.fill(' Example subscription ')
+		await subscriptionControl.getByRole('button', { name: 'Save subscription' }).click()
+		await expect(subscriptionControl.getByRole('status')).toHaveText('Subscription saved.')
+
+		await feedUrlInput.fill('https://example.com/feed.xml')
+		await titleInput.fill('Example subscription')
+		await subscriptionControl.getByRole('button', { name: 'Save subscription' }).click()
+		await expect(savedSubscription).toHaveCount(1)
+
+		await page.reload({ waitUntil: 'domcontentloaded' })
+		await expect(savedSubscription).toHaveCount(1)
+		const downloadPromise = page.waitForEvent('download')
+		await subscriptionControl.getByRole('button', { name: 'Export OPML' }).click()
+		const download = await downloadPromise
+		expect(download.suggestedFilename()).toBe('blockhead-rss-subscriptions.opml')
+		const stream = await download.createReadStream()
+		const chunks: Buffer[] = []
+		for await (const chunk of stream)
+			chunks.push(Buffer.from(chunk))
+		expect(Buffer.concat(chunks).toString('utf8')).toBe([
+			'<?xml version="1.0" encoding="UTF-8"?>',
+			'<opml version="2.0">',
+			'  <head>',
+			'    <title>RSS subscriptions</title>',
+			'  </head>',
+			'  <body>',
+			'    <outline type="rss" text="Example subscription" title="Example subscription" xmlUrl="https://example.com/feed.xml" />',
+			'  </body>',
+			'</opml>',
+		].join('\n') + '\n')
+
+		await feedUrlInput.fill('https://example.com/feed.xml')
+		await subscriptionControl.getByRole('button', { name: 'Remove subscription' }).click()
+		await expect(subscriptionControl.getByRole('status')).toHaveText('Subscription removed.')
+		await expect(savedSubscription).toHaveCount(0)
+		expect(providerRequests.some((url) => (
+			url.includes('https%3A%2F%2Fexample.com%2Ffeed.xml')
+			|| decodeURIComponent(url).includes('https://example.com/feed.xml')
+		))).toBe(false)
 	})
 })

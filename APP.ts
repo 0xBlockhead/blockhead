@@ -1103,6 +1103,8 @@ export enum EntityType {
 	CctpFee = "CctpFee",
 	CctpMessage = "CctpMessage",
 	CelestiaBlob = "CelestiaBlob",
+	CelestiaBlobOccurrence = "CelestiaBlobOccurrence",
+	CelestiaBlobSubmission = "CelestiaBlobSubmission",
 	CelestiaBlock = "CelestiaBlock",
 	CelestiaNamespace = "CelestiaNamespace",
 	CelestiaNamespace_Timestamp = "CelestiaNamespace_Timestamp",
@@ -5253,6 +5255,8 @@ export const schema = {
 				"supplyApy": { label: "Supply APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"borrowApy": { label: "Borrow APY", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"liquidationThreshold": { label: "Liquidation threshold", description: "The current reserve collateral liquidation threshold reported by Aave.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"maxLtv": { label: "Max LTV", description: "The current reserve maximum loan-to-value ratio reported by Aave.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
+				"liquidationBonus": { label: "Liquidation bonus", description: "The current reserve liquidation bonus reported by Aave.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString", defaultSources: [Source.Aave_Rest] },
 				"frozen": { label: "Frozen", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Aave_Rest] },
 				"paused": { label: "Paused", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "boolean", defaultSources: [Source.Aave_Rest] },
 			})({
@@ -5272,7 +5276,7 @@ export const schema = {
 						content: {
 							dl: [
 								["$market", { field: "underlyingTokenAddress", format: "address" }, "symbol", "name", "imageUrl", "decimals"],
-								["totalSupplied", "availableLiquidity", "supplyApy", "borrowApy", "liquidationThreshold", "frozen", "paused"],
+								["totalSupplied", "availableLiquidity", "supplyApy", "borrowApy", "liquidationThreshold", "maxLtv", "liquidationBonus", "frozen", "paused"],
 							],
 						},
 					},
@@ -23110,15 +23114,13 @@ export const schema = {
 				"commitment": { label: "commitment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"dataHash": { label: "data hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"shareVersion": { label: "share version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
-				"index": { label: "index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.CelestiaNode] },
 				"sizeBytes": { label: "size bytes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint", defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
-				"signer": { label: "signer", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Celenium_Rest] },
-				"txHash": { label: "Transaction hash", description: "The transaction hash in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Celenium_Rest] },
 				"$block": { label: "block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.CelestiaBlock, defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
 				"proof": { label: "proof", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "unknown", defaultSources: [Source.CelestiaNode] },
 				"shareProofAvailable": { label: "share proof available", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.CelestiaNode] },
 				"blobData": { label: "blob data", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.CelestiaNode] },
 				"payloadRequested": { label: "payload requested", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.CelestiaNode] },
+				"$$occurrences": { label: "blob occurrences", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlobOccurrence, defaultSources: [Source.CelestiaNode] },
 			})({
 				selectors: {
 					"NamespaceHeightCommitment": ["$namespace", "height", "commitment"],
@@ -23133,8 +23135,8 @@ export const schema = {
 						content: {
 							dl: [
 								["$namespace", { field: "height", format: "numberValue" }, { field: "commitment", format: "truncated" }],
-								["dataHash", { field: "shareVersion", format: "number" }, { field: "index", format: "number" }, { field: "sizeBytes", format: "numberValue" }],
-								["signer", { field: "txHash", format: "truncated" }, "$block", "shareProofAvailable", "payloadRequested"],
+								["dataHash", { field: "shareVersion", format: "number" }, { field: "sizeBytes", format: "numberValue" }],
+								["$block", "shareProofAvailable", "payloadRequested"],
 							],
 							body: {
 								field: "blobData",
@@ -23142,9 +23144,78 @@ export const schema = {
 								emptyText: "No blob data available.",
 							},
 						},
+						lists: [
+							{ field: "$$occurrences", component: "CelestiaBlobOccurrencesView", emptyText: "No blob occurrences found.", selection: { sources: [Source.CelestiaNode] } },
+						],
 					},
 					plural: { component: "CelestiaBlobsView",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.CelestiaBlobOccurrence,
+				labels: {
+					singular: "celestia blob occurrence",
+					plural: "celestia blob occurrences",
+				},
+			})({
+				"$block": { label: "block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CelestiaBlock, defaultSources: [Source.CelestiaNode] },
+				"index": { label: "EDS share index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeInteger", defaultSources: [Source.CelestiaNode] },
+				"$namespace": { label: "Namespace", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CelestiaNamespace, defaultSources: [Source.CelestiaNode] },
+				"height": { label: "Height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "NonNegativeBigInt", defaultSources: [Source.CelestiaNode] },
+				"$blob": { label: "blob content", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CelestiaBlob, defaultSources: [Source.CelestiaNode] },
+			})({
+				selectors: {
+					"BlockIndex": ["$block", "index"],
+					"NamespaceHeightIndex": ["$namespace", "height", "index"],
+				},
+				views: {
+					singular: {
+						summary: {
+							serial: { field: "index", label: "Blob occurrence" },
+							HeadingAfter: ["$block"],
+						},
+						content: {
+							dl: [
+								["$block", { field: "index", format: "number" }, "$namespace", { field: "height", format: "numberValue" }],
+								["$blob"],
+							],
+						},
+					},
+					plural: { component: "CelestiaBlobOccurrencesView", title: "Celestia blob occurrences" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.CelestiaBlobSubmission,
+				labels: {
+					singular: "celestia blob submission",
+					plural: "celestia blob submissions",
+				},
+			})({
+				"$blob": { label: "blob content", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CelestiaBlob },
+				"txHash": { label: "transaction hash", description: "The transaction hash in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$transaction": { label: "transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.CosmosTransaction },
+				"$$submitters": { label: "PFB submitters", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CosmosAccount, defaultSources: [Source.Celenium_Rest] },
+			})({
+				selectors: {
+					"BlobTransaction": ["$blob", "txHash"],
+				},
+				views: {
+					singular: {
+						summary: {
+							title: [{ field: "txHash", format: "truncated" }],
+							HeadingAfter: ["$blob"],
+						},
+						content: {
+							dl: [
+								["$blob", { field: "txHash", format: "truncated" }, "$transaction"],
+							],
+							lists: [{ field: "$$submitters", component: "CosmosAccountsView", emptyText: "No PFB submitters found." }],
+						},
+					},
+					plural: { component: "CelestiaBlobSubmissionsView", title: "Celestia blob submissions" },
 				},
 			}),
 
@@ -23285,6 +23356,7 @@ export const schema = {
 				"$$blocks": { label: "blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlock, defaultSources: [Source.Celenium_Rest, Source.CelestiaNode] },
 				"$$namespaces": { label: "namespaces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaNamespace, defaultSources: [Source.Celenium_Rest] },
 				"$$blobs": { label: "blobs", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlob, defaultSources: [Source.Celenium_Rest] },
+				"$$blobSubmissions": { label: "blob submissions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.CelestiaBlobSubmission, defaultSources: [Source.Celenium_Rest] },
 			})({
 				selectors: {
 					"Network": ["$network"],
@@ -23316,6 +23388,7 @@ export const schema = {
 								sections: [
 									{ id: "celestia-namespaces", field: "$$namespaces", List: "CelestiaNamespacesView", label: "Namespaces", emptyText: "No namespaces found." },
 									{ id: "celestia-blobs", field: "$$blobs", List: "CelestiaBlobsView", label: "Blobs", emptyText: "No blobs found." },
+									{ id: "celestia-blob-submissions", field: "$$blobSubmissions", List: "CelestiaBlobSubmissionsView", label: "Blob submissions", emptyText: "No blob submissions found." },
 								],
 							},
 						],
@@ -53450,7 +53523,7 @@ export const schema = {
 				},
 			})({
 				"feedUrl": { label: "Feed URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
-				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.Local_Internal] },
 				"description": { label: "Description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"siteUrl": { label: "Site URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"language": { label: "Language", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -53512,7 +53585,7 @@ export const schema = {
 							],
 						},
 					},
-					plural: { component: "RssFeedsView" },
+					plural: { component: "RssFeedsView", query: { sources: [Source.Constants_Internal, Source.Local_Internal], fields: ["title"] }, row: { title: ["title", "feedUrl"], value: ["feedUrl"] } },
 				},
 			}),
 
@@ -53573,9 +53646,11 @@ export const schema = {
 				"publishedAt": { label: "Published", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"updatedAt": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				"categories": { label: "Categories", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "stringArray" },
-				"enclosureUrl": { label: "Enclosure URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
+				"$enclosure": { label: "Enclosure", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media },
 				"commentsUrl": { label: "Comments URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 				"$feed": { label: "Feed", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.RssFeed },
+				"isRead": { label: "Read", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Local_Internal] },
+				"isStarred": { label: "Starred", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.Local_Internal] },
 				"$$timestamps": { label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.RssItem_Timestamp },
 			})({
 				selectors: {
@@ -53583,10 +53658,13 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						imports: [
+							{ from: "$/views/RssItemStateControl.svelte", default: "RssItemStateControl" },
+						],
 						query: {
 							sources: [Source.Rss_Rest, Source.Rss2Json_Rest],
 							fields: ["title", "link", "publishedAt"],
-							openFields: ["description", "content", "author", "updatedAt", "categories", "enclosureUrl", "commentsUrl"],
+							openFields: ["description", "content", "author", "updatedAt", "categories", "commentsUrl"],
 						},
 						summary: {
 							title: [{ field: "title" }, { field: "itemIdentity" }],
@@ -53605,8 +53683,22 @@ export const schema = {
 								[{ field: "link", format: "url" }],
 								[{ field: "publishedAt", format: "timestamp" }],
 								[{ field: "updatedAt", format: "timestamp" }],
-								[{ field: "enclosureUrl", format: "url" }],
+								[{ field: "$enclosure" }],
 								[{ field: "commentsUrl", format: "url" }],
+							],
+							blocks: [
+								[
+									{
+										kind: _ViewItemKind.Block,
+										id: "rss-item-state",
+										Content: {
+											...dedent `
+											<RssItemStateControl {selection} />
+											`,
+											references: ["selection"],
+										},
+									},
+								],
 							],
 							lists: [
 								{
@@ -53684,7 +53776,7 @@ export const schema = {
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.RssFeed,
-					defaultSources: [Source.Constants_Internal],
+					defaultSources: [Source.Constants_Internal, Source.Local_Internal],
 				},
 			})({
 				selectors: {
@@ -53692,6 +53784,9 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						imports: [
+							{ from: "$/views/RssSubscriptionControl.svelte", default: "RssSubscriptionControl" },
+						],
 						query: {
 							sources: [Source.Constants_Internal],
 							fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
@@ -53707,6 +53802,20 @@ export const schema = {
 								[{ field: "docsUrl", format: "url" }],
 								[{ field: "registryName" }],
 								[{ field: "relationshipModel" }],
+							],
+							blocks: [
+								[
+									{
+										kind: _ViewItemKind.Block,
+										id: "rss-subscriptions",
+										Content: {
+											...dedent `
+											<RssSubscriptionControl {selection} />
+											`,
+											references: ["selection"],
+										},
+									},
+								],
 							],
 						},
 						carousels: [
@@ -54117,6 +54226,9 @@ export const schema = {
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network, defaultSources: [Source.SnapshotHub_Graphql] },
 				"$authorAccount": { label: "Author account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.SnapshotHub_Graphql] },
 				"author": { label: "Author", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"ipfs": { label: "IPFS ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"strategies": { label: "Strategies", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "SnapshotHubAny", defaultSources: [Source.SnapshotHub_Graphql] },
 				"title": { label: "Title", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"body": { label: "Body", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"discussion": { label: "Discussion", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
@@ -54129,9 +54241,16 @@ export const schema = {
 				"createdAtMs": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
 				"updatedAtMs": { label: "Updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
 				"quorum": { label: "Quorum", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"quorumType": { label: "Quorum type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"privacy": { label: "Privacy", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"snapshotBlock": { label: "Snapshot block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
 				"votesCount": { label: "Votes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
 				"scores": { label: "Scores", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "numberArray", defaultSources: [Source.SnapshotHub_Graphql] },
+				"scoresByStrategy": { label: "Scores by strategy", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "SnapshotHubAny", defaultSources: [Source.SnapshotHub_Graphql] },
+				"scoresState": { label: "Scores state", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"scoresTotal": { label: "Scores total", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"scoresTotalValue": { label: "Scores total value", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"scoresUpdatedAtMs": { label: "Scores updated", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
 				"link": { label: "Link", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"app": { label: "App", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"$$votes": { label: "Votes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SnapshotVote, defaultSources: [Source.SnapshotHub_Graphql] },
@@ -54152,8 +54271,8 @@ export const schema = {
 						content: {
 							dl: [
 								["$space", "$network", "state", "type", "author", "$authorAccount"],
-								[{ field: "startAtMs", format: "timestamp" }, { field: "endAtMs", format: "timestamp" }, { field: "createdAtMs", format: "timestamp" }, { field: "updatedAtMs", format: "timestamp" }, "quorum", "votesCount", "scoresTotal"],
-								["choices", "labels", { field: "link", format: "url" }, "app", { field: "proposalId", format: "truncated" }],
+								[{ field: "startAtMs", format: "timestamp" }, { field: "endAtMs", format: "timestamp" }, { field: "createdAtMs", format: "timestamp" }, { field: "updatedAtMs", format: "timestamp" }, "quorum", "quorumType", "privacy", "snapshotBlock", "votesCount", "scoresTotal", "scoresTotalValue", { field: "scoresUpdatedAtMs", format: "timestamp" }],
+								["choices", "labels", "strategies", "scores", "scoresByStrategy", "scoresState", { field: "link", format: "url" }, "app", "ipfs", "symbol", { field: "proposalId", format: "truncated" }],
 							],
 							body: {
 								field: "body",
@@ -54183,10 +54302,31 @@ export const schema = {
 				"$avatar": { label: "Avatar", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Media, defaultSources: [Source.SnapshotHub_Graphql] },
 				"symbol": { label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
 				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network, defaultSources: [Source.SnapshotHub_Graphql] },
+				"cover": { label: "Cover", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"website": { label: "Website", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"twitter": { label: "Twitter", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"github": { label: "GitHub", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"farcaster": { label: "Farcaster", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"coingecko": { label: "CoinGecko", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"discussions": { label: "Discussions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"terms": { label: "Terms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"location": { label: "Location", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"domain": { label: "Domain", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"private": { label: "Private", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean", defaultSources: [Source.SnapshotHub_Graphql] },
+				"strategies": { label: "Strategies", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "SnapshotHubAny", defaultSources: [Source.SnapshotHub_Graphql] },
+				"categories": { label: "Categories", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "stringArray", defaultSources: [Source.SnapshotHub_Graphql] },
+				"delegationType": { label: "Delegation type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"delegationContract": { label: "Delegation contract", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"delegationNetwork": { label: "Delegation network", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"delegationApi": { label: "Delegation API", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string", defaultSources: [Source.SnapshotHub_Graphql] },
+				"treasuries": { label: "Treasuries", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "SnapshotHubAny", defaultSources: [Source.SnapshotHub_Graphql] },
 				"proposalsCount": { label: "Proposals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
 				"votesCount": { label: "Votes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
 				"followersCount": { label: "Followers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
 				"createdAtMs": { label: "Created", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number", defaultSources: [Source.SnapshotHub_Graphql] },
+				"$$admins": { label: "Admins", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.SnapshotHub_Graphql] },
+				"$$members": { label: "Members", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.SnapshotHub_Graphql] },
+				"$$moderators": { label: "Moderators", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkAccount, defaultSources: [Source.SnapshotHub_Graphql] },
 				"$$proposals": { label: "Proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SnapshotProposal, defaultSources: [Source.SnapshotHub_Graphql] },
 			})({
 				selectors: {
@@ -54206,10 +54346,15 @@ export const schema = {
 						content: {
 							dl: [
 								["spaceId", "name", "symbol", "$network", "proposalsCount", "votesCount", "followersCount", "createdAtMs"],
+								["cover", { field: "website", format: "url" }, "twitter", "github", "farcaster", "coingecko", { field: "discussions", format: "url" }, { field: "terms", format: "url" }, "location", "domain", "private", "categories"],
+								["strategies", "delegationType", "delegationContract", "delegationNetwork", { field: "delegationApi", format: "url" }, "treasuries"],
 								[{ field: "about", when: "open", format: "longText" }],
 							],
 						},
 						lists: [
+							{ field: "$$admins", component: "EvmNetworkAccountsView", label: "Admins", emptyText: "No admin accounts." },
+							{ field: "$$members", component: "EvmNetworkAccountsView", label: "Members", emptyText: "No member accounts." },
+							{ field: "$$moderators", component: "EvmNetworkAccountsView", label: "Moderators", emptyText: "No moderator accounts." },
 							{ field: "$$proposals", component: "SnapshotProposalsView", label: "Proposals", emptyText: "No proposals in this space." },
 						],
 					},
@@ -83955,6 +84100,23 @@ export const routes = defineRoutes(schema)({
 																				projection: { entityType: EntityType.Network, facetPath: ["Celestia"] }
 																			},
 																		}
+																	},
+																	children: {
+																		"occurrence": {
+																			children: {
+																				"[index]": {
+																					params: { "index": ["NonNegativeInteger"] },
+																					selectors: {
+																						[EntityType.CelestiaBlobOccurrence]: {
+																							"BlockIndex": {
+																								derivations: { "index": { kind: "param", name: "index" } },
+																								page: {},
+																							}
+																						}
+																					}
+																				}
+																			}
+																		}
 																	}
 																}
 															},
@@ -84025,6 +84187,42 @@ export const routes = defineRoutes(schema)({
 																								[EntityType.CelestiaBlob]: {
 																									"NamespaceHeightCommitment": {
 																										params: { "height": ["height"], "commitment": ["commitment"] },
+																										page: {},
+																										when: { path: ["namespace"], is: "Celestia" },
+																										projection: { entityType: EntityType.Network, facetPath: ["Celestia"] },
+																									}
+																								}
+																							},
+																							children: {
+																								"submission": {
+																									children: {
+																										"[txHash]": {
+																											selectors: {
+																												[EntityType.CelestiaBlobSubmission]: {
+																													"BlobTransaction": {
+																														params: { "txHash": ["txHash"] },
+																														page: {},
+																													}
+																												}
+																											}
+																										}
+																									}
+																								}
+																							}
+																						}
+																					}
+																				}
+																			}
+																		},
+																		"occurrence": {
+																			children: {
+																				"[height]": {
+																					children: {
+																						"[index]": {
+																							selectors: {
+																								[EntityType.CelestiaBlobOccurrence]: {
+																									"NamespaceHeightIndex": {
+																										params: { "height": ["height"], "index": ["index"] },
 																										page: {},
 																										when: { path: ["namespace"], is: "Celestia" },
 																										projection: { entityType: EntityType.Network, facetPath: ["Celestia"] },
@@ -115458,6 +115656,10 @@ export const app = {
 			{
 				source: Source.Aave_Rest,
 				path: "src/resolvers/Aave-Rest.ts",
+			},
+			{
+				source: Source.AcpLocal_JsonRpc,
+				path: "src/resolvers/AcpLocal-JsonRpc.ts",
 			},
 			{
 				source: Source.AcpRegistry_Rest,

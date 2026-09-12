@@ -21,6 +21,9 @@ export default entity({
 	title: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Local_Internal,
+		],
 	},
 	description: {
 		primitiveType: type('string'),

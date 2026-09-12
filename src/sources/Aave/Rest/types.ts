@@ -45,8 +45,8 @@ type AaveCurrencyWire = {
 
 /**
  * Reserve wire from AaveKit `market { reserves { … } }`.
- * Enrolled projections use underlying / size / supply+borrow APY / liquidity / freeze flags.
- * Richer supply/borrow / aToken / oracle surfaces stay transport-only until APP enrolls them.
+ * Enrolled projections use underlying / size / supply+borrow APY / liquidity / freeze flags
+ * plus max LTV, liquidation threshold, and liquidation bonus.
  */
 type AaveIsolationModeConfigWire = {
 	canBeCollateral: boolean

@@ -9,6 +9,7 @@ import {
 import {
 	discoverPathnamesFromRoutes,
 	pathnameFromRouteFixture,
+	routeFixtureParamsFromPathname,
 	routeProbeCaseParams,
 	routeProbeCasesForMapping,
 } from '../../tests/e2e/_routeDiscovery.ts'
@@ -25,6 +26,21 @@ test('route probe atom values exactly cover every generated atom', () => {
 			))
 		)))].sort(),
 		Object.keys(atomValues).sort()
+	)
+})
+
+test('keeps generated fixture variant identities distinct within a mapping', () => {
+	assert.deepEqual(
+		routeProbeCasesForMapping({
+			id: 'fixture',
+			probeCaseId: 'path',
+			probeAtomPrefixes: ['fixture'],
+			probeCases: [
+				[[0, '1', ['value']]],
+				[[0, '2', ['value']]],
+			],
+		}).map(({ id }) => id),
+		['path', 'variant-2']
 	)
 })
 
@@ -70,25 +86,76 @@ test('completes global discovery including IPFS and Swarm selector path variants
 	)
 })
 
-test('discovers every generated fixture variant by default', async () => {
-	const discovered = new Set(await discoverPathnamesFromRoutes())
-	const generatedPathnames = Object.values(e2eRouteFixtureMetadataByNodeId).flatMap((metadata) => (
-		metadata.mappings.flatMap((mapping) => (
-			routeProbeCasesForMapping(mapping).map((probeCase) => (
-				pathnameFromRouteFixture(metadata, Object.fromEntries(
-					Object.entries(routeProbeCaseParams(probeCase)).map(([param, atom]) => [
-						param,
-						e2eRouteProbeAtomValueById[atom],
-					])
-				))
-			))
-		))
-	))
+const metadataForMapping = (nodeId: keyof typeof e2eRouteFixtureMetadataByNodeId, mappingId: string) => {
+	const metadata = e2eRouteFixtureMetadataByNodeId[nodeId]
+	assert.ok(metadata, mappingId)
+	const mapping = metadata.mappings.find(({ id }) => id === mappingId)
+	assert.ok(mapping, mappingId)
+	return { mapping, metadata }
+}
 
-	assert.ok(generatedPathnames.length > 0)
-	assert.deepEqual(
-		generatedPathnames.filter((pathname) => !discovered.has(pathname)),
-		[]
+const paramsForProbeCase = (probeCase: { atoms: readonly string[] }) => {
+	const atomValues: Record<string, string> = { ...e2eRouteProbeAtomValueById }
+	return Object.fromEntries(Object.entries(routeProbeCaseParams(probeCase)).map(([param, atom]) => {
+		const value = atomValues[atom]
+		assert.ok(value, atom)
+		return [param, value]
+	}))
+}
+
+test('round-trips representative selector shapes through public path matching', () => {
+	const classes = [
+		['nested composite ancestors', '/(explore)/(networks)/network/[network]/(blocks)/block/[blockNumber]/[hash]/event/[eventIndex]', 'PolkadotEvent.BlockIndexInBlock'],
+		['opaque absolute URL segments', '/(agents)/agents/a2a/card/[agentCardUrl]/service/[protocolBinding]/[endpointUrl]', 'A2aAgentService.CardProtocolBindingEndpointUrl'],
+		['rest path segments', '/(explore)/(ipfs)/[namespace]/[target]/path/[...contentPath]', 'IpfsResource.ResourceAddress'],
+		['projection-owned route', '/(explore)/(networks)/network/[network]/(contracts)/contract/[address]', 'EvmContract.EvmNetworkAddress'],
+		['canonicalizing ingress alias', '/(social)/(atproto)/atproto/actor/handle/[handle]', 'AtprotoActor.Handle'],
+		['suppressed UTXO height href', '/(explore)/(networks)/network/[network]/(blocks)/block/[blockNumber]', 'UtxoBlock.NetworkHeight'],
+	] as const
+
+	for (const [label, nodeId, mappingId] of classes) {
+		const { mapping, metadata } = metadataForMapping(nodeId, mappingId)
+		const probeCase = routeProbeCasesForMapping(mapping)[0]
+		assert.ok(probeCase, label)
+		const params = paramsForProbeCase(probeCase)
+		const pathname = pathnameFromRouteFixture(metadata, params)
+
+		assert.deepEqual(routeFixtureParamsFromPathname(metadata, pathname), params, label)
+	}
+})
+
+test('keeps repeated public route mappings reconstructible without conflating selectors', () => {
+	const sharedRouteMetadata = [
+		e2eRouteFixtureMetadataByNodeId['/(explore)/(networks)/network/[network]/(blocks)/block/[blockNumber]'],
+		e2eRouteFixtureMetadataByNodeId['/(explore)/(networks)/network/[network]/(transactions)/tx/[transactionId]'],
+	]
+
+	for (const metadata of sharedRouteMetadata) {
+		assert.ok(metadata)
+		assert.equal(new Set(metadata.mappings.map(({ id }) => id)).size, metadata.mappings.length)
+		for (const mapping of metadata.mappings) {
+			const probeCase = routeProbeCasesForMapping(mapping)[0]
+			assert.ok(probeCase, mapping.id)
+			const params = paramsForProbeCase(probeCase)
+
+			assert.deepEqual(
+				routeFixtureParamsFromPathname(metadata, pathnameFromRouteFixture(metadata, params)),
+				params,
+				mapping.id
+			)
+		}
+	}
+})
+
+test('rejects path values after a matcher discriminator is weakened or changed', () => {
+	const metadata = structuredClone(
+		e2eRouteFixtureMetadataByNodeId['/(social)/(atproto)/atproto/actor/handle/[handle]']
+	)
+	metadata.routeId = metadata.routeId.replace('stringSegment', 'nonNegativeInteger')
+
+	assert.throws(
+		() => routeFixtureParamsFromPathname(metadata, '/atproto/actor/handle/journeyfixture.test'),
+		/invalid route parameter handle/
 	)
 })
 

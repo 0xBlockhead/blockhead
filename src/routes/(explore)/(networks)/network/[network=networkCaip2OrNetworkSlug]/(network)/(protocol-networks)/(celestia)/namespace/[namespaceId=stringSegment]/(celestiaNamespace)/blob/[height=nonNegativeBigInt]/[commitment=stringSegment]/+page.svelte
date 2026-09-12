@@ -14,14 +14,9 @@
 	// State
 	let {
 		data,
-		params,
 	}: PageProps = $props()
 
-	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CelestiaBlob, {
-		$namespace: data.selector,
-		height: BigInt(params.height),
-		commitment: params.commitment,
-	}))
+	const pageSelection = $derived(data?.selector == null ? undefined : select(EntityType.CelestiaBlob, data.selector))
 
 
 	// Components

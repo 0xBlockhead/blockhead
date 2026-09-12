@@ -15733,13 +15733,23 @@ const renderAccountabilityReport = ({
 		row.publicRoute,
 	].join('\t')),
 	'',
-	'Mapped selectors without declared source authority:',
+	'Intentionally non-executable mapped selectors:',
 	...mappedSelectors
-		.filter((row) => row.accountability === MappedSelectorAccountability.SchemaIdentityOnly)
+		.filter((row) => row.accountability === MappedSelectorAccountability.IntentionallyNonExecutable)
 		.map((row) => [
 			row.entityType,
 			row.selectorName,
 			row.route,
+		].join('\t')),
+	'',
+	'Mapped selectors with missing resolver authority:',
+	...mappedSelectors
+		.filter((row) => row.sourcesWithoutResolver.length > 0)
+		.map((row) => [
+			row.entityType,
+			row.selectorName,
+			row.route,
+			row.sourcesWithoutResolver.join(','),
 		].join('\t')),
 ].join('\n')
 

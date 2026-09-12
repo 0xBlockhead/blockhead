@@ -22,6 +22,35 @@ const readRssSnapshot = <_Data>(snapshot: { data: _Data; error?: never } | { dat
 	return snapshot.data
 }
 
+const mediaTypeFromEnclosureType = (
+	enclosureType: string | undefined
+) => {
+	const normalizedType = enclosureType?.split(';', 1)[0]?.trim().toLowerCase()
+	if (normalizedType === 'image' || normalizedType?.startsWith('image/') === true)
+		return MediaType.Image
+	if (normalizedType === 'video' || normalizedType?.startsWith('video/') === true)
+		return MediaType.Video
+	if (normalizedType === 'audio' || normalizedType?.startsWith('audio/') === true)
+		return MediaType.Audio
+	if (normalizedType === 'model' || normalizedType?.startsWith('model/') === true)
+		return MediaType.Model
+	if (
+		normalizedType === 'document'
+		|| normalizedType === 'executable'
+		|| /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/.test(normalizedType ?? '')
+	)
+		return MediaType.Other
+
+	return undefined
+}
+
+const enclosureFromFeedItem = (
+	feedItem: ParsedRssFeed['items'][number]
+) => {
+	const mediaType = mediaTypeFromEnclosureType(feedItem.enclosureType)
+	return mediaType == null ? undefined : mediaFromUrl(feedItem.enclosureUrl, mediaType)
+}
+
 export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_Rest>({
 	loadFeed,
 	source,
@@ -78,6 +107,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 									limit: resolverContextRowLimit(context),
 									items: feed.items
 										.flatMap((feedItem) => {
+											const $enclosure = enclosureFromFeedItem(feedItem)
 											const identity = rssItemIdentityFromParts(feedItem.guid, feedItem.link)
 											const key = (
 												identity == null ?
@@ -120,8 +150,8 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 													...(feedItem.categories != null && feedItem.categories.length > 0 && {
 														[entityFieldAddressKey(EntityType.RssItem, [], 'categories')]: feedItem.categories,
 													}),
-													...(feedItem.enclosureUrl != null && {
-														[entityFieldAddressKey(EntityType.RssItem, [], 'enclosureUrl')]: feedItem.enclosureUrl,
+													...($enclosure != null && {
+														[entityFieldAddressKey(EntityType.RssItem, [], '$enclosure')]: $enclosure,
 													}),
 													...(includesNativeMetadata && feedItem.commentsUrl != null && {
 														[entityFieldAddressKey(EntityType.RssItem, [], 'commentsUrl')]: feedItem.commentsUrl,
@@ -225,6 +255,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 							})
 							if (feedItem == null)
 								throw new Error(`${source}: feed item not found`)
+							const $enclosure = enclosureFromFeedItem(feedItem)
 
 							return {
 								itemIdentityKind,
@@ -245,7 +276,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 									...(feedItem.categories != null && feedItem.categories.length > 0 && {
 										categories: feedItem.categories,
 									}),
-									...(feedItem.enclosureUrl != null && { enclosureUrl: feedItem.enclosureUrl }),
+									...($enclosure != null && { $enclosure }),
 									...(includesNativeMetadata && feedItem.commentsUrl != null && {
 										commentsUrl: feedItem.commentsUrl,
 									}),
@@ -282,7 +313,7 @@ export const rssResolvers = <_Source extends Source.Rss_Rest | Source.Rss2Json_R
 					updatedAt: (snapshot) => readRssSnapshot(snapshot).updatedAt,
 				}),
 				categories: (snapshot) => readRssSnapshot(snapshot).categories,
-				enclosureUrl: (snapshot) => readRssSnapshot(snapshot).enclosureUrl,
+				$enclosure: (snapshot) => readRssSnapshot(snapshot).$enclosure,
 				...(includesNativeMetadata && {
 					commentsUrl: (snapshot) => readRssSnapshot(snapshot).commentsUrl,
 				}),

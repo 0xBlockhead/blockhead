@@ -92,7 +92,14 @@ const normalizeChainId = (
 	value: number | string,
 	name: string
 ) => {
-	const chainId = Number(value)
+	const chainId = (
+		typeof value === 'number' ?
+			value
+		: integerStringPattern.test(value) ?
+			Number(value)
+		:
+			Number.NaN
+	)
 	if (!Number.isSafeInteger(chainId) || chainId < 1)
 		throw new Error(`Across_Rest: invalid ${name}`)
 

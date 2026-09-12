@@ -407,41 +407,56 @@ export default {
 			resolve: {
 				NetworkBlockHash: {
 					appliesTo: kaspaAddressApplicability,
-					resolve: async ({ $network, blockHash }) => {
+					resolve: async ({ $network, blockHash }, context) => {
 						assertKaspaMainnet($network)
 						const { getBlock } = await import('$/sources/KaspaExplorer/Rest/queries.ts')
 						const block = await getBlock({
 							blockId: blockHash,
 							includeTransactions: false,
 						})
-						const parentHashes = block.header.parents
-							.flatMap((parent) => parent.parentHashes)
+						const parentHashes = (block.header.parents ?? [])
+							.flatMap((parent) => parent.parentHashes ?? [])
+						const transactionIds = (
+							block.verboseData.transactionIds
+							?? block.transactions?.map((transaction) => transaction.verboseData.transactionId)
+							?? []
+						)
+						const limit = resolverContextRowLimit(context)
 						return {
-							version: block.header.version,
-							timestampMs: Number(block.header.timestamp),
-							blueScore: BigInt(block.header.blueScore),
-							daaScore: BigInt(block.header.daaScore),
-							bits: block.header.bits,
-							nonce: BigInt(block.header.nonce),
-							hashMerkleRoot: block.header.hashMerkleRoot,
-							acceptedIdMerkleRoot: block.header.acceptedIdMerkleRoot,
-							utxoCommitment: block.header.utxoCommitment,
-							selectedParentHash: block.verboseData.selectedParentHash,
+							...(block.header.version != null && { version: block.header.version }),
+							...(block.header.timestamp != null && { timestampMs: Number(block.header.timestamp) }),
+							...((block.header.blueScore ?? block.verboseData.blueScore) != null && {
+								blueScore: BigInt(block.header.blueScore ?? block.verboseData.blueScore),
+							}),
+							...(block.header.daaScore != null && { daaScore: BigInt(block.header.daaScore) }),
+							...(block.header.bits != null && { bits: block.header.bits }),
+							...(block.header.nonce != null && { nonce: BigInt(block.header.nonce) }),
+							...(block.header.hashMerkleRoot != null && { hashMerkleRoot: block.header.hashMerkleRoot }),
+							...(block.header.acceptedIdMerkleRoot != null && { acceptedIdMerkleRoot: block.header.acceptedIdMerkleRoot }),
+							...(block.header.utxoCommitment != null && { utxoCommitment: block.header.utxoCommitment }),
+							...(block.verboseData.selectedParentHash != null && { selectedParentHash: block.verboseData.selectedParentHash }),
 							...(parentHashes.length > 0 && {
 								parentHashes,
 							}),
 							...(
-								block.verboseData.mergeSetBluesHashes.length > 0
+								block.verboseData.mergeSetBluesHashes != null
+								&& block.verboseData.mergeSetBluesHashes.length > 0
 								&& {
 									mergeSetBlues: block.verboseData.mergeSetBluesHashes,
 								}
 							),
 							...(
-								block.verboseData.mergeSetRedsHashes.length > 0
+								block.verboseData.mergeSetRedsHashes != null
+								&& block.verboseData.mergeSetRedsHashes.length > 0
 								&& {
 									mergeSetReds: block.verboseData.mergeSetRedsHashes,
 								}
 							),
+							acceptedTransactions: transactionIds
+								.slice(0, limit)
+								.map((transactionId, acceptedIndex) => (
+									kaspaAcceptedTransaction($network, blockHash, transactionId, acceptedIndex)
+								)),
 						}
 					},
 				},
@@ -460,6 +475,7 @@ export default {
 			parentHashes: (block) => block.parentHashes,
 			mergeSetBlues: (block) => block.mergeSetBlues,
 			mergeSetReds: (block) => block.mergeSetReds,
+			$$acceptedTransactions: (block) => block.acceptedTransactions,
 		}),
 
 		defineResolver({
@@ -488,6 +504,60 @@ export default {
 			},
 		})({
 			$$blocks: (blocks) => blocks,
+		}),
+
+		defineResolver({
+			entityType: EntityType.KaspaNetwork,
+			resolve: {
+				Network: {
+					appliesTo: kaspaNetworkApplicability,
+					resolve: async (network, context) => {
+						assertKaspaMainnet(network)
+						const limit = resolverContextRowLimit(context)
+						if (limit === 0)
+							return {
+								acceptedTransactions: [],
+								transactions: [],
+							}
+
+						const {
+							getBlock,
+							getBlockdag,
+						} = await import('$/sources/KaspaExplorer/Rest/queries.ts')
+						const blockdag = await getBlockdag()
+						const block = await getBlock({
+							blockId: blockdag.sink,
+							includeTransactions: false,
+						})
+						const acceptingBlockHash = block.verboseData.hash ?? blockdag.sink
+						const transactionIds = (
+							block.verboseData.transactionIds
+							?? block.transactions?.map((transaction) => transaction.verboseData.transactionId)
+							?? []
+						)
+						const limitedTransactionIds = transactionIds.slice(0, limit)
+						const acceptedTransactions = limitedTransactionIds.map((transactionId, acceptedIndex) => (
+							kaspaAcceptedTransaction(network, acceptingBlockHash, transactionId, acceptedIndex)
+						))
+						const transactions = limitedTransactionIds.map((transactionId) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								transactionId,
+							},
+							[EntityMetaKey.Fields]: {
+								[entityFieldAddressKey(EntityType.KaspaTransaction, [], 'blockHashes')]: [acceptingBlockHash],
+							},
+						}))
+						return {
+							acceptedTransactions,
+							transactions,
+						}
+					},
+				},
+			},
+		})({
+			$$acceptedTransactions: (result) => result.acceptedTransactions,
+			$$transactions: (result) => result.transactions,
 		}),
 	],
 } satisfies RegisteredSourceResolverModule

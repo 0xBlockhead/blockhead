@@ -24,7 +24,26 @@ export const tallyProposalStatuses = [
 
 export type TallyProposalStatus = typeof tallyProposalStatuses[number]
 
+export const tallyProposalEventTypes = [
+	'activated',
+	'canceled',
+	'created',
+	'defeated',
+	'drafted',
+	'executed',
+	'expired',
+	'extended',
+	'pendingexecution',
+	'queued',
+	'succeeded',
+	'callexecuted',
+	'crosschainexecuted',
+] as const
+
+export type TallyProposalEventType = typeof tallyProposalEventTypes[number]
+
 const tallyProposalStatusWire = arktype.enumerated(...tallyProposalStatuses)
+const tallyProposalEventTypeWire = arktype.enumerated(...tallyProposalEventTypes)
 
 const tallyIntIdWire = arktype('string | number')
 
@@ -88,10 +107,19 @@ const tallyProposalMetadataWire = arktype({
 	title: 'string',
 	description: 'string',
 	eta: arktype('number.integer >= 0').or(arktype('null')),
+	'previousEnd?': arktype('number.integer >= 0').or(arktype('null')),
+	'timelockId?': tallyNullableString,
 	ipfsHash: tallyNullableString,
 	txHash: tallyNullableString,
 	discourseURL: tallyNullableString,
 	snapshotURL: tallyNullableString,
+})
+
+const tallyProposalEventWire = arktype({
+	type: tallyProposalEventTypeWire,
+	createdAt: arktype('number.integer >= 0'),
+	txHash: tallyNullableString,
+	chainId: 'string',
 })
 
 const tallyProposalGovernorWire = arktype({
@@ -140,6 +168,7 @@ export const tallyProposalWire = arktype({
 	proposer: tallyProposalProposerWire.or(arktype('null')),
 	start: tallyBlockTimestampWire.or(arktype('null')),
 	end: tallyBlockTimestampWire.or(arktype('null')),
+	'events?': tallyProposalEventWire.array().or(arktype('null')),
 	voteStats: tallyVoteStatWire.array().or(arktype('null')),
 	executableCalls: tallyProposalExecutableCallWire.array().or(arktype('null')),
 })
@@ -174,5 +203,6 @@ export const tallyProposalsPageDataWire = arktype({
 
 export type TallyGovernor = typeof tallyGovernorWire.infer
 export type TallyProposal = typeof tallyProposalWire.infer
+export type TallyProposalEvent = typeof tallyProposalEventWire.infer
 export type TallyProposalExecutableCall = NonNullable<TallyProposal['executableCalls']>[number]
 export type TallyPageInfo = typeof tallyPageInfoWire.infer

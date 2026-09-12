@@ -6,6 +6,7 @@
 	import EntitiesList, { type EntityListViewProps } from '$/components/EntitiesList.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -27,11 +28,13 @@
 	bind:open
 	resource={
 		selection({
+			sources: selection.sources ?? [
+				Source.Constants_Internal,
+				Source.Local_Internal,
+			],
 			fields: {
-				$image: true,
 				title: true,
 				feedUrl: true,
-				lastBuildDate: true,
 			},
 		})
 	}
@@ -56,10 +59,6 @@
 
 			{#snippet Value()}
 				{rssFeedSelector.feedUrl}
-			{/snippet}
-
-			{#snippet HeadingAfter()}
-				<span data-text="annotation">{rssFeed.lastBuildDate ?? ''}</span>
 			{/snippet}
 		</EntityView>
 	{/snippet}

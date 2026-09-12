@@ -96,8 +96,14 @@ const ethereumMarket = {
 				apy: {
 					value: '0.03',
 				},
+				maxLTV: {
+					value: '0.8',
+				},
 				liquidationThreshold: {
 					value: '0.825',
+				},
+				liquidationBonus: {
+					value: '0.05',
 				},
 			},
 			borrowInfo: {
@@ -787,6 +793,8 @@ describe('Aave Rest resolver module', () => {
 		expect(aaveReserveResolver.projections.supplyApy(snapshot)).toBe('0.03')
 		expect(aaveReserveResolver.projections.borrowApy(snapshot)).toBe('0.05')
 		expect(aaveReserveResolver.projections.liquidationThreshold(snapshot)).toBe('0.825')
+		expect(aaveReserveResolver.projections.maxLtv(snapshot)).toBe('0.8')
+		expect(aaveReserveResolver.projections.liquidationBonus(snapshot)).toBe('0.05')
 		expect(aaveReserveResolver.projections.frozen(snapshot)).toBe(false)
 		expect(aaveReserveResolver.projections.paused(snapshot)).toBe(false)
 	})

@@ -33,6 +33,7 @@
 	import CelestiaBlocksView from '$/views/CelestiaBlocksView.svelte'
 	import CelestiaNamespacesView from '$/views/CelestiaNamespacesView.svelte'
 	import CelestiaBlobsView from '$/views/CelestiaBlobsView.svelte'
+	import CelestiaBlobSubmissionsView from '$/views/CelestiaBlobSubmissionsView.svelte'
 </script>
 
 
@@ -127,6 +128,10 @@
 						id: 'celestia-blobs',
 						label: 'Blobs',
 					},
+					{
+						id: 'celestia-blob-submissions',
+						label: 'Blob submissions',
+					},
 				]
 			}
 			data-card
@@ -154,6 +159,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No blobs found.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionCelestiaBlobSubmissions({ id, label })}
+				<CelestiaBlobSubmissionsView
+					selection={selection.$$blobSubmissions}
+					collapsible={false}
+					title={label}
+					emptyText='No blob submissions found.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

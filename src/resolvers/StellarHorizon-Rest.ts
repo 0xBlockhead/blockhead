@@ -1,6 +1,7 @@
 import { networkBySlug } from '$/constants/Network.ts'
 import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
+import { defineObservationTimeWriter } from '$/resolvers/observationTimeWriter.ts'
 import {
 	entityFieldAddressKey,
 	EntityMetaKey,
@@ -21,6 +22,55 @@ import type { getLiquidityPool } from '$/sources/StellarHorizon/Rest/queries.ts'
 import { Source } from '$/sources/Source.ts'
 
 type StellarHorizonLiquidityPoolSnapshot = Awaited<ReturnType<typeof getLiquidityPool>>
+
+const stellarAccountTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.StellarAccount_Timestamp,
+	selectorName: 'AccountTimestampMsSource',
+	source: Source.StellarHorizon_Rest,
+	provenance: 'HttpResponse',
+})
+
+const stellarTransactionTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.StellarTransaction_Timestamp,
+	selectorName: 'TransactionTimestampMsSource',
+	source: Source.StellarHorizon_Rest,
+	provenance: 'HttpResponse',
+})
+
+const stellarOfferTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.StellarOffer_Timestamp,
+	selectorName: 'OfferTimestampMsSource',
+	source: Source.StellarHorizon_Rest,
+	provenance: 'HttpResponse',
+})
+
+const stellarClaimableBalanceTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.StellarClaimableBalance_Timestamp,
+	selectorName: 'ClaimableBalanceTimestampMsSource',
+	source: Source.StellarHorizon_Rest,
+	provenance: 'HttpResponse',
+})
+
+const stellarLiquidityPoolTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.StellarLiquidityPool_Timestamp,
+	selectorName: 'LiquidityPoolTimestampMsSource',
+	source: Source.StellarHorizon_Rest,
+	provenance: 'HttpResponse',
+})
+
+const stellarTrustlineTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.StellarTrustline_Timestamp,
+	selectorName: 'TrustlineTimestampMsSource',
+	source: Source.StellarHorizon_Rest,
+	provenance: 'HttpResponse',
+})
+
+const stellarAccountSignerTimestampWriter = defineObservationTimeWriter({
+	entityType: EntityType.StellarAccountSigner_Timestamp,
+	selectorName: 'SignerTimestampMsSource',
+	source: Source.StellarHorizon_Rest,
+	provenance: 'HttpResponse',
+})
 
 const assertStellarPublicNetwork = ($network: {
 	$network: {
@@ -54,24 +104,21 @@ const accountTimestampFromWire = (
 	if (nativeBalances.length !== 1)
 		throw new Error('StellarHorizon_Rest: account must have exactly one native balance')
 
-	return {
-		[EntityMetaKey.Selector]: {
+	return stellarAccountTimestampWriter.write({
 			$account: {
 				$network,
 				accountId: account.account_id,
 			},
 			timestampMs: timestampMsFromWire(account.last_modified_time, 'account modification time'),
 			source: Source.StellarHorizon_Rest,
-		},
-		[EntityMetaKey.Fields]: {
+		}, {
 			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'ledgerSequence')]: BigInt(account.last_modified_ledger),
 			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'sequence')]: account.sequence,
 			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'nativeBalance')]: nativeBalances[0].balance,
 			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'subentryCount')]: account.subentry_count,
 			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'thresholds')]: account.thresholds,
 			[entityFieldAddressKey(EntityType.StellarAccount_Timestamp, [], 'signerCount')]: account.signers.length,
-		},
-	}
+		})
 }
 
 const assetKeyFromIdentity = (
@@ -181,13 +228,11 @@ const transactionTimestampFields = (
 ) => {
 	const timestampMs = timestampMsFromWire(transaction.created_at, 'transaction creation time')
 
-	return {
-		[EntityMetaKey.Selector]: {
+	return stellarTransactionTimestampWriter.write({
 			$transaction: transactionSelector,
 			timestampMs,
 			source: Source.StellarHorizon_Rest,
-		},
-		[EntityMetaKey.Fields]: {
+		}, {
 			[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'ledgerSequence')]: BigInt(transaction.ledger),
 			[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'successful')]: transaction.successful,
 			[entityFieldAddressKey(EntityType.StellarTransaction_Timestamp, [], 'feeCharged')]: BigInt(transaction.fee_charged),
@@ -217,8 +262,7 @@ const transactionTimestampFields = (
 					...transaction.signatures,
 				],
 			}),
-		},
-	}
+		})
 }
 
 const operationIdentityKeys = new Set([
@@ -403,13 +447,11 @@ const offerFields = (
 			[EntityMetaKey.Fields]: assetFields(offer.buying),
 		},
 		...(timestampMs != null && {
-			$$timestamps: [{
-				[EntityMetaKey.Selector]: {
+			$$timestamps: [stellarOfferTimestampWriter.write({
 					$offer: offerSelector,
 					timestampMs,
 					source: Source.StellarHorizon_Rest,
-				},
-				[EntityMetaKey.Fields]: {
+				}, {
 					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'ledgerSequence')]: BigInt(offer.last_modified_ledger),
 					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'amount')]: offer.amount,
 					[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'price')]: offer.price,
@@ -420,8 +462,7 @@ const offerFields = (
 					...(offer.sponsor != null && {
 						[entityFieldAddressKey(EntityType.StellarOffer_Timestamp, [], 'sponsor')]: offer.sponsor,
 					}),
-				},
-			}],
+				})],
 		}),
 	}
 }
@@ -479,13 +520,11 @@ const claimableBalanceFields = (
 	const asset = claimableBalanceAssetIdentity(claimableBalance.asset)
 
 	return {
-		$$timestamps: [{
-			[EntityMetaKey.Selector]: {
+		$$timestamps: [stellarClaimableBalanceTimestampWriter.write({
 				$claimableBalance: claimableBalanceSelector,
 				timestampMs,
 				source: Source.StellarHorizon_Rest,
-			},
-			[EntityMetaKey.Fields]: {
+			}, {
 				[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'ledgerSequence')]: BigInt(claimableBalance.last_modified_ledger),
 				[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], '$asset')]: {
 					[EntityMetaKey.Selector]: assetSelector($network, asset),
@@ -496,8 +535,7 @@ const claimableBalanceFields = (
 				...(claimableBalance.sponsor != null && {
 					[entityFieldAddressKey(EntityType.StellarClaimableBalance_Timestamp, [], 'sponsor')]: claimableBalance.sponsor,
 				}),
-			},
-		}],
+			})],
 	}
 }
 
@@ -676,20 +714,17 @@ const liquidityPoolFields = (
 				}),
 			},
 		},
-		$$timestamps: [{
-			[EntityMetaKey.Selector]: {
+		$$timestamps: [stellarLiquidityPoolTimestampWriter.write({
 				$liquidityPool: liquidityPoolSelector,
 				timestampMs: liquidityPool.timestampMs,
 				source: Source.StellarHorizon_Rest,
-			},
-			[EntityMetaKey.Fields]: {
+			}, {
 				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'ledgerSequence')]: liquidityPool.ledgerSequence,
 				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'reserveA')]: liquidityPool.reserveA.amount,
 				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'reserveB')]: liquidityPool.reserveB.amount,
 				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'totalShares')]: liquidityPool.totalShares,
 				[entityFieldAddressKey(EntityType.StellarLiquidityPool_Timestamp, [], 'accounts')]: liquidityPool.accounts,
-			},
-		}],
+			})],
 	}
 }
 
@@ -852,13 +887,11 @@ export default {
 											}),
 										},
 									},
-									[entityFieldAddressKey(EntityType.StellarTrustline, [], '$$timestamps')]: [{
-										[EntityMetaKey.Selector]: {
-											$trustline: trustlineSelector,
-											timestampMs,
-											source: Source.StellarHorizon_Rest,
-										},
-										[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.StellarTrustline, [], '$$timestamps')]: [stellarTrustlineTimestampWriter.write({
+							$trustline: trustlineSelector,
+							timestampMs,
+							source: Source.StellarHorizon_Rest,
+						}, {
 											[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'balance')]: balance.balance,
 											...(balance.limit != null && {
 												[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'limit')]: balance.limit,
@@ -881,8 +914,7 @@ export default {
 											...(balance.is_clawback_enabled != null && {
 												[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'clawbackEnabled')]: balance.is_clawback_enabled,
 											}),
-										},
-									}],
+						})],
 								},
 							}]
 						})
@@ -916,21 +948,18 @@ export default {
 							return {
 								[EntityMetaKey.Selector]: signerSelector,
 								[EntityMetaKey.Fields]: {
-									[entityFieldAddressKey(EntityType.StellarAccountSigner, [], '$$timestamps')]: [{
-										[EntityMetaKey.Selector]: {
-											$signer: signerSelector,
-											timestampMs,
-											source: Source.StellarHorizon_Rest,
-										},
-										[EntityMetaKey.Fields]: {
+					[entityFieldAddressKey(EntityType.StellarAccountSigner, [], '$$timestamps')]: [stellarAccountSignerTimestampWriter.write({
+							$signer: signerSelector,
+							timestampMs,
+							source: Source.StellarHorizon_Rest,
+						}, {
 											[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'ledgerSequence')]: BigInt(snapshot.last_modified_ledger),
 											[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'weight')]: signer.weight,
 											[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'active')]: true,
 											...(signer.sponsor != null && {
 												[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'sponsor')]: signer.sponsor,
 											}),
-										},
-									}],
+						})],
 								},
 							}
 						})
@@ -1881,13 +1910,11 @@ export default {
 								[EntityMetaKey.Selector]: trustline.$asset,
 								[EntityMetaKey.Fields]: assetFields(balance),
 							},
-							$$timestamps: [{
-								[EntityMetaKey.Selector]: {
-									$trustline: trustline,
-									timestampMs: timestampMsFromWire(accountSnapshot.last_modified_time, 'account modification time'),
-									source: Source.StellarHorizon_Rest,
-								},
-								[EntityMetaKey.Fields]: {
+			$$timestamps: [stellarTrustlineTimestampWriter.write({
+					$trustline: trustline,
+					timestampMs: timestampMsFromWire(accountSnapshot.last_modified_time, 'account modification time'),
+					source: Source.StellarHorizon_Rest,
+				}, {
 									[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'balance')]: balance.balance,
 									...(balance.limit != null && {
 										[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'limit')]: balance.limit,
@@ -1910,8 +1937,7 @@ export default {
 									...(balance.is_clawback_enabled != null && {
 										[entityFieldAddressKey(EntityType.StellarTrustline_Timestamp, [], 'clawbackEnabled')]: balance.is_clawback_enabled,
 									}),
-								},
-							}],
+				})],
 						}
 					},
 				},
@@ -1937,21 +1963,18 @@ export default {
 							throw new Error('StellarHorizon_Rest: account signer not found')
 
 						const signer = signers[0]
-						return [{
-							[EntityMetaKey.Selector]: {
-								$signer: signerSelector,
-								timestampMs: timestampMsFromWire(accountSnapshot.last_modified_time, 'account modification time'),
-								source: Source.StellarHorizon_Rest,
-							},
-							[EntityMetaKey.Fields]: {
+				return [stellarAccountSignerTimestampWriter.write({
+						$signer: signerSelector,
+						timestampMs: timestampMsFromWire(accountSnapshot.last_modified_time, 'account modification time'),
+						source: Source.StellarHorizon_Rest,
+					}, {
 								[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'ledgerSequence')]: BigInt(accountSnapshot.last_modified_ledger),
 								[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'weight')]: signer.weight,
 								[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'active')]: true,
 								...(signer.sponsor != null && {
 									[entityFieldAddressKey(EntityType.StellarAccountSigner_Timestamp, [], 'sponsor')]: signer.sponsor,
 								}),
-							},
-						}]
+					})]
 					},
 				},
 			},

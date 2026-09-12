@@ -179,32 +179,62 @@ export const snapshotSpaceFields = (
 				.map(strategyFields)
 			?? []
 		),
-		...(
-			$network != null
-			&& {
-				$$admins: (
+		$$admins: (
+			$network == null ?
+				[]
+			:
+				(
 					space.admins
 						?.filter((admin) => admin != null && isEvmAddress(admin))
 						.map((admin) => evmNetworkAccount($network, admin))
 					?? []
-				),
-				$$members: (
+				)
+		),
+		$$members: (
+			$network == null ?
+				[]
+			:
+				(
 					space.members
 						?.filter((member) => member != null && isEvmAddress(member))
 						.map((member) => evmNetworkAccount($network, member))
 					?? []
-				),
-				$$moderators: (
+				)
+		),
+		$$moderators: (
+			$network == null ?
+				[]
+			:
+				(
 					space.moderators
 						?.filter((moderator) => moderator != null && isEvmAddress(moderator))
 						.map((moderator) => evmNetworkAccount($network, moderator))
 					?? []
-				),
-			}
+				)
 		),
 		...(space.categories != null && {
 			categories: space.categories.filter((category) => category != null),
 		}),
+		...(space.delegationPortal != null && {
+			delegationType: space.delegationPortal.delegationType,
+			delegationContract: space.delegationPortal.delegationContract,
+			delegationNetwork: space.delegationPortal.delegationNetwork,
+			delegationApi: space.delegationPortal.delegationApi,
+		}),
+		treasuries: (
+			space.treasuries
+				?.filter((treasury) => treasury != null)
+				.map((treasury) => ({
+					...(treasury.name != null && {
+						name: treasury.name,
+					}),
+					address: treasury.address,
+					...(treasury.network != null && {
+						network: treasury.network,
+					}),
+				}))
+			?? []
+		),
 		...(space.proposalsCount != null && {
 			proposalsCount: space.proposalsCount,
 		}),
@@ -392,6 +422,23 @@ export const resolveSnapshotSpaces = async (
 				...(fields.$network != null && {
 					[entityFieldAddressKey(EntityType.SnapshotSpace, [], '$network')]: fields.$network,
 				}),
+				[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'strategies')]: fields.strategies,
+				[entityFieldAddressKey(EntityType.SnapshotSpace, [], '$$admins')]: fields.$$admins,
+				[entityFieldAddressKey(EntityType.SnapshotSpace, [], '$$members')]: fields.$$members,
+				[entityFieldAddressKey(EntityType.SnapshotSpace, [], '$$moderators')]: fields.$$moderators,
+				[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'treasuries')]: fields.treasuries,
+				...(fields.delegationType != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'delegationType')]: fields.delegationType,
+				}),
+				...(fields.delegationContract != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'delegationContract')]: fields.delegationContract,
+				}),
+				...(fields.delegationNetwork != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'delegationNetwork')]: fields.delegationNetwork,
+				}),
+				...(fields.delegationApi != null && {
+					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'delegationApi')]: fields.delegationApi,
+				}),
 				...(fields.proposalsCount != null && {
 					[entityFieldAddressKey(EntityType.SnapshotSpace, [], 'proposalsCount')]: fields.proposalsCount,
 				}),
@@ -460,6 +507,7 @@ export const resolveSnapshotProposals = async ({
 				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'state')]: fields.state,
 				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'choices')]: fields.choices,
 				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'labels')]: fields.labels,
+				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'strategies')]: fields.strategies,
 				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'startAtMs')]: fields.startAtMs,
 				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'endAtMs')]: fields.endAtMs,
 				[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'createdAtMs')]: fields.createdAtMs,
@@ -475,6 +523,33 @@ export const resolveSnapshotProposals = async ({
 				}),
 				...(fields.scoresTotal != null && {
 					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'scoresTotal')]: fields.scoresTotal,
+				}),
+				...(fields.scoresByStrategy != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'scoresByStrategy')]: fields.scoresByStrategy,
+				}),
+				...(fields.scoresState != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'scoresState')]: fields.scoresState,
+				}),
+				...(fields.scoresTotalValue != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'scoresTotalValue')]: fields.scoresTotalValue,
+				}),
+				...(fields.scoresUpdatedAtMs != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'scoresUpdatedAtMs')]: fields.scoresUpdatedAtMs,
+				}),
+				...(fields.quorumType != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'quorumType')]: fields.quorumType,
+				}),
+				...(fields.privacy != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'privacy')]: fields.privacy,
+				}),
+				...(fields.snapshotBlock != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'snapshotBlock')]: fields.snapshotBlock,
+				}),
+				...(fields.ipfs != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'ipfs')]: fields.ipfs,
+				}),
+				...(fields.symbol != null && {
+					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'symbol')]: fields.symbol,
 				}),
 				...(fields.link != null && {
 					[entityFieldAddressKey(EntityType.SnapshotProposal, [], 'link')]: fields.link,
@@ -614,10 +689,40 @@ export default {
 			$avatar: (space) => space.$avatar,
 			symbol: (space) => space.symbol,
 			$network: (space) => space.$network,
+			cover: (space) => space.cover,
+			website: (space) => space.website,
+			twitter: (space) => space.twitter,
+			github: (space) => space.github,
+			farcaster: (space) => space.farcaster,
+			coingecko: (space) => space.coingecko,
+			discussions: (space) => space.discussions,
+			terms: (space) => space.terms,
+			location: (space) => space.location,
+			domain: (space) => space.domain,
+			private: (space) => space.private,
+			strategies: (space) => space.strategies,
+			categories: (space) => space.categories,
+			delegationType: (space) => space.delegationType,
+			delegationContract: (space) => space.delegationContract,
+			delegationNetwork: (space) => space.delegationNetwork,
+			delegationApi: (space) => space.delegationApi,
+			treasuries: (space) => space.treasuries,
 			proposalsCount: (space) => space.proposalsCount,
 			votesCount: (space) => space.votesCount,
 			followersCount: (space) => space.followersCount,
 			createdAtMs: (space) => space.createdAtMs,
+			$$admins: {
+				select: (space) => space.$$admins,
+				resolveCount: (space) => space.$$admins.length,
+			},
+			$$members: {
+				select: (space) => space.$$members,
+				resolveCount: (space) => space.$$members.length,
+			},
+			$$moderators: {
+				select: (space) => space.$$moderators,
+				resolveCount: (space) => space.$$moderators.length,
+			},
 		}),
 
 		defineResolver({
@@ -705,6 +810,12 @@ export default {
 			state: (proposal) => proposal.state,
 			choices: (proposal) => proposal.choices,
 			labels: (proposal) => proposal.labels,
+			ipfs: (proposal) => proposal.ipfs,
+			symbol: (proposal) => proposal.symbol,
+			strategies: (proposal) => proposal.strategies,
+			quorumType: (proposal) => proposal.quorumType,
+			privacy: (proposal) => proposal.privacy,
+			snapshotBlock: (proposal) => proposal.snapshotBlock,
 			startAtMs: (proposal) => proposal.startAtMs,
 			endAtMs: (proposal) => proposal.endAtMs,
 			createdAtMs: (proposal) => proposal.createdAtMs,
@@ -712,7 +823,11 @@ export default {
 			quorum: (proposal) => proposal.quorum,
 			votesCount: (proposal) => proposal.votesCount,
 			scores: (proposal) => proposal.scores,
+			scoresByStrategy: (proposal) => proposal.scoresByStrategy,
+			scoresState: (proposal) => proposal.scoresState,
 			scoresTotal: (proposal) => proposal.scoresTotal,
+			scoresTotalValue: (proposal) => proposal.scoresTotalValue,
+			scoresUpdatedAtMs: (proposal) => proposal.scoresUpdatedAtMs,
 			link: (proposal) => proposal.link,
 			app: (proposal) => proposal.app,
 		}),

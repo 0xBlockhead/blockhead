@@ -46,6 +46,27 @@ export default entity({
 			Source.SnapshotHub_Graphql,
 		],
 	},
+	ipfs: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	symbol: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	strategies: {
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
 	title: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -130,6 +151,27 @@ export default entity({
 			Source.SnapshotHub_Graphql,
 		],
 	},
+	quorumType: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	privacy: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	snapshotBlock: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
 	votesCount: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -144,7 +186,35 @@ export default entity({
 			Source.SnapshotHub_Graphql,
 		],
 	},
+	scoresByStrategy: {
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	scoresState: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
 	scoresTotal: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	scoresTotalValue: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.SnapshotHub_Graphql,
+		],
+	},
+	scoresUpdatedAtMs: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 		defaultSources: [

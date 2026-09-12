@@ -14,6 +14,7 @@ import {
 	getHeaderSyncState,
 	getNodeInfo,
 	getNodeReady,
+	getShareRange,
 	isBlobIncluded,
 	namespaceForNodeRpc,
 } from '$/sources/Celestia/JsonRpc/queries.ts'
@@ -361,10 +362,126 @@ describe('Celestia Node v0.28.4 read-only JSON-RPC contracts', () => {
 		)
 	})
 
+	it('rejects blobs outside the requested namespaces', async () => {
+		const otherNamespace = `${'C'.repeat(39)}=`
+		jsonRpc2Mock.mockResolvedValueOnce([{
+			namespace: otherNamespace,
+			data: 'AAAA',
+			share_version: 0,
+			commitment,
+			index: 1,
+		}])
+		await expect(getBlobsByNamespace({
+			publicEnv,
+			height: 42n,
+			namespaces: [namespace],
+		})).rejects.toThrow('unrequested namespace')
+	})
+
+	it('preserves repeated payload occurrences at distinct share indexes', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce([
+			{
+				namespace,
+				data: 'AAAA',
+				share_version: 0,
+				commitment,
+				index: 1,
+			},
+			{
+				namespace,
+				data: 'AAAA',
+				share_version: 0,
+				commitment,
+				index: 2,
+			},
+		])
+		const blobs = await getBlobsByNamespace({
+			publicEnv,
+			height: 42n,
+			namespaces: [namespace],
+		})
+		expect(blobs.map(({ index }) => index)).toEqual([
+			1,
+			2,
+		])
+	})
+
 	it('normalizes Celenium hex namespaces to Node base64', () => {
 		const hex = `00${'ab'.repeat(28)}`
 		expect(namespaceForNodeRpc(hex)).toMatch(/^[A-Za-z0-9+/]{39}=$/)
 		expect(namespaceForNodeRpc(namespace)).toBe(namespace)
+	})
+
+	it('reads namespace from share.GetRange proof', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce({
+			Proof: {
+				namespace_id: namespace,
+				namespace_version: 0,
+			},
+		})
+		await expect(getShareRange({
+			publicEnv,
+			height: 42n,
+			from: 1,
+			to: 2,
+		})).resolves.toEqual({
+			namespace,
+		})
+		expect(jsonRpc2Mock).toHaveBeenCalledWith(
+			resolvedBinding,
+			'share.GetRange',
+			[
+				42,
+				1,
+				2,
+			]
+		)
+	})
+
+	it('composes a Node namespace from share proof version and 28-byte id', async () => {
+		const idHex = 'ab'.repeat(28)
+		jsonRpc2Mock.mockResolvedValueOnce({
+			Proof: {
+				namespace_id: idHex,
+				namespace_version: 0,
+			},
+		})
+		await expect(getShareRange({
+			publicEnv,
+			height: 42n,
+			from: 1,
+			to: 2,
+		})).resolves.toEqual({
+			namespace: namespaceForNodeRpc(`00${idHex}`),
+		})
+	})
+
+	it('rejects malformed share ranges before transport', async () => {
+		await expect(getShareRange({
+			publicEnv,
+			height: 0n,
+			from: 1,
+			to: 2,
+		})).rejects.toThrow('positive JSON-safe integer')
+		await expect(getShareRange({
+			publicEnv,
+			height: 42n,
+			from: 2,
+			to: 2,
+		})).rejects.toThrow('invalid share range')
+		expect(jsonRpc2Mock).not.toHaveBeenCalled()
+	})
+
+	it('fail-closes a share.GetRange envelope without a namespace proof', async () => {
+		jsonRpc2Mock.mockResolvedValueOnce({
+			Shares: [],
+		})
+		await expect(getShareRange({
+			publicEnv,
+			height: 42n,
+			from: 1,
+			to: 2,
+		})).rejects.toThrow('Celestia Node: invalid share.GetRange response envelope')
 	})
 
 	it('projects DAS sampling stats and node readiness', async () => {

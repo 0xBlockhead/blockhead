@@ -402,6 +402,8 @@ export enum EntityType {
 	CctpFee = 'CctpFee',
 	CctpMessage = 'CctpMessage',
 	CelestiaBlob = 'CelestiaBlob',
+	CelestiaBlobOccurrence = 'CelestiaBlobOccurrence',
+	CelestiaBlobSubmission = 'CelestiaBlobSubmission',
 	CelestiaBlock = 'CelestiaBlock',
 	CelestiaNamespace = 'CelestiaNamespace',
 	CelestiaNamespace_Timestamp = 'CelestiaNamespace_Timestamp',

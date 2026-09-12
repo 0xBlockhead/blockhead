@@ -14,6 +14,7 @@ type ResolverLoaderEntry = {
 
 const resolverLoaderEntries = [
 	[Source.Aave_Rest, () => import('./Aave-Rest.ts')],
+	[Source.AcpLocal_JsonRpc, () => import('./AcpLocal-JsonRpc.ts')],
 	[Source.AcpRegistry_Rest, () => import('./AcpRegistry-Rest.ts')],
 	[Source.Across_Rest, () => import('./Across-Rest.ts')],
 	[Source.Allium_Rest, () => import('./Allium-Rest.ts')],

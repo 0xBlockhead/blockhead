@@ -25,6 +25,7 @@ const {
 	getSafeMultisigTransactions,
 	getSafeStatus,
 	getSafeTransactionConfirmations,
+	findSafeMultisigTransaction,
 	isSafeNonceRejectionTransaction,
 	requireSafeTransactionServiceBinding,
 } = await import('$/sources/SafeTransactionService/Rest/queries.ts')
@@ -530,6 +531,38 @@ describe('Safe Transaction Service public multisig queries', () => {
 			safeTxHash,
 			transactionHash: executionHash,
 		})
+	})
+
+	it('finds an executed multisig by timelock Safe address and on-chain execution hash', async () => {
+		sourceGetJson
+			.mockRejectedValueOnce(new Error('SafeTransactionService_Rest: invalid Safe multisig transaction response envelope'))
+			.mockResolvedValueOnce({
+				count: 1,
+				next: null,
+				previous: null,
+				results: [
+					{
+						...transaction,
+						isExecuted: true,
+						isSuccessful: true,
+						executionDate: '2026-07-22T00:00:00Z',
+						blockNumber: 12,
+						transactionHash: executionHash,
+					},
+				],
+			})
+
+		await expect(findSafeMultisigTransaction({
+			chainId,
+			safeAddress,
+			txHash: executionHash,
+		})).resolves.toMatchObject({
+			safeTxHash,
+			transactionHash: executionHash,
+		})
+		expect(sourceGetJson.mock.calls[1]?.[1]).toBe(
+			`https://api.safe.global/tx-service/base/api/v2/safes/${checksummedSafeAddress}/multisig-transactions/?limit=2&offset=0&transaction_hash=${encodeURIComponent(executionHash)}`
+		)
 	})
 
 	it('looks up a multisig transaction by SafeTxHash without a prior Safe address', async () => {

@@ -225,6 +225,77 @@ export const tallyGovernorFields = (
 	}
 }
 
+export const tallyProposalExecutionIdentity = (
+	proposal: TallyProposal
+) => {
+	const chainId = /^eip155:(0|[1-9][0-9]*)$/.exec(proposal.chainId)?.[1]
+	if (chainId == null)
+		throw new Error('Tally: proposal chain is not an EVM CAIP-2 id')
+
+	const timelockAccountId = proposal.metadata?.timelockId
+	const executionHash = proposal.metadata?.txHash
+	if (timelockAccountId == null || executionHash == null)
+		return undefined
+
+	const timelock = parseAccountId(timelockAccountId)
+	if (timelock.chainId !== chainId)
+		throw new Error('Tally: proposal timelock chain disagrees with proposal')
+
+	return {
+		chainId: Number(chainId),
+		timelockAddress: timelock.address,
+		executionHash: `0x${executionHash.slice(2).toLowerCase()}`,
+	}
+}
+
+export const resolveTallyGovernanceExecutionSafeSnapshot = async ({
+	proposalId,
+}: {
+	proposalId: string
+}) => {
+	const { getProposal } = await import('$/sources/Tally/Graphql/queries.ts')
+	const { findSafeMultisigTransaction } = await import('$/sources/SafeTransactionService/Rest/queries.ts')
+	const proposal = await getProposal({
+		proposalId,
+	})
+	const executionIdentity = tallyProposalExecutionIdentity(proposal)
+	if (executionIdentity == null)
+		throw new Error('Tally: proposal has no timelock execution identity')
+
+	const transaction = await findSafeMultisigTransaction({
+		chainId: executionIdentity.chainId,
+		safeAddress: executionIdentity.timelockAddress,
+		txHash: executionIdentity.executionHash,
+	})
+	const executionHash = (
+		transaction.transactionHash == null ?
+			undefined
+		:
+			`0x${transaction.transactionHash.slice(2).toLowerCase()}`
+	)
+	if (executionHash == null)
+		throw new Error('Tally: governance execution transaction is not executed on-chain')
+
+	return {
+		executionIdentity,
+		transaction,
+		$executionTransaction: {
+			[EntityMetaKey.Selector]: {
+				$network: evmNetworkSelector(executionIdentity.chainId.toString()),
+				txHash: executionHash,
+			},
+		},
+		$timelockAccount: {
+			[EntityMetaKey.Selector]: {
+				$network: evmNetworkSelector(executionIdentity.chainId.toString()),
+				$actor: {
+					address: executionIdentity.timelockAddress,
+				},
+			},
+		},
+	}
+}
+
 export const tallyProposalFields = (
 	proposal: TallyProposal
 ) => {
@@ -261,6 +332,16 @@ export const tallyProposalFields = (
 		...(proposal.metadata != null && {
 			title: proposal.metadata.title,
 			description: proposal.metadata.description,
+			...(proposal.metadata.timelockId != null && {
+				$timelockAccount: {
+					[EntityMetaKey.Selector]: {
+						$network: evmNetworkSelector(chainId),
+						$actor: {
+							address: parseAccountId(proposal.metadata.timelockId).address,
+						},
+					},
+				},
+			}),
 			...(proposal.metadata.eta != null && {
 				etaMs: proposal.metadata.eta * 1000,
 			}),
