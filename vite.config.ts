@@ -1,5 +1,6 @@
 import devtoolsJson from 'vite-plugin-devtools-json'
 import { realpathSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
@@ -93,6 +94,7 @@ export default defineConfig({
 				searchForWorkspaceRoot(import.meta.dirname),
 				realpathSync(resolve(import.meta.dirname, 'node_modules/@fontsource/ubuntu')),
 				realpathSync(resolve(import.meta.dirname, 'node_modules/@journeyapps/wa-sqlite/dist')),
+				createRequire(import.meta.resolve('satteri')).resolve('@bruits/satteri-wasm32-wasi/satteri_napi.wasm32-wasi.wasm'),
 			],
 		},
 		watch: {
