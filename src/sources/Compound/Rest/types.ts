@@ -31,7 +31,7 @@ export type CompoundCometConfigurationWire = {
 	symbol: string
 	baseToken: string
 	baseTokenAddress: string
-	baseTokenPriceFeed: string
+	baseTokenPriceFeed?: string
 	borrowMin?: string
 	governor?: string
 	pauseGuardian?: string
@@ -54,7 +54,7 @@ export const compoundCometConfigurationEnvelope = arktype({
 	symbol: 'string',
 	baseToken: 'string',
 	baseTokenAddress: 'string',
-	baseTokenPriceFeed: 'string',
+	'baseTokenPriceFeed?': 'string',
 	'borrowMin?': 'string',
 	'governor?': 'string',
 	'pauseGuardian?': 'string',
@@ -122,7 +122,7 @@ export type CompoundCometConfiguration = {
 	symbol: string
 	baseTokenSymbol: string
 	baseTokenAddress: `0x${string}`
-	baseTokenPriceFeedAddress: `0x${string}`
+	baseTokenPriceFeedAddress?: `0x${string}`
 	borrowMin?: string
 	governorAddress?: `0x${string}`
 	pauseGuardianAddress?: `0x${string}`

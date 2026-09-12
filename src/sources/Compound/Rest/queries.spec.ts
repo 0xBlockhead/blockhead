@@ -1,3 +1,4 @@
+import { canonicalConfigurationFixtures } from './_configurationFixtures.ts'
 import {
 	beforeEach,
 	describe,
@@ -68,6 +69,7 @@ const baseRoots = {
 	bulker: '0xa397a8C2086C554B531c02E29f3291c9704B00c7',
 } as const
 
+
 describe('Compound III deployment operations', () => {
 	it('accepts the pinned WBTC pumpBTC collateral without a price feed', async () => {
 		sourceGetJson.mockResolvedValueOnce({
@@ -103,10 +105,24 @@ describe('Compound III deployment operations', () => {
 		await expect(getConfiguration({ networkSlug: 'base', marketSlug: 'usdc' })).rejects.toThrow()
 	})
 
-	it('still requires the base-token price feed', async () => {
-		const { baseTokenPriceFeed: _feed, ...withoutBaseFeed } = baseConfiguration
-		sourceGetJson.mockResolvedValueOnce(withoutBaseFeed)
-		await expect(getConfiguration({ networkSlug: 'base', marketSlug: 'usdc' })).rejects.toThrow('invalid configuration response envelope')
+	it.each(['', null, 'not-an-address'])('rejects an invalid supplied base-token price feed: %s', async (baseTokenPriceFeed) => {
+		sourceGetJson.mockResolvedValueOnce({ ...baseConfiguration, baseTokenPriceFeed })
+		await expect(getConfiguration({ networkSlug: 'base', marketSlug: 'usdc' })).rejects.toThrow()
+	})
+
+	it.each(canonicalConfigurationFixtures)('accepts exact canonical config without a base-token price feed: $marketSlug', async (fixture) => {
+		sourceGetJson.mockResolvedValueOnce(fixture)
+		const configuration = await getConfiguration(fixture)
+		expect(configuration).not.toHaveProperty('baseTokenPriceFeedAddress')
+		expect(configuration).toMatchObject({
+			name: fixture.name,
+			baseTokenSymbol: fixture.baseToken,
+			collateralAssetCount: 2,
+		})
+		expect(configuration.assets.map((asset) => asset.symbol)).toEqual(Object.keys(fixture.assets).sort())
+		expect(configuration.assets.map((asset) => asset.tokenAddress)).toEqual(
+			Object.entries(fixture.assets).sort(([left], [right]) => left.localeCompare(right)).map(([, asset]) => asset.address.toLowerCase())
+		)
 	})
 
 	it.each([

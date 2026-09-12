@@ -199,7 +199,9 @@ const assertConfigurationWire = (
 		symbol: assertNonEmptyString(wire.symbol, 'symbol'),
 		baseTokenSymbol: assertNonEmptyString(wire.baseToken, 'baseToken'),
 		baseTokenAddress,
-		baseTokenPriceFeedAddress: assertAddress(wire.baseTokenPriceFeed, 'baseTokenPriceFeed'),
+		...(wire.baseTokenPriceFeed != null && {
+			baseTokenPriceFeedAddress: assertAddress(wire.baseTokenPriceFeed, 'baseTokenPriceFeed'),
+		}),
 		...(wire.borrowMin != null && {
 			borrowMin: assertCompoundAmountString(wire.borrowMin, 'borrowMin'),
 		}),
