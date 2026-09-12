@@ -69,6 +69,7 @@ const generatorPublicationPlugin = (): Plugin => {
 }
 
 export default defineConfig({
+	cacheDir: resolve(import.meta.dirname, '.svelte-kit/cache/vite'),
 	resolve: {
 		alias: {
 			'bun:ffi': resolve(import.meta.dirname, 'shims/bun-ffi.js'),
