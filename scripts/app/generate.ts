@@ -11168,7 +11168,7 @@ const renderContentItem = (
 			renderSvelteSnippet(level + 1, 'children(entity)', renderDefinitionListItem(level + 2, label, [
 					`${'\t'.repeat(level + 4)}{#if ${valueExpression}.values.length}`,
 					`${'\t'.repeat(level + 5)}<ul>`,
-					`${'\t'.repeat(level + 6)}{#each ${valueExpression}.values as ${valueName} (${valueName})}`,
+					`${'\t'.repeat(level + 6)}{#each ${valueExpression}.values as ${valueName}}`,
 					`${'\t'.repeat(level + 7)}<li><code>{${valueName}}</code></li>`,
 					`${'\t'.repeat(level + 6)}{/each}`,
 					`${'\t'.repeat(level + 5)}</ul>`,

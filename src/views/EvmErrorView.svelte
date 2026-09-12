@@ -98,7 +98,7 @@
 							<dd>
 								{#if entity.signatures.values.length}
 									<ul>
-										{#each entity.signatures.values as signature (signature)}
+										{#each entity.signatures.values as signature}
 											<li><code>{signature}</code></li>
 										{/each}
 									</ul>

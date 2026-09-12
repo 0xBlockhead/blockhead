@@ -29142,26 +29142,9 @@ export const schema = {
 										format: "truncated",
 									},
 									{
-										kind: _ViewItemKind.Block,
-										id: "signatures",
-										fields: ["signatures"],
+										field: "signatures",
 										when: "open",
-										Content: dedent `
-																												<div>
-																													<dt>Signatures</dt>
-																													<dd>
-																														{#if entity.signatures.values.length}
-																															<ul>
-																																{#each entity.signatures.values as signature (signature)}
-																																	<li><code>{signature}</code></li>
-																																{/each}
-																															</ul>
-																														{:else}
-																															<p data-text="muted">No catalog matches for this revert/error selector.</p>
-																														{/if}
-																													</dd>
-																												</div>
-																											`,
+										primitiveList: "No catalog matches for this revert/error selector.",
 									},
 								],
 							],
@@ -30779,26 +30762,9 @@ export const schema = {
 										format: "truncated",
 									},
 									{
-										kind: _ViewItemKind.Block,
-										id: "signatures",
-										fields: ["signatures"],
+										field: "signatures",
 										when: "open",
-										Content: dedent `
-																												<div>
-																													<dt>Signatures</dt>
-																													<dd>
-																														{#if entity.signatures.values.length}
-																															<ul>
-																																{#each entity.signatures.values as signature (signature)}
-																																	<li><code>{signature}</code></li>
-																																{/each}
-																															</ul>
-																														{:else}
-																															<p data-text="muted">No catalog signatures matched this function selector.</p>
-																														{/if}
-																													</dd>
-																												</div>
-																											`,
+										primitiveList: "No catalog signatures matched this function selector.",
 									},
 								],
 							],
@@ -31268,26 +31234,9 @@ export const schema = {
 										format: "truncated",
 									},
 									{
-										kind: _ViewItemKind.Block,
-										id: "signatures",
-										fields: ["signatures"],
+										field: "signatures",
 										when: "open",
-										Content: dedent `
-																												<div>
-																													<dt>Signatures</dt>
-																													<dd>
-																														{#if entity.signatures.values.length}
-																															<ul>
-																																{#each entity.signatures.values as signature (signature)}
-																																	<li><code>{signature}</code></li>
-																																{/each}
-																															</ul>
-																														{:else}
-																															<p data-text="muted">No catalog signatures matched this log topic hash.</p>
-																														{/if}
-																													</dd>
-																												</div>
-																											`,
+										primitiveList: "No catalog signatures matched this log topic hash.",
 									},
 								],
 							],

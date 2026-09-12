@@ -638,7 +638,7 @@ test('renders schema-owned primitive lists and rejects non-list fields', () => {
 	] as const) {
 		const source = generatedSource(`src/views/${entityType}View.svelte`)
 		assert.match(source, /<dt>Signatures<\/dt>/)
-		assert.match(source, /\{#each entity\.signatures\.values as signature \(signature\)\}/)
+		assert.match(source, /\{#each entity\.signatures\.values as signature\}/)
 		assert.ok(source.includes(`<p data-text="muted">${emptyText}</p>`))
 	}
 
