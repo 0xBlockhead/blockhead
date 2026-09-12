@@ -1391,7 +1391,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["PayjoinDirectory_Rest","Global","directory","HttpProxy","RestJson"] | HttpUrl | http://localhost:8080 | http://localhost:8080 | false |
 | ["PayjoinOhttpRelay_Http","Global","ohttp-relay","RemoteQuery","RestJson"] | HttpUrl | https://{payjoin-ohttp-relay-host} | https://{payjoin-ohttp-relay-host} | false |
 | ["PayjoinReceiver_Http","Global","receiver","RemoteQuery","RestJson"] | HttpUrl | https://{payjoin-receiver-host} | https://{payjoin-receiver-host} | false |
-| ["Pendle_Rest","Global","pendle-api","BrowserDirect","RestJson"] | HttpUrl | https://api-v2.pendle.finance/core | https://api-v2.pendle.finance | true |
+| ["Pendle_Rest","Global","pendle-api","BrowserDirect","RestJson"] | HttpUrl | https://api-v2.pendle.finance/core/ | https://api-v2.pendle.finance | true |
 | ["Pendle_Rest","Eip155Chain","1","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://ethereum.publicnode.com | https://ethereum.publicnode.com | false |
 | ["Pendle_Rest","Eip155Chain","10","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://mainnet.optimism.io | https://mainnet.optimism.io | false |
 | ["Pendle_Rest","Eip155Chain","56","HttpProxy","EvmExecutionJsonRpc"] | HttpUrl | https://binance.llamarpc.com | https://binance.llamarpc.com | false |
@@ -2023,7 +2023,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["EasScan_Graphql","Eip155Chain","11155420","RemoteQuery","GraphqlHttp"] | GenerationManifest | src/sources/EasScan/Graphql/schema-source.ts | no |  |  |
 | ["EasScan_Graphql","Eip155Chain","11155420","RemoteQuery","GraphqlHttp"] | GraphqlSchema | src/sources/EasScan/Graphql/schema.graphql | no |  |  |
 | ["EasScan_Graphql","Eip155Chain","11155420","RemoteQuery","GraphqlHttp"] | GraphqlTypes | src/sources/EasScan/Graphql/graphql-env.d.ts | yes |  |  |
-| ["EigenExplorer_Rest","Global","eigen-explorer-api","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/EigenExplorer/Rest/types.ts | no |  |  |
+| ["EigenExplorer_Rest","Global","eigen-explorer-api","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/EigenExplorer/Rest/types.ts | no |  | https://docs.eigenexplorer.com/api-reference/openapi.json |
 | ["Eip8004Scan_Rest","Global","eip8004-agents","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/Eip8004Scan/Rest/types.ts | no |  |  |
 | ["EnsMetadataService","Global","ens-metadata-service","BrowserDirect","OpenApiHttp"] | GenerationManifest | src/sources/EnsMetadataService/OpenApi/schema-source.ts | no |  |  |
 | ["EnsMetadataService","Global","ens-metadata-service","BrowserDirect","OpenApiHttp"] | OpenApiSpec | src/sources/EnsMetadataService/OpenApi/openapi.json | yes | https://metadata.ens.domains/assets/doc_output.json |  |

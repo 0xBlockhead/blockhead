@@ -103621,6 +103621,7 @@ export const app = {
 						{
 							kind: SourceArtifactKind.HandwrittenTypes,
 							path: "src/sources/EigenExplorer/Rest/types.ts",
+							referenceUrl: "https://docs.eigenexplorer.com/api-reference/openapi.json",
 						},
 					],
 				},
@@ -107815,7 +107816,7 @@ export const app = {
 						endpoints: [
 							{
 								endpointKind: SourceEndpointKind.HttpUrl,
-								locator: "https://api-v2.pendle.finance/core",
+								locator: "https://api-v2.pendle.finance/core/",
 								corsEnabled: true,
 							},
 						],
