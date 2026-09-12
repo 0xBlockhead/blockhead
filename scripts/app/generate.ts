@@ -1891,29 +1891,37 @@ const sourceSelectionClaims = (
 		}))),
 	]
 
-const compileSourceClaims = (
+const sourceClaimFields = (
 	entities: readonly Entity[],
-	facetEntries: readonly EntityFacetEntry[],
+	facetEntries: readonly EntityFacetEntry[]
+) => entities.flatMap((entity) => [
+	...entity.fields.map((field) => ({
+		field,
+		facetPath: [] as readonly string[],
+	})),
+	...facetEntries
+		.filter((facetEntry) => facetEntry.entityType === entity.entityType)
+		.flatMap((facetEntry) => (facetEntry.facet.fields ?? []).map((field) => ({
+			field,
+			facetPath: facetEntry.projectionPath,
+		}))),
+].map(({ facetPath, field }) => ({
+	entityType: entity.entityType,
+	facetPath,
+	field,
+})))
+
+const compileSourceClaims = (
+	fields: ReturnType<typeof sourceClaimFields>,
 	physicalRouteFiles: readonly CompiledPhysicalRouteFileFacts[],
 	indexes: GenerationIndexes
 ) => [
-	...entities.flatMap((entity) => [
-		...entity.fields.map((field) => ({
-			field,
-			facetPath: [] as readonly string[],
-		})),
-		...facetEntries
-			.filter((facetEntry) => facetEntry.entityType === entity.entityType)
-			.flatMap((facetEntry) => (facetEntry.facet.fields ?? []).map((field) => ({
-				field,
-				facetPath: facetEntry.projectionPath,
-			}))),
-	].flatMap(({ facetPath, field }) => (field.defaultSources ?? []).map((source) => ({
+	...fields.flatMap(({ entityType, facetPath, field }) => (field.defaultSources ?? []).map((source) => ({
 		source,
-		entityType: entity.entityType,
+		entityType,
 		facetPath,
 		fieldName: field.name,
-	})))),
+	}))),
 	...physicalRouteFiles.flatMap((routeFile) => routeFile.kind !== 'page' ? [] : [
 		...routeFile.mappings.flatMap((mapping) => mapping.sourceSelection == null ? [] : (
 			sourceSelectionClaims(mapping.sourceSelection).map(({ source, conditions }) => ({
@@ -6254,9 +6262,9 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 		entityRouteLinksByType: nullPrototypeRecord([...entityRouteLinksByType]),
 	} satisfies CompiledAppFacts
 
+	const sourceFields = sourceClaimFields(activeEntities, facetEntries)
 	const sourceClaims = compileSourceClaims(
-		activeEntities,
-		facetEntries,
+		sourceFields,
 		physicalRouteFiles,
 		compiledApp
 	)
@@ -6279,7 +6287,14 @@ export const compileApp = (sourceApp: App): CompiledApp => {
 	const classifiedSourceClaims = sourceClaims.map((claim) => classifySourceClaim(claim, accountabilityAuthority))
 	const sourceAccountability = {
 		claims: classifiedSourceClaims,
-		bindingCoverage: compileSourceClaimBindingCoverage(classifiedSourceClaims),
+		bindingCoverage: compileSourceClaimBindingCoverage(
+			classifiedSourceClaims,
+			sourceFields.map(({ entityType, facetPath, field }) => ({
+				entityType,
+				facetPath,
+				fieldName: field.name,
+			}))
+		),
 		mappedSelectors: compileMappedSelectorFacts(indexedRouteNodes, physicalRouteFiles)
 			.map((mapping) => classifyMappedSelector(mapping, accountabilityAuthority)),
 	}

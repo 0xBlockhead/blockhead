@@ -594,16 +594,64 @@ test('classifies a mapped selector by route sources, authored page, and inherite
 	)
 })
 
+test('keeps required zero-binding coordinates without borrowing selector bindings', () => {
+	const fields = [[], ['Facet']].map((facetPath) => ({
+		entityType: fixtureClaim.entityType,
+		facetPath,
+		fieldName: 'value',
+	}))
+	const rows = compileSourceClaimBindingCoverage(
+		[classifySourceClaim(fixtureClaim, fixtureAuthority)],
+		[...fields, ...fields]
+	)
+	assert.equal(rows.length, 3)
+	assert.equal(rows.find((row) => row.selectorName === fixtureClaim.selectorName)?.declaredExecutableBindings, 1)
+	const gaps = dualBindingDeclarationGaps(rows).filter((row) => row.fieldName === 'value')
+	assert.equal(gaps.length, 2)
+	for (const gap of gaps) {
+		assert.deepEqual(gap.sources, [])
+		assert.equal(gap.declaredExecutableBindings, 0)
+		assert.equal(gap.requiredBindings, 2)
+	}
+})
+
+test('retains unsourced base and facet fields independently of sourced selector claims', () => {
+	const coordinates = new Set(compiledSourceAccountability.bindingCoverage
+		.filter((row) => row.publicRoute == null)
+		.map((row) => JSON.stringify([row.entityType, row.facetPath, row.fieldName])))
+	for (const entity of app.schema.entities) {
+		const scopes = [{
+			fields: entity.fields,
+			facets: entity.facets,
+			path: [] as string[],
+		}]
+		for (const scope of scopes) {
+			for (const field of scope.fields)
+				assert.ok(
+					coordinates.has(JSON.stringify([entity.entityType, scope.path, field.name])),
+					`${entity.entityType}.${[...scope.path, field.name].join('.')} must remain in the denominator`
+				)
+			for (const facet of scope.facets ?? [])
+				scopes.push({
+					fields: facet.fields ?? [],
+					facets: facet.facets,
+					path: [...scope.path, facet.name],
+				})
+		}
+	}
+	const gaps = dualBindingDeclarationGaps(compiledSourceAccountability.bindingCoverage)
+	assert.ok(gaps.some((row) => row.sources.length === 0 && row.declaredExecutableBindings === 0))
+})
+
 test('accounts for every compiled claim and mapped selector of the current app', () => {
 	const { bindingCoverage, claims, mappedSelectors } = compiledSourceAccountability
 
 	assert.ok(claims.length > 0)
 	assert.ok(mappedSelectors.length > 0)
 	assert.ok(bindingCoverage.length > 0)
-	assert.equal(
-		bindingCoverage.length,
-		compileSourceClaimBindingCoverage(claims).length
-	)
+	const coverageRows = new Set(bindingCoverage.map((row) => JSON.stringify(row)))
+	for (const row of compileSourceClaimBindingCoverage(claims))
+		assert.ok(coverageRows.has(JSON.stringify(row)))
 	assert.equal(claims.length, compiledSourceAccountability.claims.length)
 	assert.deepEqual(
 		claims.filter((row) => row.access === SourceAccess.Undeclared),

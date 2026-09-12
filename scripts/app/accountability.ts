@@ -449,7 +449,9 @@ export const classifySourceClaim = (
 	bindingEvidence: sourceClaimBindingEvidence(claim, authority),
 })
 
-const sourceClaimCoverageKey = (claim: SourceClaimFacts) => JSON.stringify([
+type SourceClaimCoordinate = Omit<SourceClaimFacts, 'source' | 'target'>
+
+const sourceClaimCoverageKey = (claim: SourceClaimCoordinate) => JSON.stringify([
 	claim.publicRoute ?? null,
 	claim.entityType,
 	claim.selectorName ?? null,
@@ -459,10 +461,15 @@ const sourceClaimCoverageKey = (claim: SourceClaimFacts) => JSON.stringify([
 ])
 
 export const compileSourceClaimBindingCoverage = (
-	claims: readonly SourceClaimAccountabilityRow[]
-): readonly SourceClaimBindingCoverageRow[] => [...Map.groupBy(claims, sourceClaimCoverageKey).values()]
-	.map((group) => {
-		const first = group[0]
+	claims: readonly SourceClaimAccountabilityRow[],
+	requiredCoordinates: readonly SourceClaimCoordinate[] = []
+): readonly SourceClaimBindingCoverageRow[] => {
+	const claimsByCoordinate = Map.groupBy(claims, sourceClaimCoverageKey)
+	return [...new Map([...requiredCoordinates, ...claims].map((coordinate) => [
+		sourceClaimCoverageKey(coordinate),
+		coordinate,
+	]))].map(([key, first]): SourceClaimBindingCoverageRow => {
+		const group = claimsByCoordinate.get(key) ?? []
 		return {
 			entityType: first.entityType,
 			...(first.selectorName == null ? {} : { selectorName: first.selectorName }),
@@ -479,6 +486,7 @@ export const compileSourceClaimBindingCoverage = (
 		}
 	})
 	.toSorted((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right), 'en'))
+}
 
 export const dualBindingDeclarationGaps = (
 	rows: readonly SourceClaimBindingCoverageRow[]
