@@ -995,13 +995,13 @@ export const getLatestCheckpoint = async () => {
 }
 
 export const getCheckpointBySequence = async (sequence: bigint) => {
-	if (sequence < 0n)
-		throw new Error('Sui GraphQL checkpoint sequence must be nonnegative')
+	if (sequence < 0n || sequence > BigInt(Number.MAX_SAFE_INTEGER))
+		throw new Error('Sui GraphQL checkpoint sequence must be a UInt53')
 	const result = await executeSui(
 		binding,
 		checkpointBySequenceDocument,
 		{
-			sequenceNumber: sequence.toString(),
+			sequenceNumber: Number(sequence),
 		}
 	)
 	if (result.checkpoint == null)

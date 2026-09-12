@@ -355,10 +355,29 @@ describe('Sui GraphQL checkpoint and transaction queries', () => {
 			sequence: 100n,
 		})
 		expect(executeSui.mock.calls[1][2]).toEqual({
-			sequenceNumber: '100',
+			sequenceNumber: 100,
 		})
 		expect(print(executeSui.mock.calls[0][1])).toContain('checkpoint {')
 		expect(print(executeSui.mock.calls[2][1])).toContain('checkpoint(digest: $digest)')
+	})
+
+	it('rejects checkpoint sequences outside the UInt53 transport domain', async () => {
+		await expect(getCheckpointBySequence(-1n)).rejects.toThrow('must be a UInt53')
+		await expect(getCheckpointBySequence(BigInt(Number.MAX_SAFE_INTEGER) + 1n)).rejects.toThrow('must be a UInt53')
+		expect(executeSui).not.toHaveBeenCalled()
+	})
+
+	it.each([0, Number.MAX_SAFE_INTEGER])('preserves UInt53 boundary %s in the request and result', async (sequenceNumber) => {
+		executeSui.mockResolvedValueOnce({
+			checkpoint: {
+				...tipCheckpoint,
+				sequenceNumber,
+			},
+		})
+		await expect(getCheckpointBySequence(BigInt(sequenceNumber))).resolves.toMatchObject({
+			sequence: BigInt(sequenceNumber),
+		})
+		expect(executeSui.mock.calls[0][2]).toEqual({ sequenceNumber })
 	})
 
 	it('lists recent network transactions with pagination', async () => {
