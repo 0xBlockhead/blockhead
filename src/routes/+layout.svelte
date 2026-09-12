@@ -33,12 +33,14 @@
 		children,
 	} = $props()
 	let persistencePhase = $state('opening')
-	const persistenceRuntimeReady = new Promise<void>((resolve) => setTimeout(resolve, 0))
+	const bootstrapAbort = new AbortController()
+	const persistenceRuntimeModule = new Promise<void>((resolve) => setTimeout(resolve, 0))
 		.then(() => import('$/lib/db/browserPersistenceSingleton.ts'))
+	const persistenceRuntimeReady = persistenceRuntimeModule
 		.then(({ getBrowserPersistenceRuntime }) => getBrowserPersistenceRuntime())
 	const bootstrap = persistenceRuntimeReady.then(async (persistenceRuntime) => {
 		const { bootstrapApplicationClient } = await import('./applicationClientBootstrap.ts')
-		return bootstrapApplicationClient(persistenceRuntime)
+		return bootstrapApplicationClient(persistenceRuntime, bootstrapAbort.signal)
 	})
 	const preparedBootstrap = bootstrap.then(async (appClient) => {
 		const [
@@ -84,9 +86,12 @@
 		})
 		return () => {
 			active = false
+			bootstrapAbort.abort()
 			unsubscribePersistencePhase?.()
 			applicationRuntime.destroy()
-			persistenceRuntimeReady.then((persistenceRuntime) => persistenceRuntime.close())
+			persistenceRuntimeModule.then(({ releaseBrowserPersistenceRuntime }) => (
+				persistenceRuntimeReady.then(releaseBrowserPersistenceRuntime)
+			))
 		}
 	})
 

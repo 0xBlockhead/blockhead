@@ -85,3 +85,25 @@ it('does not mount after browser teardown wins the readiness race', async () => 
 
 	expect(onMount).not.toHaveBeenCalled()
 })
+
+it('retains the native bootstrap rejection handler after teardown and cancellation', async () => {
+	const pending = Promise.withResolvers<{ id: string }>()
+	const unhandled = vi.fn()
+	const onMount = vi.fn()
+	window.addEventListener('unhandledrejection', unhandled)
+	try {
+		const rendered = await render(ApplicationRuntimeFixture, {
+			client: pending.promise,
+			onMount,
+			onDestroy: vi.fn(),
+		})
+		await expect.element(page.getByText('Loading...')).toBeVisible()
+		await rendered.unmount()
+		pending.reject(new DOMException('Bootstrap owner released', 'AbortError'))
+		await new Promise(resolve => setTimeout(resolve, 0))
+		expect(onMount).not.toHaveBeenCalled()
+		expect(unhandled).not.toHaveBeenCalled()
+	} finally {
+		window.removeEventListener('unhandledrejection', unhandled)
+	}
+})

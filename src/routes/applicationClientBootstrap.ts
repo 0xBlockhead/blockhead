@@ -32,17 +32,21 @@ const enabledSourceBindingIds = async () => {
 
 
 export const bootstrapApplicationClient = async (
-	persistenceRuntime: BrowserPersistenceRuntime
+	persistenceRuntime: BrowserPersistenceRuntime,
+	signal: AbortSignal
 ) => {
 	const [enabledBindingIds] = await Promise.all([
 		enabledSourceBindingIds(),
 		persistenceRuntime.ready,
 	])
+	signal.throwIfAborted()
 	const sourceIndex = indexSourceProviders(
 		sourceProviders,
 		env,
 		enabledBindingIds
 	)
+	const resolvers = await loadResolvers(sourceIndex.enabledSources)
+	signal.throwIfAborted()
 	const {
 		persistence,
 		waitForPersistence,
@@ -56,7 +60,7 @@ export const bootstrapApplicationClient = async (
 		}
 	)(
 		{
-			resolvers: await loadResolvers(sourceIndex.enabledSources),
+			resolvers,
 			sourceIndex,
 		}
 	)(
