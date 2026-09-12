@@ -497,7 +497,9 @@ export default {
 			entityType: EntityType.Coin_Timestamp,
 			resolve: {
 				CoinTimestampMsSource: {
-					resolve: async ({ $coin, timestampMs: timestampMsSelector }, context) => {
+					resolve: async ({ $coin, source, timestampMs: timestampMsSelector }, context) => {
+						if (source !== Source.Coingecko_Rest)
+							return []
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 						const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 						const coingeckoId = idByCoinId[$coin.coinId]

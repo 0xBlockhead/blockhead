@@ -115,7 +115,7 @@ export const coingeckoAssetPlatformEnvelope = arktype({
 	'shortname?': 'string',
 	'chain_identifier?': 'number | null',
 	'native_coin_id?': 'string | null',
-	'image?': coingeckoImageWire,
+	'image?': coingeckoImageWire.or('null'),
 })
 
 export const coingeckoAssetPlatformsEnvelope = coingeckoAssetPlatformEnvelope.array()

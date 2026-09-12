@@ -339,6 +339,29 @@ describe('CoinGecko documented endpoints', () => {
 		})).rejects.toThrow('Coingecko_Rest: invalid OHLC response envelope')
 	})
 
+	it('accepts asset-platform rows with a nullable image from the provider', async () => {
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify([
+			{
+				id: 'ethereum',
+				name: 'Ethereum',
+				shortname: 'eth',
+				chain_identifier: 1,
+				native_coin_id: 'ethereum',
+				image: { thumb: 'https://example.test/eth-thumb.png' },
+			},
+			{
+				id: 'aptos',
+				name: 'Aptos',
+				shortname: 'apt',
+				chain_identifier: null,
+				native_coin_id: 'aptos',
+				image: null,
+			},
+		])))
+
+		await expect(getAssetPlatforms({ publicEnv: {} })).resolves.toHaveLength(2)
+	})
+
 	it('fail-closes coin envelopes missing required id / market-data shape', async () => {
 		coingeckoFetch
 			.mockResolvedValueOnce(new Response(JSON.stringify({

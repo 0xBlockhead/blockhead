@@ -267,4 +267,36 @@ describe('CoinGecko coin detail and timestamp leftovers', () => {
 		expect(snapshot).not.toHaveProperty('totalVolume')
 		expect(snapshot).not.toHaveProperty('change7dPercent')
 	})
+
+	it('does not resolve a Coinpaprika observation or perform Coingecko I/O', async () => {
+		getCoin.mockClear()
+		const resolver = coingecko.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Coin_Timestamp && 'marketCap' in candidate.projections
+		))
+		if (resolver == null) throw new Error('Coingecko Coin_Timestamp resolver missing')
+
+		await expect(resolver.resolve.CoinTimestampMsSource.resolve({
+			$coin: { coinId: CoinId.ETH },
+			timestampMs: 1,
+			source: Source.Coinpaprika_Rest,
+		}, resolverContext)).resolves.toEqual([])
+		expect(getCoin).not.toHaveBeenCalled()
+	})
+
+	it('rejects an applicable observation whose market-data clock does not match', async () => {
+		getCoin.mockResolvedValueOnce({
+			id: 'ethereum',
+			market_data: { last_updated: '2026-08-06T12:00:00.000Z' },
+		})
+		const resolver = coingecko.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Coin_Timestamp && 'marketCap' in candidate.projections
+		))
+		if (resolver == null) throw new Error('Coingecko Coin_Timestamp resolver missing')
+
+		await expect(resolver.resolve.CoinTimestampMsSource.resolve({
+			$coin: { coinId: CoinId.ETH },
+			timestampMs: Date.parse('2026-08-06T12:00:01.000Z'),
+			source: Source.Coingecko_Rest,
+		}, resolverContext)).rejects.toThrow('Coingecko_Rest: Coin_Timestamp id does not match market-data clock')
+	})
 })
