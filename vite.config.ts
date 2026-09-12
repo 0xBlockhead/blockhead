@@ -2,22 +2,13 @@ import devtoolsJson from 'vite-plugin-devtools-json'
 import { realpathSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { resolve } from 'node:path'
-import { defineConfig } from 'vitest/config'
-import { playwright } from '@vitest/browser-playwright'
+import { defineConfig } from 'vite'
 import { sveltekit } from '@sveltejs/kit/vite'
 import { searchForWorkspaceRoot } from 'vite'
 import type {
 	Plugin,
 	ViteDevServer,
 } from 'vite'
-
-import { e2eProbeVitePlugin } from './tests/e2e/_e2eProbeVitePlugin.ts'
-import {
-	vitestClientExclude,
-	vitestClientInclude,
-	vitestServerExclude,
-	vitestServerInclude,
-} from './test-discovery.config.mjs'
 
 const tanstackBrowserSqliteSrc = fileURLToPath(new URL(
 	'node_modules/@tanstack/browser-db-sqlite-persistence/src/index.ts',
@@ -92,7 +83,6 @@ export default defineConfig({
 	},
 	plugins: [
 		generatorPublicationPlugin(),
-		...(process.env.VITE_BLOCKHEAD_E2E_PROBE === '1' ? [e2eProbeVitePlugin()] : []),
 		sveltekit(),
 		devtoolsJson(),
 	],
@@ -119,32 +109,4 @@ export default defineConfig({
 			'@journeyapps/wa-sqlite',
 		],
 	},
-	test: {
-		expect: { requireAssertions: true },
-		projects: [
-			{
-				extends: './vite.config.ts',
-				test: {
-					name: 'client',
-					browser: {
-						enabled: true,
-						provider: playwright(),
-						instances: [{ browser: 'chromium', headless: true }]
-					},
-					include: vitestClientInclude,
-					exclude: vitestClientExclude,
-				}
-			},
-
-			{
-				extends: './vite.config.ts',
-				test: {
-					name: 'server',
-					environment: 'node',
-					include: vitestServerInclude,
-					exclude: vitestServerExclude,
-				}
-			}
-		]
-	}
 })
