@@ -147,9 +147,12 @@
 	const createResourceFixture = (
 		id: string,
 		observe?: (event: string, update: () => void) => void,
+		allowMissing = false,
 	) => new TanStackLiveQueryResource(
 		() => {
-			const ready = resourceFixtureSource.isReady() && resourceFixtureSource.has(id)
+			const ready = resourceFixtureSource.isReady() && (
+				allowMissing || resourceFixtureSource.has(id)
+			)
 			return {
 			data: resourceFixtureSource.get(id)?.value ?? '',
 			isLoading: !ready,
@@ -182,9 +185,9 @@
 		},
 		() => resourceFixtureSource.preload()
 	)
-	const realSelectedScalarResource = createResourceFixture('scalar')
+	const realSelectedScalarResource = createResourceFixture('scalar', undefined, true)
 	const realSelectedBoundaryOnlyResource = createResourceFixture('boundary-only')
-	const realSelectedDirectOnlyResource = createResourceFixture('direct-only')
+	const realSelectedDirectOnlyResource = createResourceFixture('direct-only', undefined, true)
 	let staleNotification = () => {}
 	const observeLifecycle = (event: string, update: () => void) => {
 		console.info('[native-subscription]', event)
