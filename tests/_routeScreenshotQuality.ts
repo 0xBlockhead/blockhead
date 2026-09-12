@@ -4,10 +4,14 @@ export type RouteScreenshotQualityInput = {
 	}[]
 	contentHeight: number
 	mainText: string
+	selectorValues?: readonly string[]
+	visibleFieldValues?: readonly string[]
 	overflow: {
 		carouselX: number
 		pageX: number
 		pageY: number
+		clippedInternalX?: number
+		clippedInternalY?: number
 	}
 	settled: {
 		empty: boolean
@@ -69,10 +73,17 @@ export const routeScreenshotCorpusFailures = (
 }
 
 /** Shared visual contract for the route screenshot corpus and its representative E2E suite. */
+export const routeSelectorValuesFromPathname = (pathname: string) => pathname.split('/').filter(Boolean).flatMap(segment => {
+	const value = decodeURIComponent(segment)
+	return [value, ...value.split(/[/:]/u)]
+})
+
 export const routeScreenshotQuality = ({
 	boundaryEvents,
 	contentHeight,
 	mainText,
+	selectorValues,
+	visibleFieldValues,
 	overflow,
 	settled,
 }: RouteScreenshotQualityInput): RouteScreenshotQuality => {
@@ -83,7 +94,15 @@ export const routeScreenshotQuality = ({
 	const failingBoundaryEvents = boundaryEvents.filter(({ kind }) => (
 		screenshotBoundaryFailureKinds.has(kind)
 	))
+	const normalize = (value: string) => value.trim().toLowerCase().replace(/\s+/gu, '')
+	const selectorAtoms = new Set(selectorValues?.map(normalize))
+	const resolvedFieldValues = visibleFieldValues?.filter(value => (
+		value.trim() !== ''
+		&& !selectorAtoms.has(normalize(value))
+		&& !/^(?:loading[.…]*|not applicable|unknown|undefined|null|—|-|this section does not apply to this entity\.)$/iu.test(value.trim())
+	))
 	const failures = [
+		...(selectorValues != null && !resolvedFieldValues?.length ? ['no resolved field values beyond selector inputs'] : []),
 		...(settled.loading.length > 0 ? [`${settled.loading.length} loading boundaries`] : []),
 		...(settled.failed.length > 0 ? [`${settled.failed.length} failed boundaries`] : []),
 		...(settled.empty ? ['empty main boundary'] : []),
@@ -97,10 +116,10 @@ export const routeScreenshotQuality = ({
 		...(conciseNotApplicable ? ['concise not-applicable page'] : []),
 		...(contentHeight <= 100 ? [`capture height is ${contentHeight}px`] : []),
 		...(
-			overflow.pageX === 0 && overflow.pageY === 0 && overflow.carouselX === 0 ?
+			overflow.pageX === 0 && overflow.pageY === 0 && (overflow.clippedInternalX ?? overflow.carouselX) === 0 && (overflow.clippedInternalY ?? 0) === 0 ?
 				[]
 			:
-				[`capture overflow: pageX=${overflow.pageX}, pageY=${overflow.pageY}, carouselX=${overflow.carouselX}`]
+				[`capture overflow: pageX=${overflow.pageX}, pageY=${overflow.pageY}, carouselX=${overflow.carouselX}${overflow.clippedInternalX == null ? '' : `, clippedInternalX=${overflow.clippedInternalX}, clippedInternalY=${overflow.clippedInternalY ?? 0}`}`]
 		),
 	]
 

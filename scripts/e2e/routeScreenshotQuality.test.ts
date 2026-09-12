@@ -25,6 +25,19 @@ const validInput = {
 } as const
 
 describe('route screenshot quality', () => {
+	it('rejects selector-only, missing and placeholder-only field evidence', () => {
+		for (const visibleFieldValues of [undefined, [], ['eip155:1'], ['Loading...', '—', 'unknown']])
+			assert.ok(routeScreenshotQuality({ ...validInput, selectorValues: ['eip155:1'], visibleFieldValues }).failures.includes('no resolved field values beyond selector inputs'))
+		assert.deepEqual(routeScreenshotQuality({ ...validInput, selectorValues: ['eip155:1'], visibleFieldValues: ['Ethereum Mainnet'] }).failures, [])
+	})
+
+	it('allows actual scrollable content but rejects hidden vertical and horizontal clipping', () => {
+		const overflow = { pageX: 0, pageY: 0, carouselX: 600, clippedInternalX: 0, clippedInternalY: 0 }
+		assert.deepEqual(routeScreenshotQuality({ ...validInput, overflow }).failures, [])
+		for (const field of ['clippedInternalX', 'clippedInternalY'])
+			assert.ok(routeScreenshotQuality({ ...validInput, overflow: { ...overflow, [field]: 10 } }).failures.some(failure => failure.startsWith('capture overflow:')))
+	})
+
 	it('requires two distinct fixtures with visible-content oracles', () => {
 		assert.deepEqual(routeScreenshotCorpusFailures([
 			{ pathname: '/network', overlay: { routeTitle: 'Network' } },
