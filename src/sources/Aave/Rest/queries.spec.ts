@@ -982,6 +982,41 @@ describe('Aave account position operations', () => {
 		})).rejects.toThrow(`${Source.Aave_Rest}: invalid eMode decimal value`)
 	})
 
+	it('preserves canonical empty eMode labels while validating their numeric fields', async () => {
+		graphql.mockResolvedValueOnce({
+			market: {
+				...ethereumMarketSnapshot,
+				eModeCategories: [
+					{
+						id: 7,
+						label: '',
+						maxLTV: { value: '0.77' },
+						liquidationThreshold: { value: '0.83' },
+						liquidationPenalty: { value: '0.045' },
+					},
+					{
+						id: 9,
+						label: '',
+						maxLTV: { value: '0.71' },
+						liquidationThreshold: { value: '0.78' },
+						liquidationPenalty: { value: '0.09' },
+					},
+				],
+			},
+		})
+
+		await expect(getMarket({
+			binding,
+			chainId: 1,
+			poolAddress: ethereumMarketSnapshot.address,
+		})).resolves.toMatchObject({
+			eModeCategories: [
+				{ id: 7, label: '' },
+				{ id: 9, label: '' },
+			],
+		})
+	})
+
 	it.each([
 		['supply cap', {
 			supplyInfo: {

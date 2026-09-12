@@ -263,8 +263,6 @@ const assertMarketSnapshotWire = (
 ) => {
 	const asserted = assertMarketWire(market, expected)
 	const eModeCategories = market.eModeCategories?.map((category) => {
-		if (category.label.length < 1)
-			throw new Error(`${Source.Aave_Rest}: eMode category missing label`)
 		if (
 			!decimalPattern.test(category.maxLTV.value)
 			|| !decimalPattern.test(category.liquidationThreshold.value)
