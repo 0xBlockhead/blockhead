@@ -368,7 +368,6 @@ const collectRouteBoundaryReport = async (
 	const startedAt = Date.now()
 	let navigationAt = startedAt
 	let mainAttachedAt = startedAt
-	let networkIdleAt = startedAt
 	let settleAt = startedAt
 	await resetBoundaryProbe(page)
 	for (let attempt = 1; attempt <= 3; attempt++) {
@@ -397,36 +396,20 @@ const collectRouteBoundaryReport = async (
 	}
 
 	const main = page.locator('#main')
-	const mainAttached = await main.waitFor({
+	await main.waitFor({
 		state: 'attached',
 		timeout: settleTimeoutMs,
-	}).then(
-		() => true,
-		(error) => {
-			diagnostics.pageErrors.push({
-				message: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-			})
-			diagnostics.lifecycle.push({
-				event: 'main-not-attached',
-				at: Date.now(),
-			})
-			return false
-		}
-	)
-	mainAttachedAt = Date.now()
-	if (mainAttached)
-		await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch((error) => {
-			diagnostics.lifecycle.push({
-				event: 'networkidle-timeout',
-				at: Date.now(),
-			})
-			diagnostics.pageErrors.push({
-				message: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-			})
+	}).catch((error) => {
+		diagnostics.pageErrors.push({
+			message: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined,
 		})
-	networkIdleAt = Date.now()
+		diagnostics.lifecycle.push({
+			event: 'main-not-attached',
+			at: Date.now(),
+		})
+	})
+	mainAttachedAt = Date.now()
 	const mainVisible = await main.isVisible().catch(() => false)
 	const snapshot = await waitForBoundarySettle(page, {
 		timeoutMs: settleTimeoutMs,
@@ -447,8 +430,7 @@ const collectRouteBoundaryReport = async (
 		{
 			navigationMs: navigationAt - startedAt,
 			mainAttachedMs: mainAttachedAt - navigationAt,
-			networkIdleMs: networkIdleAt - mainAttachedAt,
-			settleMs: settleAt - networkIdleAt,
+			settleMs: settleAt - mainAttachedAt,
 			eventsMs: finishedAt - settleAt,
 			totalMs: finishedAt - startedAt,
 		},
@@ -781,6 +763,30 @@ test.describe('route matrix (shell, URL, settlement, diagnostics, boundary)', ()
 			'console-error:Source.Voltaire_JsonRpc resolver Network.$$transactions failed',
 		])
 		expect(report.issues.join('\n')).not.toContain('unknown')
+	})
+
+	test('settles rendered content while an independent live request remains open', async ({ page }, testInfo) => {
+		testInfo.setTimeout(quietMs + 15_000)
+		const started = Promise.withResolvers<void>()
+		const release = Promise.withResolvers<void>()
+		await installBoundaryProbe(page)
+		await page.route('**/__readiness-stream', async (route) => {
+			started.resolve()
+			await release.promise
+			await route.fulfill({ status: 200, body: 'complete' })
+		})
+		await page.route('**/__route-readiness-test', route => route.fulfill({
+			contentType: 'text/html',
+			body: '<main id="main"><h1>Resolved fixture</h1><dl><dt>Name</dt><dd>Independent content</dd></dl></main><script>fetch("/__readiness-stream")</script>',
+		}))
+		const diagnostics = installRoutePageDiagnostics(page)
+		try {
+			const report = collectRouteBoundaryReport(page, '/__route-readiness-test', diagnostics)
+			await started.promise
+			expect((await report).issues).toEqual([])
+		} finally {
+			release.resolve()
+		}
 	})
 
 	test('probe route', async ({ page }, testInfo) => {

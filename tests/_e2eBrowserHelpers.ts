@@ -188,7 +188,6 @@ export type RouteBoundaryReport = {
 	timings?: {
 		navigationMs: number
 		mainAttachedMs: number
-		networkIdleMs: number
 		settleMs: number
 		eventsMs: number
 		totalMs: number
@@ -987,7 +986,6 @@ export const formatBoundaryReportSummary = (
 			lines.push(`    total ${timings.totalMs}ms`)
 			lines.push(`    navigation ${timings.navigationMs}ms`)
 			lines.push(`    main attached ${timings.mainAttachedMs}ms`)
-			lines.push(`    network idle ${timings.networkIdleMs}ms`)
 			lines.push(`    settle ${timings.settleMs}ms`)
 			lines.push(`    events ${timings.eventsMs}ms`)
 			for (const event of report.updates.slice(-12))
