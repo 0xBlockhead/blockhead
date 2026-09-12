@@ -628,7 +628,7 @@ describe('runtime secret proxy', () => {
 		const { event } = proxyEvent(
 			'header',
 			0,
-			'https://api.example.test/v1',
+			'https://api.example.test/v1'
 		)
 		event.fetch.mockRejectedValue(new Error('upstream saw header-secret and client token'))
 
