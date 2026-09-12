@@ -33,10 +33,13 @@ test('emits the registered observation envelope without reshaping its selector',
 		},
 		timestampMs: 1,
 		source: Source.Beacon_Rest,
-	}
+	} as const
 
 	expect(writer.write(selector, { canonical: true })).toEqual({
 		[EntityMetaKey.Selector]: selector,
 		[EntityMetaKey.Fields]: { canonical: true },
 	})
+
+	// @ts-expect-error A valid schema string must still match this writer's registered source.
+	writer.write({ ...selector, source: Source.Local_Internal }, {})
 })
