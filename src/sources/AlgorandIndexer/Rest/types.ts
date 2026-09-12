@@ -40,6 +40,7 @@ export type AlgorandIndexerTransaction = {
 	fee: number
 	'tx-type': string
 	'confirmed-round'?: number
+	'created-application-index'?: number
 	group?: string
 	'inner-txns'?: AlgorandIndexerTransaction[]
 	logs?: string[]

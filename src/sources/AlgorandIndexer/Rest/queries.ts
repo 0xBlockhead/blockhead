@@ -55,6 +55,7 @@ const transactionWire: arktype.Any = arktype({
 	fee: unsigned,
 	'tx-type': nonEmptyString,
 	'confirmed-round?': unsigned,
+	'created-application-index?': unsigned,
 	'group?': 'string',
 	'logs?': 'string[]',
 	'payment-transaction?': paymentWire,
@@ -285,6 +286,17 @@ const touchesAccount = (
 	)) === true
 )
 
+const touchesApplication = (
+	transaction: AlgorandIndexerTransaction,
+	applicationId: number
+): boolean => (
+	transaction['created-application-index'] === applicationId
+	|| transaction['application-transaction']?.['application-id'] === applicationId
+	|| transaction['inner-txns']?.some((innerTransaction) => (
+		touchesApplication(innerTransaction, applicationId)
+	)) === true
+)
+
 const query = (
 	path: string
 ) => (
@@ -443,16 +455,23 @@ export const getAccountTransactions = async (
 
 export const listTransactions = async (
 	{
+		applicationId,
 		groupId,
 		limit,
 		next,
 	}: {
+		applicationId?: bigint
 		groupId?: string
 		limit: number
 		next?: string
 	}
 ): Promise<AlgorandIndexerTransactionsPage> => {
 	const parameters = pageParameters(limit, next)
+	if (applicationId != null) {
+		if (applicationId < 0n || applicationId > BigInt(Number.MAX_SAFE_INTEGER))
+			throw new Error('AlgorandIndexer_Rest: application ID exceeds lossless JSON integer range')
+		parameters.set('application-id', applicationId.toString())
+	}
 	if (groupId != null) {
 		assertGroupId(groupId)
 		parameters.set('group-id', groupId)
@@ -476,6 +495,8 @@ export const listTransactions = async (
 			throw new Error('AlgorandIndexer_Rest: invalid or duplicate transaction ID')
 		transactionIds.add(transaction.id)
 		assertTransactionRow(transaction)
+		if (applicationId != null && !touchesApplication(transaction, Number(applicationId)))
+			throw new Error('AlgorandIndexer_Rest: transaction page contains a foreign application row')
 		if (groupId != null && transaction.group !== groupId)
 			throw new Error('AlgorandIndexer_Rest: transaction page contains a foreign transaction group row')
 	}

@@ -431,6 +431,94 @@ describe('Algorand Indexer transport', () => {
 		})).rejects.toThrow('foreign transaction group row')
 	})
 
+	it('filters direct, creation, and recursive inner application transactions', async () => {
+		getJson.mockResolvedValueOnce({
+			'current-round': 100,
+			transactions: [
+				{
+					id: 'direct-application',
+					sender: account,
+					fee: 1_000,
+					'tx-type': 'appl',
+					'application-transaction': {
+						'application-id': 42,
+					},
+				},
+				{
+					id: 'created-application',
+					sender: account,
+					fee: 1_000,
+					'tx-type': 'appl',
+					'created-application-index': 42,
+					'application-transaction': {
+						'application-id': 0,
+					},
+				},
+				{
+					id: 'inner-application',
+					sender: account,
+					fee: 1_000,
+					'tx-type': 'pay',
+					'inner-txns': [{
+						id: 'outer-inner',
+						sender: account,
+						fee: 0,
+						'tx-type': 'pay',
+						'inner-txns': [{
+							id: 'inner-call',
+							sender: account,
+							fee: 0,
+							'tx-type': 'appl',
+							'application-transaction': {
+								'application-id': 42,
+							},
+						}],
+					}],
+				},
+			],
+		})
+
+		await expect(listTransactions({
+			applicationId: 42n,
+			limit: 10,
+		})).resolves.toMatchObject({
+			transactions: [
+				{ id: 'direct-application' },
+				{ id: 'created-application' },
+				{ id: 'inner-application' },
+			],
+		})
+		expect(getJson).toHaveBeenCalledWith(
+			expect.anything(),
+			'/v2/transactions?limit=10&application-id=42'
+		)
+
+		getJson.mockResolvedValueOnce({
+			'current-round': 100,
+			transactions: [{
+				id: 'foreign-application',
+				sender: account,
+				fee: 1_000,
+				'tx-type': 'appl',
+				'application-transaction': {
+					'application-id': 7,
+				},
+			}],
+		})
+		await expect(listTransactions({
+			applicationId: 42n,
+			limit: 10,
+		})).rejects.toThrow('foreign application row')
+	})
+
+	it('rejects an application ID outside the lossless JSON integer range before transport', async () => {
+		await expect(listTransactions({
+			applicationId: BigInt(Number.MAX_SAFE_INTEGER) + 1n,
+			limit: 10,
+		})).rejects.toThrow('application ID exceeds lossless JSON integer range')
+		expect(getJson).not.toHaveBeenCalled()
+	})
+
 	it('rejects lossy uint64 values and stalled continuations', async () => {
 		getJson.mockResolvedValueOnce({
 			assets: [{
