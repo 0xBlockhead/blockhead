@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page, type TestInfo } from '@playwright/test'
 import { schnorr } from '@noble/curves/secp256k1.js'
 import { parse } from 'devalue'
+import { beaconRestBody, blockscoutTransactionLogsBody } from './e2e/_networkHttpFixtures.ts'
 import * as Hex from 'ox/Hex'
 
 import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
@@ -2175,133 +2176,6 @@ const beaconRestWire = (url: string, method: string) => (
 	)
 )
 
-const MOCK_BEACON_ROOT = `0x${'11'.repeat(32)}`
-const MOCK_BEACON_SIGNATURE = `0x${'22'.repeat(96)}`
-const MOCK_BEACON_HEADER_BODY = JSON.stringify({
-	data: {
-		root: MOCK_BEACON_ROOT,
-		canonical: true,
-		header: {
-			message: {
-				slot: '12345',
-				proposer_index: '1',
-				parent_root: MOCK_BEACON_ROOT,
-				state_root: MOCK_BEACON_ROOT,
-				body_root: MOCK_BEACON_ROOT,
-			},
-			signature: MOCK_BEACON_SIGNATURE,
-		},
-	},
-})
-
-const MOCK_BEACON_BLOCK_BODY = JSON.stringify({
-	data: {
-		message: {
-			body: {
-				attestations: [
-					{
-						aggregation_bits: '0x01',
-						data: {
-							index: '0',
-						},
-					},
-				],
-				proposer_slashings: [
-					{},
-				],
-				attester_slashings: [],
-				execution_payload: {
-					withdrawals: [
-						{
-							index: '0',
-							validator_index: '1',
-							address: '0x0000000000000000000000000000000000000001',
-							amount: '32000000000',
-						},
-					],
-				},
-			},
-		},
-	},
-})
-
-const beaconRestBody = (url: string) => (
-	url.includes('/eth/v1/beacon/headers/') ?
-		MOCK_BEACON_HEADER_BODY
-	:
-	url.includes('/eth/v2/beacon/blocks/') ?
-		MOCK_BEACON_BLOCK_BODY
-	:
-	url.includes('/eth/v1/beacon/states/')
-	&& url.includes('/committees') ?
-		JSON.stringify({
-			data: [
-				{
-					slot: '12345',
-					index: '0',
-					validators: ['1'],
-				},
-			],
-		})
-	:
-	url.includes('/eth/v1/beacon/states/head/sync_committees') ?
-		JSON.stringify({
-			data: {
-				validators: ['1'],
-			},
-		})
-	:
-	url.includes('/eth/v1/beacon/states/head/finality_checkpoints') ?
-		JSON.stringify({
-			data: {
-				previous_justified: {
-					epoch: '384',
-					root: MOCK_BEACON_ROOT,
-				},
-				current_justified: {
-					epoch: '385',
-					root: MOCK_BEACON_ROOT,
-				},
-				finalized: {
-					epoch: '383',
-					root: MOCK_BEACON_ROOT,
-				},
-			},
-		})
-	:
-	url.includes('/eth/v1/beacon/states/head/validators/') ?
-		JSON.stringify({
-			data: {
-				balance: '32000000000',
-				status: 'active_ongoing',
-				validator: {
-					pubkey: `0x${'33'.repeat(48)}`,
-					effective_balance: '32000000000',
-					slashed: false,
-				},
-			},
-		})
-	:
-	url.includes('/eth/v1/beacon/genesis') ?
-		JSON.stringify({
-			data: {
-				genesis_time: '1606824023',
-			},
-		})
-	:
-	url.includes('/eth/v1/config/fork_schedule') ?
-		JSON.stringify({
-			data: [
-				{
-					epoch: '0',
-					previous_version: '0x00000000',
-					current_version: '0x00000000',
-				},
-			],
-		})
-	:
-		MOCK_BEACON_HEADER_BODY
-)
 
 /**
 	* L2Beat scaling summary — only projects that map to {@link MOCK_CHAINLIST_RPCS_JSON_BODY}
@@ -3250,23 +3124,6 @@ const blockscoutTransactionLogsWire = (url: string, method: string) => (
 	)
 )
 
-const blockscoutTransactionLogsBody = JSON.stringify({
-	items: [
-		{
-			address_hash: {
-				hash: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-			},
-			block_number: 18_000_000,
-			data: '0x',
-			index: 0,
-			topics: [
-				'0x0000000000000000000000000000000000000000000000000000000000000000',
-			],
-			transaction_hash: '0x6b2fe3575bc0e2b9220daf457d7bde7a118d8674b920a0c888bbf547d683d0b7',
-		},
-	],
-	next_page_params: null,
-})
 
 export const openchainSignatureBody = (url: string) => {
 	const decodedUrl = decodeURIComponent(url)
@@ -4721,7 +4578,7 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
-				body: blockscoutTransactionLogsBody,
+				body: blockscoutTransactionLogsBody(url),
 			})
 			return
 		}

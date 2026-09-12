@@ -27,6 +27,7 @@ import {
 	getFinalityCheckpointsFromWire,
 	getForkScheduleFromWire,
 	getGenesisTimeSeconds,
+	getSecondsPerSlot,
 	getHeadSlot,
 	getHeader,
 	getHeaderFromWire,
@@ -974,6 +975,54 @@ describe('Beacon REST native scalar clocks', () => {
 				connected: '56',
 			},
 		})).toBeUndefined()
+	})
+
+	it('accepts the browser crawl identity and sync-committee fixtures through production parsers', async () => {
+		const { beaconNodeIdentityBody, beaconSyncCommitteeBody } = await import('../../../../tests/e2e/_networkHttpFixtures.ts')
+		expect(getNodeIdentityFromWire(JSON.parse(beaconNodeIdentityBody))).toMatchObject({
+			peer_id: '16Uiu2HAmExample',
+			metadata: { seq_number: '1', attnets: '0x0000000000000000' },
+		})
+		expect(getSyncCommitteeFromWire(JSON.parse(beaconSyncCommitteeBody))).toEqual({
+			validators: ['1'],
+			validator_aggregates: [['1']],
+		})
+	})
+
+	it.each([0, 8192, 'head'])('dispatches the browser sync committee fixture for state %s through the real query', async (stateId) => {
+		const { beaconRestBody } = await import('../../../../tests/e2e/_networkHttpFixtures.ts')
+		const fetch = vi.spyOn(sourceHttp, 'sourceFetch').mockImplementation(async (_source, url) => (
+			new Response(beaconRestBody(String(url)))
+		))
+		await expect(getSyncCommittee(1, stateId)).resolves.toEqual({
+			validators: ['1'],
+			validator_aggregates: [['1']],
+		})
+		expect(String(fetch.mock.calls[0]?.[1])).toContain(`/states/${stateId}/sync_committees`)
+	})
+
+	it.each([
+		[getNodePeerCountObservation, { disconnected: '2', connecting: '1', connected: '12', disconnecting: '0' }],
+		[getNodeHealthObservation, { statusCode: 200 }],
+		[getNodeVersionObservation, { version: 'Lighthouse/v5.3.0/e2e-fixture' }],
+		[getNodeSyncingObservation, { head_slot: '12345', sync_distance: '0', is_syncing: false, is_optimistic: false, el_offline: false }],
+		[getNodeIdentityObservation, { peer_id: '16Uiu2HAmExample' }],
+	] as const)('dispatches the browser node observation fixture through %s', async (query, expected) => {
+		const { beaconRestBody } = await import('../../../../tests/e2e/_networkHttpFixtures.ts')
+		vi.spyOn(sourceHttp, 'sourceFetch').mockImplementation(async (_source, url) => (
+			new Response(beaconRestBody(String(url)))
+		))
+		await expect(query(1)).resolves.toMatchObject(expected)
+	})
+
+	it('dispatches browser chain constants and rejects unsupported Beacon operations', async () => {
+		const { beaconRestBody } = await import('../../../../tests/e2e/_networkHttpFixtures.ts')
+		vi.spyOn(sourceHttp, 'sourceFetch').mockImplementation(async (_source, url) => (
+			new Response(beaconRestBody(String(url)))
+		))
+		await expect(getGenesisTimeSeconds(1)).resolves.toBe('1606824023')
+		await expect(getSecondsPerSlot(1)).resolves.toBe(12)
+		expect(() => beaconRestBody('https://ethereum-beacon-api.publicnode.com/eth/v1/unsupported')).toThrow('Unsupported Beacon E2E fixture URL')
 	})
 
 	it('preserves one complete native node identity snapshot', async () => {

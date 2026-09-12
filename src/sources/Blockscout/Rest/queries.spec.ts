@@ -35,6 +35,29 @@ if (ethereumBlockscoutRestV2Binding == null)
 	throw new Error('Blockscout REST spec missing Ethereum account-abstraction binding')
 
 const jsonResponse = (body: unknown) => new Response(JSON.stringify(body))
+
+it.each(['a', 'b'])('uses the requested transaction identity in crawl fixture %s', async (character) => {
+	const { blockscoutTransactionLogsBody } = await import('../../../../tests/e2e/_networkHttpFixtures.ts')
+	const txHash = `0x${character.repeat(64)}`
+	const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(blockscoutTransactionLogsBody(
+		`https://eth.blockscout.com/api/v2/transactions/${txHash}/logs`
+	)))
+	vi.stubGlobal('fetch', fetchMock)
+	try {
+		await expect(getTransactionLogs({ chainId: 1, txHash })).resolves.toMatchObject([
+			{ transaction_hash: txHash, index: 0, block_number: 18_000_000 },
+		])
+		expect(fetchMock).toHaveBeenCalledOnce()
+	} finally {
+		vi.unstubAllGlobals()
+	}
+})
+
+it('rejects malformed transaction identities before supplying a crawl fixture', async () => {
+	const { blockscoutTransactionLogsBody } = await import('../../../../tests/e2e/_networkHttpFixtures.ts')
+	expect(() => blockscoutTransactionLogsBody('https://eth.blockscout.com/api/v2/transactions/0xwrong/logs')).toThrow('missing transaction hash')
+})
+
 const hex = (character: string, length: number): `0x${string}` => `0x${character.repeat(length)}`
 const gasPrices = {
 	slow: 0.12,
