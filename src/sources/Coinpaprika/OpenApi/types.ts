@@ -2,7 +2,11 @@ import { type as arktype } from 'arktype'
 
 import type { paths } from '$/sources/Coinpaprika/OpenApi/openapi.d.ts'
 
-export type CoinpaprikaCoin = paths['/coins/{coin_id}']['get']['responses'][200]['content']['application/json']
+type GeneratedCoinpaprikaCoin = paths['/coins/{coin_id}']['get']['responses'][200]['content']['application/json']
+/** Public coin detail responses use null for the optional status message. */
+export type CoinpaprikaCoin = Omit<GeneratedCoinpaprikaCoin, 'message'> & {
+	message?: string | null
+}
 export type CoinpaprikaCoinPath = paths['/coins/{coin_id}']['get']['parameters']['path']
 
 export type CoinpaprikaCoinMarkets = paths['/coins/{coin_id}/markets']['get']['responses'][200]['content']['application/json']
@@ -54,7 +58,7 @@ export const coinpaprikaCoinEnvelope = arktype({
 	'type?': 'string',
 	'logo?': 'string',
 	'description?': 'string | null',
-	'message?': 'string',
+	'message?': 'string | null',
 	'open_source?': 'boolean',
 	'started_at?': 'string | null',
 	'development_status?': 'string | null',

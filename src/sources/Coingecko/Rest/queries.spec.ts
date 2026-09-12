@@ -24,6 +24,19 @@ const {
 } = await import('$/sources/Coingecko/Rest/queries.ts')
 
 describe('CoinGecko documented endpoints', () => {
+	it.each(['thumb', 'small', 'large'])('preserves nullable platform image %s through the query', async (child) => {
+		const rows = ['ethereum', 'arbitrum-one'].map((id) => ({ id, image: { [child]: null } }))
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify(rows)))
+		await expect(getAssetPlatforms({ publicEnv: {} })).resolves.toEqual(rows)
+	})
+
+	it.each(['thumb', 'small', 'large'])('rejects numeric platform image %s and keeps coin images string-only', async (child) => {
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify([{ id: 'ethereum', image: { [child]: 1 } }])))
+		await expect(getAssetPlatforms({ publicEnv: {} })).rejects.toThrow('invalid asset platforms response envelope')
+		coingeckoFetch.mockResolvedValueOnce(new Response(JSON.stringify({ id: 'ethereum', image: { [child]: null } })))
+		await expect(getCoin({ publicEnv: {}, id: 'ethereum' })).rejects.toThrow('invalid coin response envelope')
+	})
+
 	beforeEach(() => {
 		coingeckoFetch.mockReset()
 		coingeckoFetch.mockResolvedValue(new Response(JSON.stringify({

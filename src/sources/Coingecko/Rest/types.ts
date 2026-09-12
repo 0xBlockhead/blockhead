@@ -74,6 +74,12 @@ const coingeckoImageWire = arktype({
 	'large?': 'string',
 })
 
+const coingeckoAssetPlatformImageWire = arktype({
+	'thumb?': 'string | null',
+	'small?': 'string | null',
+	'large?': 'string | null',
+})
+
 /** Fail-closed coin / contract-coin envelope for fields resolvers already project. */
 export const coingeckoCoinEnvelope = arktype({
 	id: 'string',
@@ -115,7 +121,7 @@ export const coingeckoAssetPlatformEnvelope = arktype({
 	'shortname?': 'string',
 	'chain_identifier?': 'number | null',
 	'native_coin_id?': 'string | null',
-	'image?': coingeckoImageWire.or('null'),
+	'image?': coingeckoAssetPlatformImageWire.or('null'),
 })
 
 export const coingeckoAssetPlatformsEnvelope = coingeckoAssetPlatformEnvelope.array()
@@ -199,7 +205,14 @@ export type CoingeckoCoin = Omit<CoinResponse, 'image'> & {
 export type CoingeckoCoinByContract = Omit<CoinByContractResponse, 'image'> & {
 	image?: CoinByContractResponse['image']
 }
-export type CoingeckoAssetPlatform = AssetPlatformsResponse[number]
+type GeneratedCoingeckoAssetPlatform = AssetPlatformsResponse[number]
+export type CoingeckoAssetPlatform = Omit<GeneratedCoingeckoAssetPlatform, 'image'> & {
+	image?: {
+		thumb?: string | null
+		small?: string | null
+		large?: string | null
+	} | null
+}
 export type CoingeckoCoinsMarket = CoinsMarketsResponse[number]
 export type CoingeckoCoinTickers = CoinTickersResponse
 export type CoingeckoCoinTicker = NonNullable<CoinTickersResponse['tickers']>[number]

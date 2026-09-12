@@ -10,6 +10,19 @@ import {
 } from '$/sources/Coinpaprika/OpenApi/queries.ts'
 
 describe('Coinpaprika coin queries', () => {
+	it.each(['apt-aptos', 'aave-new', 'arb-arbitrum'])('preserves nullable public status for %s', async (id) => {
+		const coin = { id, message: null }
+		vi.stubGlobal('window', {})
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify(coin))))
+		await expect(getCoinById({ publicEnv: {}, coinpaprikaId: id })).resolves.toEqual(coin)
+	})
+
+	it('rejects numeric status messages', async () => {
+		vi.stubGlobal('window', {})
+		vi.stubGlobal('fetch', vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ id: 'aave-new', message: 1 }))))
+		await expect(getCoinById({ publicEnv: {}, coinpaprikaId: 'aave-new' })).rejects.toThrow('invalid coin response envelope')
+	})
+
 	afterEach(() => {
 		vi.restoreAllMocks()
 		vi.unstubAllGlobals()
@@ -117,7 +130,6 @@ describe('Coinpaprika coin queries', () => {
 				Authorization: apiKey,
 			},
 		})
-		expect(fetchMock.mock.calls[0]?.[1]?.headers?.Authorization).not.toBe(`Bearer ${apiKey}`)
 	})
 
 	it('passes documented historical OHLC parameters through and returns raw rows', async () => {
