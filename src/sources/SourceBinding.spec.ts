@@ -300,6 +300,13 @@ describe('source binding indexes', () => {
 				wireProtocol: WireProtocol.Xrpc,
 				operations: [SourceOperationGroup.GenericSubscribe],
 			},
+			...['atproto-plc-directory', 'atproto-did-web'].map((target) => ({
+				source: Source.AtprotoSync_Xrpc,
+				target,
+				delivery: SourceDelivery.RemoteQuery,
+				wireProtocol: WireProtocol.HttpRest,
+				operations: [SourceOperationGroup.GenericRead],
+			})),
 			{
 				source: Source.Farcaster_Rest,
 				target: 'client-api',
