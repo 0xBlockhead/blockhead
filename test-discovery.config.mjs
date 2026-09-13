@@ -4,7 +4,10 @@ export const vitestClientExclude = [
 	'src/routes/demo/**',
 ]
 
-export const vitestServerInclude = ['src/**/*.{test,spec}.{js,ts}']
+export const vitestServerInclude = [
+	'src/**/*.{test,spec}.{js,ts}',
+	'scripts/sources/**/*.{test,spec}.{js,ts}',
+]
 export const vitestServerExclude = [
 	'src/**/*.svelte.{test,spec}.{js,ts}',
 	'src/routes/demo/**',

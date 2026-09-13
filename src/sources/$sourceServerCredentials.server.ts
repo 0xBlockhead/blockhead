@@ -767,6 +767,28 @@ const runtimeSecretCredentials = [
 		undefined,
 	],
 	[
+		'["TheGraph_Graphql","Global","messari-subgraph:FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX","HttpProxy","GraphqlHttp"]',
+		'THEGRAPH_API_KEY',
+		{
+			header: {
+				name: 'Authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
+		'["TheGraph_Graphql","Global","messari-subgraph:3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2","HttpProxy","GraphqlHttp"]',
+		'THEGRAPH_API_KEY',
+		{
+			header: {
+				name: 'Authorization',
+				prefix: 'Bearer ',
+			},
+		},
+		undefined,
+	],
+	[
 		'["TonCenter","Caip2Network","ton:-239","HttpProxy","OpenApiHttp"]',
 		'TONCENTER_MAINNET_API_KEY',
 		{

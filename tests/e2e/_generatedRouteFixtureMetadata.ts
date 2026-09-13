@@ -973,6 +973,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(assets)/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]': {
+		routeId: '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/amm-observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]',
+		mappings: [
+			{
+				id: 'LiquidityPool_Amm_EvmBlock.PoolBlockRevision',
+				probeAtomPrefixes: ['/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]:LiquidityPool_Amm_EvmBlock.PoolBlockRevision'],
+				probeCases: [[[0, '1', ['blockSelector', 'sourceRevision', 'poolId', 'chainId']]]],
+			},
+		],
+	},
+	'/(assets)/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]/input-asset/[ordinal]': {
+		routeId: '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/amm-observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]/(liquidityPoolAmmEvmBlock)/input-asset/[ordinal=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'LiquidityPool_Amm_EvmBlock_InputAsset.ObservationOrdinal',
+				probeAtomPrefixes: ['/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]/input-asset/[ordinal]:LiquidityPool_Amm_EvmBlock_InputAsset.ObservationOrdinal'],
+				probeCases: [[[0, '1', ['ordinal', 'blockSelector', 'sourceRevision', 'poolId', 'chainId']]]],
+			},
+		],
+	},
 	'/(assets)/uniswap-cca/auction/[chainId]/[auctionAddress]': {
 		routeId: '/(assets)/uniswap-cca/auction/[chainId=eip155ChainId]/[auctionAddress=evmAddress]',
 		mappings: [
@@ -7911,6 +7931,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionPath: [
 					'Evm',
 				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/financial-protocol/[protocolKey]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/financial-protocol/[protocolKey=stringSegment]',
+		mappings: [
+			{
+				id: 'FinancialProtocol.NetworkProtocolKey',
+				probeAtomPrefixes: ['/network/[network]/financial-protocol/[protocolKey]:FinancialProtocol.NetworkProtocolKey'],
+				probeCases: [[[0, '1', ['protocolKey', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/financial-protocol/[protocolKey]/amm-observation/[blockSelector]/[sourceRevision]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/financial-protocol/[protocolKey=stringSegment]/(financialProtocol)/amm-observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]',
+		mappings: [
+			{
+				id: 'FinancialProtocol_Amm_EvmBlock.ProtocolBlockRevision',
+				probeAtomPrefixes: ['/network/[network]/financial-protocol/[protocolKey]/amm-observation/[blockSelector]/[sourceRevision]:FinancialProtocol_Amm_EvmBlock.ProtocolBlockRevision'],
+				probeCases: [[[0, '1', ['sourceRevision', 'blockSelector', 'protocolKey', 'network']]]],
 			},
 		],
 	},

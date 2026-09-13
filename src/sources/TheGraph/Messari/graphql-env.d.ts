@@ -1,0 +1,39 @@
+/* eslint-disable */
+/* prettier-ignore */
+
+export type introspection_types = {
+    'BigDecimal': unknown;
+    'Block_height': { kind: 'INPUT_OBJECT'; name: 'Block_height'; isOneOf: false; inputFields: [{ name: 'hash'; type: { kind: 'SCALAR'; name: 'Bytes'; ofType: null; }; defaultValue: null }, { name: 'number'; type: { kind: 'SCALAR'; name: 'Int'; ofType: null; }; defaultValue: null }, { name: 'number_gte'; type: { kind: 'SCALAR'; name: 'Int'; ofType: null; }; defaultValue: null }]; };
+    'Boolean': unknown;
+    'Bytes': unknown;
+    'DexAmmProtocol': { kind: 'OBJECT'; name: 'DexAmmProtocol'; fields: { 'cumulativeProtocolSideRevenueUSD': { name: 'cumulativeProtocolSideRevenueUSD'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'BigDecimal'; ofType: null; }; } }; 'cumulativeSupplySideRevenueUSD': { name: 'cumulativeSupplySideRevenueUSD'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'BigDecimal'; ofType: null; }; } }; 'cumulativeTotalRevenueUSD': { name: 'cumulativeTotalRevenueUSD'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'BigDecimal'; ofType: null; }; } }; 'cumulativeVolumeUSD': { name: 'cumulativeVolumeUSD'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'BigDecimal'; ofType: null; }; } }; 'id': { name: 'id'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'Bytes'; ofType: null; }; } }; 'methodologyVersion': { name: 'methodologyVersion'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; 'name': { name: 'name'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; 'network': { name: 'network'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'ENUM'; name: 'Network'; ofType: null; }; } }; 'schemaVersion': { name: 'schemaVersion'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; 'subgraphVersion': { name: 'subgraphVersion'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; 'totalPoolCount': { name: 'totalPoolCount'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'Int'; ofType: null; }; } }; 'totalValueLockedUSD': { name: 'totalValueLockedUSD'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'BigDecimal'; ofType: null; }; } }; }; };
+    'DexAmmProtocol_filter': { kind: 'INPUT_OBJECT'; name: 'DexAmmProtocol_filter'; isOneOf: false; inputFields: [{ name: 'id'; type: { kind: 'SCALAR'; name: 'Bytes'; ofType: null; }; defaultValue: null }]; };
+    'DexAmmProtocol_orderBy': { name: 'DexAmmProtocol_orderBy'; enumValues: 'id' | 'name' | 'slug' | 'schemaVersion' | 'subgraphVersion' | 'methodologyVersion' | 'network' | 'type' | 'totalValueLockedUSD' | 'totalLiquidityUSD' | 'activeLiquidityUSD' | 'uncollectedProtocolSideValueUSD' | 'uncollectedSupplySideValueUSD' | 'protocolControlledValueUSD' | 'cumulativeVolumeUSD' | 'cumulativeSupplySideRevenueUSD' | 'cumulativeProtocolSideRevenueUSD' | 'cumulativeTotalRevenueUSD' | 'cumulativeUniqueUsers' | 'cumulativeUniqueLPs' | 'cumulativeUniqueTraders' | 'totalPoolCount' | 'openPositionCount' | 'cumulativePositionCount' | 'lastSnapshotDayID' | 'lastUpdateTimestamp' | 'lastUpdateBlockNumber' | 'dailyUsageMetrics' | 'hourlyUsageMetrics' | 'financialMetrics' | 'pools' | '_regenesis'; };
+    'Int': unknown;
+    'Network': { name: 'Network'; enumValues: 'ARBITRUM_ONE' | 'ARWEAVE_MAINNET' | 'AURORA' | 'AVALANCHE' | 'BASE' | 'BOBA' | 'BSC' | 'CELO' | 'COSMOS' | 'CRONOS' | 'MAINNET' | 'FANTOM' | 'FUSE' | 'HARMONY' | 'JUNO' | 'MOONBEAM' | 'MOONRIVER' | 'NEAR_MAINNET' | 'OPTIMISM' | 'OSMOSIS' | 'MATIC' | 'XDAI'; };
+    'OrderDirection': { name: 'OrderDirection'; enumValues: 'asc' | 'desc'; };
+    'Protocol': { kind: 'INTERFACE'; name: 'Protocol'; fields: { 'cumulativeProtocolSideRevenueUSD': { name: 'cumulativeProtocolSideRevenueUSD'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'BigDecimal'; ofType: null; }; } }; 'cumulativeSupplySideRevenueUSD': { name: 'cumulativeSupplySideRevenueUSD'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'BigDecimal'; ofType: null; }; } }; 'cumulativeTotalRevenueUSD': { name: 'cumulativeTotalRevenueUSD'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'BigDecimal'; ofType: null; }; } }; 'id': { name: 'id'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'Bytes'; ofType: null; }; } }; 'methodologyVersion': { name: 'methodologyVersion'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; 'name': { name: 'name'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; 'network': { name: 'network'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'ENUM'; name: 'Network'; ofType: null; }; } }; 'schemaVersion': { name: 'schemaVersion'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; 'subgraphVersion': { name: 'subgraphVersion'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; 'totalPoolCount': { name: 'totalPoolCount'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'Int'; ofType: null; }; } }; 'totalValueLockedUSD': { name: 'totalValueLockedUSD'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'BigDecimal'; ofType: null; }; } }; }; possibleTypes: 'DexAmmProtocol'; };
+    'Query': { kind: 'OBJECT'; name: 'Query'; fields: { '_meta': { name: '_meta'; type: { kind: 'OBJECT'; name: '_Meta_'; ofType: null; } }; 'dexAmmProtocols': { name: 'dexAmmProtocols'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'LIST'; name: never; ofType: { kind: 'NON_NULL'; name: never; ofType: { kind: 'OBJECT'; name: 'DexAmmProtocol'; ofType: null; }; }; }; } }; }; };
+    'String': unknown;
+    '_Block_': { kind: 'OBJECT'; name: '_Block_'; fields: { 'hash': { name: 'hash'; type: { kind: 'SCALAR'; name: 'Bytes'; ofType: null; } }; 'number': { name: 'number'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'Int'; ofType: null; }; } }; 'timestamp': { name: 'timestamp'; type: { kind: 'SCALAR'; name: 'Int'; ofType: null; } }; }; };
+    '_Meta_': { kind: 'OBJECT'; name: '_Meta_'; fields: { 'block': { name: 'block'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'OBJECT'; name: '_Block_'; ofType: null; }; } }; 'deployment': { name: 'deployment'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; 'hasIndexingErrors': { name: 'hasIndexingErrors'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'Boolean'; ofType: null; }; } }; }; };
+    '_SubgraphErrorPolicy_': { name: '_SubgraphErrorPolicy_'; enumValues: 'allow' | 'deny'; };
+};
+
+/** An IntrospectionQuery representation of your schema.
+ *
+ * @remarks
+ * This is an introspection of your schema saved as a file by GraphQLSP.
+ * It will automatically be used by `gql.tada` to infer the types of your GraphQL documents.
+ * If you need to reuse this data or update your `scalars`, update `tadaOutputLocation` to
+ * instead save to a .ts instead of a .d.ts file.
+ */
+export type introspection = {
+  name: 'MessariAmm';
+  query: 'Query';
+  mutation: never;
+  subscription: never;
+  types: introspection_types;
+};
+
+import * as gqlTada from 'gql.tada';
