@@ -566,6 +566,24 @@ export const walletConnectionMethods = [
 		implementationStatus: WalletImplementationStatus.Modeled,
 		dependencyPolicy: 'vendor-required',
 	},
+	{
+		id: 'ledger-speculos',
+		label: 'Ledger Speculos emulator',
+		protocol: WalletProtocol.DirectHardwareTransport,
+		discoveryKind: WalletDiscoveryKind.HardwareBridge,
+		transportKind: WalletTransportKind.HttpBridge,
+		formFactors: [WalletFormFactor.RemoteSigner],
+		networkNamespaces: [NetworkNamespace.Evm],
+		caipNamespaces: ['eip155'],
+		capabilities: [
+			WalletCapability.Connect,
+			WalletCapability.Disconnect,
+			WalletCapability.ListAccounts,
+			WalletCapability.SignMessage,
+		],
+		implementationStatus: WalletImplementationStatus.Implemented,
+		dependencyPolicy: 'vendor-required',
+	},
 ] as const satisfies readonly WalletConnectionMethod[]
 
 /**

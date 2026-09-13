@@ -176,7 +176,7 @@
 			</ResourceBoundary>
 
 			<div>
-				<dt>simulation request/parameters hash</dt>
+				<dt>params hash</dt>
 				<dd>
 					<ResourceBoundary
 						resource={blockheadSessionSimulation}
@@ -195,16 +195,12 @@
 					viewSelection({
 						fields: {
 							executionSourceKind: true,
-							executionSourceVersion: true,
-							forkBlockNumber: true,
 						},
 					})
 				}
 			>
 				{#snippet children(entity)}
 					{@const executionSourceKind = entity.executionSourceKind}
-					{@const executionSourceVersion = entity.executionSourceVersion}
-					{@const forkBlockNumber = entity.forkBlockNumber}
 					{#if executionSourceKind != null}
 						<div>
 							<dt>execution source kind</dt>
@@ -213,23 +209,25 @@
 							</dd>
 						</div>
 					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							executionSourceVersion: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const executionSourceVersion = entity.executionSourceVersion}
 					{#if executionSourceVersion != null}
 						<div>
 							<dt>execution source version</dt>
 							<dd>
 								{executionSourceVersion}
-							</dd>
-						</div>
-					{/if}
-
-					{#if forkBlockNumber != null}
-						<div>
-							<dt>fork block number</dt>
-							<dd>
-								<NumberValue
-									value={forkBlockNumber}
-								/>
 							</dd>
 						</div>
 					{/if}
@@ -249,6 +247,30 @@
 									selection={select(EntityType.Network, (network ?? networkInitial)[EntityMetaKey.Selector])}
 									prefetched={network ?? networkInitial}
 									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							forkBlockNumber: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const forkBlockNumber = entity.forkBlockNumber}
+					{#if forkBlockNumber != null}
+						<div>
+							<dt>fork block number</dt>
+							<dd>
+								<NumberValue
+									value={forkBlockNumber}
 								/>
 							</dd>
 						</div>

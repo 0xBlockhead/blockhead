@@ -10,6 +10,9 @@ export default {
 		[Source.TheGraph_Graphql]: {
 			label: 'The Graph GraphQL',
 		},
+		[Source.TheGraph_Mcp]: {
+			label: 'The Graph Subgraph MCP',
+		},
 	},
 	bindings,
 } satisfies SourceProviderDefinition<typeof bindings>

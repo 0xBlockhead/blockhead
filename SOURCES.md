@@ -4,7 +4,7 @@ This file is generated from APP compiler-plane source metadata: the canonical pr
 
 Provider/source identity, target, endpoint reality, protocol, API family, operation groups, delivery, credentials, and artifacts remain independent axes. Artifacts and generated clients are binding metadata. CORS is recorded per HTTP endpoint; proxy and live behavior are recorded as delivery.
 
-256 providers register 288 sources and 521 bindings.
+256 providers register 289 sources and 524 bindings.
 
 ## Providers
 
@@ -512,6 +512,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | Tally | Tally | Tally |
 | TezosDappetizer_Postgres | TezosDappetizer | Tezos Dappetizer Postgres |
 | TheGraph_Graphql | TheGraph | The Graph GraphQL |
+| TheGraph_Mcp | TheGraph | The Graph Subgraph MCP |
 | ThreeXpl_Rest | ThreeXpl | 3xpl REST |
 | TonApi_Rest | TonApi | TonAPI REST |
 | TonCenter | TonCenter | TON Center |
@@ -954,6 +955,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Tally","Global","tally-api","HttpProxy","GraphqlHttp"] | Tally | Tally | Global | tally-api | Graphql | GraphqlHttp | GenericRead | HttpProxy |
 | ["TezosDappetizer_Postgres","SqlDataset","tezos-dappetizer-dataset","ServerOnly","Postgres"] | TezosDappetizer | TezosDappetizer_Postgres | SqlDataset | tezos-dappetizer-dataset | Sql | Postgres | GenericRead | ServerOnly |
 | ["TheGraph_Graphql","Global","ens-subgraph","HttpProxy","GraphqlHttp"] | TheGraph | TheGraph_Graphql | Global | ens-subgraph | Graphql | GraphqlHttp | GenericRead | HttpProxy |
+| ["TheGraph_Graphql","Global","messari-subgraph:FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX","HttpProxy","GraphqlHttp"] | TheGraph | TheGraph_Graphql | Global | messari-subgraph:FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX | Graphql | GraphqlHttp | GenericRead | HttpProxy |
+| ["TheGraph_Graphql","Global","messari-subgraph:3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2","HttpProxy","GraphqlHttp"] | TheGraph | TheGraph_Graphql | Global | messari-subgraph:3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2 | Graphql | GraphqlHttp | GenericRead | HttpProxy |
+| ["TheGraph_Mcp","Global","subgraph-mcp","RemoteQuery","McpProtocol"] | TheGraph | TheGraph_Mcp | Global | subgraph-mcp | JsonRpc2 | McpProtocol | AgentCapabilityCatalog, AgentRuntimeInvocation | RemoteQuery |
 | ["ThreeXpl_Rest","Global","sandbox","BrowserDirect","RestJson"] | ThreeXpl | ThreeXpl_Rest | Global | sandbox | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["ThreeXpl_Rest","Global","production","BrowserDirect","RestJson"] | ThreeXpl | ThreeXpl_Rest | Global | production | HttpRest | RestJson | GenericRead | BrowserDirect |
 | ["TonApi_Rest","Caip2Network","ton:-239","HttpProxy","RestJson"] | TonApi | TonApi_Rest | Caip2Network | ton:-239 | HttpRest | RestJson | GenericRead | HttpProxy |
@@ -1518,6 +1522,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Tally","Global","tally-api","HttpProxy","GraphqlHttp"] | HttpUrl | https://api.tally.xyz/query | https://api.tally.xyz | false |
 | ["TezosDappetizer_Postgres","SqlDataset","tezos-dappetizer-dataset","ServerOnly","Postgres"] | PostgresDsn | env:TEZOS_DAPPETIZER_DATABASE_URL |  |  |
 | ["TheGraph_Graphql","Global","ens-subgraph","HttpProxy","GraphqlHttp"] | HttpUrl | https://gateway.thegraph.com/api/subgraphs/id/5XqPmWe6gjyrJtFn9cLy237i4cWw2j9HcUJEXsP5qGtH | https://gateway.thegraph.com | false |
+| ["TheGraph_Graphql","Global","messari-subgraph:FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX","HttpProxy","GraphqlHttp"] | HttpUrl | https://gateway.thegraph.com/api/subgraphs/id/FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX | https://gateway.thegraph.com | false |
+| ["TheGraph_Graphql","Global","messari-subgraph:3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2","HttpProxy","GraphqlHttp"] | HttpUrl | https://gateway.thegraph.com/api/subgraphs/id/3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2 | https://gateway.thegraph.com | false |
+| ["TheGraph_Mcp","Global","subgraph-mcp","RemoteQuery","McpProtocol"] | HttpUrl | https://subgraphs.mcp.thegraph.com/sse | https://subgraphs.mcp.thegraph.com | false |
 | ["ThreeXpl_Rest","Global","sandbox","BrowserDirect","RestJson"] | HttpUrl | https://sandbox-api.3xpl.com | https://sandbox-api.3xpl.com | true |
 | ["ThreeXpl_Rest","Global","production","BrowserDirect","RestJson"] | HttpUrl | https://api.3xpl.com | https://api.3xpl.com | true |
 | ["TonApi_Rest","Caip2Network","ton:-239","HttpProxy","RestJson"] | HttpUrl | https://tonapi.io | https://tonapi.io | false |
@@ -1816,6 +1823,9 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Tally","Global","tally-api","HttpProxy","GraphqlHttp"] | RuntimeSecret | no |  |
 | ["TezosDappetizer_Postgres","SqlDataset","tezos-dappetizer-dataset","ServerOnly","Postgres"] | RuntimeSecret | yes | TEZOS_DAPPETIZER_DATABASE_URL |
 | ["TheGraph_Graphql","Global","ens-subgraph","HttpProxy","GraphqlHttp"] | RuntimeSecret | no |  |
+| ["TheGraph_Graphql","Global","messari-subgraph:FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX","HttpProxy","GraphqlHttp"] | RuntimeSecret | no |  |
+| ["TheGraph_Graphql","Global","messari-subgraph:3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2","HttpProxy","GraphqlHttp"] | RuntimeSecret | no |  |
+| ["TheGraph_Mcp","Global","subgraph-mcp","RemoteQuery","McpProtocol"] | RuntimeSecret | no | THEGRAPH_API_KEY |
 | ["ThreeXpl_Rest","Global","production","BrowserDirect","RestJson"] | UserDelegated | no | Xpl-Token |
 | ["TonCenter","Caip2Network","ton:-239","HttpProxy","OpenApiHttp"] | RuntimeSecret | no |  |
 | ["TonCenter","Caip2Network","ton:-3","HttpProxy","OpenApiHttp"] | RuntimeSecret | no |  |
@@ -2235,6 +2245,12 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["TheGraph_Graphql","Global","ens-subgraph","HttpProxy","GraphqlHttp"] | GraphqlSchema | src/sources/TheGraph/Graphql/Ens/schema.graphql | no |  |  |
 | ["TheGraph_Graphql","Global","ens-subgraph","HttpProxy","GraphqlHttp"] | GraphqlSchema | src/sources/TheGraph/Graphql/Ens/schema.patch.graphql | no |  |  |
 | ["TheGraph_Graphql","Global","ens-subgraph","HttpProxy","GraphqlHttp"] | GraphqlTypes | src/sources/TheGraph/Graphql/Ens/graphql-env.d.ts | yes |  |  |
+| ["TheGraph_Graphql","Global","messari-subgraph:FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX","HttpProxy","GraphqlHttp"] | GenerationManifest | src/sources/TheGraph/Messari/graphql-schema-source.ts | no |  |  |
+| ["TheGraph_Graphql","Global","messari-subgraph:FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX","HttpProxy","GraphqlHttp"] | GraphqlSchema | src/sources/TheGraph/Messari/schema.graphql | no |  |  |
+| ["TheGraph_Graphql","Global","messari-subgraph:FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX","HttpProxy","GraphqlHttp"] | GraphqlTypes | src/sources/TheGraph/Messari/graphql-env.d.ts | yes |  |  |
+| ["TheGraph_Graphql","Global","messari-subgraph:3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2","HttpProxy","GraphqlHttp"] | GenerationManifest | src/sources/TheGraph/Messari/graphql-schema-source.ts | no |  |  |
+| ["TheGraph_Graphql","Global","messari-subgraph:3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2","HttpProxy","GraphqlHttp"] | GraphqlSchema | src/sources/TheGraph/Messari/schema.graphql | no |  |  |
+| ["TheGraph_Graphql","Global","messari-subgraph:3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2","HttpProxy","GraphqlHttp"] | GraphqlTypes | src/sources/TheGraph/Messari/graphql-env.d.ts | yes |  |  |
 | ["ThreeXpl_Rest","Global","sandbox","BrowserDirect","RestJson"] | HandwrittenTypes | src/sources/ThreeXpl/Rest/types.ts | no |  |  |
 | ["TonApi_Rest","Caip2Network","ton:-239","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/TonApi/Rest/types.ts | no |  |  |
 | ["TonCenter","Caip2Network","ton:-239","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/TonCenter/OpenApi/schema-source.ts | no |  |  |

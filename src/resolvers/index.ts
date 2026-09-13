@@ -199,7 +199,25 @@ const resolverLoaderEntries = [
 	[Source.Swarm_Rest, () => import('./Swarm-Rest.ts')],
 	[Source.Tally, () => import('./Tally-Graphql.ts')],
 	[Source.TezosDappetizer_Postgres, () => import('./TezosDappetizer-Postgres.ts')],
-	[Source.TheGraph_Graphql, () => import('./Ens-TheGraph.ts')],
+	[Source.TheGraph_Graphql, async () => {
+		const [
+			ensTheGraph,
+			messariTheGraph,
+		] = await Promise.all([
+			import('./Ens-TheGraph.ts'),
+			import('./Messari-TheGraph.ts'),
+		])
+		return {
+			default: {
+				source: Source.TheGraph_Graphql,
+				resolvers: [
+					...ensTheGraph.default.resolvers,
+					...messariTheGraph.default.resolvers,
+				],
+			},
+		}
+	}],
+	[Source.TheGraph_Mcp, () => import('./TheGraph-Mcp.ts')],
 	[Source.ThreeXpl_Rest, () => import('./ThreeXpl-Rest.ts')],
 	[Source.TonApi_Rest, () => import('./TonApi-Rest.ts')],
 	[Source.TonCenter, () => import('./TonCenter.ts')],

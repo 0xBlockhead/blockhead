@@ -438,6 +438,7 @@ type _EntityView<
 		sort?: _FieldReference
 		direction?: 'asc' | 'desc'
 		view?: string
+		layout?: EntityLayout
 		Content?: _RawSnippet
 		when?: {
 			field: _EntityFieldReference

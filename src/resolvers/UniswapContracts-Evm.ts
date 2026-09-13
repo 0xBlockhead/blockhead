@@ -440,27 +440,26 @@ export default {
 		defineResolver({
 			entityType: EntityType.UniswapV3Pool,
 			resolve: {
-				Token0Token1Fee: {
-					resolve: async ({ $token0, $token1, fee }) => {
-						if (!('address' in $token0) || !('address' in $token1))
-							throw new Error('UniswapContracts_Evm: Token0Token1Fee requires EvmContract address selectors')
-
+				FactoryToken0Token1Fee: {
+					resolve: async ({ $factory, $token0, $token1, fee }) => {
 						const {
 							uniswapV3DeploymentByChainId,
-							uniswapV3FeeTierByFee,
 							uniswapV3Pools,
 						} = await import('$/sources/Uniswap/Catalog/constants.ts')
 						const {
 							normalizeUniswapAddress,
 						} = await import('$/sources/Uniswap/Contracts/queries.ts')
 
-						const chainId = chainIdFromNetwork($token0.$network)
-						if (chainIdFromNetwork($token1.$network) !== chainId)
-							throw new Error('UniswapContracts_Evm: Token0Token1Fee token networks must match')
+						const chainId = chainIdFromNetwork($factory.$network)
+						if (chainIdFromNetwork($token0.$network) !== chainId || chainIdFromNetwork($token1.$network) !== chainId)
+							throw new Error('UniswapContracts_Evm: factory and token networks must match')
 
 						const factoryAddress = uniswapV3DeploymentByChainId[chainId]?.factoryAddress
 						if (factoryAddress == null)
 							throw new Error(`UniswapContracts_Evm: no Uniswap V3 factory for chain ${String(chainId)}`)
+
+						if (normalizeUniswapAddress($factory.address) !== factoryAddress)
+							throw new Error(`UniswapContracts_Evm: factory ${$factory.address} is not in the Uniswap V3 catalog for chain ${String(chainId)}`)
 
 						const token0 = normalizeUniswapAddress($token0.address)
 						const token1 = normalizeUniswapAddress($token1.address)

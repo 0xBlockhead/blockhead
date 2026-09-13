@@ -21,6 +21,34 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	$financialProtocol: {
+		entityType: EntityType.FinancialProtocol,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$ammObservations: {
+		entityType: EntityType.LiquidityPool_Amm_EvmBlock,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	name: {
+		primitiveType: type("string | null"),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	symbol: {
+		primitiveType: type("string | null"),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	isSingleSided: {
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	createdTimestampMs: {
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	createdBlockNumber: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	$baseToken: {
 		entityType: EntityType.EvmContract,
 		cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -11,7 +11,8 @@ export type Eip1193RequestArguments = {
 }
 
 export type Eip1193Provider = {
-	request(args: Eip1193RequestArguments): Promise<JsonValue>
+	// oxlint-disable-next-line typescript/no-restricted-types -- EIP-1193 responses are untrusted until parsed by the method-specific wire schema below.
+	request(args: Eip1193RequestArguments): Promise<unknown>
 }
 
 export type EvmNativeTransferExecutionOperations = Pick<
@@ -38,7 +39,8 @@ const rpcTransactionFromCall = ({
 	value: `0x${value.toString(16)}`,
 })
 
-const narrowBlockResult = (result: JsonValue): Pick<RpcBlockWire, 'number'> | null => (
+// oxlint-disable-next-line typescript/no-restricted-types -- The block wire parser owns validation of the raw EIP-1193 response.
+const narrowBlockResult = (result: unknown): Pick<RpcBlockWire, 'number'> | null => (
 	result == null ? null : Eip1193BlockResult.assert(result)
 )
 

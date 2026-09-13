@@ -39,6 +39,7 @@ type MockRow = Record<string, string | number | boolean | object | readonly obje
 
 const mountMockWalletRuntime = async ({
 	candidateAvailable = true,
+	hydrationGate = Promise.resolve(),
 	disconnectDuringHydration,
 	connectionResults = [],
 	persistedAccountReferenceMutation,
@@ -65,6 +66,7 @@ const mountMockWalletRuntime = async ({
 	accountAddress = '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 	accountCapabilities = [WalletCapability.SignMessage],
 	selectedError,
+	sendEvmTransaction,
 	signMessage = vi.fn(async () => '0xsigned'),
 	signTonInternalMessages = vi.fn(async () => 'te6ccgEBAQEA'),
 	signStarknetTypedData = vi.fn(async () => ['0x1', '0x2']),
@@ -74,6 +76,7 @@ const mountMockWalletRuntime = async ({
 	tauriWalletLinkHost,
 }: {
 	candidateAvailable?: boolean
+	hydrationGate?: Promise<void>
 	disconnectDuringHydration?: 'resolve' | 'reject'
 	connectionResults?: (Error | WalletConnection)[]
 	persistedAccountReferenceMutation?: 'missing' | 'wrong'
@@ -115,6 +118,7 @@ const mountMockWalletRuntime = async ({
 	accountAddress?: string
 	accountCapabilities?: WalletCapability[]
 	selectedError?: Error
+	sendEvmTransaction?: WalletAdapter['sendEvmTransaction']
 	signMessage?: (walletId: string, accountAddress: string, message: string, connectionKey?: string) => Promise<string>
 	signTonInternalMessages?: (walletId: string, accountAddress: string, request: WalletTonInternalMessages, connectionKey?: string) => Promise<string>
 	signStarknetTypedData?: (
@@ -310,6 +314,7 @@ const mountMockWalletRuntime = async ({
 				return connectionResult
 			},
 			signMessage,
+			sendEvmTransaction,
 			signTonInternalMessages,
 			signStarknetTypedData,
 			signTypedData,
@@ -436,7 +441,7 @@ const mountMockWalletRuntime = async ({
 				{
 					$$blockheadWalletConnections: () => ({
 						then: (hydrate: (references: typeof persistedReferences) => Promise<void>) => (
-							Promise.resolve(persistedReferences)
+							hydrationGate.then(() => persistedReferences)
 								.then(hydrate)
 								.then(hydration.resolve, (error: Error) => {
 									hydration.reject(error)
@@ -494,6 +499,109 @@ describe('wallet connection runtime normalization', () => {
 		vi.doUnmock('./adapters/eip6963.ts')
 		vi.doUnmock('$/collections/localMutations.ts')
 		vi.doUnmock('$/routes/applicationClient.ts')
+	})
+
+	const transaction = {
+		chainId: 11155111,
+		from: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+		to: '0x0000000000000000000000000000000000000001',
+		data: '0x1234',
+		value: 1n,
+	} as const
+	const transactionHash = `0x${'12'.repeat(32)}`
+	const transactionConnection = () => ({
+		...eipConnectionFromAccounts('eip6963:com.example.wallet', [transaction.from], transaction.chainId, BlockheadConnectionStatus.Connected, 1),
+		connectionKey: 'wallet-session',
+	})
+
+	it('persists transaction authority and occurrence before sending, then links the returned hash', async () => {
+		const events: string[] = []
+		const send = vi.fn<NonNullable<WalletAdapter['sendEvmTransaction']>>(async (_walletId, call, assertCurrent) => {
+			assertCurrent()
+			expect(call).toEqual(transaction)
+			events.push('send')
+			return transactionHash
+		})
+		const connection = transactionConnection()
+		const { runtime, writeActionAuthorityRequest, writeWalletRequestObservation, writeDispatchEvidence } = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			sendEvmTransaction: send,
+			persistActionAuthorityRequest: () => { events.push('authority') },
+			persistWalletRequest: () => { events.push('request') },
+			persistDispatchOccurrenceStart: () => { events.push('occurrence') },
+		})
+		await runtime.connect(connection.walletId)
+		const result = await runtime.sendEvmTransaction({
+			connectionKey: connection.connectionKey,
+			transaction,
+			authorityPresentation: { submittedAt: 1 },
+		})
+		expect(events).toEqual(['authority', 'request', 'occurrence', 'send'])
+		expect(send).toHaveBeenCalledOnce()
+		expect(result.transactionHash).toBe(transactionHash)
+		expect(writeActionAuthorityRequest.mock.calls[0][1].envelope).toMatchObject({
+			adapterKey: 'evm.transaction',
+			value: { chainId: transaction.chainId, calls: [{ inputData: transaction.data, value: 1n }] },
+		})
+		expect(writeDispatchEvidence.mock.calls[0][2]).toMatchObject({
+			kind: 'returned',
+			response: { adapterKey: 'evm.transaction', value: { transactionIds: [transactionHash] } },
+		})
+		expect(writeWalletRequestObservation.mock.calls.at(-1)?.[2]).toMatchObject({
+			status: 'submitted',
+			transactionId: transactionHash,
+			evmTransactions: [{ $network: { caip2: { namespace: 'eip155', reference: '11155111' } }, txHash: transactionHash }],
+		})
+	})
+
+	it('blocks a transaction on a different chain before creating authority history', async () => {
+		const connection = transactionConnection()
+		const send = vi.fn(async () => transactionHash)
+		const { runtime, writeActionAuthorityRequest } = await mountMockWalletRuntime({ connectionResults: [connection], sendEvmTransaction: send })
+		await runtime.connect(connection.walletId)
+		await expect(runtime.sendEvmTransaction({ connectionKey: connection.connectionKey, transaction: { ...transaction, chainId: 1 }, authorityPresentation: { submittedAt: 1 } })).rejects.toThrow('different chain')
+		expect(writeActionAuthorityRequest).not.toHaveBeenCalled()
+		expect(send).not.toHaveBeenCalled()
+	})
+
+	it('invalidates transaction authority if its presentation expires while persisting', async () => {
+		let now = 10
+		vi.spyOn(Date, 'now').mockImplementation(() => now)
+		const connection = transactionConnection()
+		const send = vi.fn(async () => transactionHash)
+		const { runtime, writeActionAuthorityDecision } = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			sendEvmTransaction: send,
+			persistWalletRequest: () => { now = 21 },
+		})
+		await runtime.connect(connection.walletId)
+		await expect(runtime.sendEvmTransaction({ connectionKey: connection.connectionKey, transaction, authorityPresentation: { submittedAt: 10, validUntil: 20 } })).rejects.toThrow('expired before dispatch')
+		expect(send).not.toHaveBeenCalled()
+		expect(writeActionAuthorityDecision.mock.calls[0][2]).toEqual({ kind: 'prepared-without-dispatch', decidedAt: 21 })
+	})
+
+	it('preserves an uncertain broadcast as ambiguous without retrying', async () => {
+		const connection = transactionConnection()
+		const send = vi.fn(async () => { throw new Error('Provider connection lost') })
+		const { runtime, writeDispatchEvidence } = await mountMockWalletRuntime({ connectionResults: [connection], sendEvmTransaction: send })
+		await runtime.connect(connection.walletId)
+		await expect(runtime.sendEvmTransaction({ connectionKey: connection.connectionKey, transaction, authorityPresentation: { submittedAt: 1 } })).rejects.toThrow('Provider connection lost')
+		expect(send).toHaveBeenCalledOnce()
+		expect(writeDispatchEvidence.mock.calls[0][2]).toMatchObject({ kind: 'ambiguous' })
+	})
+
+	it('retains the returned transaction hash when submitted-history persistence fails', async () => {
+		const connection = transactionConnection()
+		const send = vi.fn(async () => transactionHash)
+		const { runtime, writeWalletRequestObservation } = await mountMockWalletRuntime({
+			connectionResults: [connection],
+			sendEvmTransaction: send,
+			persistWalletRequestSubmittedAt: () => { throw new Error('Storage unavailable') },
+		})
+		await runtime.connect(connection.walletId)
+		await expect(runtime.sendEvmTransaction({ connectionKey: connection.connectionKey, transaction, authorityPresentation: { submittedAt: 1 } })).rejects.toThrow(transactionHash)
+		expect(send).toHaveBeenCalledOnce()
+		expect(writeWalletRequestObservation.mock.calls.at(-1)?.[2]).toMatchObject({ status: 'audit-failed', transactionId: transactionHash })
 	})
 
 	it('normalizes EIP-6963 provider details into wallet candidates', () => {
@@ -3158,6 +3266,34 @@ describe('wallet connection runtime normalization', () => {
 		})
 		await expect(hydration).rejects.toBe(selectedError)
 		expect(runtime.connections).toEqual([])
+		runtime.destroy()
+	})
+
+	it('preserves a runtime selection when an older saved selection finishes hydrating', async () => {
+		const gate = Promise.withResolvers<void>()
+		const { runtime, hydration } = await mountMockWalletRuntime({
+			hydrationGate: gate.promise,
+			persistedConnections: [{
+				connectionKey: 'older-selected',
+				walletId: 'eip6963:unavailable',
+				status: BlockheadConnectionStatus.Connected,
+				protocol: WalletProtocol.Eip6963,
+				transportKind: WalletTransportKind.InjectedProvider,
+				selected: true,
+			}],
+			connectionResults: [eipConnectionFromAccounts(
+				'eip6963:com.example.wallet',
+				['0xd8da6bf26964af9d7eed9e403e826090792bed6a'],
+				1,
+				BlockheadConnectionStatus.Connected
+			)],
+		})
+		await runtime.connect('eip6963:com.example.wallet')
+		expect(runtime.connections.find((connection) => connection.walletId === 'eip6963:com.example.wallet')?.selected).toBe(true)
+		gate.resolve()
+		await hydration
+		expect(runtime.connections.find((connection) => connection.walletId === 'eip6963:com.example.wallet')?.selected).toBe(true)
+		expect(runtime.connections.find((connection) => connection.walletId === 'eip6963:unavailable')?.selected).toBe(false)
 		runtime.destroy()
 	})
 

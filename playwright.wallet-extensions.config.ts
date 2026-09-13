@@ -26,7 +26,7 @@ export default defineConfig({
 	:
 		{
 			webServer: {
-				command: `VITE_BLOCKHEAD_E2E_PROBE=1 PUBLIC_ALLIUM_API_KEY=e2e PUBLIC_YOUTUBE_API_KEY=e2e PUBLIC_LND_MACAROON_HEX=e2e ./node_modules/.bin/dotenvx run -f .env.local -- ./node_modules/.bin/vite dev --host ${webServerUrl.hostname} --port ${webServerUrl.port}`,
+				command: `VITE_BLOCKHEAD_E2E_PROBE=1 PUBLIC_ALLIUM_API_KEY=e2e PUBLIC_YOUTUBE_API_KEY=e2e PUBLIC_LND_MACAROON_HEX=e2e ./node_modules/.bin/dotenvx run -f .env.local -- ./node_modules/.bin/vite dev --config tests/e2e/vite.config.ts --host ${webServerUrl.hostname} --port ${webServerUrl.port}`,
 				url: baseURL,
 				timeout: 240_000,
 				reuseExistingServer: process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER === '1',

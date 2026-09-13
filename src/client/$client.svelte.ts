@@ -2,6 +2,7 @@ import type { QueryClient } from '@tanstack/query-core'
 import type {
 	Collection,
 	LoadSubsetOptions,
+	BaseQueryBuilder,
 	Ref,
 	SyncConfig,
 	UtilsRecord,
@@ -588,14 +589,9 @@ export type SubscribeSelection<
 }
 
 export type DeclarativeOrderBy<_FieldRow extends object = object> = readonly (readonly [
-	(context: { fieldRow: _FieldRow }) => string | number | bigint | undefined,
-	(
-		| 'asc'
-		| 'desc'
-		| {
-			direction: 'asc' | 'desc'
-		}
-	),
+	| ((context: { fieldRow: _FieldRow }) => string | number | bigint | undefined)
+	| readonly [string, ...string[]],
+	NonNullable<Parameters<BaseQueryBuilder['orderBy']>[1]>,
 ])[]
 
 export type SubscribeSelectedFields<

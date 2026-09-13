@@ -81,6 +81,33 @@ const providerDetail = (
 	},
 })
 
+describe('EIP-6963 transaction dispatch', () => {
+	afterEach(() => vi.unstubAllGlobals())
+
+	it('uses the discovered provider and retains the authority guard at the final dispatch boundary', async () => {
+		const from = '0x1111111111111111111111111111111111111111'
+		const hash = `0x${'ab'.repeat(32)}`
+		const provider = { request: vi.fn<Eip1193Provider['request']>()
+			.mockResolvedValueOnce('0xaa36a7')
+			.mockResolvedValueOnce([from])
+			.mockResolvedValueOnce(hash) }
+		const { adapter, stopDiscovery } = startAdapter(provider)
+		const send = adapter.sendEvmTransaction
+		if (!send)
+			throw new Error('EIP-6963 transaction implementation missing')
+		const guard = vi.fn()
+		try {
+			expect(await send('eip6963:example', { chainId: 11155111, from, to: from, data: '0x', value: 0n }, guard)).toBe(hash)
+			expect(guard).toHaveBeenCalledTimes(2)
+			expect(provider.request).toHaveBeenCalledTimes(3)
+			await expect(send('missing', { chainId: 11155111, from, to: from, data: '0x', value: 0n }, guard)).rejects.toThrow('unavailable')
+			expect(provider.request).toHaveBeenCalledTimes(3)
+		} finally {
+			stopDiscovery()
+		}
+	})
+})
+
 describe('EIP-6963 discovery identity', () => {
 	afterEach(() => {
 		vi.useRealTimers()
@@ -418,6 +445,8 @@ describe('EIP-6963 connection events', () => {
 		} satisfies Eip1193Provider
 		const { adapter, providerListeners, stopDiscovery } = startAdapter(provider)
 		const connected = await adapter.connect('eip6963:example')
+		if (connected?.status !== BlockheadConnectionStatus.Connected)
+			throw new Error('Expected a connected provider before testing disconnect')
 		const updates = vi.fn()
 		const stopConnection = adapter.subscribeConnection(
 			'eip6963:example',
@@ -433,7 +462,7 @@ describe('EIP-6963 connection events', () => {
 		expect(updates).toHaveBeenLastCalledWith(expect.objectContaining({
 			walletId: 'eip6963:example',
 			status: BlockheadConnectionStatus.Disconnected,
-			connectedAt: connected?.connectedAt,
+			connectedAt: connected.connectedAt,
 			disconnectedAt: expect.any(Number),
 			scopes: [expect.objectContaining({
 				reference: '1',

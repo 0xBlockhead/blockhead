@@ -151,11 +151,12 @@ const dirtyTreeFingerprint = async (repositoryDirectory: string) => {
 	return sha256(`${status}\u0000${diff}\u0000${untrackedFiles.join('')}`)
 }
 
-const generatedRoutePaths = async (repositoryDirectory: string) => (
-	(await git(repositoryDirectory, 'ls-files', '-co', '--exclude-standard', '--', 'src/routes/**/+page.svelte'))
-		.split('\n')
-		.filter(Boolean)
-)
+const generatedRoutePaths = async (repositoryDirectory: string) => {
+	const deleted = new Set((await git(repositoryDirectory, 'ls-files', '-d', '-z')).split('\u0000'))
+	return (await git(repositoryDirectory, 'ls-files', '-co', '-z', '--exclude-standard', '--', 'src/routes/**/+page.svelte'))
+		.split('\u0000')
+		.filter((file) => file !== '' && !deleted.has(file))
+}
 
 export const createRouteRunIdentity = async ({
 	browserIdentity,

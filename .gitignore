@@ -36,3 +36,14 @@ vite.config.ts.timestamp-*
 # Playwright
 test-results
 /.playwright-cli/page-*.yml
+/.playwright-cli/*.log
+/tests/e2e/.svelte-kit/
+/research/ethonline-2026/
+
+# Local hackathon notes
+/ETHONLINE.md
+/FEEDBACK.md
+
+# Local native build archives contain machine-specific paths
+/research/runtime-evidence/svelte-native-candidates/nativescript/f1637dd89c/builds/app-debug.apk
+/research/runtime-evidence/svelte-native-candidates/symbiote/4675b9f090/builds/BlockheadNative.app.zip

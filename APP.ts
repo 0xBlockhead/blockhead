@@ -393,6 +393,7 @@ export enum Source {
 	Tally = "Tally",
 	TezosDappetizer_Postgres = "TezosDappetizer_Postgres",
 	TheGraph_Graphql = "TheGraph_Graphql",
+	TheGraph_Mcp = "TheGraph_Mcp",
 	ThreeXpl_Rest = "ThreeXpl_Rest",
 	TonApi_Rest = "TonApi_Rest",
 	TonCenter = "TonCenter",
@@ -1272,6 +1273,8 @@ export enum EntityType {
 	FilecoinSector = "FilecoinSector",
 	FilecoinSector_Timestamp = "FilecoinSector_Timestamp",
 	FilecoinTipset = "FilecoinTipset",
+	FinancialProtocol = "FinancialProtocol",
+	FinancialProtocol_Amm_EvmBlock = "FinancialProtocol_Amm_EvmBlock",
 	GitBlob = "GitBlob",
 	GitCommit = "GitCommit",
 	GitFetchObservation = "GitFetchObservation",
@@ -1421,6 +1424,8 @@ export enum EntityType {
 	LightningNode = "LightningNode",
 	LightningNode_Timestamp = "LightningNode_Timestamp",
 	LiquidityPool = "LiquidityPool",
+	LiquidityPool_Amm_EvmBlock = "LiquidityPool_Amm_EvmBlock",
+	LiquidityPool_Amm_EvmBlock_InputAsset = "LiquidityPool_Amm_EvmBlock_InputAsset",
 	LiquidityPool_Block = "LiquidityPool_Block",
 	LiquidityPool_Timestamp = "LiquidityPool_Timestamp",
 	LitecoinMwebBlock = "LitecoinMwebBlock",
@@ -2744,6 +2749,15 @@ export const schema = {
 			{
 				id: "UniswapCcaAuctionSchedulePhase",
 				type: { raw: "type.enumerated('BeforeStart', 'BiddingWindow', 'AfterBiddingBeforeClaim', 'ClaimWindow')" },
+			},
+			{
+				id: "UniswapV3Fee",
+				routeParam: { matcher: "nonNegativeInteger", decode: _ExpressionDecode.Number },
+				type: { raw: "type('0 <= number.integer < 1000000')" },
+			},
+			{
+				id: "UniswapV3TickSpacing",
+				type: { raw: "type('0 < number.integer < 16384')" },
 			},
 			{
 				id: "unknown",
@@ -17589,7 +17603,7 @@ export const schema = {
 						content: {
 							dl: [
 								["$session", "status", { field: "createdAt", format: "timestamp" }, { field: "completedAt", format: "timestamp" }, "paramsHash"],
-								[{ field: "forkBlockNumber", format: "number" }, { field: "actionCount", format: "number" }, { field: "gasUsed", format: "number" }, "resultPayloadHash", "error"],
+								["executionSourceKind", "executionSourceVersion", "$executionNetwork", { field: "forkBlockNumber", format: "number" }, { field: "actionCount", format: "number" }, { field: "gasUsed", format: "number" }, "resultPayloadHash", "error"],
 							],
 							blocks: [
 								[
@@ -23236,7 +23250,7 @@ export const schema = {
 							sources: [Source.CircleCctpContracts_Evm, Source.CircleCctpContracts_Solana, Source.CircleCctpContracts_Stellar, Source.CircleCctpIris],
 							openFields: ["cctpVersion", "messageHash", "messageBytes", "sourceTransactionHash", "sourceLogIndex", "destinationDomain", "sender", "recipient", "destinationCaller", "burnToken", "mintRecipient", "amount", "messageSender", "maxFee", "feeExecuted", "expirationBlock", "hookData", "minFinalityThreshold", "finalityThresholdExecuted"],
 						},
-						summary: { title: ["nonce"], value: ["sourceDomain"], HeadingAfter: ["messageHash"] },
+						summary: { title: ["nonce"], value: ["sourceDomain", "nonce"], HeadingAfter: ["messageHash"] },
 						closed: ["sourceDomain", "nonce"],
 						content: {
 							dl: [
@@ -34131,6 +34145,67 @@ export const schema = {
 			}),
 
 			entity({
+				entityType: EntityType.FinancialProtocol,
+				labels: { singular: "financial protocol", plural: "financial protocols" },
+				description: "A financial protocol operating on a network, independent of the service indexing it.",
+			})({
+				"$network": { label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+				"protocolKey": { label: "Protocol key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"name": { label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$$ammBlocks": { label: "AMM financial observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FinancialProtocol_Amm_EvmBlock },
+				"$$liquidityPools": { label: "Liquidity pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LiquidityPool },
+			})({
+				selectors: { "NetworkProtocolKey": ["$network", "protocolKey"] },
+				views: {
+      singular: {
+        query: { sources: [Source.TheGraph_Graphql] },
+        summary: { title: ["name"], titleFallback: ["protocolKey"], value: ["protocolKey", "$network"] },
+        content: { lists: [
+          { field: "$$ammBlocks", component: "FinancialProtocol_Amm_EvmBlocksView", query: { sources: [Source.TheGraph_Graphql] } },
+          { field: "$$liquidityPools", component: "LiquidityPoolsView", query: { sources: [Source.TheGraph_Graphql] } },
+        ] },
+      },
+      plural: { component: "FinancialProtocolsView" },
+    },
+			}),
+
+			entity({
+				entityType: EntityType.FinancialProtocol_Amm_EvmBlock,
+				labels: { singular: "AMM protocol financial observation", plural: "AMM protocol financial observations" },
+				description: "An AMM protocol measurement at a verified EVM block under one immutable source interpretation revision. Fetch intervals are retrieval provenance, not measurement identity.",
+			})({
+				"$protocol": { label: "Protocol", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.FinancialProtocol },
+				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmBlock },
+				"sourceRevision": { label: "Source interpretation revision", description: "Namespaced immutable revision identifying the source implementation and measurement methodology; never a mutable alias or fetch timestamp.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"sourceEntityId": { label: "Source protocol identifier", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"expectedManifestSchemaVersion": { label: "Expected manifest schema version", description: "The version declared by the pinned deployment manifest; retained separately when the deployed schema reports a different version.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"reportedSchemaVersion": { label: "Deployed schema version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"implementationVersion": { label: "Implementation version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"methodologyVersion": { label: "Methodology version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"totalValueLockedUSD": { label: "Total value locked (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"cumulativeVolumeUSD": { label: "Cumulative volume (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"cumulativeSupplySideRevenueUSD": { label: "Cumulative supply-side revenue (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"cumulativeProtocolSideRevenueUSD": { label: "Cumulative protocol-side revenue (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"cumulativeTotalRevenueUSD": { label: "Cumulative total revenue (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"totalPoolCount": { label: "Pool count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+			})({
+				selectors: { "ProtocolBlockRevision": ["$protocol", "$block", "sourceRevision"] },
+				views: {
+      singular: {
+        query: { sources: [Source.TheGraph_Graphql] },
+        summary: { title: [{ field: "$block", selection: { sources: [Source.TheGraph_Graphql] } }, "sourceRevision"], value: ["$protocol", { field: "$block", selection: { sources: [Source.TheGraph_Graphql] } }, "sourceRevision"] },
+        latest: [{ field: "$block", label: "Block", fields: ["blockNumber", "timestamp"], view: "EvmBlockView", layout: EntityLayout.Title, query: { sources: [Source.TheGraph_Graphql] } }],
+        content: { dl: [[
+          "totalValueLockedUSD", "cumulativeVolumeUSD", "cumulativeSupplySideRevenueUSD",
+          "cumulativeProtocolSideRevenueUSD", "cumulativeTotalRevenueUSD", "totalPoolCount",
+          "sourceEntityId", "expectedManifestSchemaVersion", "reportedSchemaVersion", "implementationVersion", "methodologyVersion",
+        ]] },
+      },
+      plural: { component: "FinancialProtocol_Amm_EvmBlocksView" },
+    },
+			}),
+
+			entity({
 				entityType: EntityType.GitBlob,
 				labels: {
 					singular: "Git blob",
@@ -43282,6 +43357,13 @@ export const schema = {
 					entityType: EntityType.Network,
 				},
 				"id": { label: "ID", description: "The identifier assigned by the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$financialProtocol": { type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FinancialProtocol },
+				"$$ammObservations": { type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LiquidityPool_Amm_EvmBlock },
+				"name": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, primitiveType: { raw: 'type("string | null")' } },
+				"symbol": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, primitiveType: { raw: 'type("string | null")' } },
+				"isSingleSided": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+				"createdTimestampMs": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"createdBlockNumber": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"$baseToken": {
 					label: "Base token",
 					type: EntityFieldType.EntityReference,
@@ -43381,6 +43463,70 @@ export const schema = {
 				},
 			}),
 
+
+			entity({
+				entityType: EntityType.LiquidityPool_Amm_EvmBlock,
+				labels: { singular: "AMM pool observation", plural: "AMM pool observations" },
+				description: "Pool measurements at one verified EVM block and immutable source interpretation. Retrieval clocks do not define the observation.",
+			})({
+				"$pool": { type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LiquidityPool },
+				"$block": { type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmBlock },
+				"sourceRevision": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"totalValueLockedUSD": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"cumulativeVolumeUSD": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"cumulativeSupplySideRevenueUSD": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"cumulativeProtocolSideRevenueUSD": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"cumulativeTotalRevenueUSD": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"$$inputAssets": { type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LiquidityPool_Amm_EvmBlock_InputAsset },
+			})({
+    selectors: { PoolBlockRevision: ["$pool", "$block", "sourceRevision"] },
+    views: {
+      singular: {
+        query: { sources: [Source.TheGraph_Graphql] },
+        summary: { title: [{ field: "$block", selection: { sources: [Source.TheGraph_Graphql] } }, "sourceRevision"], value: ["$pool", { field: "$block", selection: { sources: [Source.TheGraph_Graphql] } }, "sourceRevision"] },
+        latest: [{ field: "$block", label: "Block", fields: ["blockNumber", "timestamp"], view: "EvmBlockView", layout: EntityLayout.Title, query: { sources: [Source.TheGraph_Graphql] } }],
+        content: {
+          dl: [[
+            { field: "totalValueLockedUSD", label: "Total value locked (USD)" },
+            { field: "cumulativeVolumeUSD", label: "Cumulative volume (USD)" },
+            { field: "cumulativeSupplySideRevenueUSD", label: "Cumulative supply-side revenue (USD)" },
+            { field: "cumulativeProtocolSideRevenueUSD", label: "Cumulative protocol-side revenue (USD)" },
+            { field: "cumulativeTotalRevenueUSD", label: "Cumulative total revenue (USD)" },
+          ]],
+          lists: [{ field: "$$inputAssets", component: "LiquidityPool_Amm_EvmBlock_InputAssetsView", query: { sources: [Source.TheGraph_Graphql] } }],
+        },
+      },
+      plural: { component: "LiquidityPool_Amm_EvmBlocksView" },
+    },
+  }),
+
+			entity({
+				entityType: EntityType.LiquidityPool_Amm_EvmBlock_InputAsset,
+				labels: { singular: "observed pool input asset", plural: "observed pool input assets" },
+				description: "An ordinal input-asset slot in one pool observation. Source order is not Uniswap token0/token1 or proof of ERC20 implementation.",
+			})({
+				"$observation": { type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LiquidityPool_Amm_EvmBlock },
+				"ordinal": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { raw: 'type("number.integer >= 0")' } },
+				"$tokenContract": { type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmContract },
+				"rawBalance": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"balanceUSD": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"weightPercent": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+			})({
+    selectors: { ObservationOrdinal: ["$observation", "ordinal"] },
+    views: {
+      singular: {
+        query: { sources: [Source.TheGraph_Graphql] },
+        summary: { title: [{ field: "ordinal", prefix: "Input " }], value: ["$observation", "ordinal"] },
+        content: { dl: [[
+          { field: "$tokenContract", label: "Token contract" },
+          { field: "rawBalance", label: "Raw balance" },
+          { field: "balanceUSD", label: "Balance (USD)" },
+          { field: "weightPercent", label: "Weight (%)" },
+        ]] },
+      },
+      plural: { component: "LiquidityPool_Amm_EvmBlock_InputAssetsView" },
+    },
+  }),
 			entity({
 				entityType: EntityType.LiquidityPool_Block,
 				labels: {
@@ -44927,7 +45073,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.Eip8004Scan_Rest, Source.McpDeclared_Protocol],
+							sources: [Source.Eip8004Scan_Rest, Source.McpDeclared_Protocol, Source.TheGraph_Mcp],
 							openFields: ["transportKind", "endpointUrl"],
 						},
 						summary: { title: ["serverKey"], value: ["transportKind"], HeadingAfter: ["endpointUrl"] },
@@ -45112,8 +45258,9 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						imports: [{ from: "$/views/McpToolInvocation.svelte", default: "McpToolInvocation" }],
 						query: {
-							sources: [Source.McpDeclared_Protocol],
+							sources: [Source.McpDeclared_Protocol, Source.TheGraph_Mcp],
 							openFields: ["title", "description", "inputSchema", "outputSchema", "annotations"],
 						},
 						summary: { title: ["title"], titleFallback: ["name"], value: ["$server"] },
@@ -45122,6 +45269,37 @@ export const schema = {
 							dl: [
 								["$server", "name", "title", "description"],
 							],
+							blocks: [[{
+								kind: _ViewItemKind.Block,
+								id: "mcp-tool-schemas",
+								Content: dedent `
+<ResourceBoundary resource={selection({ fields: { inputSchema: true, outputSchema: true, annotations: true } })}>
+	{#snippet children(entity)}
+		{#if entity.inputSchema !== undefined}
+			<h3>Input schema</h3>
+
+			<pre>{JSON.stringify(entity.inputSchema, null, 2)}</pre>
+		{/if}
+
+		{#if entity.outputSchema !== undefined}
+			<h3>Output schema</h3>
+
+			<pre>{JSON.stringify(entity.outputSchema, null, 2)}</pre>
+		{/if}
+
+		{#if entity.annotations !== undefined}
+			<h3>Tool annotations</h3>
+
+			<pre>{JSON.stringify(entity.annotations, null, 2)}</pre>
+		{/if}
+	{/snippet}
+</ResourceBoundary>
+`,
+							}, {
+								kind: _ViewItemKind.Block,
+								id: "mcp-tool-invocation",
+								Content: dedent `<McpToolInvocation tool={selection.entitySelector} />`,
+							}]],
 						},
 					},
 					plural: { component: "McpToolsView", title: "MCP tools", },
@@ -45152,7 +45330,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.McpDeclared_Protocol],
+							sources: [Source.Local_Internal, Source.McpDeclared_Protocol],
 							openFields: ["startedAt", "completedAt", "inputHashAlgorithm", "inputHash", "outputHashAlgorithm", "outputHash"],
 						},
 						summary: { title: ["callId"], value: ["$tool"], HeadingAfter: [{ field: "startedAt", format: "timestamp" }] },
@@ -45198,7 +45376,7 @@ export const schema = {
 				views: {
 					singular: {
 						query: {
-							sources: [Source.McpDeclared_Protocol],
+							sources: [Source.Local_Internal, Source.McpDeclared_Protocol],
 							openFields: ["status", "latencyMs", "isError", "protocolError", "content", "structuredContent", "resourceLinks", "embeddedResources", "error", "payload"],
 						},
 						summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status", "isError"], HeadingAfter: ["error"] },
@@ -45208,6 +45386,21 @@ export const schema = {
 								["$toolCall", { field: "timestampMs", format: "timestamp" }, "source", "status", "isError"],
 								[{ field: "latencyMs", format: "number" }, "error"],
 							],
+							blocks: [[{
+								kind: _ViewItemKind.Block,
+								id: "mcp-tool-response",
+								Content: dedent `
+<ResourceBoundary resource={selection({ fields: { payload: true } })}>
+	{#snippet children(entity)}
+		{#if entity.payload !== undefined}
+			<h3>Provider response</h3>
+
+			<pre>{JSON.stringify(entity.payload, null, 2)}</pre>
+		{/if}
+	{/snippet}
+</ResourceBoundary>
+`,
+							}]],
 						},
 					},
 					plural: { component: "McpToolCall_TimestampsView", title: "MCP tool call observations", },
@@ -50861,7 +51054,7 @@ export const schema = {
 					singular: {
 						summary: {
 							title: [{ field: "roundId", format: "numberValue" }],
-							value: [{ field: "answer", format: "numberValue" }],
+							value: [{ field: "roundId", format: "numberValue" }],
 							HeadingAfter: [{ field: "updatedAtMs", format: "timestamp" }],
 						},
 						content: {
@@ -65406,6 +65599,7 @@ export const schema = {
 					singular: "Uniswap V3 pool",
 					plural: "Uniswap V3 pools",
 				},
+				description: "A deployed Uniswap V3 pool, uniquely addressed by its network and contract address or its factory, ordered token pair and fee. Factory, tokens, fee and tick spacing are immutable pool facts.",
 			})({
 				"$network": {
 					label: "Network",
@@ -65417,49 +65611,51 @@ export const schema = {
 				"$factory": {
 					label: "Factory",
 					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.EvmContract,
-					defaultSources: [Source.UniswapContracts_Evm, Source.Voltaire_JsonRpc],
+					defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm],
 				},
 				"$token0": {
 					label: "Token 0",
 					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.EvmContract,
 					defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm],
 				},
 				"$token1": {
 					label: "Token 1",
 					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.EvmContract,
 					defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm],
 				},
-				"fee": { label: "Fee", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeInteger" },
-				"tickSpacing": { label: "Tick spacing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"fee": { label: "Fee", description: "Swap fee in units of 1e-6.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "UniswapV3Fee", defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm] },
+				"tickSpacing": { label: "Tick spacing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "UniswapV3TickSpacing", defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm] },
 				"$poolContract": {
 					label: "Pool contract",
 					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
+					cardinality: EntityFieldCardinality.One,
 					entityType: EntityType.EvmContract,
+					defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm],
 				},
 				"$$blocks": {
 					label: "Blocks",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.UniswapV3Pool_Block,
-					defaultSources: [Source.Voltaire_JsonRpc],
+					defaultSources: [Source.Voltaire_JsonRpc, Source.UniswapContracts_Evm],
 				},
 				"$$positions": {
 					label: "Positions",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.UniswapV3Position,
+					defaultSources: [Source.UniswapContracts_Evm],
 				},
 			})({
 				selectors: {
 					"NetworkPoolAddress": ["$network", "poolAddress"],
-					"Token0Token1Fee": ["$token0", "$token1", "fee"],
+					"FactoryToken0Token1Fee": ["$factory", "$token0", "$token1", "fee"],
 				},
 				views: {
 					singular: {
@@ -65548,13 +65744,30 @@ export const schema = {
 				},
 				views: {
 					singular: {
+						imports: [{ from: "$/views/UniswapPoolInterpretation.svelte", default: "UniswapPoolInterpretation" }],
 						query: { sources: [Source.Voltaire_JsonRpc] },
 						summary: {
 							title: [{ field: "blockNumber", format: "numberValue" }],
-							value: [{ field: "tick", format: "number" }],
+							value: [{ field: "blockNumber", format: "numberValue" }],
 							HeadingAfter: ["$pool"],
 						},
 						content: {
+							blocks: [[{
+								kind: _ViewItemKind.Block,
+								id: "uniswap-pool-interpretation",
+								Content: dedent `
+<ResourceBoundary resource={viewSelection({ fields: { sqrtPriceX96: true, liquidity: true, feeProtocol: true, observationCardinality: true } })}>
+	{#snippet children(entity)}
+		<UniswapPoolInterpretation
+			sqrtPriceX96={entity.sqrtPriceX96}
+			liquidity={entity.liquidity}
+			feeProtocol={entity.feeProtocol}
+			observationCardinality={entity.observationCardinality}
+		/>
+	{/snippet}
+</ResourceBoundary>
+`,
+							}]],
 							dl: [
 								[
 									"$pool",
@@ -75117,6 +75330,27 @@ export const routes = defineRoutes(schema)({
 										[EntityType.StarknetNetwork]: {}
 									},
 									children: {
+      "financial-protocol": { children: {
+        "[protocolKey]": {
+          selectors: { [EntityType.FinancialProtocol]: { NetworkProtocolKey: {
+            params: { protocolKey: ["protocolKey"] }, page: {},
+          } } },
+          children: { "amm-observation": { children: {
+            "[blockSelector]": {
+              params: { blockSelector: ["string"] },
+              children: { "[sourceRevision]": {
+                params: { sourceRevision: ["string"] },
+                selectors: { [EntityType.FinancialProtocol_Amm_EvmBlock]: { ProtocolBlockRevision: {
+                  derivations: { sourceRevision: { kind: "param", name: "sourceRevision" }, "$block": { kind: "call", from: "devalue", name: "parse", args: [{ kind: "param", name: "blockSelector" }] } },
+                  href: { params: { blockSelector: { kind: "call", from: "devalue", name: "stringify", args: [{ kind: "field", name: "$block" }] }, sourceRevision: { kind: "field", name: "sourceRevision" } } },
+                  page: {},
+                } } },
+              } },
+            },
+          } } },
+        },
+      } },
+
 										"deal": {
 											children: {
 												"[dealId]": {
@@ -79691,21 +79925,30 @@ export const routes = defineRoutes(schema)({
 																	children: {
 																		"pool": {
 																			children: {
-																				"[token1Address]": {
-																					params: { "token1Address": ["evmAddress"] },
+																				"[token0Address]": {
+																					params: { "token0Address": ["evmAddress"] },
 																					children: {
-																						"[fee]": {
-																							selectors: {
-																								[EntityType.UniswapV3Pool]: {
-																									"Token0Token1Fee": {
-																										params: { "fee": ["fee"] },
-																										derivations: {
-																											"$token1": { kind: "selector", entity: EntityType.EvmContract, selector: "EvmNetworkAddress", params: [
-																													{ field: "$network", value: { kind: "property", value: { kind: "field", name: "$token0" }, property: "$network" } },
-																													{ field: "address", param: "token1Address" },
-																												] },
+																						"[token1Address]": {
+																							params: { "token1Address": ["evmAddress"] },
+																							children: {
+																								"[fee]": {
+																									selectors: {
+																										[EntityType.UniswapV3Pool]: {
+																											"FactoryToken0Token1Fee": {
+																												params: { "fee": ["fee"] },
+																												derivations: {
+																													"$token0": { kind: "selector", entity: EntityType.EvmContract, selector: "EvmNetworkAddress", params: [
+																														{ field: "$network", value: { kind: "property", value: { kind: "field", name: "$factory" }, property: "$network" } },
+																														{ field: "address", param: "token0Address" },
+																													] },
+																													"$token1": { kind: "selector", entity: EntityType.EvmContract, selector: "EvmNetworkAddress", params: [
+																														{ field: "$network", value: { kind: "property", value: { kind: "field", name: "$factory" }, property: "$network" } },
+																														{ field: "address", param: "token1Address" },
+																													] },
+																												},
+																												page: {},
+																											},
 																										},
-																										page: {},
 																									},
 																								},
 																							},
@@ -89858,6 +90101,36 @@ export const routes = defineRoutes(schema)({
 										}
 									},
 									children: {
+          "amm-observation": { children: {
+            "[blockSelector]": {
+              params: { blockSelector: ["string"] },
+              children: { "[sourceRevision]": {
+                params: { sourceRevision: ["string"] },
+                selectors: { [EntityType.LiquidityPool_Amm_EvmBlock]: { PoolBlockRevision: {
+                  derivations: {
+                    "$block": { kind: "call", from: "devalue", name: "parse", args: [{ kind: "param", name: "blockSelector" }] },
+                    sourceRevision: { kind: "param", name: "sourceRevision" },
+                  },
+                  href: { params: {
+                    blockSelector: { kind: "call", from: "devalue", name: "stringify", args: [{ kind: "field", name: "$block" }] },
+                    sourceRevision: { kind: "field", name: "sourceRevision" },
+                  } },
+                  page: {},
+                } } },
+                children: { "input-asset": { children: {
+                  "[ordinal]": {
+                    params: { ordinal: ["NonNegativeInteger"] },
+                    selectors: { [EntityType.LiquidityPool_Amm_EvmBlock_InputAsset]: { ObservationOrdinal: {
+                      derivations: { ordinal: { raw: "Number(params.ordinal)" } },
+                      href: { params: { ordinal: { kind: "field", name: "ordinal" } } },
+                      page: {},
+                    } } },
+                  },
+                } } },
+              } },
+            },
+          } },
+
 										"observations": {
 											children: {
 												"[timestampMs]": {
@@ -111526,6 +111799,23 @@ export const app = {
 				source: Source.TheGraph_Graphql,
 				provider: "TheGraph",
 				label: "The Graph GraphQL",
+				bindings: [
+					"FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX",
+					"3oHCddbQGTi42kPZBwyGzD2JzZR33zK2MwXtxAerNJy2",
+				].map((subgraphId) => ({
+					target: { kind: SourceTargetKind.Global, key: `messari-subgraph:${subgraphId}` },
+					endpoints: [{ endpointKind: SourceEndpointKind.HttpUrl, locator: `https://gateway.thegraph.com/api/subgraphs/id/${subgraphId}`, corsEnabled: false }],
+					wireProtocol: WireProtocol.Graphql,
+					apiFamily: ApiFamily.GraphqlHttp,
+					operationGroups: [SourceOperationGroup.GenericRead],
+					delivery: SourceDelivery.HttpProxy,
+					credentials: [{ scope: SourceCredentialScope.RuntimeSecret, envKey: "THEGRAPH_API_KEY", injection: { header: { name: "Authorization", prefix: "Bearer " } } }],
+					artifacts: [
+						{ kind: SourceArtifactKind.GenerationManifest, path: "src/sources/TheGraph/Messari/graphql-schema-source.ts" },
+						{ kind: SourceArtifactKind.GraphqlSchema, path: "src/sources/TheGraph/Messari/schema.graphql" },
+						{ kind: SourceArtifactKind.GraphqlTypes, path: "src/sources/TheGraph/Messari/graphql-env.d.ts", generated: true },
+					],
+				})),
 				binding: {
 					target: {
 						kind: SourceTargetKind.Global,
@@ -111575,6 +111865,30 @@ export const app = {
 							generated: true,
 						},
 					],
+				},
+			},
+			{
+				source: Source.TheGraph_Mcp,
+				provider: "TheGraph",
+				label: "The Graph Subgraph MCP",
+				binding: {
+					target: { kind: SourceTargetKind.Global, key: "subgraph-mcp" },
+					endpoints: [{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: "https://subgraphs.mcp.thegraph.com/sse",
+						corsEnabled: false,
+					}],
+					wireProtocol: WireProtocol.JsonRpc2,
+					apiFamily: ApiFamily.McpProtocol,
+					operationGroups: [
+						SourceOperationGroup.AgentCapabilityCatalog,
+						SourceOperationGroup.AgentRuntimeInvocation,
+					],
+					delivery: SourceDelivery.RemoteQuery,
+					credentials: [{
+						scope: SourceCredentialScope.RuntimeSecret,
+						keys: ["THEGRAPH_API_KEY"],
+					}],
 				},
 			},
 			{
@@ -116335,7 +116649,11 @@ export const app = {
 			},
 			{
 				source: Source.TheGraph_Graphql,
-				path: "src/resolvers/Ens-TheGraph.ts",
+				paths: ["src/resolvers/Ens-TheGraph.ts", "src/resolvers/Messari-TheGraph.ts"],
+			},
+			{
+				source: Source.TheGraph_Mcp,
+				path: "src/resolvers/TheGraph-Mcp.ts",
 			},
 			{
 				source: Source.ThreeXpl_Rest,

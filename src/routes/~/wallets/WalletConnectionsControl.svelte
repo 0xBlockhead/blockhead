@@ -53,6 +53,7 @@
 	}>()
 	let walletAccountSelectionPending = $state(false)
 	let walletConnectionMutationPending = $state<string>()
+	let ledgerLoading = $state(false)
 
 
 	// Components
@@ -63,6 +64,7 @@
 	import BlockheadWalletView from '$/views/BlockheadWalletView.svelte'
 	import Icon from '$/components/Icon.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import WalletTransactionForm from './WalletTransactionForm.svelte'
 </script>
 
 
@@ -84,6 +86,30 @@
 	</output>
 
 	<output aria-live="polite">{walletControlStatus}</output>
+	{#if walletRuntime && !walletRuntime.candidates.some((candidate) => candidate.id === 'ledger:speculos')}
+		<button
+			type="button"
+			disabled={ledgerLoading}
+			onclick={async () => {
+				if (walletRuntime == null || ledgerLoading)
+					return
+				ledgerLoading = true
+				walletControlFailure = undefined
+				try {
+					const { createLedgerSpeculosAdapter } = await import('$/state/wallets/adapters/ledgerSpeculos.ts')
+					walletRuntime.registerAdapter(createLedgerSpeculosAdapter())
+					walletControlStatus = 'Ledger emulator enabled. Connect below; device review opens in Speculos. This is not physical hardware.'
+				} catch (error) {
+					walletControlFailure = { error: normalizeBoundaryError(error) }
+				} finally {
+					ledgerLoading = false
+				}
+			}}
+		>
+			Enable local Ledger emulator
+		</button>
+	{/if}
+
 	<Boundary
 		failure={walletControlFailure}
 		boundaryKey="Wallet application open"
@@ -283,6 +309,12 @@
 							</button>
 						</form>
 					</Boundary>
+				{/if}
+
+				{#if connection.status === BlockheadConnectionStatus.Connected && connection.selected && connection.activeAccount?.namespace === 'eip155' && connection.activeAccount.capabilities.includes(WalletCapability.SendTransaction)}
+					{#key `${connectionKey}:${connection.activeAccount.reference}:${connection.activeAccount.accountAddress}`}
+						<WalletTransactionForm {connectionKey} account={connection.activeAccount} />
+					{/key}
 				{/if}
 
 				<div data-row="start wrap gap-2">

@@ -1,3 +1,4 @@
+import { app, EntityType } from '../../APP.ts'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { auditSelectorWitnesses } from './selector-minimality.ts'
@@ -33,4 +34,19 @@ test('reports a derivable sampling methodology omitted from observation identity
 	assert.deepEqual(currentAudit.missingIndependentFields, ['sampleLimit'])
 	assert.deepEqual(correctedAudit.collisions, [])
 	assert.deepEqual(correctedAudit.missingIndependentFields, [])
+})
+
+test('the authored Uniswap pool selector distinguishes factory, both tokens and fee', () => {
+	const entity = app.schema.entities.find((candidate) => candidate.entityType === EntityType.UniswapV3Pool)
+	assert.ok(entity)
+	const selector = entity.selectors.find((candidate) => candidate.name === 'FactoryToken0Token1Fee')
+	assert.ok(selector)
+	const baseline = { $factory: 'factory-a', $token0: 'token-a', $token1: 'token-c', fee: 500 }
+	assert.deepEqual(auditSelectorWitnesses([
+		{ identity: 'baseline', values: baseline },
+		{ identity: 'other-factory', values: { ...baseline, $factory: 'factory-b' } },
+		{ identity: 'other-token0', values: { ...baseline, $token0: 'token-b' } },
+		{ identity: 'other-token1', values: { ...baseline, $token1: 'token-d' } },
+		{ identity: 'other-fee', values: { ...baseline, fee: 3000 } },
+	], selector.fields), { collisions: [], redundantFields: [], missingIndependentFields: [] })
 })

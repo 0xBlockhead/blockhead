@@ -8,10 +8,6 @@ import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import {
-	actionAuthorityRequestEnvelopeHash,
-	authorityRequestEnvelope,
-} from '$/actions/execution.ts'
-import {
 	traceE2ECollections,
 	type E2ECollectionTrace,
 } from './$e2eTrace.ts'
@@ -89,81 +85,6 @@ export type G15SimulationGraph = {
 	fields: readonly G15FieldRow[]
 }
 
-export type AuthorityDispatchGraph = {
-	authorityRequests: readonly G15EntityRow[]
-	walletRequests: readonly G15EntityRow[]
-	timestamps: readonly G15EntityRow[]
-	occurrences: readonly G15EntityRow[]
-	fields: readonly G15FieldRow[]
-	envelopeHashBindings: readonly {
-		parentSelector: G15Json
-		matches: boolean
-	}[]
-}
-
-const authorityRequestGraphSelection = {
-	sources: [Source.Local_Internal],
-	fields: {
-		$$blockheadAuthorityRequests: {
-			sources: [Source.Local_Internal],
-			fields: {
-				actionRevisionBindings: true,
-				envelope: true,
-				envelopeHash: true,
-				presentedAt: true,
-				decision: true,
-				$walletConnection: true,
-				$account: true,
-				$$dispatchOccurrences: true,
-			},
-		},
-	},
-} as const
-
-const walletRequestGraphSelection = {
-	sources: [Source.Local_Internal],
-	fields: {
-		$$blockheadWalletRequests: {
-			sources: [Source.Local_Internal],
-			fields: {
-				requestKind: true,
-				requestMethod: true,
-				requestPayloadHash: true,
-				requestedAt: true,
-				submittedAt: true,
-				$walletConnection: true,
-				$account: true,
-				$$timestamps: {
-					sources: [Source.Local_Internal],
-					fields: {
-						$walletRequest: true,
-						timestampMs: true,
-						source: true,
-						status: true,
-						signatureHash: true,
-						error: true,
-					},
-				},
-			},
-		},
-	},
-} as const
-
-const dispatchOccurrenceGraphSelection = {
-	sources: [Source.Local_Internal],
-	fields: {
-		$$blockheadDispatchOccurrences: {
-			sources: [Source.Local_Internal],
-			fields: {
-				address: true,
-				startedAt: true,
-				evidence: true,
-				$authorityRequest: true,
-				$walletConnection: true,
-			},
-		},
-	},
-} as const
 
 const g15SimulationSelector = {
 	id: 'simulation-g15-durable',

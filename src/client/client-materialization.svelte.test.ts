@@ -142,6 +142,15 @@ it('keeps provider snapshots behind projections and resolves every embedded rela
 		],
 	})
 	const childTitleFieldAddressKey = entityFieldAddressKey('MaterializationChild', [], 'title')
+	const latestChild = selection.$$children({
+		fields: { title: true },
+		limit: 1,
+		orderBy: [[[EntityMetaKey.Value, EntityMetaKey.Selector, 'id'], { direction: 'desc', nulls: 'last' }]],
+	})
+	await expect(latestChild).resolves.toMatchObject({
+		values: [{ id: 'right', title: 'Right child' }],
+	})
+	expect(latestChild.current?.values).toHaveLength(1)
 	const leftChildSelectorKey = entitySelectorKey(
 		materializationFixtureSchema,
 		materializationFixtureSchema[1],

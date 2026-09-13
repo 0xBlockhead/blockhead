@@ -7,6 +7,7 @@ import {
 	walletProtocols,
 } from '$/constants/Wallet.ts'
 import { stringify } from 'devalue'
+import * as Hash from 'ox/Hash'
 import {
 	Caip2Namespace,
 	Caip2Reference,
@@ -50,6 +51,7 @@ import { createBitcoinInjectedAdapter } from './adapters/bitcoinInjected.ts'
 import { createCardanoCip30Adapter } from './adapters/cardanoCip30.ts'
 import { createCosmosOfflineSignerAdapter } from './adapters/cosmosOfflineSigner.ts'
 import { createEip6963Adapter } from './adapters/eip6963.ts'
+import type { WalletEvmTransaction } from './adapters/eip1193Transaction.ts'
 import { createPolkadotInjectedWeb3Adapter } from './adapters/polkadotInjectedWeb3.ts'
 import { createXrplXamanAdapter } from './adapters/xrplXaman.ts'
 import { createStarknetWalletApiAdapter } from './adapters/starknetWalletApi.ts'
@@ -79,6 +81,7 @@ import {
 } from './walletConnectionState.ts'
 import {
 	resolveWalletPrepSelection,
+	resolveWalletTransactionPrepGate,
 } from './walletRequestPreparation.ts'
 import {
 	preparedWalletRequestRejection,
@@ -106,6 +109,13 @@ type WalletRuntime = {
 	connect(walletId: string): Promise<void>
 	reconnect(walletId: string): Promise<void>
 	openWalletConnectApplication(walletConnectUri: string): Promise<void>
+	sendEvmTransaction(input: WalletEvmTransactionInput): Promise<{
+		accountAddress: string
+		transactionHash: string
+		walletRequestId: string
+		authorityRequestId: string
+		dispatchOccurrenceId: string
+	}>
 	signMessage(input: WalletMessageSignInput): Promise<{
 		accountAddress: string
 		signature: string
@@ -155,6 +165,12 @@ export type WalletMessageSignInput = {
 		submittedAt: number
 		validUntil?: number
 	}
+}
+
+export type WalletEvmTransactionInput = {
+	connectionKey: string
+	transaction: WalletEvmTransaction
+	authorityPresentation: WalletMessageSignInput['authorityPresentation']
 }
 
 export type WalletTonInternalMessageSignInput = {
@@ -277,13 +293,11 @@ const createWalletRuntimeState = (
 				))
 			:
 				undefined
-		return preserveWalletConnectionSelection(
-			previous,
-			refreshedActiveAccount == null ? next : {
-				...next,
-				activeAccount: refreshedActiveAccount,
-			}
-		)
+		const preserved = preserveWalletConnectionSelection(previous, next)
+		return refreshedActiveAccount == null ? preserved : buildWalletConnection({
+			...preserved,
+			activeAccount: refreshedActiveAccount,
+		})
 	}
 
 	const upsertConnection = async (
@@ -579,13 +593,13 @@ const createWalletRuntimeState = (
 
 		const persistedConnectionKeys = new Set(persistedConnections.map(walletConnectionKey))
 		const mergedConnections = [
+			...persistedConnections.filter((connection) => !runtimeMutatedConnectionKeys.has(
+				walletConnectionKey(connection)
+			)),
 			...connections.filter((connection) => {
 				const connectionKey = walletConnectionKey(connection)
 				return runtimeMutatedConnectionKeys.has(connectionKey) || !persistedConnectionKeys.has(connectionKey)
 			}),
-			...persistedConnections.filter((connection) => !runtimeMutatedConnectionKeys.has(
-				walletConnectionKey(connection)
-			)),
 		]
 		const nextConnections = withExclusiveWalletConnectionSelection(mergedConnections)
 		const mergedByKey = new Map(
@@ -812,10 +826,13 @@ const createWalletRuntimeState = (
 		))
 	}
 
-	const signMessage = async (input: WalletMessageSignInput) => {
+	const executePresentedWalletRequest = async (input:
+		| (WalletMessageSignInput & { kind: 'message' })
+		| (WalletEvmTransactionInput & { kind: 'transaction' })
+	) => {
 		const requestInput = $state.snapshot(input)
 		const validationClock = Date.now()
-		const { connectionKey, message, authorityPresentation } = requestInput
+		const { connectionKey, authorityPresentation } = requestInput
 		if (
 			!Number.isFinite(authorityPresentation.submittedAt)
 			|| !Number.isSafeInteger(authorityPresentation.submittedAt)
@@ -833,32 +850,45 @@ const createWalletRuntimeState = (
 			throw new Error('Wallet signing requires a valid authority presentation time range.')
 		if (authorityPresentation.validUntil !== undefined && validationClock > authorityPresentation.validUntil)
 			throw new Error('Wallet authority presentation expired before history creation.')
-		const selection = resolveWalletPrepSelection(connections)
+		const selection = requestInput.kind === 'transaction' ?
+			resolveWalletTransactionPrepGate({
+				connections,
+				namespace: 'eip155',
+				reference: String(requestInput.transaction.chainId),
+				accountAddress: requestInput.transaction.from,
+			})
+		:
+			resolveWalletPrepSelection(connections)
 		if (!selection.ready)
 			throw new Error(selection.error)
 		if (selection.connectionKey !== connectionKey)
 			throw new Error('Wallet request connectionKey does not match the selected wallet connection.')
 
 		const snapshot = Object.freeze({
+			...requestInput,
 			connectionKey,
 			account: $state.snapshot(selection.account),
 			connection: $state.snapshot(selection.connection),
-			message,
 			authorityPresentation,
 		})
-		if (!snapshot.account.capabilities.includes(WalletCapability.SignMessage))
+		if (snapshot.kind === 'message' && !snapshot.account.capabilities.includes(WalletCapability.SignMessage))
 			throw new Error('Selected wallet account does not authorize message signing')
 
 		const adapter = adapterByWalletId.get(snapshot.connection.walletId)
 		const adapterRegistrationEpoch = adapterRegistrationEpochByWalletId.get(snapshot.connection.walletId)
 		const adapterSignMessage = adapter?.signMessage
+		const adapterSendTransaction = adapter?.sendEvmTransaction
 		const adapterDispatch = Object.freeze({
 			adapter,
 			signMessage: adapterSignMessage?.bind(adapter),
+			sendTransaction: adapterSendTransaction?.bind(adapter),
 		})
 		const sign = adapterDispatch.signMessage
-		if (sign == null)
+		const send = adapterDispatch.sendTransaction
+		if (snapshot.kind === 'message' && sign == null)
 			throw new Error('Connected wallet does not expose executable message signing')
+		if (snapshot.kind === 'transaction' && send == null)
+			throw new Error('Connected wallet does not expose EVM transaction submission')
 
 		const walletRequestSelector = {
 			id: `wallet-request-${globalThis.crypto.randomUUID()}`,
@@ -872,7 +902,9 @@ const createWalletRuntimeState = (
 		} as const satisfies EntitySelector<typeof schema, EntityType.Account>
 		const requestedAt = snapshot.authorityPresentation.submittedAt
 		const requestMethod = (
-			snapshot.account.namespace === 'eip155' ?
+			snapshot.kind === 'transaction' ?
+				'eth_sendTransaction'
+			: snapshot.account.namespace === 'eip155' ?
 				'personal_sign'
 			: snapshot.account.namespace === 'solana' ?
 				'solana:signMessage'
@@ -894,7 +926,23 @@ const createWalletRuntimeState = (
 		if (requestMethod === undefined)
 			throw new Error('Selected wallet account has no authority-compatible message signing method')
 		const envelope = authorityRequestEnvelope.assert(
-			snapshot.account.namespace === 'eip155' ?
+			snapshot.kind === 'transaction' ?
+				{
+					adapterKey: 'evm.transaction',
+					adapterVersion: '1',
+					value: {
+						method: 'eth_sendTransaction',
+						chainId: snapshot.transaction.chainId,
+						accountAddress: snapshot.transaction.from,
+						calls: [{
+							toAddress: snapshot.transaction.to,
+							value: snapshot.transaction.value,
+							inputData: snapshot.transaction.data,
+							inputDataHash: Hash.sha256(snapshot.transaction.data),
+						}],
+					},
+				}
+			: snapshot.account.namespace === 'eip155' ?
 				{
 					adapterKey: 'evm.personal-sign',
 					adapterVersion: '1',
@@ -925,7 +973,7 @@ const createWalletRuntimeState = (
 						},
 				}
 		)
-		const requestPayload = JSON.stringify({
+		const requestPayload = snapshot.kind === 'transaction' ? stringify(envelope) : JSON.stringify({
 			version: 1,
 			method: requestMethod,
 			account: accountSelector.caip10,
@@ -947,7 +995,10 @@ const createWalletRuntimeState = (
 			if (
 				currentAdapter !== adapterDispatch.adapter
 				|| adapterRegistrationEpochByWalletId.get(snapshot.connection.walletId) !== adapterRegistrationEpoch
-				|| currentAdapter?.signMessage !== adapterSignMessage
+				|| (snapshot.kind === 'message' ?
+					currentAdapter?.signMessage !== adapterSignMessage
+				:
+					currentAdapter?.sendEvmTransaction !== adapterSendTransaction)
 			)
 				throw new Error('Wallet adapter registration changed before dispatch.')
 			if (
@@ -1033,10 +1084,16 @@ const createWalletRuntimeState = (
 				connectionKey: snapshot.connectionKey,
 			},
 			account: accountSelector,
-			requestKind: 'message-signature',
+			requestKind: snapshot.kind === 'message' ? 'message-signature' : 'transaction',
 			requestMethod,
 			requestPayloadHash,
 			requestedAt,
+			...(envelope.adapterKey === 'evm.transaction' && {
+				evm: {
+					network: { caip2: { namespace: 'eip155', reference: String(envelope.value.chainId) } },
+					calls: envelope.value.calls,
+				},
+			}),
 		}, [snapshot.connection])
 		const walletRequestFailure = validateBeforeOccurrence()
 		if (walletRequestFailure !== undefined)
@@ -1071,12 +1128,25 @@ const createWalletRuntimeState = (
 
 		let signature: string
 		try {
-			signature = await sign(
-				snapshot.connection.walletId,
-				snapshot.account.accountAddress,
-				snapshot.message,
-				snapshot.connectionKey
-			)
+			if (snapshot.kind === 'transaction') {
+				if (send == null)
+					throw new Error('Wallet transaction adapter is unavailable')
+				signature = Hash32.assert(await send(
+					snapshot.connection.walletId,
+					snapshot.transaction,
+					assertPersistedAuthority,
+					snapshot.connectionKey
+				))
+			} else {
+				if (sign == null)
+					throw new Error('Wallet message adapter is unavailable')
+				signature = await sign(
+					snapshot.connection.walletId,
+					snapshot.account.accountAddress,
+					snapshot.message,
+					snapshot.connectionKey
+				)
+			}
 		}
 		catch (error) {
 			const adapterError = Object(error)
@@ -1108,13 +1178,16 @@ const createWalletRuntimeState = (
 			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
 				timestampMs: Math.max(Date.now(), requestedAt + 1),
 				source: Source.Local_Internal,
-				status: 'failed',
-				error: 'Wallet signing request failed',
+				status: snapshot.kind === 'transaction' && (
+					dispatchFailureEvidence.kind === 'ambiguous'
+					|| dispatchFailureEvidence.kind === 'response-audit-failure'
+				) ? 'unknown' : 'failed',
+				error: snapshot.kind === 'transaction' ? errorMessage : 'Wallet signing request failed',
 			})
 			throw error
 		}
 
-		const signatureHash = await hashWalletEvidence(signature).catch(async (error) => {
+		const signatureHash = snapshot.kind === 'transaction' ? undefined : await hashWalletEvidence(signature).catch(async (error) => {
 			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
 				timestampMs: Math.max(Date.now(), requestedAt + 1),
 				source: Source.Local_Internal,
@@ -1124,7 +1197,14 @@ const createWalletRuntimeState = (
 			throw error
 		})
 		const returnedEvidence = dispatchEvidence.assert(structuredClone(
-			snapshot.account.namespace === 'eip155' ? {
+			snapshot.kind === 'transaction' ? {
+				kind: 'returned',
+				response: {
+					adapterKey: 'evm.transaction',
+					adapterVersion: '1',
+					value: { transactionIds: [signature] },
+				},
+			} : snapshot.account.namespace === 'eip155' ? {
 				kind: 'returned',
 				response: {
 					adapterKey: 'evm.signature',
@@ -1143,7 +1223,13 @@ const createWalletRuntimeState = (
 				},
 			}
 		))
-		await writeLocalBlockheadActionDispatchEvidence(context, occurrenceSelector, returnedEvidence)
+		try {
+			await writeLocalBlockheadActionDispatchEvidence(context, occurrenceSelector, returnedEvidence)
+		} catch (error) {
+			if (snapshot.kind === 'transaction')
+				throw new Error(`Wallet returned transaction ${signature} but dispatch evidence persistence failed; do not resubmit`, { cause: error })
+			throw error
+		}
 
 		const submittedAt = Math.max(Date.now(), requestedAt + 1)
 		try {
@@ -1155,8 +1241,17 @@ const createWalletRuntimeState = (
 			await writeLocalBlockheadWalletRequest_Timestamp(context, walletRequestSelector, {
 				timestampMs: submittedAt,
 				source: Source.Local_Internal,
-				status: 'signed',
-				signatureHash,
+				...(snapshot.kind === 'transaction' ? {
+					status: 'submitted',
+					transactionId: signature,
+					evmTransactions: [{
+						$network: { caip2: { namespace: 'eip155', reference: String(snapshot.transaction.chainId) } },
+						txHash: Hash32.assert(signature),
+					}],
+				} : {
+					status: 'signed',
+					signatureHash,
+				}),
 			})
 		}
 		catch {
@@ -1165,18 +1260,39 @@ const createWalletRuntimeState = (
 					timestampMs: Math.max(Date.now(), submittedAt + 1),
 					source: Source.Local_Internal,
 					status: 'audit-failed',
-					signatureHash,
-					error: 'Wallet signature succeeded but signed history persistence failed',
+					...(snapshot.kind === 'transaction' ? {
+						transactionId: signature,
+						error: 'Wallet returned a transaction hash but submitted history persistence failed; do not resubmit',
+					} : {
+						signatureHash,
+						error: 'Wallet signature succeeded but signed history persistence failed',
+					}),
 				})
 			}
 			catch {}
-			throw new Error('Wallet signature succeeded but audit persistence failed; do not retry as a wallet rejection')
+			throw new Error(snapshot.kind === 'transaction' ?
+				`Wallet returned transaction ${signature} but audit persistence failed; do not resubmit`
+			:
+				'Wallet signature succeeded but audit persistence failed; do not retry as a wallet rejection')
 		}
 
 		return {
 			accountAddress: snapshot.account.accountAddress,
 			signature,
+			walletRequestId: walletRequestSelector.id,
+			authorityRequestId: authorityRequestSelector.id,
+			dispatchOccurrenceId: occurrenceSelector.id,
 		}
+	}
+
+	const signMessage = async (input: WalletMessageSignInput) => {
+		const result = await executePresentedWalletRequest({ ...input, kind: 'message' })
+		return { accountAddress: result.accountAddress, signature: result.signature }
+	}
+
+	const sendEvmTransaction = async (input: WalletEvmTransactionInput) => {
+		const { signature, ...result } = await executePresentedWalletRequest({ ...input, kind: 'transaction' })
+		return { ...result, transactionHash: signature }
 	}
 
 	const signTonInternalMessages = async (
@@ -1838,11 +1954,18 @@ const createWalletRuntimeState = (
 		if (selectedConnection == null || selectedConnection.status !== BlockheadConnectionStatus.Connected)
 			return
 
-		await upsertConnection({
+		const listedAccount = selectedConnection.accounts.find((candidate) => (
+			candidate.namespace === account.namespace
+			&& candidate.reference === account.reference
+			&& candidate.accountAddress === account.accountAddress
+		))
+		if (listedAccount === undefined)
+			throw new Error('The selected account is no longer available in this wallet connection.')
+		await upsertConnection(buildWalletConnection({
 			...selectedConnection,
 			selected: true,
-			activeAccount: account,
-		})
+			activeAccount: listedAccount,
+		}))
 	}
 
 	return {
@@ -1856,6 +1979,7 @@ const createWalletRuntimeState = (
 		connect,
 		reconnect: connect,
 		openWalletConnectApplication,
+		sendEvmTransaction,
 		signMessage,
 		signTonInternalMessages,
 		signTypedData,

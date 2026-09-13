@@ -31,6 +31,7 @@
 	)
 	const detailSelection = $derived(data?.selector == null ? undefined : select(EntityType.McpToolCall, data.selector, {
 		sources: [
+			Source.Local_Internal,
 			Source.McpDeclared_Protocol,
 		],
 	}))

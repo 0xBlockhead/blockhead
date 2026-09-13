@@ -68,6 +68,13 @@ const CARDANO_PROBE_PROPOSAL_TX_HASH = '2dd15e0ef6e6a17841cb9541c27724072ce4d4b7
 const CARDANO_PROBE_DREP = 'drep15cfxz9exyn5rx0807zvxfrvslrjqfchrd4d47kv9e0f46uedqtc' as const
 const CARDANO_PROBE_POOL = 'pool1pu5jlj4q9w9jlxeu370a3c9myx47md5j5m2str0naunn2q3lkdy' as const
 const MEV_PROBE_BUILDER_PUBKEY = `0x${'11'.repeat(48)}` as const
+const MESSARI_ARBITRUM_NETWORK = 'eip155:42161' as const
+const MESSARI_UNISWAP_POOL = '0xc31e54c7a869b9fcbecc14363c8324dc414f1d5e' as const
+const MESSARI_UNISWAP_REVISION = 'thegraph:QmXMJ2Hnhhoz6bGFNtTBjnf7kAk9CNCQG7r4R5b7fyVjD7' as const
+const MESSARI_UNISWAP_BLOCK = stringify({
+	$network: { caip2: { namespace: 'eip155', reference: '42161' } },
+	hash: '0x3494bd92c2c70687d9479e6bd19f3559c9e1476e4e3c1a826f713f0dccec0667',
+})
 
 const NOSTR_PROBE_NOTE_EVENT_ID = nostrNetworkSeedNotes[0].eventId
 
@@ -113,6 +120,21 @@ const e2eNostrYouTubeOptionalDetailRoutePaths = {
 
 /** Default param values for `discoverPathnamesFromRoutes()` — aligned with smoke + resolver probes. */
 export const e2eRouteProbeAtomValueById = {
+	"/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]:LiquidityPool_Amm_EvmBlock.PoolBlockRevision.1.blockSelector": MESSARI_UNISWAP_BLOCK,
+	"/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]:LiquidityPool_Amm_EvmBlock.PoolBlockRevision.1.sourceRevision": MESSARI_UNISWAP_REVISION,
+	"/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]:LiquidityPool_Amm_EvmBlock.PoolBlockRevision.1.poolId": MESSARI_UNISWAP_POOL,
+	"/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]:LiquidityPool_Amm_EvmBlock.PoolBlockRevision.1.chainId": "42161",
+	"/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]/input-asset/[ordinal]:LiquidityPool_Amm_EvmBlock_InputAsset.ObservationOrdinal.1.ordinal": "0",
+	"/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]/input-asset/[ordinal]:LiquidityPool_Amm_EvmBlock_InputAsset.ObservationOrdinal.1.blockSelector": MESSARI_UNISWAP_BLOCK,
+	"/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]/input-asset/[ordinal]:LiquidityPool_Amm_EvmBlock_InputAsset.ObservationOrdinal.1.sourceRevision": MESSARI_UNISWAP_REVISION,
+	"/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]/input-asset/[ordinal]:LiquidityPool_Amm_EvmBlock_InputAsset.ObservationOrdinal.1.poolId": MESSARI_UNISWAP_POOL,
+	"/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]/input-asset/[ordinal]:LiquidityPool_Amm_EvmBlock_InputAsset.ObservationOrdinal.1.chainId": "42161",
+	"/network/[network]/financial-protocol/[protocolKey]:FinancialProtocol.NetworkProtocolKey.1.protocolKey": "uniswap-v3",
+	"/network/[network]/financial-protocol/[protocolKey]:FinancialProtocol.NetworkProtocolKey.1.network": MESSARI_ARBITRUM_NETWORK,
+	"/network/[network]/financial-protocol/[protocolKey]/amm-observation/[blockSelector]/[sourceRevision]:FinancialProtocol_Amm_EvmBlock.ProtocolBlockRevision.1.sourceRevision": MESSARI_UNISWAP_REVISION,
+	"/network/[network]/financial-protocol/[protocolKey]/amm-observation/[blockSelector]/[sourceRevision]:FinancialProtocol_Amm_EvmBlock.ProtocolBlockRevision.1.blockSelector": MESSARI_UNISWAP_BLOCK,
+	"/network/[network]/financial-protocol/[protocolKey]/amm-observation/[blockSelector]/[sourceRevision]:FinancialProtocol_Amm_EvmBlock.ProtocolBlockRevision.1.protocolKey": "uniswap-v3",
+	"/network/[network]/financial-protocol/[protocolKey]/amm-observation/[blockSelector]/[sourceRevision]:FinancialProtocol_Amm_EvmBlock.ProtocolBlockRevision.1.network": MESSARI_ARBITRUM_NETWORK,
 	"/network/[network]/balancer-pool/[poolId]/token/[index]:BalancerPoolToken.PoolTokenIndex.1.network": "eip155:1",
 	"/network/[network]/balancer-pool/[poolId]/token/[index]:BalancerPoolToken.PoolTokenIndex.1.poolId": "e2e-probe-poolId",
 	"/network/[network]/balancer-pool/[poolId]/token/[index]:BalancerPoolToken.PoolTokenIndex.1.index": "0",

@@ -174,18 +174,14 @@ export const uniswapV3Resolvers = [
 	defineResolver({
 		entityType: EntityType.UniswapV3Pool,
 		resolve: {
-			Token0Token1Fee: {
-				resolve: async ({ $token0, $token1, fee }) => {
-					if (!('address' in $token0) || !('address' in $token1))
-						throw new Error('Voltaire_JsonRpc: UniswapV3Pool.Token0Token1Fee requires EvmContract address selectors')
-
-					const chainId = chainIdFromNetwork($token0.$network)
-					if (chainIdFromNetwork($token1.$network) !== chainId)
-						throw new Error('Voltaire_JsonRpc: UniswapV3Pool.Token0Token1Fee token networks must match')
+			FactoryToken0Token1Fee: {
+				resolve: async ({ $factory, $token0, $token1, fee }) => {
+					const chainId = chainIdFromNetwork($factory.$network)
+					if (chainIdFromNetwork($token0.$network) !== chainId || chainIdFromNetwork($token1.$network) !== chainId)
+						throw new Error('Voltaire_JsonRpc: UniswapV3Pool.FactoryToken0Token1Fee factory and token networks must match')
 
 					const {
 						uniswapV3DeploymentByChainId,
-						uniswapV3FeeTierByFee,
 					} = await import('$/sources/Uniswap/Catalog/constants.ts')
 					const {
 						getFactoryPool,
@@ -196,16 +192,16 @@ export const uniswapV3Resolvers = [
 					const deployment = uniswapV3DeploymentByChainId[chainId]
 					if (deployment == null)
 						throw new Error(`Voltaire_JsonRpc: no Uniswap V3 factory for chain ${String(chainId)}`)
+					if (normalizeUniswapAddress($factory.address) !== deployment.factoryAddress)
+						throw new Error(`Voltaire_JsonRpc: factory ${$factory.address} is not the supported Uniswap V3 deployment on chain ${String(chainId)}`)
 
 					const token0 = normalizeUniswapAddress($token0.address)
 					const token1 = normalizeUniswapAddress($token1.address)
-					if (!Number.isSafeInteger(fee) || fee < 0)
-						throw new Error(`Voltaire_JsonRpc: invalid Uniswap V3 fee ${String(fee)}`)
-					if (uniswapV3FeeTierByFee[fee] == null)
-						throw new Error(`Voltaire_JsonRpc: unsupported Uniswap V3 fee tier ${String(fee)}`)
+					if (BigInt(token0) >= BigInt(token1))
+						throw new Error('Voltaire_JsonRpc: Uniswap V3 token0 must precede token1 in address order')
 
 					const $network = $token0.$network
-					return withTransports(chainId, 'UniswapV3Pool.Token0Token1Fee', async (getCall) => {
+					return withTransports(chainId, 'UniswapV3Pool.FactoryToken0Token1Fee', async (getCall) => {
 						const poolAddress = await getFactoryPool({
 							getCall,
 							factoryAddress: deployment.factoryAddress,

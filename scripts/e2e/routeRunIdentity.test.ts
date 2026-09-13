@@ -135,6 +135,37 @@ test('joins derived result rows to the producing run identity', () => {
 	assert.deepEqual(result.runIdentity, identity)
 })
 
+test('fingerprints a replaced route from its current working-tree content', async () => {
+	const { mkdtemp, mkdir, writeFile, rename, rm } = await import('node:fs/promises')
+	const { tmpdir } = await import('node:os')
+	const { join } = await import('node:path')
+	const { execFileSync } = await import('node:child_process')
+	const repositoryDirectory = await mkdtemp(join(tmpdir(), 'route-identity-replacement-'))
+	try {
+		const runGit = (...args: string[]) => execFileSync('git', args, { cwd: repositoryDirectory })
+		runGit('init', '--quiet')
+		for (const file of ['APP.ts', 'tests/e2e/_generatedRouteFixtureMetadata.ts', 'tests/e2e/_routeDiscovery.ts', 'tests/e2e/_routeParamFixtures.ts', 'src/routes/old/+page.svelte']) {
+			await mkdir(join(repositoryDirectory, file, '..'), { recursive: true })
+			await writeFile(join(repositoryDirectory, file), 'fixture\n')
+		}
+		runGit('add', '.')
+		runGit('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '--quiet', '-m', 'fixture')
+		const options = {
+			browserIdentity: 'browser', buildIdentity: 'build', captureContractVersion: 'capture', classifierVersion: 'classifier', corpusVersion: 'corpus',
+			repositoryDirectory,
+		}
+		const original = await createRouteRunIdentity(options)
+		await rename(join(repositoryDirectory, 'src/routes/old'), join(repositoryDirectory, 'src/routes/new'))
+		const moved = await createRouteRunIdentity(options)
+		assert.notEqual(moved.appGeneratedRouteFingerprint, original.appGeneratedRouteFingerprint)
+		await writeFile(join(repositoryDirectory, 'src/routes/new/+page.svelte'), 'changed\n')
+		const changed = await createRouteRunIdentity(options)
+		assert.notEqual(changed.appGeneratedRouteFingerprint, moved.appGeneratedRouteFingerprint)
+	} finally {
+		await rm(repositoryDirectory, { recursive: true, force: true })
+	}
+})
+
 test('requires an exact, versioned result for every corpus example', () => {
 	assert.doesNotThrow(() => assertRouteResultsCoherent({ corpusTargets: targets, results, runIdentity: identity }))
 	assert.doesNotThrow(() => assertRouteResultsArtifactCoherent({

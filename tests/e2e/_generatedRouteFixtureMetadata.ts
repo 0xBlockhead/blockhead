@@ -973,6 +973,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(assets)/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]': {
+		routeId: '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/amm-observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]',
+		mappings: [
+			{
+				id: 'LiquidityPool_Amm_EvmBlock.PoolBlockRevision',
+				probeAtomPrefixes: ['/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]:LiquidityPool_Amm_EvmBlock.PoolBlockRevision'],
+				probeCases: [[[0, '1', ['blockSelector', 'sourceRevision', 'poolId', 'chainId']]]],
+			},
+		],
+	},
+	'/(assets)/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]/input-asset/[ordinal]': {
+		routeId: '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/amm-observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]/(liquidityPoolAmmEvmBlock)/input-asset/[ordinal=nonNegativeInteger]',
+		mappings: [
+			{
+				id: 'LiquidityPool_Amm_EvmBlock_InputAsset.ObservationOrdinal',
+				probeAtomPrefixes: ['/pool/[chainId]/[poolId]/amm-observation/[blockSelector]/[sourceRevision]/input-asset/[ordinal]:LiquidityPool_Amm_EvmBlock_InputAsset.ObservationOrdinal'],
+				probeCases: [[[0, '1', ['ordinal', 'blockSelector', 'sourceRevision', 'poolId', 'chainId']]]],
+			},
+		],
+	},
 	'/(assets)/uniswap-cca/auction/[chainId]/[auctionAddress]': {
 		routeId: '/(assets)/uniswap-cca/auction/[chainId=eip155ChainId]/[auctionAddress=evmAddress]',
 		mappings: [
@@ -2963,13 +2983,13 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
-	'/(explore)/(networks)/network/[network]/(contracts)/contract/[address]/uniswap-v3/pool/[token1Address]/[fee]': {
-		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/uniswap-v3/pool/[token1Address=evmAddress]/[fee=nonNegativeInteger]',
+	'/(explore)/(networks)/network/[network]/(contracts)/contract/[address]/uniswap-v3/pool/[token0Address]/[token1Address]/[fee]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/uniswap-v3/pool/[token0Address=evmAddress]/[token1Address=evmAddress]/[fee=nonNegativeInteger]',
 		mappings: [
 			{
-				id: 'UniswapV3Pool.Token0Token1Fee',
-				probeAtomPrefixes: ['/network/[network]/contract/[address]/uniswap-v3/pool/[token1Address]/[fee]:UniswapV3Pool.Token0Token1Fee'],
-				probeCases: [[[0, '1', ['fee', 'token1Address', 'address', 'network']]]],
+				id: 'UniswapV3Pool.FactoryToken0Token1Fee',
+				probeAtomPrefixes: ['/network/[network]/contract/[address]/uniswap-v3/pool/[token0Address]/[token1Address]/[fee]:UniswapV3Pool.FactoryToken0Token1Fee'],
+				probeCases: [[[0, '1', ['fee', 'token0Address', 'token1Address', 'address', 'network']]]],
 			},
 		],
 	},
@@ -7877,6 +7897,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 				projectionPath: [
 					'Evm',
 				],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/financial-protocol/[protocolKey]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/financial-protocol/[protocolKey=stringSegment]',
+		mappings: [
+			{
+				id: 'FinancialProtocol.NetworkProtocolKey',
+				probeAtomPrefixes: ['/network/[network]/financial-protocol/[protocolKey]:FinancialProtocol.NetworkProtocolKey'],
+				probeCases: [[[0, '1', ['protocolKey', 'network']]]],
+			},
+		],
+	},
+	'/(explore)/(networks)/network/[network]/financial-protocol/[protocolKey]/amm-observation/[blockSelector]/[sourceRevision]': {
+		routeId: '/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/financial-protocol/[protocolKey=stringSegment]/(financialProtocol)/amm-observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]',
+		mappings: [
+			{
+				id: 'FinancialProtocol_Amm_EvmBlock.ProtocolBlockRevision',
+				probeAtomPrefixes: ['/network/[network]/financial-protocol/[protocolKey]/amm-observation/[blockSelector]/[sourceRevision]:FinancialProtocol_Amm_EvmBlock.ProtocolBlockRevision'],
+				probeCases: [[[0, '1', ['sourceRevision', 'blockSelector', 'protocolKey', 'network']]]],
 			},
 		],
 	},

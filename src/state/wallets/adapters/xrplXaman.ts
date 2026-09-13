@@ -27,7 +27,22 @@ export type XummAdapterBridge = {
 }
 
 const walletId = 'xrpl:xaman'
-const defaultXumm = () => typeof window === 'undefined' ? undefined : window.xumm
+const defaultXumm = (): XummAdapterBridge | undefined => {
+	const xumm = typeof window === 'undefined' ? undefined : window.xumm
+	if (xumm == null)
+		return undefined
+
+	const payload = xumm.payload
+	return {
+		user: xumm.user,
+		...(payload != null && {
+			payload: {
+				// Await flattens the SDK's nested Promise declaration without changing its receiver.
+				createAndSubscribe: async (...args) => await payload.createAndSubscribe(...args),
+			},
+		}),
+	}
+}
 const capabilities = [
 	WalletCapability.Discover,
 	WalletCapability.Connect,

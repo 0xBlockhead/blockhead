@@ -1,0 +1,9 @@
+[build]
+command = "pnpm run app:check && pnpm exec vite build"
+publish = "build"
+
+[build.environment]
+NODE_VERSION = "24"
+
+[functions]
+node_bundler = "esbuild"

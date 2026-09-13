@@ -110,7 +110,7 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		getBlockNumber.mockResolvedValue(12_345_678n)
 	})
 
-	it('registers pool identity, Token0Token1Fee, tip $$blocks, pool-block, position, tip $$blocks, and position-block resolvers', () => {
+	it('registers pool identity, factory-scoped identity, tip $$blocks, pool-block, position, tip $$blocks, and position-block resolvers', () => {
 		expect(uniswapV3Resolvers.map((resolver) => resolver.entityType)).toEqual([
 			EntityType.UniswapV3Pool,
 			EntityType.UniswapV3Pool,
@@ -125,7 +125,7 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 			resolver.entityType === EntityType.UniswapV3Pool
 		))
 		expect(poolResolvers.some((resolver) => '$$blocks' in resolver.projections)).toBe(true)
-		expect(poolResolvers.some((resolver) => 'Token0Token1Fee' in resolver.resolve)).toBe(true)
+		expect(poolResolvers.some((resolver) => 'FactoryToken0Token1Fee' in resolver.resolve)).toBe(true)
 		expect(poolResolvers.every((resolver) => !('$$positions' in resolver.projections))).toBe(true)
 
 		const positionResolvers = uniswapV3Resolvers.filter((resolver) => (
@@ -172,18 +172,22 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 		expect(snapshot).not.toHaveProperty('$$positions')
 	})
 
-	it('resolves Token0Token1Fee via factory getPool and projects poolAddress', async () => {
+	it.each([500, 750])('resolves factory-authorized fee %s without a static fee-tier allowlist', async (fee) => {
 		getFactoryPool.mockResolvedValue(poolAddress)
 		getPoolTickSpacing.mockResolvedValue(10)
 
 		const poolResolver = uniswapV3Resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
-			&& 'Token0Token1Fee' in resolver.resolve
+			&& 'FactoryToken0Token1Fee' in resolver.resolve
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool Token0Token1Fee resolver')
+			throw new Error('missing UniswapV3Pool FactoryToken0Token1Fee resolver')
 
-		const snapshot = await poolResolver.resolve.Token0Token1Fee.resolve({
+		const snapshot = await poolResolver.resolve.FactoryToken0Token1Fee.resolve({
+			$factory: {
+				$network: ethereumNetwork,
+				address: factoryAddress,
+			},
 			$token0: {
 				$network: ethereumNetwork,
 				address: token0,
@@ -192,7 +196,7 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 				$network: ethereumNetwork,
 				address: token1,
 			},
-			fee: 500,
+			fee,
 		}, context)
 
 		expect(poolResolver.projections.poolAddress(snapshot)).toBe(poolAddress)
@@ -204,8 +208,41 @@ describe('Voltaire Uniswap V3 resolvers', () => {
 			factoryAddress,
 			token0,
 			token1,
-			fee: 500,
+			fee,
 		}))
+	})
+
+	it('does not substitute the catalog factory for a requested factory', async () => {
+		const resolver = uniswapV3Resolvers.find((candidate) => (
+			candidate.entityType === EntityType.UniswapV3Pool
+			&& 'FactoryToken0Token1Fee' in candidate.resolve
+		))
+		if (resolver == null)
+			throw new Error('missing factory-scoped pool resolver')
+
+		await expect(resolver.resolve.FactoryToken0Token1Fee.resolve({
+			$factory: { $network: ethereumNetwork, address: '0x1111111111111111111111111111111111111111' },
+			$token0: { $network: ethereumNetwork, address: token0 },
+			$token1: { $network: ethereumNetwork, address: token1 },
+			fee: 500,
+		}, context)).rejects.toThrow('not the supported Uniswap V3 deployment')
+		expect(getFactoryPool).not.toHaveBeenCalled()
+	})
+
+	it('preserves the protocol meaning of token0 and token1', async () => {
+		const resolver = uniswapV3Resolvers.find((candidate) => (
+			candidate.entityType === EntityType.UniswapV3Pool
+			&& 'FactoryToken0Token1Fee' in candidate.resolve
+		))
+		if (resolver == null)
+			throw new Error('missing factory-scoped pool resolver')
+		await expect(resolver.resolve.FactoryToken0Token1Fee.resolve({
+			$factory: { $network: ethereumNetwork, address: factoryAddress },
+			$token0: { $network: ethereumNetwork, address: token1 },
+			$token1: { $network: ethereumNetwork, address: token0 },
+			fee: 500,
+		}, context)).rejects.toThrow('token0 must precede token1')
+		expect(getFactoryPool).not.toHaveBeenCalled()
 	})
 
 	it('projects tip UniswapV3Pool.$$blocks from eth_blockNumber', async () => {

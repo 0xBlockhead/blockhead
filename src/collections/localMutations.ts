@@ -759,6 +759,80 @@ const deleteLocalEntityReferenceFieldRows = (
 	[]
 )
 
+export const writeLocalMcpToolCall = async (
+	context: LocalMutationContext,
+	selector: EntitySelector<typeof schema, EntityType.McpToolCall>,
+	input: {
+		tool: EntitySelector<typeof schema, EntityType.McpTool>
+		startedAt: number
+		inputHash: typeof Hash32.infer
+		completedAt?: number
+		observation?: {
+			timestampMs: number
+			status: 'completed' | 'transport-error'
+			latencyMs: number
+			isError?: boolean
+			payload?: object
+			error?: string
+		}
+	}
+) => {
+	if (selector.$server.serverKey !== input.tool.$server.serverKey)
+		throw new Error('MCP call and tool must belong to the same server')
+	const fields = {
+		callId: selector.callId,
+		startedAt: input.startedAt,
+		completedAt: input.completedAt,
+		inputHashAlgorithm: 'sha256',
+		inputHash: input.inputHash,
+	}
+	writeLocalPresence(context, EntityType.McpToolCall, selector)
+	writeLocalPrimitiveFields(context, EntityType.McpToolCall, selector, fields)
+	await Promise.all([
+		writeLocalEntityReferenceField(context, EntityType.McpToolCall, selector, '$server', selector.$server),
+		writeLocalEntityReferenceField(context, EntityType.McpToolCall, selector, '$tool', input.tool),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.McpToolCall].utils.waitForPersistence(),
+		...['$server', '$tool', ...Object.keys(fields)].map((fieldName) => (
+			context.entityFieldCollections[EntityType.McpToolCall][
+				entityFieldAddressKey(EntityType.McpToolCall, [], fieldName)
+			].utils.waitForPersistence()
+		)),
+	])
+	if (input.observation === undefined)
+		return
+
+	const observationSelector = {
+		$toolCall: selector,
+		timestampMs: input.observation.timestampMs,
+		source: Source.Local_Internal,
+	}
+	writeLocalPresence(context, EntityType.McpToolCall_Timestamp, observationSelector)
+	writeLocalPrimitiveFields(context, EntityType.McpToolCall_Timestamp, observationSelector, {
+		...input.observation,
+		source: Source.Local_Internal,
+	})
+	await Promise.all([
+		writeLocalEntityReferenceField(context, EntityType.McpToolCall_Timestamp, observationSelector, '$toolCall', selector),
+		writeLocalEntityReferenceField(context, EntityType.McpToolCall, selector, '$$timestamps', observationSelector),
+	])
+	await Promise.all([
+		context.entityCollections[EntityType.McpToolCall_Timestamp].utils.waitForPersistence(),
+		...['$toolCall', 'source', ...Object.keys(input.observation)].map((fieldName) => (
+			context.entityFieldCollections[EntityType.McpToolCall_Timestamp][
+				entityFieldAddressKey(EntityType.McpToolCall_Timestamp, [], fieldName)
+			].utils.waitForPersistence()
+		)),
+		context.entityFieldCollections[EntityType.McpToolCall][
+			entityFieldAddressKey(EntityType.McpToolCall, [], '$$timestamps')
+		].utils.waitForPersistence(),
+		context.entityFieldCountCollections[EntityType.McpToolCall][
+			entityFieldAddressKey(EntityType.McpToolCall, [], '$$timestamps')
+		]?.utils.waitForPersistence(),
+	])
+}
+
 export const writeLocalWatchedEvmAccount = (
 	context: LocalMutationContext,
 	accountEntitySelector: EntitySelector<typeof schema, EntityType.EvmAccount>

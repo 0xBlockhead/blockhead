@@ -13,6 +13,7 @@ export default entity({
 		singular: 'Uniswap V3 pool',
 		plural: 'Uniswap V3 pools',
 	},
+	description: 'A deployed Uniswap V3 pool, uniquely addressed by its network and contract address or its factory, ordered token pair and fee. Factory, tokens, fee and tick spacing are immutable pool facts.',
 })({
 	$network: {
 		entityType: EntityType.Network,
@@ -24,15 +25,15 @@ export default entity({
 	},
 	$factory: {
 		entityType: EntityType.EvmContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
-			Source.UniswapContracts_Evm,
 			Source.Voltaire_JsonRpc,
+			Source.UniswapContracts_Evm,
 		],
 	},
 	$token0: {
 		entityType: EntityType.EvmContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Voltaire_JsonRpc,
 			Source.UniswapContracts_Evm,
@@ -40,34 +41,50 @@ export default entity({
 	},
 	$token1: {
 		entityType: EntityType.EvmContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
 		defaultSources: [
 			Source.Voltaire_JsonRpc,
 			Source.UniswapContracts_Evm,
 		],
 	},
 	fee: {
-		primitiveType: type('number.integer >= 0'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: type('0 <= number.integer < 1000000'),
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.UniswapContracts_Evm,
+		],
 	},
 	tickSpacing: {
-		primitiveType: type('number'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: type('0 < number.integer < 16384'),
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.UniswapContracts_Evm,
+		],
 	},
 	$poolContract: {
 		entityType: EntityType.EvmContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		cardinality: EntityFieldCardinality.One,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+			Source.UniswapContracts_Evm,
+		],
 	},
 	$$blocks: {
 		entityType: EntityType.UniswapV3Pool_Block,
 		cardinality: EntityFieldCardinality.Many,
 		defaultSources: [
 			Source.Voltaire_JsonRpc,
+			Source.UniswapContracts_Evm,
 		],
 	},
 	$$positions: {
 		entityType: EntityType.UniswapV3Position,
 		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.UniswapContracts_Evm,
+		],
 	},
 })({
 	selectors: {
@@ -75,7 +92,8 @@ export default entity({
 			'$network',
 			'poolAddress',
 		],
-		Token0Token1Fee: [
+		FactoryToken0Token1Fee: [
+			'$factory',
 			'$token0',
 			'$token1',
 			'fee',

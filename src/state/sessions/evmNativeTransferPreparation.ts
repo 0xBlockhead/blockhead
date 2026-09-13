@@ -48,13 +48,11 @@ type Session = Pick<
 >
 
 type SessionAction = (
-	& Omit<
-		Pick<
-			EntityFieldValues<typeof schema, EntityType.BlockheadSessionAction>,
-			'sessionId' | 'actionId' | 'indexInSequence'
-		>,
-		{ $action: Pick<EntityFieldValues<typeof schema, EntityType.BlockheadAction>, 'id' | 'content' | 'contentRevisionHash'> }
->
+	& Pick<
+		EntityFieldValues<typeof schema, EntityType.BlockheadSessionAction>,
+		'sessionId' | 'actionId' | 'indexInSequence'
+	>
+	& { $action: Pick<EntityFieldValues<typeof schema, EntityType.BlockheadAction>, 'id' | 'content' | 'contentRevisionHash'> }
 )
 
 type ExecutionCall = {

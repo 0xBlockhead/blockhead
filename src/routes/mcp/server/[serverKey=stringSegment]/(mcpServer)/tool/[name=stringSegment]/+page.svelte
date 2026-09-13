@@ -24,6 +24,7 @@
 	}, {
 		sources: [
 			Source.McpDeclared_Protocol,
+			Source.TheGraph_Mcp,
 		],
 		fields: {
 			title: true,

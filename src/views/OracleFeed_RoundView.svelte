@@ -29,7 +29,6 @@
 	const oracleFeed = $derived(selection.entitySelector.$oracleFeed)
 	const oracleFeedRound = $derived(selection({
 		fields: {
-			answer: true,
 			updatedAtMs: true,
 		},
 	}))
@@ -78,16 +77,9 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={oracleFeedRound}>
-			{#snippet children(entity)}
-				{@const answer = entity.answer}
-				{#if answer != null}
-					<NumberValue
-						value={answer}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<NumberValue
+			value={selection.entitySelector.roundId}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -145,7 +137,13 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={oracleFeedRound}
+				resource={
+					selection({
+						fields: {
+							answer: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const answer = entity.answer}

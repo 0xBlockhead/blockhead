@@ -6,6 +6,7 @@ import * as TransactionEnvelope from 'ox/TxEnvelope'
 import { RpcError } from 'webevm'
 
 import type { LocalMutationContext } from '$/collections/localMutations.ts'
+import { normalizeBoundaryError } from '$/lib/errors.ts'
 import { createEip1193EvmNativeTransferExecutionTransport } from '$/state/sessions/eip1193EvmNativeTransferExecutionTransport.ts'
 import {
 	persistWebEvmSimulation,
@@ -277,7 +278,7 @@ const compose = (
 				}
 			}
 			catch (error) {
-				call = callResultFromError(error)
+				call = callResultFromError(normalizeBoundaryError(error))
 			}
 
 			await persistWebEvmSimulation(context, {

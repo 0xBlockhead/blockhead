@@ -479,7 +479,8 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 						if (response.status === 'Rejected') {
 							const network = networkByWalletId.get(walletId) ?? await features['aptos:network']?.network()
 							if (
-								version !== updateVersion
+								network == null
+								|| version !== updateVersion
 								|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
 							)
 								return
@@ -495,7 +496,8 @@ export const createAptosAip62Adapter = (): WalletAdapter => {
 
 						const network = await features['aptos:network']?.network()
 						if (
-							version !== updateVersion
+							network == null
+							|| version !== updateVersion
 							|| !isCurrent(walletId, wallet, startEpoch, registrationEpoch, lifecycleEpoch, subscriptionEpoch)
 						)
 							return

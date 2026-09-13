@@ -29,6 +29,7 @@ import {
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
+	EntityLayout,
 	_ExpressionDecode,
 	type _SourceSelection,
 	rawSnippetReference,
@@ -138,6 +139,26 @@ const renderGeneratedFile = (
 const alphabetizeSourceDefinitions = (sourceApp: typeof app) => {
 	sourceApp.sources.sources.sort((left, right) => left.source.localeCompare(right.source, 'en'))
 }
+
+test('protocol observation Value snippets preserve selector identity without loading measurements', () => {
+	for (const [entity, identityFields, observation] of [
+		['CctpMessage', ['sourceDomain', 'nonce'], 'messageHash'],
+		['OracleFeed_Round', ['roundId'], 'answer'],
+		['UniswapV3Pool_Block', ['blockNumber'], 'tick'],
+	] as const) {
+		const view = baselineCompiledApp.generatedFiles.find(({ path }) => path === `src/views/${entity}View.svelte`)
+		assert.ok(view, entity)
+		const source = renderGeneratedFile(view)
+		const value = source.match(/\{#snippet Value\(\)\}([\s\S]*?)\{\/snippet\}/)?.[1]
+		assert.ok(value, entity)
+		for (const field of identityFields)
+			assert.ok(value.includes(`selection.entitySelector.${field}`), `${entity}: ${field}`)
+		assert.doesNotMatch(value, /ResourceBoundary|viewSelection\(|selection\(/, entity)
+		assert.ok(!value.includes(observation), entity)
+		assert.ok(source.includes(`entity.${observation}`), `${entity}: retain loaded observation`)
+		assert.doesNotThrow(() => compileSvelte(source, { filename: view.path, generate: 'client' }), entity)
+	}
+})
 
 test('entity hrefs compile directly from routes without a parallel artifact family', () => {
 	const generatedFiles = baselineCompiledApp.generatedFiles
@@ -4876,20 +4897,29 @@ test('consumes authored singular lists and plural query presentation defaults', 
 	)
 })
 
-test('lowers latest EntityReference content without collection-first semantics', () => {
+test('lowers latest EntityReference content with preserved default and explicit child layouts', () => {
 	const latestReferenceApp = structuredClone(app)
 	const farcasterChannel = latestReferenceApp.schema.entities.find((entity) => entity.entityType === EntityType.FarcasterChannel)
 	assert.ok(farcasterChannel?.views.singular?.latest?.[0])
-	farcasterChannel.views.singular.latest[0] = {
-		id: 'lead',
-		field: '$lead',
-		label: 'Lead',
-		fields: ['username'],
-		Content: {
-			raw: '<span>{farcasterUser.username}</span>',
-			references: ['farcasterUser'],
+	farcasterChannel.views.singular.latest = [
+		{
+			id: 'lead-default',
+			field: '$lead',
+			label: 'Lead',
+			fields: ['username'],
+			Content: {
+				raw: '<span>{farcasterUser.username}</span>',
+				references: ['farcasterUser'],
+			},
 		},
-	}
+		{
+			id: 'lead-expanded',
+			field: '$lead',
+			label: 'Expanded lead',
+			fields: ['username'],
+			layout: EntityLayout.SummaryDetails,
+		},
+	]
 
 	const farcasterChannelView = compileApp(latestReferenceApp).generatedFiles.find((generatedFile) => (
 		generatedFile.path === 'src/views/FarcasterChannelView.svelte'
@@ -4906,8 +4936,8 @@ test('lowers latest EntityReference content without collection-first semantics',
 		generate: false,
 	}))
 	assert.match(renderedFarcasterChannelView, /const viewDomId = \$derived\('farcaster-channel-' \+ encodeURIComponent\(stringify\(selection\.entitySelector\)\)\)/)
-	assert.match(renderedFarcasterChannelView, /<div id=\{viewDomId \+ '-latest-lead'\}>/)
-	assert.match(renderedFarcasterChannelView, /<FarcasterUserView[\s\S]*?<span>\{farcasterUser\.username\}<\/span>/)
+	assert.match(renderedFarcasterChannelView, /<div id=\{viewDomId \+ '-latest-lead-default'\}>[\s\S]*?<FarcasterUserView[\s\S]*?layout=\{EntityLayout\.Value\}[\s\S]*?<span>\{farcasterUser\.username\}<\/span>/)
+	assert.match(renderedFarcasterChannelView, /<div id=\{viewDomId \+ '-latest-lead-expanded'\}>[\s\S]*?<FarcasterUserView[\s\S]*?layout=\{EntityLayout\.SummaryDetails\}/)
 })
 
 test('snapshots resolved EntityReference child props before nested view rendering', () => {
@@ -9017,4 +9047,15 @@ test('derives every view item field dependency from one canonical primitive', ()
 	)
 	assert.doesNotMatch(generatorSource, /\.\.\.allViewItems\(entity, indexes\),\s*\.\.\.contentRows\.flat\(\)/)
 	assert.doesNotMatch(generatorSource, /viewUsesFormat\(entity, indexes,[^;]+\|\| contentRows\.some/)
+})
+
+test('binds the Uniswap factory-scoped route to its parent factory and distinct tokens', () => {
+	const page = baselineCompiledApp.generatedFiles.find(({ path }) => path.endsWith('/uniswap-v3/pool/[token0Address=evmAddress]/[token1Address=evmAddress]/[fee=nonNegativeInteger]/+page.svelte'))
+	assert.ok(page)
+	const source = renderGeneratedFile(page)
+	assert.match(source, /\$factory: data\.selector/)
+	assert.match(source, /\$token0: \{\s*\$network: data\.selector\.\$network,\s*address: params\.token0Address/)
+	assert.match(source, /\$token1: \{\s*\$network: data\.selector\.\$network,\s*address: params\.token1Address/)
+	assert.match(source, /fee: Number\(params\.fee\)/)
+	assert.match(source, /Source\.Voltaire_JsonRpc/)
 })

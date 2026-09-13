@@ -1,6 +1,7 @@
 import { stringify } from 'devalue'
 
 import type { ClientContext } from '$/client/$client.svelte.ts'
+import { retryEntityField } from '$/collections/retryEntityField.ts'
 import { errorDisplayMessage, normalizeBoundaryError } from '$/lib/errors.ts'
 import {
 	EntityMetaKey,
@@ -172,15 +173,15 @@ export const materializeResource = <Data>(
 const materializeCollection = <Data>(
 	resource: Resource<Data>,
 	read: (data: Data | undefined) => readonly NetworkEntityRow[]
-) => {
+): { state: NetworkResourceState, rows: readonly NetworkEntityRow[], error: string | null } => {
 	if (resource.error !== undefined)
 		return {
 			state: 'failed' as const,
-			rows: [] as readonly NetworkEntityRow[],
+			rows: [],
 			error: errorDisplayMessage(normalizeBoundaryError(resource.error)),
 		}
 	if (resource.loading || !resource.ready)
-		return { state: 'pending' as const, rows: [] as readonly NetworkEntityRow[], error: null }
+		return { state: 'pending', rows: [], error: null }
 
 	const rows = read(resource.current)
 	return {
@@ -194,7 +195,7 @@ export const acquireNetworkPresentationDriver = (
 	client: AppClient,
 	selector: NetworkSelector
 ): NetworkPresentationDriver => {
-	if (!('caip2' in selector))
+	if (selector.caip2 === undefined)
 		throw new Error('NetworkEntityPresentationV1 requires a CAIP-2 selector')
 	if (selector.caip2.namespace !== 'eip155' || selector.caip2.reference !== '1')
 		throw new Error('NetworkEntityPresentationV1 is frozen to eip155:1')
@@ -225,19 +226,19 @@ export const acquireNetworkPresentationDriver = (
 		sources: [Source.Constants_Internal],
 		fields: { name: true, activationBlock: true },
 		limit: 1,
-		orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value].activationBlock ?? Number.NEGATIVE_INFINITY, 'desc']],
+		orderBy: [[[EntityMetaKey.Value, 'activationBlock'], { direction: 'desc', nulls: 'last' }]],
 	})
 	const latestBlock = projection.$$blocks({
 		sources: [Source.Voltaire_JsonRpc],
 		fields: { blockNumber: true },
 		limit: 1,
-		orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc']],
+		orderBy: [[[EntityMetaKey.Value, EntityMetaKey.Selector, 'blockNumber'], { direction: 'desc', nulls: 'last' }]],
 	})
 	const latestFeeMarket = projection.$$gasFeeBlocks({
 		sources: [Source.Voltaire_JsonRpc],
 		fields: { blockNumber: true, baseFeePerGas: true, gasUsedRatio: true },
 		limit: 1,
-		orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc']],
+		orderBy: [[[EntityMetaKey.Value, EntityMetaKey.Selector, 'blockNumber'], { direction: 'desc', nulls: 'last' }]],
 	})
 	const nativePrice = projection.$nativeCoin({
 		sources: [Source.Constants_Internal],
@@ -254,7 +255,7 @@ export const acquireNetworkPresentationDriver = (
 								sources: [Source.Coingecko_Rest],
 								fields: { price: true },
 								limit: 1,
-								orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc']],
+								orderBy: [[[EntityMetaKey.Value, EntityMetaKey.Selector, 'timestampMs'], { direction: 'desc', nulls: 'last' }]],
 							},
 						},
 					},
@@ -266,19 +267,19 @@ export const acquireNetworkPresentationDriver = (
 		sources: [Source.Voltaire_JsonRpc],
 		fields: { timestampMs: true, pendingCount: true, queuedCount: true },
 		limit: 1,
-		orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc']],
+		orderBy: [[[EntityMetaKey.Value, EntityMetaKey.Selector, 'timestampMs'], { direction: 'desc', nulls: 'last' }]],
 	})
 	const latestEpoch = projection.$$beaconEpochs({
 		sources: [Source.Beacon_Rest],
 		fields: { epoch: true, startSlot: true, endSlot: true },
 		limit: 1,
-		orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].epoch ?? Number.NEGATIVE_INFINITY, 'desc']],
+		orderBy: [[[EntityMetaKey.Value, EntityMetaKey.Selector, 'epoch'], { direction: 'desc', nulls: 'last' }]],
 	})
 	const latestSlot = projection.$$beaconSlots({
 		sources: [Source.Beacon_Rest],
 		fields: { slot: true, epoch: true },
 		limit: 1,
-		orderBy: [[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].slot ?? Number.NEGATIVE_INFINITY, 'desc']],
+		orderBy: [[[EntityMetaKey.Value, EntityMetaKey.Selector, 'slot'], { direction: 'desc', nulls: 'last' }]],
 	})
 	const blocks = projection.$$blocks({
 		sources: [Source.Voltaire_JsonRpc],
@@ -391,26 +392,28 @@ export const acquireNetworkPresentationDriver = (
 			})
 		},
 		retry(cellId) {
+			const retryField = (entityType: EntityType, facetPath: readonly string[], fieldName: string) =>
+				retryEntityField(client, entityType, facetPath, fieldName)
 			if (cellId === 'native-price') {
-				client.retryField(EntityType.Network, ['Evm'], '$nativeCoin')
-				client.retryField(EntityType.Coin, [], '$$marketsWithCoinAsBase')
-				client.retryField(EntityType.Market, [], '$$marketPrices')
-				client.retryField(EntityType.MarketPrice, [], '$$quotes')
-				client.retryField(EntityType.Market_Timestamp, [], 'price')
+				retryField(EntityType.Network, ['Evm'], '$nativeCoin')
+				retryField(EntityType.Coin, [], '$$marketsWithCoinAsBase')
+				retryField(EntityType.Market, [], '$$marketPrices')
+				retryField(EntityType.MarketPrice, [], '$$quotes')
+				retryField(EntityType.Market_Timestamp, [], 'price')
 			} else if (cellId === 'upgrade')
-				client.retryField(EntityType.Network, ['Evm'], '$$upgrades')
+				retryField(EntityType.Network, ['Evm'], '$$upgrades')
 			else if (cellId === 'block' || cellId === 'blocks')
-				client.retryField(EntityType.Network, ['Evm'], '$$blocks')
+				retryField(EntityType.Network, ['Evm'], '$$blocks')
 			else if (cellId === 'fee-market')
-				client.retryField(EntityType.Network, ['Evm'], '$$gasFeeBlocks')
+				retryField(EntityType.Network, ['Evm'], '$$gasFeeBlocks')
 			else if (cellId === 'mempool')
-				client.retryField(EntityType.Network, ['Evm'], '$$txpoolTimestamps')
+				retryField(EntityType.Network, ['Evm'], '$$txpoolTimestamps')
 			else if (cellId === 'epoch')
-				client.retryField(EntityType.Network, ['Evm'], '$$beaconEpochs')
+				retryField(EntityType.Network, ['Evm'], '$$beaconEpochs')
 			else if (cellId === 'slot')
-				client.retryField(EntityType.Network, ['Evm'], '$$beaconSlots')
+				retryField(EntityType.Network, ['Evm'], '$$beaconSlots')
 			else if (cellId === 'transactions')
-				client.retryField(EntityType.Network, ['Evm'], '$$transactions')
+				retryField(EntityType.Network, ['Evm'], '$$transactions')
 			else
 				throw new Error(`${cellId}: retry is not owned by one Network.Evm field`)
 		},
@@ -515,7 +518,7 @@ export const createNetworkPresentationSessionFromDriver = (
 	let destroyed = false
 	let queued = false
 	let settleClosed: (() => void) | undefined
-	let rejectClosed: ((error: unknown) => void) | undefined
+	let rejectClosed: ((error: Error) => void) | undefined
 	const closed = new Promise<void>((resolve, reject) => {
 		settleClosed = resolve
 		rejectClosed = reject
@@ -529,7 +532,7 @@ export const createNetworkPresentationSessionFromDriver = (
 	)
 	const retryTokens = new Map<string, string>()
 	let checkpointWrites = Promise.resolve()
-	let checkpointFailure: unknown
+	let checkpointFailure: Error | undefined
 
 	const observed = (id: string, value: { state: NetworkResourceState }) => {
 		const fingerprint = stringify(value)
@@ -699,7 +702,7 @@ export const createNetworkPresentationSessionFromDriver = (
 			try {
 				await options.saveCheckpoint?.(checkpoint)
 			} catch (error) {
-				checkpointFailure ??= error
+				checkpointFailure ??= normalizeBoundaryError(error)
 			}
 		})
 	}

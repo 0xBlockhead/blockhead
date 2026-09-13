@@ -521,15 +521,19 @@ describe('UniswapContracts_Evm resolver', () => {
 	})
 
 
-	it('resolves Token0Token1Fee from the seeded catalog', async () => {
+	it('resolves a factory-scoped ordered token pair from the seeded catalog', async () => {
 		const poolResolver = uniswapContractsEvm.resolvers.find((resolver) => (
 			resolver.entityType === EntityType.UniswapV3Pool
-			&& 'Token0Token1Fee' in resolver.resolve
+			&& 'FactoryToken0Token1Fee' in resolver.resolve
 		))
 		if (poolResolver == null)
-			throw new Error('missing UniswapV3Pool Token0Token1Fee resolver')
+			throw new Error('missing UniswapV3Pool FactoryToken0Token1Fee resolver')
 
-		const snapshot = await poolResolver.resolve.Token0Token1Fee.resolve({
+		const snapshot = await poolResolver.resolve.FactoryToken0Token1Fee.resolve({
+			$factory: {
+				$network: ethereumNetwork,
+				address: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+			},
 			$token0: {
 				$network: ethereumNetwork,
 				address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -546,6 +550,46 @@ describe('UniswapContracts_Evm resolver', () => {
 		expect(poolResolver.projections.$network(snapshot)).toEqual({
 			[EntityMetaKey.Selector]: ethereumNetwork,
 		})
+	})
+
+	it.each([
+		{
+			label: 'a different factory with the same tokens and fee',
+			factoryAddress: '0x1111111111111111111111111111111111111111',
+			tokenChain: '1',
+			error: 'is not in the Uniswap V3 catalog',
+		},
+		{
+			label: 'a token from another network',
+			factoryAddress: '0x1f98431c8ad98523631ae4a59f267346ea31f984',
+			tokenChain: '8453',
+			error: 'factory and token networks must match',
+		},
+	] as const)('keeps pool identity distinct for $label', async ({ factoryAddress, tokenChain, error }) => {
+		const resolver = uniswapContractsEvm.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.UniswapV3Pool
+			&& 'FactoryToken0Token1Fee' in candidate.resolve
+		))
+		if (resolver == null)
+			throw new Error('missing UniswapV3Pool FactoryToken0Token1Fee resolver')
+
+		await expect(resolver.resolve.FactoryToken0Token1Fee.resolve({
+			$factory: {
+				$network: ethereumNetwork,
+				address: factoryAddress,
+			},
+			$token0: {
+				$network: {
+					caip2: { namespace: 'eip155', reference: tokenChain },
+				},
+				address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			},
+			$token1: {
+				$network: ethereumNetwork,
+				address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+			},
+			fee: 500,
+		}, context)).rejects.toThrow(error)
 	})
 
 	it('lists current NFPM positions scoped to the pool from Transfer logs', async () => {

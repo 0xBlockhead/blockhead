@@ -28,6 +28,7 @@
 
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
+			Source.Local_Internal,
 			Source.McpDeclared_Protocol,
 		],
 	}))

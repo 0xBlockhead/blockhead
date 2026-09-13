@@ -1,4 +1,4 @@
-import adapterAuto from '@sveltejs/adapter-auto'
+import adapterNetlify from '@sveltejs/adapter-netlify'
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 import { readFileSync } from 'node:fs'
 import { relative, sep } from 'node:path'
@@ -44,7 +44,7 @@ export default {
 	},
 
 	kit: {
-		adapter: adapterAuto(),
+		adapter: adapterNetlify(),
 
 		csp: {
 			mode: 'auto',

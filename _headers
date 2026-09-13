@@ -1,0 +1,6 @@
+# Netlify adapter merges these headers into the published output.
+/tonconnect-manifest.json
+  Access-Control-Allow-Origin: *
+
+/favicon.png
+  Access-Control-Allow-Origin: *

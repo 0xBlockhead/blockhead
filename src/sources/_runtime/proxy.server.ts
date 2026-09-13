@@ -310,6 +310,7 @@ export const proxySourceHttpRequest = async (
 				}),
 			})
 		} catch (error) {
+			upstream = undefined
 			upstreamError = error
 			continue
 		}
@@ -329,7 +330,10 @@ export const proxySourceHttpRequest = async (
 		break
 	}
 	if (upstream == null)
-		throw upstreamError ?? new Error('Proxy upstream unavailable.')
+		throw error(
+			502,
+			upstreamError == null ? 'Proxy upstream unavailable.' : 'Proxy upstream request failed.'
+		)
 	if (upstream.status >= 300 && upstream.status < 400)
 		return new Response('Upstream redirect rejected.', { status: 502 })
 

@@ -39,6 +39,7 @@
 			messageHash: true,
 		},
 	}))
+	const titleFallback = $derived(selection.entitySelector.nonce || 'CCTP message')
 
 
 	// Components
@@ -53,7 +54,7 @@
 <EntityView
 	entityType={EntityType.CctpMessage}
 	entitySelector={selection.entitySelector}
-	title={title ?? (selection.entitySelector.nonce || 'CCTP message')}
+	title={title ?? titleFallback}
 	href={
 		href === undefined ?
 			resolve(
@@ -71,7 +72,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		{String(selection.entitySelector.sourceDomain)}
+		{[String(selection.entitySelector.sourceDomain), selection.entitySelector.nonce].filter(Boolean).join(' ') || selection.entitySelector.nonce || titleFallback}
 	{/snippet}
 
 	{#snippet HeadingAfter()}

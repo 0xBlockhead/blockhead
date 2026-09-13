@@ -28,6 +28,7 @@
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.McpDeclared_Protocol,
+			Source.TheGraph_Mcp,
 		],
 	}))
 	const mcpTool = $derived(viewSelection({
@@ -39,6 +40,7 @@
 
 
 	// Components
+	import McpToolInvocation from '$/views/McpToolInvocation.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import McpServerView from '$/views/McpServerView.svelte'
 </script>
@@ -137,5 +139,33 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<section data-column="gap-2">
+			<ResourceBoundary resource={selection({ fields: { inputSchema: true, outputSchema: true, annotations: true } })}>
+				{#snippet children(entity)}
+					{#if entity.inputSchema !== undefined}
+						<h3>Input schema</h3>
+
+						<pre>{JSON.stringify(entity.inputSchema, null, 2)}</pre>
+					{/if}
+
+					{#if entity.outputSchema !== undefined}
+						<h3>Output schema</h3>
+
+						<pre>{JSON.stringify(entity.outputSchema, null, 2)}</pre>
+					{/if}
+
+					{#if entity.annotations !== undefined}
+						<h3>Tool annotations</h3>
+
+						<pre>{JSON.stringify(entity.annotations, null, 2)}</pre>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</section>
+
+		<section data-column="gap-2">
+			<McpToolInvocation tool={selection.entitySelector} />
+		</section>
 	{/snippet}
 </EntityView>

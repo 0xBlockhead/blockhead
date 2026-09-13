@@ -55,7 +55,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{cctpMessageSelector.sourceDomain}
+				{[String(cctpMessageSelector.sourceDomain), cctpMessageSelector.nonce].filter(Boolean).join(' ')}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

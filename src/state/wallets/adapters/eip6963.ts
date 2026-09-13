@@ -10,6 +10,8 @@ import { EvmAddress } from '$/schema/ZeroExHex.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { SvelteMap } from 'svelte/reactivity'
 import type { WalletAdapter, WalletCandidate, WalletConnection } from './types.ts'
+import { WalletAdapterPreDispatchFailure } from './types.ts'
+import { sendEip1193Transaction } from './eip1193Transaction.ts'
 import { buildWalletConnection } from '../walletConnectionState.ts'
 
 type EipConnectionState = {
@@ -294,6 +296,16 @@ export const createEip6963Adapter = (): WalletAdapter => {
 				BlockheadConnectionStatus.Connected,
 				eipStateByWalletId.get(walletId)?.connectedAt
 			)
+		},
+		sendEvmTransaction: async (walletId, transaction, assertAuthorityCurrent) => {
+			const provider = providerByWalletId.get(walletId)
+			if (provider == null)
+				throw new WalletAdapterPreDispatchFailure('EIP-6963 provider is unavailable')
+			return sendEip1193Transaction(provider, transaction, () => {
+				if (providerByWalletId.get(walletId) !== provider)
+					throw new Error('EIP-6963 provider changed before transaction dispatch')
+				assertAuthorityCurrent()
+			})
 		},
 		signMessage: async (walletId, accountAddress, message) => {
 			const provider = providerByWalletId.get(walletId)

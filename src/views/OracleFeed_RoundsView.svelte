@@ -30,7 +30,6 @@
 		selection({
 			fields: {
 				roundId: true,
-				answer: true,
 				updatedAtMs: true,
 			},
 		})
@@ -63,7 +62,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{oracleFeedRound.answer ?? ''}
+				{oracleFeedRoundSelector.roundId}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

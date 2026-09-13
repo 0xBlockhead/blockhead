@@ -31,6 +31,7 @@
 		sources: selection.sources ?? [
 			Source.Eip8004Scan_Rest,
 			Source.McpDeclared_Protocol,
+			Source.TheGraph_Mcp,
 		],
 		fields: {
 			transportKind: true,

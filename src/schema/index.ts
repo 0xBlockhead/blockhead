@@ -571,6 +571,8 @@ import FilecoinNetworkSchema from '$/schema/FilecoinNetwork.ts'
 import FilecoinSector_TimestampSchema from '$/schema/FilecoinSector_Timestamp.ts'
 import FilecoinSectorSchema from '$/schema/FilecoinSector.ts'
 import FilecoinTipsetSchema from '$/schema/FilecoinTipset.ts'
+import FinancialProtocol_Amm_EvmBlockSchema from '$/schema/FinancialProtocol_Amm_EvmBlock.ts'
+import FinancialProtocolSchema from '$/schema/FinancialProtocol.ts'
 import GitBlobSchema from '$/schema/GitBlob.ts'
 import GitCommitSchema from '$/schema/GitCommit.ts'
 import GitFetchObservationSchema from '$/schema/GitFetchObservation.ts'
@@ -719,6 +721,8 @@ import LightningNetwork_TimestampSchema from '$/schema/LightningNetwork_Timestam
 import LightningNetworkSchema from '$/schema/LightningNetwork.ts'
 import LightningNode_TimestampSchema from '$/schema/LightningNode_Timestamp.ts'
 import LightningNodeSchema from '$/schema/LightningNode.ts'
+import LiquidityPool_Amm_EvmBlock_InputAssetSchema from '$/schema/LiquidityPool_Amm_EvmBlock_InputAsset.ts'
+import LiquidityPool_Amm_EvmBlockSchema from '$/schema/LiquidityPool_Amm_EvmBlock.ts'
 import LiquidityPool_BlockSchema from '$/schema/LiquidityPool_Block.ts'
 import LiquidityPool_TimestampSchema from '$/schema/LiquidityPool_Timestamp.ts'
 import LiquidityPoolSchema from '$/schema/LiquidityPool.ts'
@@ -1701,6 +1705,8 @@ const schemaChunk11 = [
 	FilecoinSectorSchema,
 	FilecoinSector_TimestampSchema,
 	FilecoinTipsetSchema,
+	FinancialProtocolSchema,
+	FinancialProtocol_Amm_EvmBlockSchema,
 	GitBlobSchema,
 	GitCommitSchema,
 	GitFetchObservationSchema,
@@ -1729,11 +1735,11 @@ const schemaChunk11 = [
 	GitSignatureSchema,
 	GitTagSchema,
 	GitTreeSchema,
-	GitTreeEntrySchema,
-	GitTreePathResolutionSchema,
 ] as const
 
 const schemaChunk12 = [
+	GitTreeEntrySchema,
+	GitTreePathResolutionSchema,
 	GmxMarketSchema,
 	GmxPositionSchema,
 	HederaAccountSchema,
@@ -1782,11 +1788,11 @@ const schemaChunk12 = [
 	HyperliquidNetworkSchema,
 	HyperliquidNetwork_TimestampSchema,
 	HyperliquidOrderSchema,
-	HyperliquidOrder_TimestampSchema,
-	HyperliquidPerpMarketSchema,
 ] as const
 
 const schemaChunk13 = [
+	HyperliquidOrder_TimestampSchema,
+	HyperliquidPerpMarketSchema,
 	HyperliquidPositionSchema,
 	HyperliquidSpotAssetSchema,
 	HyperliquidSpotPairSchema,
@@ -1835,11 +1841,11 @@ const schemaChunk13 = [
 	KaspaNetworkSchema,
 	KaspaNetwork_TimestampSchema,
 	KaspaTransactionSchema,
-	KaspaVirtualChain_TimestampSchema,
-	LensAccountSchema,
 ] as const
 
 const schemaChunk14 = [
+	KaspaVirtualChain_TimestampSchema,
+	LensAccountSchema,
 	LensAccount_TimestampSchema,
 	LensAccountManagerSchema,
 	LensFeedSchema,
@@ -1859,6 +1865,8 @@ const schemaChunk14 = [
 	LightningNodeSchema,
 	LightningNode_TimestampSchema,
 	LiquidityPoolSchema,
+	LiquidityPool_Amm_EvmBlockSchema,
+	LiquidityPool_Amm_EvmBlock_InputAssetSchema,
 	LiquidityPool_BlockSchema,
 	LiquidityPool_TimestampSchema,
 	LitecoinMwebBlockSchema,
@@ -1886,13 +1894,13 @@ const schemaChunk14 = [
 	McpServer_TimestampSchema,
 	McpServerPackageSchema,
 	McpServerPackageVersionSchema,
+] as const
+
+const schemaChunk15 = [
 	McpToolSchema,
 	McpToolCallSchema,
 	McpToolCall_TimestampSchema,
 	MediaSchema,
-] as const
-
-const schemaChunk15 = [
 	MevBuilderSchema,
 	MevBuilder_TimestampSchema,
 	MevRelaySchema,
@@ -1939,13 +1947,13 @@ const schemaChunk15 = [
 	NetworkStackSchema,
 	NetworkUpgradeSchema,
 	NetworkUpgrade_TimestampSchema,
+] as const
+
+const schemaChunk16 = [
 	NftCollectionSchema,
 	NftTokenSchema,
 	NostrArticleSchema,
 	NostrArticleEventSchema,
-] as const
-
-const schemaChunk16 = [
 	NostrNetworkSchema,
 	NostrNoteSchema,
 	NostrProfileSchema,
@@ -1992,13 +2000,13 @@ const schemaChunk16 = [
 	QuilibriumShardSchema,
 	RadicleCollaborationEventSchema,
 	RadicleDelegateSchema,
+] as const
+
+const schemaChunk17 = [
 	RadicleIdentityDocumentSchema,
 	RadicleIdentityRevisionSchema,
 	RadicleIssueSchema,
 	RadiclePatchSchema,
-] as const
-
-const schemaChunk17 = [
 	RadicleRepositorySchema,
 	RadicleSignedRefSchema,
 	RadicleSignedRef_TimestampSchema,
@@ -2045,13 +2053,13 @@ const schemaChunk17 = [
 	SpecificationProposalSchema,
 	SpecificationProposalKindSchema,
 	SpecificationRealmSchema,
+] as const
+
+const schemaChunk18 = [
 	StarknetAccount_TimestampSchema,
 	StarknetBlockSchema,
 	StarknetClassSchema,
 	StarknetContractSchema,
-] as const
-
-const schemaChunk18 = [
 	StarknetEventSchema,
 	StarknetNetworkSchema,
 	StarknetNetwork_TimestampSchema,
@@ -2098,13 +2106,13 @@ const schemaChunk18 = [
 	SuiObjectVersionSchema,
 	SuiPackageSchema,
 	SuiPackageUpgradeSchema,
+] as const
+
+const schemaChunk19 = [
 	SuiPackageVersionSchema,
 	SuiProgrammableTransactionCommandSchema,
 	SuiRegulatedCoinState_TimestampSchema,
 	SuiTransactionSchema,
-] as const
-
-const schemaChunk19 = [
 	SuiTransaction_TimestampSchema,
 	SwapQuote_TimestampSchema,
 	SwapQuoteStepSchema,
@@ -2151,13 +2159,13 @@ const schemaChunk19 = [
 	TonContractGetMethod_TimestampSchema,
 	TonJettonSchema,
 	TonJetton_TimestampSchema,
+] as const
+
+const schemaChunk20 = [
 	TonJettonBalance_TimestampSchema,
 	TonJettonTransferSchema,
 	TonMessageSchema,
 	TonNetwork_TimestampSchema,
-] as const
-
-const schemaChunk20 = [
 	TonNftCollectionSchema,
 	TonNftCollection_TimestampSchema,
 	TonNftItemSchema,
@@ -2204,13 +2212,13 @@ const schemaChunk20 = [
 	UtxoTransaction_Mempool_TimestampSchema,
 	WalletConnectionMethodSchema,
 	WormholeVaaSchema,
+] as const
+
+const schemaChunk21 = [
 	XmtpConversationSchema,
 	XmtpMessageSchema,
 	XmtpNetworkSchema,
 	XmtpParticipantSchema,
-] as const
-
-const schemaChunk21 = [
 	XNetworkSchema,
 	XPostSchema,
 	XPost_TimestampSchema,

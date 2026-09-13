@@ -3,6 +3,7 @@ import {
 	createLiveQueryCollection,
 	eq,
 	inArray,
+	IR,
 	type CollectionStatus,
 	type Ref,
 	type WithVirtualProps,
@@ -735,11 +736,11 @@ const fieldResourceQueries = <
 					direction,
 				] of selection.orderBy)
 					built = built.orderBy(
-						({ row }) => accessor({ fieldRow: row }),
-						typeof direction === 'string' ?
-							direction
+						({ row }) => typeof accessor === 'function' ?
+							accessor({ fieldRow: row })
 						:
-							direction.direction
+							new IR.PropRef(['row', ...accessor]),
+						direction
 					)
 			else if (
 				selection.limit != null

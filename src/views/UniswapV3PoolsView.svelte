@@ -43,24 +43,26 @@
 >
 	{#snippet Item({ item: uniswapV3Pool })}
 		{@const uniswapV3PoolSelector = uniswapV3Pool[EntityMetaKey.Selector]}
-		{@const token0 = uniswapV3PoolSelector.$token0}
+		{@const factory = uniswapV3PoolSelector.$factory}
 		<EntityView
 			entityType={EntityType.UniswapV3Pool}
 			entitySelector={uniswapV3PoolSelector}
 			href={
 				'fee' in uniswapV3PoolSelector
+				&& '$token0' in uniswapV3PoolSelector
 				&& '$token1' in uniswapV3PoolSelector
-				&& '$token0' in uniswapV3PoolSelector ?
+				&& '$factory' in uniswapV3PoolSelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/uniswap-v3/pool/[token1Address=evmAddress]/[fee=nonNegativeInteger]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/uniswap-v3/pool/[token0Address=evmAddress]/[token1Address=evmAddress]/[fee=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in token0.$network ?
-									caip2StringFromValue(token0.$network.caip2)
+								'caip2' in factory.$network ?
+									caip2StringFromValue(factory.$network.caip2)
 								:
-									token0.$network.slug
+									factory.$network.slug
 							),
-							address: token0.address,
+							address: factory.address,
+							token0Address: uniswapV3PoolSelector.$token0.address,
 							token1Address: uniswapV3PoolSelector.$token1.address,
 							fee: String(uniswapV3PoolSelector.fee),
 						}
@@ -85,7 +87,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{uniswapV3Pool.fee ?? ''}
+				{uniswapV3Pool.fee}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

@@ -29,7 +29,7 @@
 		...EntityViewProps
 	}: EntitySelectionViewProps<EntityType.UniswapV3Pool> = $props()
 
-	const token0 = $derived(selection.entitySelector.$token0)
+	const factory = $derived(selection.entitySelector.$factory)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
 			Source.Voltaire_JsonRpc,
@@ -66,18 +66,20 @@
 		href === undefined ?
 			(
 				'fee' in selection.entitySelector
+				&& '$token0' in selection.entitySelector
 				&& '$token1' in selection.entitySelector
-				&& '$token0' in selection.entitySelector ?
+				&& '$factory' in selection.entitySelector ?
 					resolve(
-						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/uniswap-v3/pool/[token1Address=evmAddress]/[fee=nonNegativeInteger]',
+						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/uniswap-v3/pool/[token0Address=evmAddress]/[token1Address=evmAddress]/[fee=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in token0.$network ?
-									caip2StringFromValue(token0.$network.caip2)
+								'caip2' in factory.$network ?
+									caip2StringFromValue(factory.$network.caip2)
 								:
-									token0.$network.slug
+									factory.$network.slug
 							),
-							address: token0.address,
+							address: factory.address,
+							token0Address: selection.entitySelector.$token0.address,
 							token1Address: selection.entitySelector.$token1.address,
 							fee: String(selection.entitySelector.fee),
 						}
@@ -114,12 +116,9 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={uniswapV3Pool}>
 			{#snippet children(entity)}
-				{@const fee = entity.fee}
-				{#if fee != null}
-					<NumberValue
-						value={fee}
-					/>
-				{/if}
+				<NumberValue
+					value={entity.fee}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -174,131 +173,117 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={selection.$poolContract}
-			>
-				{#snippet children(evmContract)}
-					{#if evmContract != null}
-						{@const evmContractInitial = untrack(() => evmContract)}
-						<div>
-							<dt>Pool contract</dt>
-							<dd>
-								<EvmContractView
-									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
-									prefetched={evmContract ?? evmContractInitial}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Pool contract</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$poolContract}
+					>
+						{#snippet children(evmContract)}
+							{@const evmContractInitial = untrack(() => evmContract)}
+							<EvmContractView
+								selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+								prefetched={evmContract ?? evmContractInitial}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={selection.$factory}
-			>
-				{#snippet children(evmContract)}
-					{#if evmContract != null}
-						{@const evmContractInitial = untrack(() => evmContract)}
-						<div>
-							<dt>Factory</dt>
-							<dd>
-								<EvmContractView
-									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
-									prefetched={evmContract ?? evmContractInitial}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Factory</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$factory}
+					>
+						{#snippet children(evmContract)}
+							{@const evmContractInitial = untrack(() => evmContract)}
+							<EvmContractView
+								selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+								prefetched={evmContract ?? evmContractInitial}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$token0}
-			>
-				{#snippet children(evmContract)}
-					{#if evmContract != null}
-						{@const evmContractInitial = untrack(() => evmContract)}
-						<div>
-							<dt>Token 0</dt>
-							<dd>
-								<EvmContractView
-									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
-									prefetched={evmContract ?? evmContractInitial}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Token 0</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$token0}
+					>
+						{#snippet children(evmContract)}
+							{@const evmContractInitial = untrack(() => evmContract)}
+							<EvmContractView
+								selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+								prefetched={evmContract ?? evmContractInitial}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={selection.$token1}
-			>
-				{#snippet children(evmContract)}
-					{#if evmContract != null}
-						{@const evmContractInitial = untrack(() => evmContract)}
-						<div>
-							<dt>Token 1</dt>
-							<dd>
-								<EvmContractView
-									selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
-									prefetched={evmContract ?? evmContractInitial}
-									layout={EntityLayout.Value}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Token 1</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection.$token1}
+					>
+						{#snippet children(evmContract)}
+							{@const evmContractInitial = untrack(() => evmContract)}
+							<EvmContractView
+								selection={select(EntityType.EvmContract, (evmContract ?? evmContractInitial)[EntityMetaKey.Selector])}
+								prefetched={evmContract ?? evmContractInitial}
+								layout={EntityLayout.Value}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={uniswapV3Pool}
-			>
-				{#snippet children(entity)}
-					{@const fee = entity.fee}
-					{#if fee != null}
-						<div>
-							<dt>Fee</dt>
-							<dd>
-								<NumberValue
-									value={fee}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Fee</dt>
+				<dd>
+					<ResourceBoundary
+						resource={uniswapV3Pool}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.fee}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							tickSpacing: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const tickSpacing = entity.tickSpacing}
-					{#if tickSpacing != null}
-						<div>
-							<dt>Tick spacing</dt>
-							<dd>
-								<NumberValue
-									value={tickSpacing}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Tick spacing</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									tickSpacing: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							<NumberValue
+								value={entity.tickSpacing}
+							/>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 

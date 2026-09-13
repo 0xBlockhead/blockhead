@@ -99,7 +99,7 @@ export const getMessages = async ({
 		`/v2/messages/${String(sourceDomain)}`,
 		firstHttpUrlForBinding(binding)
 	)
-	if ('transactionHash' in subject)
+	if (subject.transactionHash != null)
 		url.searchParams.set('transactionHash', subject.transactionHash)
 	else
 		url.searchParams.set('nonce', subject.nonce)
@@ -117,7 +117,7 @@ export const getMessages = async ({
 		await response.json()
 	)
 	if (
-		'transactionHash' in subject
+		subject.transactionHash != null
 		&& result.sourceTxHash !== subject.transactionHash
 	)
 		throw new Error('CircleCctpIris_Rest: response transaction does not match request')
@@ -125,7 +125,21 @@ export const getMessages = async ({
 		throw new Error('CircleCctpIris_Rest: response exceeds the requested message bound')
 
 	const messageIdentities = new Set<string>()
+	const eventNonces = new Set<string>()
 	for (const message of result.messages) {
+		if (
+			subject.nonce != null
+			&& (message.eventNonce != null || message.decodedMessage?.nonce != null)
+			&& message.eventNonce !== subject.nonce
+			&& message.decodedMessage?.nonce !== subject.nonce
+		)
+			throw new Error('CircleCctpIris_Rest: nonce does not match request')
+		if (message.eventNonce != null) {
+			if (eventNonces.has(message.eventNonce))
+				throw new Error('CircleCctpIris_Rest: duplicate source-domain nonce identity')
+			eventNonces.add(message.eventNonce)
+		}
+
 		if (message.decodedMessage == null)
 			continue
 
@@ -140,13 +154,6 @@ export const getMessages = async ({
 			&& Number(message.decodedMessage.destinationDomain) !== expectedDestinationDomain
 		)
 			throw new Error('CircleCctpIris_Rest: decoded destination domain does not match request')
-		if (
-			'nonce' in subject
-			&& message.decodedMessage.nonce != null
-			&& message.decodedMessage.nonce !== subject.nonce
-			&& message.eventNonce !== subject.nonce
-		)
-			throw new Error('CircleCctpIris_Rest: nonce does not match request')
 		if (
 			message.decodedMessage.sourceDomain == null
 			|| message.decodedMessage.nonce == null

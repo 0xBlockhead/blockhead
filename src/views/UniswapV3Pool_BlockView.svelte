@@ -30,14 +30,10 @@
 			Source.Voltaire_JsonRpc,
 		],
 	}))
-	const uniswapV3PoolBlock = $derived(viewSelection({
-		fields: {
-			tick: true,
-		},
-	}))
 
 
 	// Components
+	import UniswapPoolInterpretation from '$/views/UniswapPoolInterpretation.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import UniswapV3PoolView from '$/views/UniswapV3PoolView.svelte'
@@ -79,16 +75,9 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={uniswapV3PoolBlock}>
-			{#snippet children(entity)}
-				{@const tick = entity.tick}
-				{#if tick != null}
-					<NumberValue
-						value={tick}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<NumberValue
+			value={selection.entitySelector.blockNumber}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -172,7 +161,13 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={uniswapV3PoolBlock}
+				resource={
+					viewSelection({
+						fields: {
+							tick: true,
+						},
+					})
+				}
 			>
 				{#snippet children(entity)}
 					{@const tick = entity.tick}
@@ -407,5 +402,18 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<section data-column="gap-2">
+			<ResourceBoundary resource={viewSelection({ fields: { sqrtPriceX96: true, liquidity: true, feeProtocol: true, observationCardinality: true } })}>
+				{#snippet children(entity)}
+					<UniswapPoolInterpretation
+						sqrtPriceX96={entity.sqrtPriceX96}
+						liquidity={entity.liquidity}
+						feeProtocol={entity.feeProtocol}
+						observationCardinality={entity.observationCardinality}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		</section>
 	{/snippet}
 </EntityView>

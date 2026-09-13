@@ -8,6 +8,7 @@ import {
 } from '$/constants/Wallet.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadConnectionStatus.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type { WalletEvmTransaction } from './eip1193Transaction.ts'
 import type { Xumm } from 'xumm'
 
 
@@ -309,6 +310,12 @@ export type WalletAdapter = {
 	id: string
 	start(updateCandidates: (candidates: WalletCandidate[]) => void): () => void
 	connect(walletId: string): Promise<WalletConnection | undefined>
+	sendEvmTransaction?(
+		walletId: string,
+		transaction: WalletEvmTransaction,
+		assertAuthorityCurrent: () => void,
+		connectionKey?: string
+	): Promise<string>
 	signMessage?(
 		walletId: string,
 		accountAddress: string,

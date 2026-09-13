@@ -242,6 +242,7 @@ export enum Source {
 	Tally = 'Tally',
 	TezosDappetizer_Postgres = 'TezosDappetizer_Postgres',
 	TheGraph_Graphql = 'TheGraph_Graphql',
+	TheGraph_Mcp = 'TheGraph_Mcp',
 	ThreeXpl_Rest = 'ThreeXpl_Rest',
 	TonApi_Rest = 'TonApi_Rest',
 	TonCenter = 'TonCenter',

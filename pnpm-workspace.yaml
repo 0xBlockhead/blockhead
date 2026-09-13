@@ -19,8 +19,10 @@ supportedArchitectures:
 
 allowBuilds:
   '@journeyapps/wa-sqlite': true
+  bufferutil: false
   es5-ext: false
   esbuild: true
+  utf-8-validate: false
 
 patchedDependencies:
   '@tanstack/db-sqlite-persistence-core@0.2.19': patches/@tanstack__db-sqlite-persistence-core@0.2.19.patch

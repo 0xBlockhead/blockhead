@@ -27,6 +27,7 @@
 	const toolCall = $derived(selection.entitySelector.$toolCall)
 	const viewSelection = $derived(selection({
 		sources: selection.sources ?? [
+			Source.Local_Internal,
 			Source.McpDeclared_Protocol,
 		],
 	}))
@@ -194,5 +195,17 @@
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
+
+		<section data-column="gap-2">
+			<ResourceBoundary resource={selection({ fields: { payload: true } })}>
+				{#snippet children(entity)}
+					{#if entity.payload !== undefined}
+						<h3>Provider response</h3>
+
+						<pre>{JSON.stringify(entity.payload, null, 2)}</pre>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</section>
 	{/snippet}
 </EntityView>

@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-09-13T07:12:17.828Z",
+  "subgraphId": "FQ6JYszEKApsBpAmiHesRsd9Ygc6mzmpNRANeVQFYoVX",
+  "query": "query ProtocolFinancials {\n  _meta {\n    deployment\n    hasIndexingErrors\n    block { number hash timestamp }\n  }\n  dexAmmProtocols(first: 10) {\n    id\n    name\n    schemaVersion\n    subgraphVersion\n    methodologyVersion\n    network\n    totalValueLockedUSD\n    cumulativeVolumeUSD\n    cumulativeSupplySideRevenueUSD\n    cumulativeProtocolSideRevenueUSD\n    cumulativeTotalRevenueUSD\n    totalPoolCount\n  }\n}\n",
+  "response": {
+    "startedAt": 1789283537030,
+    "completedAt": 1789283537828,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"data\": {\n    \"_meta\": {\n      \"block\": {\n        \"hash\": \"0x3494bd92c2c70687d9479e6bd19f3559c9e1476e4e3c1a826f713f0dccec0667\",\n        \"number\": 504659092,\n        \"timestamp\": 1789283526\n      },\n      \"deployment\": \"QmXMJ2Hnhhoz6bGFNtTBjnf7kAk9CNCQG7r4R5b7fyVjD7\",\n      \"hasIndexingErrors\": false\n    },\n    \"dexAmmProtocols\": [\n      {\n        \"cumulativeProtocolSideRevenueUSD\": \"0\",\n        \"cumulativeSupplySideRevenueUSD\": \"233544214.3956716316057441808254689\",\n        \"cumulativeTotalRevenueUSD\": \"233544214.3956716316057441808254689\",\n        \"cumulativeVolumeUSD\": \"264156613847.4321949114146250317592\",\n        \"id\": \"0x1f98431c8ad98523631ae4a59f267346ea31f984\",\n        \"methodologyVersion\": \"1.0.0\",\n        \"name\": \"Uniswap V3\",\n        \"network\": \"ARBITRUM_ONE\",\n        \"schemaVersion\": \"4.0.1\",\n        \"subgraphVersion\": \"1.5.3\",\n        \"totalPoolCount\": 26841,\n        \"totalValueLockedUSD\": \"81562701.3341817671456280610519393\"\n      }\n    ]\n  }\n}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}

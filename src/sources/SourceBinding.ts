@@ -362,7 +362,7 @@ type SourceBindingCompatibility =
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.JsonRpc2,
-		ApiFamily.AcpProtocol | ApiFamily.McpProtocol,
+		ApiFamily.AcpProtocol,
 		SourceEndpointKind.LocalProcess
 	>
 	| SourceBindingCompatibilityRow<
@@ -388,6 +388,11 @@ type SourceBindingCompatibility =
 		WireProtocol.JsonRpc2,
 		ApiFamily.JsonRpcApi | ApiFamily.SolanaJsonRpc,
 		SourceEndpointKind.HttpUrl | SourceEndpointKind.WebSocketUrl
+	>
+	| SourceBindingCompatibilityRow<
+		WireProtocol.JsonRpc2,
+		ApiFamily.McpProtocol,
+		SourceEndpointKind.HttpUrl | SourceEndpointKind.LocalProcess
 	>
 	| SourceBindingCompatibilityRow<
 		WireProtocol.LocalFile,

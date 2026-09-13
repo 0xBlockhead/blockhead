@@ -29,7 +29,6 @@
 		selection({
 			fields: {
 				blockNumber: true,
-				tick: true,
 				$pool: true,
 			},
 		})
@@ -62,7 +61,7 @@
 			{/snippet}
 
 			{#snippet Value()}
-				{uniswapV3PoolBlock.tick ?? ''}
+				{uniswapV3PoolBlockSelector.blockNumber}
 			{/snippet}
 
 			{#snippet HeadingAfter()}

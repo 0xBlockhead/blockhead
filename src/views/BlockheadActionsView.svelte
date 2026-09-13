@@ -29,10 +29,8 @@
 	bind:open
 	resource={
 		selection({
-			...{
-				fields: {
-					contentRevisionHash: true,
-				},
+			fields: {
+				contentRevisionHash: true,
 			},
 		})
 	}
