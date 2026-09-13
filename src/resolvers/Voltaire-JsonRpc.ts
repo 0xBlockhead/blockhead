@@ -1648,32 +1648,12 @@ export default {
 									newestBlock: blockNumber,
 									rewardPercentiles: [50],
 								})
-								const headBlockNumber = await jsonRpcTransport.getBlockNumber()
-								const isHeadBlock = (
-									headBlockNumber === blockNumber
-								)
-								let legacyGasPrice: bigint | undefined
-								let maxPriorityFeePerGas: bigint | undefined
-								if (isHeadBlock) {
-									legacyGasPrice = nonNegativeBigIntFromHex(
-										await jsonRpcTransport.getGasPrice()
-									)
-									try {
-										maxPriorityFeePerGas = nonNegativeBigIntFromHex(
-											await jsonRpcTransport.getMaxPriorityFeePerGas()
-										)
-									} catch {
-										maxPriorityFeePerGas = undefined
-									}
-								}
 								return {
 									[EntityMetaKey.Selector]: {
 										$network,
 										blockNumber,
 									},
 									baseFeePerGas: baseFeeAtFromFeeHistory(feeHistory, 0),
-									legacyGasPrice,
-									maxPriorityFeePerGas,
 									gasUsedRatio: gasUsedRatioAtFromFeeHistory(feeHistory, 0),
 									priorityFeeRewardAt50thPercentile: priorityRewardAt50thFromFeeHistoryAt(feeHistory, 0),
 									baseFeePerBlobGas: baseFeePerBlobGasAtFromFeeHistory(feeHistory, 0),

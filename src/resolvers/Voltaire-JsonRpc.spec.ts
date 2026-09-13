@@ -28,6 +28,9 @@ const getBalance = vi.hoisted(() => vi.fn())
 const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getBlockByHash = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
+const getFeeHistory = vi.hoisted(() => vi.fn())
+const getGasPrice = vi.hoisted(() => vi.fn())
+const getMaxPriorityFeePerGas = vi.hoisted(() => vi.fn())
 const getRecentBlockWires = vi.hoisted(() => vi.fn())
 const iterateBlockStreamEvents = vi.hoisted(() => vi.fn())
 const getStorageAt = vi.hoisted(() => vi.fn())
@@ -47,6 +50,9 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				getBlockByNumber,
 				getBlockByHash,
 				getBlockNumber,
+				getFeeHistory,
+				getGasPrice,
+				getMaxPriorityFeePerGas,
 				getRecentBlockWires,
 				getStorageAt,
 				resolveEnsForward,
@@ -906,6 +912,43 @@ describe('Voltaire endpoint observation', () => {
 			sources: [],
 			publicEnv: {},
 		})).rejects.toThrow('all JSON-RPC endpoints failed for Network.$$endpointObservations')
+	})
+})
+
+describe('Voltaire fee-history block identity', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('does not attach head-only gas hints to an immutable fee-history block', async () => {
+		getFeeHistory.mockResolvedValue({
+			oldestBlock: '0x10',
+			baseFeePerGas: ['0x2a', '0x2b'],
+			gasUsedRatio: [0.5],
+			reward: [['0x3']],
+		})
+		getGasPrice.mockResolvedValue('0x99')
+		getMaxPriorityFeePerGas.mockResolvedValue('0x7')
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmNetwork_GasFee_Block
+		))
+		if (resolver == null || !('EvmNetworkBlockNumber' in resolver.resolve))
+			throw new Error('Voltaire fee-history block resolver is not registered')
+
+		const block = await resolver.resolve.EvmNetworkBlockNumber.resolve({
+			$network: evmNetworkSelector,
+			blockNumber: 16n,
+		}, createResolverContext())
+
+		expect(block).toMatchObject({
+			baseFeePerGas: 42n,
+			gasUsedRatio: 0.5,
+			priorityFeeRewardAt50thPercentile: 3n,
+		})
+		expect(block).not.toHaveProperty('legacyGasPrice')
+		expect(block).not.toHaveProperty('maxPriorityFeePerGas')
+		expect(getGasPrice).not.toHaveBeenCalled()
+		expect(getMaxPriorityFeePerGas).not.toHaveBeenCalled()
 	})
 })
 
