@@ -78,6 +78,12 @@ export type NetworkUpgradeRow = {
 	readonly activationEpoch?: number
 }
 
+export type EvmHeadUpgradeCoordinate = {
+	readonly blockNumber: bigint
+	readonly timestampMs: number
+	readonly epoch?: number
+}
+
 
 // Constants
 
@@ -396,6 +402,43 @@ export const networkUpgrades = [
 	...standaloneNetworkUpgrades,
 	...networkUpgradeMarketingUmbrellas,
 ]
+
+const networkUpgradeIsProvenActiveAtEvmHead = (
+	upgrade: NetworkUpgradeRow,
+	head: EvmHeadUpgradeCoordinate
+) => {
+	const hasActivationCoordinate = (
+		upgrade.activationBlock != null
+		|| upgrade.activationTimestampMs != null
+		|| upgrade.activationEpoch != null
+	)
+	if (!hasActivationCoordinate) return false
+	if (
+		upgrade.activationBlock != null
+		&& head.blockNumber < BigInt(upgrade.activationBlock)
+	) return false
+	if (
+		upgrade.activationTimestampMs != null
+		&& head.timestampMs < upgrade.activationTimestampMs
+	) return false
+	if (
+		upgrade.activationEpoch != null
+		&& (head.epoch == null || head.epoch < upgrade.activationEpoch)
+	) return false
+	return true
+}
+
+/**
+ * Selects the last upgrade in canonical schedule order whose complete declared activation coordinate
+ * is proven by an EVM head. Epoch-bearing schedules require an explicit epoch; block time never
+ * stands in for it.
+ */
+export const activeNetworkUpgradeAtEvmHead = (
+	orderedUpgrades: readonly NetworkUpgradeRow[],
+	head: EvmHeadUpgradeCoordinate
+) => orderedUpgrades.filter((upgrade) => (
+		networkUpgradeIsProvenActiveAtEvmHead(upgrade, head)
+	)).at(-1)
 
 const ethereumMainnetNetworkUpgradeExceptionalSlugAliases = [
 	{

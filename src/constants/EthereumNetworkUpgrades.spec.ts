@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+	activeNetworkUpgradeAtEvmHead,
 	ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug,
 	ethereumNetworkMarketingUmbrellas,
 	networkConsensusUpgradeByChainIdAndRouteSegment,
@@ -15,6 +16,7 @@ import {
 	networkUpgradeByChainIdAndUpgradeId,
 	networkUpgrades,
 	networkUpgradesByChainId,
+	type NetworkUpgradeRow,
 } from '$/constants/EthereumNetworkUpgrades.ts'
 
 
@@ -113,5 +115,82 @@ describe('Ethereum network upgrade indexes', () => {
 						`${chainId}:${alias.segmentSlug}`
 					]?.upgradeId
 				).toBe(alias.umbrellaUpgradeId)
+	})
+})
+
+describe('active network upgrade at an EVM head', () => {
+	const at = (
+		chainId: number,
+		blockNumber: bigint,
+		timestampMs: number,
+		epoch?: number
+	) => activeNetworkUpgradeAtEvmHead(
+		networkUpgradesByChainId[chainId] ?? [],
+		{ blockNumber, timestampMs, ...(epoch == null ? {} : { epoch }) }
+	)
+
+	it('crosses block and timestamp activation boundaries without selecting a scheduled future row', () => {
+		expect(at(1, 0n, 0)).toBeUndefined()
+		expect(at(1, 1n, 0)?.upgradeId).toBe('Frontier')
+
+		const parisTimestampMs = 1_663_224_162_000
+		expect(at(1, 15_537_394n, parisTimestampMs - 1)?.upgradeId).toBe('Gray Glacier')
+		expect(at(1, 15_537_394n, parisTimestampMs)?.upgradeId).toBe('Merge')
+
+		const osakaTimestampMs = 1_764_798_551_000
+		expect(at(1, 30_000_000n, osakaTimestampMs - 1)?.upgradeId).toBe('Pectra')
+		expect(at(1, 30_000_000n, osakaTimestampMs)?.upgradeId).toBe('Fusaka')
+		expect(at(10, 150_000_000n, 1_764_691_201_000)?.upgradeId).toBe('Jovian')
+		expect(at(8_453, 40_000_000n, 1_764_691_201_000)?.upgradeId).toBe('Jovian')
+	})
+
+	it('requires every declared coordinate and never treats block time as an epoch', () => {
+		const scheduled = [
+			{
+				chainId: 1,
+				upgradeId: 'Prior',
+				name: 'Prior',
+				slug: 'prior',
+				executionUpgradeId: 'Prior',
+				activationTimestampMs: 1_000,
+			},
+			{
+				chainId: 1,
+				upgradeId: 'Scheduled',
+				name: 'Scheduled',
+				slug: 'scheduled',
+				executionUpgradeId: 'Scheduled',
+				activationTimestampMs: 2_000,
+				activationEpoch: 5,
+			},
+		] satisfies readonly NetworkUpgradeRow[]
+
+		expect(activeNetworkUpgradeAtEvmHead(
+			scheduled,
+			{ blockNumber: 10n, timestampMs: 2_000 }
+		)?.upgradeId).toBe('Prior')
+		expect(activeNetworkUpgradeAtEvmHead(
+			scheduled,
+			{ blockNumber: 10n, timestampMs: 2_000, epoch: 4 }
+		)?.upgradeId).toBe('Prior')
+		expect(activeNetworkUpgradeAtEvmHead(
+			scheduled,
+			{ blockNumber: 10n, timestampMs: 2_000, epoch: 5 }
+		)?.upgradeId).toBe('Scheduled')
+	})
+
+	it('keeps unscheduled proposals in the catalog but excludes them from active state', () => {
+		const unscheduled = [{
+			chainId: 1,
+			upgradeId: 'Proposal',
+			name: 'Proposal',
+			slug: 'proposal',
+			executionUpgradeId: 'Proposal',
+		}] satisfies readonly NetworkUpgradeRow[]
+
+		expect(activeNetworkUpgradeAtEvmHead(
+			unscheduled,
+			{ blockNumber: 99_999_999n, timestampMs: Number.MAX_SAFE_INTEGER }
+		)).toBeUndefined()
 	})
 })

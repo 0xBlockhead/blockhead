@@ -28405,6 +28405,14 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					valueType: "number",
 				},
+				"$activeNetworkUpgrade": {
+					label: "Active network upgrade",
+					description: "The latest network upgrade proven active at this block's execution height and time.",
+					type: EntityFieldType.EntityReference,
+					cardinality: EntityFieldCardinality.ZeroOrOne,
+					entityType: EntityType.EthereumNetworkUpgrade,
+					defaultSources: [Source.Voltaire_JsonRpc],
+				},
 				"$miner": {
 					label: "Miner / validator",
 					type: EntityFieldType.EntityReference,
