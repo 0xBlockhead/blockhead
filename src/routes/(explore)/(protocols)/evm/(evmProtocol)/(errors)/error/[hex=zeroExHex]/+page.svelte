@@ -17,6 +17,15 @@
 		params,
 	}: PageProps = $props()
 
+	const pageSelection = $derived(select(EntityType.EvmError, {
+		hex: params.hex,
+	}, {
+		sources: [
+			Source.Openchain_Rest,
+			Source.FourByteDirectory_Rest,
+		],
+	}))
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,21 +34,12 @@
 
 
 <svelte:head>
-	<title>EVM error • EVM error • Blockhead</title>
+	<title>{pageSelection.entitySelector.hex || 'EVM error'} • EVM error • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmErrorView
-		selection={
-			select(EntityType.EvmError, {
-				hex: params.hex,
-			}, {
-				sources: [
-					Source.Openchain_Rest,
-					Source.FourByteDirectory_Rest,
-				],
-			})
-		}
+		selection={pageSelection}
 	/>
 </Page>

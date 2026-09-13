@@ -52,6 +52,10 @@
 				)
 			}
 		>
+			{#snippet Title()}
+				{evmErrorSelector.hex || 'EVM error'}
+			{/snippet}
+
 			{#snippet Value()}
 				{evmErrorSelector.hex}
 			{/snippet}

@@ -3314,7 +3314,7 @@ export const e2eDomQualityProbeOverlays: Readonly<Record<string, E2eDomQualityPr
 		required: ['0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'],
 		requiredDt: [
 			'Topic',
-			'Signatures',
+			'Candidate signatures',
 		],
 		minDt: 2,
 		minLinks: 1,

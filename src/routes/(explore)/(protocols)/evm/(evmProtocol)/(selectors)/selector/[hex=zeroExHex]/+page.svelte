@@ -17,6 +17,15 @@
 		params,
 	}: PageProps = $props()
 
+	const pageSelection = $derived(select(EntityType.EvmSelector, {
+		hex: params.hex,
+	}, {
+		sources: [
+			Source.Openchain_Rest,
+			Source.FourByteDirectory_Rest,
+		],
+	}))
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,21 +34,12 @@
 
 
 <svelte:head>
-	<title>EVM selector • EVM selector • Blockhead</title>
+	<title>{pageSelection.entitySelector.hex || 'EVM selector'} • EVM selector • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmSelectorView
-		selection={
-			select(EntityType.EvmSelector, {
-				hex: params.hex,
-			}, {
-				sources: [
-					Source.Openchain_Rest,
-					Source.FourByteDirectory_Rest,
-				],
-			})
-		}
+		selection={pageSelection}
 	/>
 </Page>

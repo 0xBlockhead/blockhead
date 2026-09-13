@@ -28,7 +28,7 @@
 <EntityView
 	entityType={EntityType.EvmSelector}
 	entitySelector={selection.entitySelector}
-	title={title ?? 'EVM selector'}
+	title={title ?? (selection.entitySelector.hex || 'EVM selector')}
 	href={
 		href === undefined ?
 			resolve(
@@ -45,28 +45,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={
-				selection({
-					sources: selection.sources ?? [
-						Source.Openchain_Rest,
-						Source.FourByteDirectory_Rest,
-					],
-					fields: {
-						signatures: true,
-					},
-				})
-			}
-			placeholderText="Loading decoded function selector..."
-		>
-			{#snippet Pending()}
-				{selection.entitySelector.hex}
-			{/snippet}
-
-			{#snippet children(entity)}
-				{entity.signatures.values[0] ?? selection.entitySelector.hex}
-			{/snippet}
-		</ResourceBoundary>
+		<span data-text="font-monospace">{selection.entitySelector.hex}</span>
 	{/snippet}
 
 	{#snippet Value()}
@@ -95,12 +74,12 @@
 				>
 					{#snippet children(signatures)}
 						<div>
-							<dt>Signatures</dt>
+							<dt>Candidate signatures</dt>
 							<dd>
 								{#if signatures.values.length}
 									<ul>
-										{#each signatures.values as signature}
-											<li><code>{signature}</code></li>
+										{#each signatures.values as candidateSignature}
+											<li><code>{candidateSignature}</code></li>
 										{/each}
 									</ul>
 								{:else}

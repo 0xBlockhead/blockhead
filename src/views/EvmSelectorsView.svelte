@@ -52,6 +52,10 @@
 				)
 			}
 		>
+			{#snippet Title()}
+				{evmSelectorSelector.hex || 'EVM selector'}
+			{/snippet}
+
 			{#snippet Value()}
 				{evmSelectorSelector.hex}
 			{/snippet}

@@ -51,6 +51,10 @@
 				)
 			}
 		>
+			{#snippet Title()}
+				{evmTopicSelector.hex || 'EVM topic'}
+			{/snippet}
+
 			{#snippet Value()}
 				{evmTopicSelector.hex}
 			{/snippet}

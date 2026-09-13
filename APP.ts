@@ -29092,7 +29092,7 @@ export const schema = {
 					valueType: "zeroExHex",
 				},
 				"signatures": {
-					label: "Signatures",
+					label: "Candidate signatures",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "string",
@@ -29105,26 +29105,9 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
-							fields: ["signatures"],
 						},
 						summary: {
-							Title: {
-								raw: dedent `
-																									<ResourceBoundary
-																										resource={${rawSnippetReference.resolvedEntity.source}}
-																										placeholderText="Loading decoded error selector..."
-																									>
-																										{#snippet Pending()}
-																											{selection.entitySelector.hex}
-																										{/snippet}
-
-																										{#snippet children(entity)}
-																											{entity.signatures.values[0] ?? selection.entitySelector.hex}
-																										{/snippet}
-																									</ResourceBoundary>
-																								`.raw,
-								references: ["resolvedEntity"],
-							},
+							title: [{ field: "hex", format: "monospace" }],
 							value: [{ field: "hex", format: "monospace" }],
 						},
 						closed: [
@@ -30712,7 +30695,7 @@ export const schema = {
 					valueType: "zeroExHex",
 				},
 				"signatures": {
-					label: "Signatures",
+					label: "Candidate signatures",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "string",
@@ -30725,26 +30708,9 @@ export const schema = {
 					singular: {
 						query: {
 							sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
-							fields: ["signatures"],
 						},
 						summary: {
-							Title: {
-								raw: dedent `
-																									<ResourceBoundary
-																										resource={${rawSnippetReference.resolvedEntity.source}}
-																										placeholderText="Loading decoded function selector..."
-																									>
-																										{#snippet Pending()}
-																											{selection.entitySelector.hex}
-																										{/snippet}
-
-																										{#snippet children(entity)}
-																											{entity.signatures.values[0] ?? selection.entitySelector.hex}
-																										{/snippet}
-																									</ResourceBoundary>
-																								`.raw,
-								references: ["resolvedEntity"],
-							},
+							title: [{ field: "hex", format: "monospace" }],
 							value: [{ field: "hex", format: "monospace" }],
 						},
 						closed: [
@@ -31184,7 +31150,7 @@ export const schema = {
 					valueType: "EvmTopicHash",
 				},
 				"signatures": {
-					label: "Signatures",
+					label: "Candidate signatures",
 					type: EntityFieldType.Primitive,
 					cardinality: EntityFieldCardinality.Many,
 					valueType: "string",
@@ -31197,26 +31163,9 @@ export const schema = {
 					singular: {
 						query: {
 								sources: [Source.Openchain_Rest, Source.FourByteDirectory_Rest],
-							fields: ["signatures"],
 						},
 						summary: {
-							Title: {
-								raw: dedent `
-																									<ResourceBoundary
-																										resource={${rawSnippetReference.resolvedEntity.source}}
-																										placeholderText="Loading log topic..."
-																									>
-																										{#snippet Pending()}
-																											{selection.entitySelector.hex}
-																										{/snippet}
-
-																										{#snippet children(entity)}
-																											{entity.signatures.values[0] ?? selection.entitySelector.hex}
-																										{/snippet}
-																									</ResourceBoundary>
-																								`.raw,
-								references: ["resolvedEntity"],
-							},
+							title: [{ field: "hex", format: "monospace" }],
 							value: [{ field: "hex", format: "monospace" }],
 						},
 						closed: [

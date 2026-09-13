@@ -17,6 +17,15 @@
 		params,
 	}: PageProps = $props()
 
+	const pageSelection = $derived(select(EntityType.EvmTopic, {
+		hex: params.hex,
+	}, {
+		sources: [
+			Source.Openchain_Rest,
+			Source.FourByteDirectory_Rest,
+		],
+	}))
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -25,21 +34,12 @@
 
 
 <svelte:head>
-	<title>EVM topic • EVM topic • Blockhead</title>
+	<title>{pageSelection.entitySelector.hex || 'EVM topic'} • EVM topic • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<EvmTopicView
-		selection={
-			select(EntityType.EvmTopic, {
-				hex: params.hex,
-			}, {
-				sources: [
-					Source.Openchain_Rest,
-					Source.FourByteDirectory_Rest,
-				],
-			})
-		}
+		selection={pageSelection}
 	/>
 </Page>
