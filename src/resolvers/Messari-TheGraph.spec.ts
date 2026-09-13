@@ -9,6 +9,9 @@ const { default: module } = await import('$/resolvers/Messari-TheGraph.ts')
 const { messariGraphqlProfiles } = await import('$/sources/TheGraph/Messari/direct.ts')
 const [protocolResolver, observationResolver] = module.resolvers
 const blockResolver = module.resolvers[5]
+const protocolContext = {
+	pagination: { limit: 10, offset: 0 },
+} as Parameters<typeof protocolResolver.resolve.NetworkProtocolKey.resolve>[1]
 const cases = [
 	['uniswap-v3-arbitrum', 'live-uniswap-arbitrum-introspection.json.query.json'],
 	['sushiswap-v3-arbitrum', 'live-sushiswap-arbitrum-introspection.json.query.json'],
@@ -33,9 +36,18 @@ for (const [deployment, file] of cases) {
 	const reply = (body = payload) => corsFetch.mockImplementation(async () => new Response(JSON.stringify(body), { status: 200 }))
 
 	it(`${deployment}: native latest link reloads exact captured values through actual Graph transport`, async () => {
-		reply()
-		const latest = await protocolResolver.resolve.NetworkProtocolKey.resolve($protocol)
+		const latestPayload = structuredClone(payload)
+		latestPayload.data.liquidityPools = [
+			{ id: '0x' + 'ab'.repeat(20) },
+			{ id: '0x' + 'cd'.repeat(20) },
+		]
+		reply(latestPayload)
+		const latest = await protocolResolver.resolve.NetworkProtocolKey.resolve($protocol, protocolContext)
 		expect(protocolResolver.projections.name(latest)).toBe(payload.data.dexAmmProtocols[0].name)
+		expect(protocolResolver.projections.$$liquidityPools(latest).map(reference => reference[EntityMetaKey.Selector])).toEqual([
+			{ $network, id: '0x' + 'ab'.repeat(20) },
+			{ $network, id: '0x' + 'cd'.repeat(20) },
+		])
 		const [reference] = protocolResolver.projections.$$ammBlocks(latest)
 		expect(reference[EntityMetaKey.Selector]).toEqual(selector)
 		const result = await observationResolver.resolve.ProtocolBlockRevision.resolve(reference[EntityMetaKey.Selector])
@@ -117,7 +129,7 @@ for (const [deployment, file] of cases) {
 		const unknown = structuredClone(payload)
 		unknown.data._meta.block.hash = null
 		reply(unknown)
-		const latest = await protocolResolver.resolve.NetworkProtocolKey.resolve($protocol)
+		const latest = await protocolResolver.resolve.NetworkProtocolKey.resolve($protocol, protocolContext)
 		expect(() => protocolResolver.projections.$$ammBlocks(latest)).toThrow(/immutable block hash/)
 		await expect(observationResolver.resolve.ProtocolBlockRevision.resolve(selector)).rejects.toThrow(/hash mismatch or unavailable/)
 	})

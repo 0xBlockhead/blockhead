@@ -1,3 +1,4 @@
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { defineResolver, type RegisteredSourceResolverModule } from '$/resolvers/defineResolver.ts'
 import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
@@ -8,19 +9,27 @@ const protocolResolver = defineResolver({
 			entityType: EntityType.FinancialProtocol,
 			resolve: {
 				NetworkProtocolKey: {
-					resolve: async ({ $network, protocolKey }) => {
+					resolve: async ({ $network, protocolKey }, context) => {
 						if ($network.caip2 == null)
 							throw new Error('TheGraph_Graphql: Messari requires a canonical CAIP-2 network')
 
 						const { getMessariAmmProfile, getMessariGraphqlBinding, getMessariAmmFinancialsLatest } = await import('$/sources/TheGraph/Messari/direct.ts')
 						const { deployment } = getMessariAmmProfile({ protocolKey, caip2: $network.caip2 })
-						const result = await getMessariAmmFinancialsLatest({ deployment, binding: getMessariGraphqlBinding(deployment) })
+						const result = await getMessariAmmFinancialsLatest({
+							deployment,
+							binding: getMessariGraphqlBinding(deployment),
+							limit: Math.min(resolverContextRowLimit(context), 1_000),
+							offset: context.pagination.offset ?? 0,
+						})
 						return { $network, protocolKey, result }
 					},
 				},
 			},
 		})({
 			name: ({ result }) => result.protocol.name,
+			$$liquidityPools: ({ $network, result }) => result.liquidityPools.map(({ id }) => ({
+				[EntityMetaKey.Selector]: { $network, id: id.toLowerCase() },
+			})),
 			$$ammBlocks: ({ $network, protocolKey, result }) => {
 				if (result.block.hash == null)
 					throw new Error('TheGraph_Graphql: latest Messari observation has no immutable block hash')

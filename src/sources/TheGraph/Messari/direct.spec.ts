@@ -201,7 +201,11 @@ for (const sample of cases) {
 
 		expect(url).toBe(`https://gateway.thegraph.com/api/subgraphs/id/${messariGraphqlProfiles[sample.deployment].subgraphId}`)
 		expect(validate(schema, parse(body.query)).map((error) => error.message)).toEqual([])
-		expect(body.variables).toEqual({ protocolId: messariGraphqlProfiles[sample.deployment].protocolId })
+		expect(body.variables).toEqual({
+			protocolId: messariGraphqlProfiles[sample.deployment].protocolId,
+			first: 100,
+			skip: 0,
+		})
 		expect(result.deployment).toBe(messariGraphqlProfiles[sample.deployment].deployment)
 		expect(result.protocol.schemaVersion).toBe(sample.deployment === 'uniswap-v3-arbitrum' ? '4.0.1' : '4.0.0')
 		expect(result.block.hash).toEqual(envelope.data._meta.block.hash)
@@ -224,6 +228,23 @@ for (const sample of cases) {
 		expectTypeOf(result.block.hash).toEqualTypeOf<`0x${string}`>()
 	})
 }
+
+it('pages native protocol pool relationships in stable source order', async () => {
+	const envelope = await textResponseFromCapture(cases[0].query)
+	envelope.data.liquidityPools = [{ id: '0x' + 'ab'.repeat(20) }]
+	setGraphResponse(envelope)
+	const result = await getMessariAmmFinancialsLatest({
+		binding: deploymentBinding(cases[0].deployment),
+		deployment: cases[0].deployment,
+		limit: 7,
+		offset: 14,
+	})
+	expect(result.liquidityPools).toEqual(envelope.data.liquidityPools)
+	const { body } = sentGraphRequest()
+	expect(body.variables).toMatchObject({ first: 7, skip: 14 })
+	expect(body.query).toContain('orderBy: id')
+	expect(body.query).toContain('protocol_: { id: $protocolId }')
+})
 
 it('preserves null hash/timestamp on latest reads without claiming exact identity', async () => {
 	const envelope = await textResponseFromCapture(cases[0].query)

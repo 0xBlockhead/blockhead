@@ -93,7 +93,7 @@ const graphql = initGraphQLTada<{
 }>()
 
 const latestDocument = graphql(`
-	query MessariAmmFinancialsLatest($protocolId: Bytes!) {
+	query MessariAmmFinancialsLatest($protocolId: Bytes!, $first: Int!, $skip: Int!) {
 		_meta {
 			deployment
 			hasIndexingErrors
@@ -110,6 +110,13 @@ const latestDocument = graphql(`
 			cumulativeSupplySideRevenueUSD cumulativeProtocolSideRevenueUSD
 			cumulativeTotalRevenueUSD totalPoolCount
 		}
+		liquidityPools(
+			where: { protocol_: { id: $protocolId } }
+			first: $first
+			skip: $skip
+			orderBy: id
+			orderDirection: asc
+		) { id }
 	}
 `)
 
@@ -200,6 +207,7 @@ const parseFinancials = (
 		deployment: data._meta.deployment,
 		block: data._meta.block,
 		protocol,
+		liquidityPools: data.liquidityPools ?? [],
 	}
 }
 
@@ -208,19 +216,27 @@ export const getMessariAmmFinancialsLatest = async ({
 	deployment,
 	signal,
 	observationSession,
+	limit = 100,
+	offset = 0,
 }: {
 	binding: SourceBinding
 	deployment: MessariGraphqlDeployment
 	signal?: AbortSignal
 	observationSession?: MessariObservationSession
+	limit?: number
+	offset?: number
 }) => {
+	graphInt.assert(limit)
+	graphInt.assert(offset)
+	if (limit > 1_000)
+		throw new Error('Messari pool relationship page exceeds the source limit')
 	const profile = profileForBinding(binding, deployment)
 	const observe = observationSession?.openRead()
 	const data = await queryTheGraph({
 		binding,
 		signal,
 		document: latestDocument,
-		variables: { protocolId: profile.protocolId },
+		variables: { protocolId: profile.protocolId, first: limit, skip: offset },
 	})
 	const result = parseFinancials(data, profile)
 	observe?.(financialObservation(result))

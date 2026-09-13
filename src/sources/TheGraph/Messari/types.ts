@@ -1,5 +1,5 @@
 import { type } from 'arktype'
-import { Hash32 } from '$/schema/ZeroExHex.ts'
+import { EvmAddress, Hash32 } from '$/schema/ZeroExHex.ts'
 
 const financialDecimal = type('string').matching(/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/)
 export const graphInt = type('number.integer >= 0').and(type('number.integer <= 2147483647'))
@@ -27,6 +27,7 @@ export const protocolFinancialsWire = type({
 		cumulativeTotalRevenueUSD: financialDecimal,
 		totalPoolCount: graphInt,
 	}).array(),
+	'liquidityPools?': type({ id: EvmAddress }).array(),
 })
 
 export const blockMetadataWire = type({
