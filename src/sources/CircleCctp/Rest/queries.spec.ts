@@ -91,6 +91,24 @@ beforeEach(() => {
 })
 
 describe('CircleCctpIris_Rest V2 messages', () => {
+	it.each([
+		['foreign pending nonce', ['570'], 'nonce does not match request'],
+		['duplicate pending nonce', ['569', '569'], 'duplicate source-domain nonce'],
+	] as const)('rejects %s before decoded payloads are available', async (_label, nonces, diagnostic) => {
+		respond({
+			sourceTxHash: transactionHash,
+			messages: nonces.map(eventNonce => ({
+				message: '0x',
+				eventNonce,
+				attestation: null,
+				decodedMessage: null,
+				cctpVersion: 2,
+				status: 'pending_confirmations',
+			})),
+		})
+		await expect(getMessages({ sourceDomain: 0, subject: { nonce: '569' } })).rejects.toThrow(diagnostic)
+	})
+
 	it('uses the canonical binding and preserves the official message response', async () => {
 		respond(result, {
 			requestId: '2adba88e-9d63-44bc-b975-9b6ae3440dde',
