@@ -33966,8 +33966,8 @@ export const schema = {
         query: { sources: [Source.TheGraph_Graphql] },
         summary: { title: ["name"], titleFallback: ["protocolKey"], value: ["protocolKey", "$network"] },
         content: { lists: [
-          { field: "$$ammBlocks", component: "FinancialProtocol_Amm_EvmBlocksView" },
-          { field: "$$liquidityPools", component: "LiquidityPoolsView" },
+          { field: "$$ammBlocks", component: "FinancialProtocol_Amm_EvmBlocksView", query: { sources: [Source.TheGraph_Graphql] } },
+          { field: "$$liquidityPools", component: "LiquidityPoolsView", query: { sources: [Source.TheGraph_Graphql] } },
         ] },
       },
       plural: { component: "FinancialProtocolsView" },

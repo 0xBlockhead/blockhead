@@ -37,3 +37,10 @@ test('Messari observation block projections retain their source authority in nes
 		assert.match(source, /select\(EntityType\.EvmBlock, evmBlockSelector, \{[\s\S]*?Source\.TheGraph_Graphql/)
 	}
 })
+
+test('Messari protocol relationship lists request the producer that owns their references', () => {
+	const source = generated.get('src/views/FinancialProtocolView.svelte')
+	assert.ok(source)
+	assert.match(source, /ammBlocksResource = selection\s*\.\$\$ammBlocks\(\{[\s\S]*?Source\.TheGraph_Graphql/)
+	assert.match(source, /liquidityPoolsResource = selection\s*\.\$\$liquidityPools\(\{[\s\S]*?Source\.TheGraph_Graphql/)
+})

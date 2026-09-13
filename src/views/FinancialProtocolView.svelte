@@ -92,7 +92,12 @@
 	{/snippet}
 
 	{#snippet Details()}
-		{@const ammBlocksResource = selection.$$ammBlocks}
+		{@const ammBlocksResource = selection
+			.$$ammBlocks({
+				sources: [
+					Source.TheGraph_Graphql,
+				],
+			})}
 		<ResourceBoundary
 			resource={ammBlocksResource}
 		>
@@ -107,7 +112,12 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-		{@const liquidityPoolsResource = selection.$$liquidityPools}
+		{@const liquidityPoolsResource = selection
+			.$$liquidityPools({
+				sources: [
+					Source.TheGraph_Graphql,
+				],
+			})}
 		<ResourceBoundary
 			resource={liquidityPoolsResource}
 		>
