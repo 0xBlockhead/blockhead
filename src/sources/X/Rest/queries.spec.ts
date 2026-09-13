@@ -124,4 +124,30 @@ describe('X Rest arktype envelopes', () => {
 			'X_Rest: invalid search-recent response envelope'
 		)
 	})
+
+	it('fail-closes a user tweets page with a foreign author', async () => {
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			json: () => Promise.resolve({
+				data: [{ id: '189', author_id: '2' }],
+				meta: {},
+			}),
+		})
+		await expect(listUserTweets('1', 25)).rejects.toThrow(
+			'X_Rest: user tweet response contains a foreign author'
+		)
+	})
+
+	it('fail-closes a user tweets page with a non-advancing cursor', async () => {
+		sourceFetch.mockResolvedValueOnce({
+			ok: true,
+			json: () => Promise.resolve({
+				data: [{ id: '190', author_id: '1' }],
+				meta: { next_token: 'same' },
+			}),
+		})
+		await expect(listUserTweets('1', 25, 'same')).rejects.toThrow(
+			'X_Rest: user tweets pagination token did not advance'
+		)
+	})
 })

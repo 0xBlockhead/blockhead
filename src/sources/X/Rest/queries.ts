@@ -77,8 +77,8 @@ export const listUserTweets = async (
 	userId: string,
 	maxResults: number,
 	paginationToken?: string
-) => (
-	assertEnvelope(
+) => {
+	const response = assertEnvelope(
 		'user-tweets',
 		xApiV2UserTweetsResponseWire,
 		await xApiV2Get<XApiV2UserTweetsResponse>(
@@ -90,7 +90,21 @@ export const listUserTweets = async (
 			})}`
 		)
 	)
-)
+
+	for (const tweet of response.data ?? []) {
+		if (tweet.author_id !== userId)
+			throw new Error('X_Rest: user tweet response contains a foreign author')
+	}
+
+	if (
+		paginationToken != null
+		&& paginationToken !== ''
+		&& response.meta?.next_token === paginationToken
+	)
+		throw new Error('X_Rest: user tweets pagination token did not advance')
+
+	return response
+}
 
 export const searchRecentTweets = async (
 	maxResults: number,
