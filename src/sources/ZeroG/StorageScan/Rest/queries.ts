@@ -116,6 +116,9 @@ export const getStorageTransaction = async ({
 		await getStorageScanJson(`/api/txs/${txSeq.toString()}`)
 	)
 	assertSuccessCode(response.code, response.message, `txs/${txSeq.toString()}`)
+	if (String(response.data.txSeq) !== String(txSeq))
+		throw new Error(`ZeroGStorageScan_Rest: transaction response does not match requested txSeq ${txSeq.toString()}`)
+
 	return response.data
 }
 

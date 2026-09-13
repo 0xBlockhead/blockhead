@@ -202,4 +202,29 @@ describe('ZeroG StorageScan REST envelopes', () => {
 		})
 		await expect(getStorageSummary()).rejects.toThrow('stats/summary: nope')
 	})
+
+	it('fail-closes a transaction response with a mismatched txSeq', async () => {
+		sourceGetJson.mockResolvedValueOnce({
+			code: 0,
+			message: 'Success',
+			data: {
+				txSeq: 99,
+				from: '0x2a07aDDB53d94308FaFbD27AB0509081f4F55B18',
+				method: 'submit',
+				rootHash: '0xe544394edc2172a48434739594fd295221bcc36339777ab39e2375baf393721e',
+				dataSize: 3170,
+				storageFee: '1',
+				status: 2,
+				blockNumber: 1,
+				txHash: '0xc0096b77649851f5b2dcb484175fbcf727e71ce56ac7d692092dd5e4775187b8',
+				timestamp: 1,
+				segments: 1,
+				uploadedSegments: 1,
+			},
+		})
+
+		await expect(getStorageTransaction({ txSeq: 12 })).rejects.toThrow(
+			'ZeroGStorageScan_Rest: transaction response does not match requested txSeq 12'
+		)
+	})
 })
