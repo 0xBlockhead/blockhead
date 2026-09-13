@@ -96,7 +96,7 @@
 	href={
 		href === undefined ?
 			(
-				'id' in selection.entitySelector ?
+				selection.entitySelector.id !== undefined ?
 					resolve(
 						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
 						{
@@ -104,7 +104,7 @@
 						}
 					)
 				:
-					'parentUrl' in selection.entitySelector ?
+					selection.entitySelector.parentUrl !== undefined ?
 						resolve(
 							'/farcaster/channel/parent/[parentUrl=stringSegment]',
 							{
@@ -278,7 +278,7 @@
 				<FarcasterCastsView
 					selection={selection.$$casts}
 					href={
-						'id' in selection.entitySelector ?
+						selection.entitySelector.id !== undefined ?
 							resolve(
 								'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]/(farcasterChannel)/casts',
 								{

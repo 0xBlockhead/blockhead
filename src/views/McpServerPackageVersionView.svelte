@@ -58,10 +58,10 @@
 	href={
 		href === undefined ?
 			(
-				'$artifact' in selection.entitySelector
-				&& 'providerArtifactId' in artifact
-				&& '$provider' in artifact
-				&& 'providerId' in artifact.$provider ?
+				artifact !== undefined
+				&& artifact.providerArtifactId !== undefined
+				&& artifact.$provider !== undefined
+				&& artifact.$provider.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/artifact/[providerArtifactId=stringSegment]/(aiArtifact)/mcp-package-version',
 						{
@@ -70,9 +70,9 @@
 						}
 					)
 				:
-					'version' in selection.entitySelector
-					&& '$package' in selection.entitySelector
-					&& 'registryServerName' in selection.entitySelector.$package ?
+					selection.entitySelector.version !== undefined
+					&& selection.entitySelector.$package !== undefined
+					&& selection.entitySelector.$package.registryServerName !== undefined ?
 						resolve(
 							'/mcp/package/registry/[registryServerName=stringSegment]/(mcpServerPackage)/version/[version=stringSegment]',
 							{

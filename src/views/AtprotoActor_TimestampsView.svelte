@@ -41,7 +41,7 @@
 			entityType={EntityType.AtprotoActor_Timestamp}
 			entitySelector={atprotoActorTimestampSelector}
 			href={
-				'did' in atprotoActorTimestampSelector.$actor ?
+				atprotoActorTimestampSelector.$actor.did !== undefined ?
 					resolve(
 						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{

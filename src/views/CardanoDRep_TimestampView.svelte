@@ -44,7 +44,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/drep/[drepCredential=stringSegment]/(cardanoDRep)/observations/[epoch=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in drep.$network ?
+						drep.$network.caip2 !== undefined ?
 							caip2StringFromValue(drep.$network.caip2)
 						:
 							drep.$network.slug

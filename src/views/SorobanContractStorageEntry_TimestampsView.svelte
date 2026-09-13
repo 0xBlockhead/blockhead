@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/soroban/contract/[contractId=stringSegment]/(sorobanContract)/storage/[keyHash=stringSegment]/(sorobanContractStorageEntry)/ledger/[ledgerSequence=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in entry.$contract.$network.$network ?
+							entry.$contract.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(entry.$contract.$network.$network.caip2)
 							:
 								entry.$contract.$network.$network.slug

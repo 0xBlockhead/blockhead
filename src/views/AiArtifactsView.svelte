@@ -47,9 +47,9 @@
 			entityType={EntityType.AiArtifact}
 			entitySelector={aiArtifactSelector}
 			href={
-				'providerArtifactId' in aiArtifactSelector
-				&& '$provider' in aiArtifactSelector
-				&& 'providerId' in aiArtifactSelector.$provider ?
+				aiArtifactSelector.providerArtifactId !== undefined
+				&& aiArtifactSelector.$provider !== undefined
+				&& aiArtifactSelector.$provider.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/artifact/[providerArtifactId=stringSegment]',
 						{
@@ -58,8 +58,8 @@
 						}
 					)
 				:
-					'digestAlgorithm' in aiArtifactSelector
-					&& 'digest' in aiArtifactSelector ?
+					aiArtifactSelector.digestAlgorithm !== undefined
+					&& aiArtifactSelector.digest !== undefined ?
 						resolve(
 							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]',
 							{
@@ -68,7 +68,7 @@
 							}
 						)
 					:
-						'ociDigest' in aiArtifactSelector ?
+						aiArtifactSelector.ociDigest !== undefined ?
 							resolve(
 								'/(ai)/ai/artifact/oci/[ociDigest=stringSegment]',
 								{
@@ -76,7 +76,7 @@
 								}
 							)
 						:
-							'ipfsCid' in aiArtifactSelector ?
+							aiArtifactSelector.ipfsCid !== undefined ?
 								resolve(
 									'/(ai)/ai/artifact/ipfs/[ipfsCid=stringSegment]',
 									{
@@ -84,7 +84,7 @@
 									}
 								)
 							:
-								'arweaveId' in aiArtifactSelector ?
+								aiArtifactSelector.arweaveId !== undefined ?
 									resolve(
 										'/(ai)/ai/artifact/arweave/[arweaveId=stringSegment]',
 										{
@@ -92,7 +92,7 @@
 										}
 									)
 								:
-									'gitObject' in aiArtifactSelector ?
+									aiArtifactSelector.gitObject !== undefined ?
 										resolve(
 											'/(ai)/ai/artifact/git/[gitObject=stringSegment]',
 											{

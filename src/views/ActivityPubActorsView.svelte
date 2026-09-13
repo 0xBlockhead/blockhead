@@ -43,8 +43,8 @@
 			entityType={EntityType.ActivityPubActor}
 			entitySelector={activityPubActorSelector}
 			href={
-				'instanceOrigin' in activityPubActorSelector
-				&& 'localAccountId' in activityPubActorSelector ?
+				activityPubActorSelector.instanceOrigin !== undefined
+				&& activityPubActorSelector.localAccountId !== undefined ?
 					resolve(
 						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
 						{
@@ -53,8 +53,8 @@
 						}
 					)
 				:
-					'instanceOrigin' in activityPubActorSelector
-					&& 'acct' in activityPubActorSelector ?
+					activityPubActorSelector.instanceOrigin !== undefined
+					&& activityPubActorSelector.acct !== undefined ?
 						resolve(
 							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/@[acct=stringSegment]',
 							{
@@ -63,7 +63,7 @@
 							}
 						)
 					:
-						'activityStreamsUri' in activityPubActorSelector ?
+						activityPubActorSelector.activityStreamsUri !== undefined ?
 							resolve(
 								'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[activityStreamsUri=stringSegment]',
 								{

@@ -42,7 +42,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/baker/[address=stringSegment]/(tezosBaker)/level/[level=nonNegativeBigInt]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in baker.$network.$network ?
+						baker.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(baker.$network.$network.caip2)
 						:
 							baker.$network.$network.slug

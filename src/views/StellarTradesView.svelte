@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/trade/[tradeId=stringSegment]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in stellarTradeSelector.$network.$network ?
+							stellarTradeSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(stellarTradeSelector.$network.$network.caip2)
 							:
 								stellarTradeSelector.$network.$network.slug

@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/observations/[ledgerVersion=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in aptosNetworkTimestampSelector.$network.$network ?
+							aptosNetworkTimestampSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(aptosNetworkTimestampSelector.$network.$network.caip2)
 							:
 								aptosNetworkTimestampSelector.$network.$network.slug

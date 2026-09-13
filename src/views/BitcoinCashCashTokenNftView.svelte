@@ -58,7 +58,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/output/[outputIndex=nonNegativeInteger]/(selection)/cash-token-nft',
 				{
 					network: (
-						'caip2' in output.$transaction.$network ?
+						output.$transaction.$network.caip2 !== undefined ?
 							caip2StringFromValue(output.$transaction.$network.caip2)
 						:
 							output.$transaction.$network.slug

@@ -40,7 +40,7 @@
 			entityType={EntityType.LightningNetwork}
 			entitySelector={lightningNetworkSelector}
 			href={
-				'slug' in lightningNetworkSelector.$network ?
+				lightningNetworkSelector.$network.slug !== undefined ?
 						resolve(
 					'/(explore)/(networks)/network/[network]',
 					{

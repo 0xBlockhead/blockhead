@@ -41,12 +41,12 @@
 	href={
 		href === undefined ?
 			(
-				'ledgerHash' in ledger ?
+				ledger.ledgerHash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/hash/[ledgerHash=stringSegment]/(xrplLedger)/entry/[entryHash=stringSegment]',
 						{
 							network: (
-								'caip2' in ledger.$network ?
+								ledger.$network.caip2 !== undefined ?
 									caip2StringFromValue(ledger.$network.caip2)
 								:
 									ledger.$network.slug

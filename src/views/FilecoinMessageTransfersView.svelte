@@ -48,7 +48,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/message/filecoin/[cid=stringSegment]/(filecoinMessage)/transfer/[index=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in message.$network ?
+							message.$network.caip2 !== undefined ?
 								caip2StringFromValue(message.$network.caip2)
 							:
 								message.$network.slug

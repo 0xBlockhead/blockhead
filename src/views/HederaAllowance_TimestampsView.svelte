@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/allowance/spender/[spenderAccountId=stringSegment]/[allowanceKind=stringSegment]/(hederaAllowance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in allowance.$owner.$network ?
+							allowance.$owner.$network.caip2 !== undefined ?
 								caip2StringFromValue(allowance.$owner.$network.caip2)
 							:
 								allowance.$owner.$network.slug

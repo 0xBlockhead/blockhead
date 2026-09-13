@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token/[tokenId=stringSegment]/(selection)/nft/[serialNumber=nonNegativeBigInt]/(hederaNft)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in nft.$token.$network ?
+							nft.$token.$network.caip2 !== undefined ?
 								caip2StringFromValue(nft.$token.$network.caip2)
 							:
 								nft.$token.$network.slug

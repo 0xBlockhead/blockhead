@@ -46,10 +46,10 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in fromInstance.$network
-				&& (fromInstance.type === 'NativeCurrency' || '$contract' in fromInstance)
-				&& 'caip2' in toInstance.$network
-				&& (toInstance.type === 'NativeCurrency' || '$contract' in toInstance) ?
+				fromInstance.$network.caip2 !== undefined
+				&& (fromInstance.type === 'NativeCurrency' || fromInstance.$contract !== undefined)
+				&& toInstance.$network.caip2 !== undefined
+				&& (toInstance.type === 'NativeCurrency' || toInstance.$contract !== undefined) ?
 					resolve(
 						'/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toChainId=eip155ChainId]/[toCoinInstanceSlug=nativeCurrencySlugOrEvmAddress]/[toolKey=stringSegment]',
 						{

@@ -43,7 +43,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/contract/tezos/[address=stringSegment]/(tezosContract)/level/[level=nonNegativeBigInt]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in contract.$network.$network ?
+						contract.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(contract.$network.$network.caip2)
 						:
 							contract.$network.$network.slug

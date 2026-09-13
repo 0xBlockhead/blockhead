@@ -40,7 +40,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/soroban/wasm/[wasmHash=stringSegment]',
 					{
 						network: (
-							'caip2' in sorobanWasmSelector.$network.$network ?
+							sorobanWasmSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(sorobanWasmSelector.$network.$network.caip2)
 							:
 								sorobanWasmSelector.$network.$network.slug

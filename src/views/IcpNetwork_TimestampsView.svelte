@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in icpNetworkTimestampSelector.$network.$network ?
+							icpNetworkTimestampSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(icpNetworkTimestampSelector.$network.$network.caip2)
 							:
 								icpNetworkTimestampSelector.$network.$network.slug

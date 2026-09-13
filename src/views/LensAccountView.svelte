@@ -68,7 +68,7 @@
 	href={
 		href === undefined ?
 			(
-				'address' in selection.entitySelector ?
+				selection.entitySelector.address !== undefined ?
 					resolve(
 						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
 						{
@@ -76,7 +76,7 @@
 						}
 					)
 				:
-					'localName' in selection.entitySelector ?
+					selection.entitySelector.localName !== undefined ?
 						resolve(
 							'/lens/account/name/[localName=stringSegment]',
 							{
@@ -84,7 +84,7 @@
 							}
 						)
 					:
-						'legacyProfileId' in selection.entitySelector ?
+						selection.entitySelector.legacyProfileId !== undefined ?
 							resolve(
 								'/lens/account/legacy/[legacyProfileId=stringSegment]',
 								{
@@ -332,7 +332,7 @@
 				<LensPostsView
 					selection={selection.$$posts}
 					href={
-						'address' in selection.entitySelector ?
+						selection.entitySelector.address !== undefined ?
 							resolve(
 								'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/posts',
 								{

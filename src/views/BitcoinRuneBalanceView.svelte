@@ -58,12 +58,12 @@
 	href={
 		href === undefined ?
 			(
-				'$output' in selection.entitySelector ?
+				output !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/output/[outputIndex=nonNegativeInteger]/(selection)/rune/[runeId=stringSegment]',
 						{
 							network: (
-								'caip2' in output.$transaction.$network ?
+								output.$transaction.$network.caip2 !== undefined ?
 									caip2StringFromValue(output.$transaction.$network.caip2)
 								:
 									output.$transaction.$network.slug
@@ -74,12 +74,12 @@
 						}
 					)
 				:
-					'$address' in selection.entitySelector ?
+					address !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/rune/[runeId=stringSegment]',
 							{
 								network: (
-									'caip2' in address.$network ?
+									address.$network.caip2 !== undefined ?
 										caip2StringFromValue(address.$network.caip2)
 									:
 										address.$network.slug

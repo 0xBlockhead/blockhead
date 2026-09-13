@@ -52,14 +52,14 @@
 	href={
 		href === undefined ?
 			(
-				'$rootMessage' in selection.entitySelector
-				&& 'messageHash' in rootMessage
-				&& '$network' in rootMessage ?
+				rootMessage !== undefined
+				&& rootMessage.messageHash !== undefined
+				&& rootMessage.$network !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/message/ton/[messageHash=stringSegment]/(tonMessage)/trace/[source=stringSegment]',
 						{
 							network: (
-								'caip2' in rootMessage.$network ?
+								rootMessage.$network.caip2 !== undefined ?
 									caip2StringFromValue(rootMessage.$network.caip2)
 								:
 									rootMessage.$network.slug
@@ -69,13 +69,13 @@
 						}
 					)
 				:
-					'traceId' in selection.entitySelector
-					&& '$network' in selection.entitySelector ?
+					selection.entitySelector.traceId !== undefined
+					&& network !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trace/[traceId=stringSegment]/[traceSource=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

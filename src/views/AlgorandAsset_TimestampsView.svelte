@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/asset/[assetId=nonNegativeBigInt]/(algorandAsset)/observation/[round=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in asset.$network.$network ?
+							asset.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(asset.$network.$network.caip2)
 							:
 								asset.$network.$network.slug

@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/transaction/[transactionDigest=stringSegment]/event/[eventIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in suiEventSelector.$network.$network ?
+							suiEventSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(suiEventSelector.$network.$network.caip2)
 							:
 								suiEventSelector.$network.$network.slug

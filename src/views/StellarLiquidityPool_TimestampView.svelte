@@ -42,7 +42,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/liquidity-pool/[liquidityPoolId=stringSegment]/(stellarLiquidityPool)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in liquidityPool.$network.$network ?
+						liquidityPool.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(liquidityPool.$network.$network.caip2)
 						:
 							liquidityPool.$network.$network.slug

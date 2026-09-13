@@ -46,12 +46,12 @@
 		href === undefined ?
 			(
 				selection.entitySelector.instructionKind === 'InnerInstruction'
-				&& 'indexInInstruction' in selection.entitySelector ?
+				&& selection.entitySelector.indexInInstruction !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]/(solanaInstruction)/inner/[indexInInstruction=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in transaction.$network ?
+								transaction.$network.caip2 !== undefined ?
 									caip2StringFromValue(transaction.$network.caip2)
 								:
 									transaction.$network.slug
@@ -68,7 +68,7 @@
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/instruction/[instructionKind=stringSegment]/[indexInTransaction=nonNegativeInteger]',
 							{
 								network: (
-									'caip2' in transaction.$network ?
+									transaction.$network.caip2 !== undefined ?
 										caip2StringFromValue(transaction.$network.caip2)
 									:
 										transaction.$network.slug

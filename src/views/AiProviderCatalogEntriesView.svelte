@@ -44,7 +44,7 @@
 			entityType={EntityType.AiProviderCatalogEntry}
 			entitySelector={aiProviderCatalogEntrySelector}
 			href={
-				'providerId' in aiProviderCatalogEntrySelector.$provider ?
+				aiProviderCatalogEntrySelector.$provider.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/catalog/[catalogKind=stringSegment]/[providerEntryId=stringSegment]',
 						{

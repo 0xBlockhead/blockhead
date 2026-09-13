@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/aux-pow/(dogecoinBlockAuxPow)/branch/[branchKind=stringSegment]',
 					{
 						network: (
-							'caip2' in dogecoinAuxPowMerkleBranchSelector.$auxPow.$block.$network ?
+							dogecoinAuxPowMerkleBranchSelector.$auxPow.$block.$network.caip2 !== undefined ?
 								caip2StringFromValue(dogecoinAuxPowMerkleBranchSelector.$auxPow.$block.$network.caip2)
 							:
 								dogecoinAuxPowMerkleBranchSelector.$auxPow.$block.$network.slug

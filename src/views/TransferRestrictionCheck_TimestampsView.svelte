@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/restriction/[restrictionKey=stringSegment]/[restrictionSource=stringSegment]/(transferRestriction)/subject/[subjectKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in restriction.$assetInstance.$network ?
+							restriction.$assetInstance.$network.caip2 !== undefined ?
 								caip2StringFromValue(restriction.$assetInstance.$network.caip2)
 							:
 								restriction.$assetInstance.$network.slug

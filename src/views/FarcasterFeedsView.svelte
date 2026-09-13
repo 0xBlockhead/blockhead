@@ -41,7 +41,7 @@
 			entitySelector={farcasterFeedSelector}
 			href={
 				farcasterFeedSelector.variant === 'byUser'
-				&& 'fid' in farcasterFeedSelector ?
+				&& farcasterFeedSelector.fid !== undefined ?
 					resolve(
 						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
 						{
@@ -50,7 +50,7 @@
 					)
 				:
 					farcasterFeedSelector.variant === 'byChannel'
-					&& 'channelId' in farcasterFeedSelector ?
+					&& farcasterFeedSelector.channelId !== undefined ?
 						resolve(
 							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
 							{
@@ -59,7 +59,7 @@
 						)
 					:
 						farcasterFeedSelector.variant === 'following'
-						&& 'viewerFid' in farcasterFeedSelector ?
+						&& farcasterFeedSelector.viewerFid !== undefined ?
 							resolve(
 								'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
 								{

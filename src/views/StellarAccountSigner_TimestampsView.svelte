@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/stellar/[accountId=stringSegment]/(stellarAccount)/signer/[signerKey=stringSegment]/[signerType=stringSegment]/(stellarAccountSigner)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in signer.$account.$network.$network ?
+							signer.$account.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(signer.$account.$network.$network.caip2)
 							:
 								signer.$account.$network.$network.slug

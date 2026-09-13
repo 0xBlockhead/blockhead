@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-collection/[collectionAddress=stringSegment]',
 					{
 						network: (
-							'caip2' in network ?
+							network.caip2 !== undefined ?
 								caip2StringFromValue(network.caip2)
 							:
 								network.slug

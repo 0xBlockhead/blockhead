@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/collection/(nftCollection)/token/[tokenKey=stringSegment]',
 					{
 						network: (
-							'caip2' in nftTokenSelector.$collection.$assetInstance.$network ?
+							nftTokenSelector.$collection.$assetInstance.$network.caip2 !== undefined ?
 								caip2StringFromValue(nftTokenSelector.$collection.$assetInstance.$network.caip2)
 							:
 								nftTokenSelector.$collection.$assetInstance.$network.slug

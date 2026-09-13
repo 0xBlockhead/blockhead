@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/transaction/[txId=stringSegment]',
 					{
 						network: (
-							'caip2' in algorandTransactionSelector.$network.$network ?
+							algorandTransactionSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(algorandTransactionSelector.$network.$network.caip2)
 							:
 								algorandTransactionSelector.$network.$network.slug

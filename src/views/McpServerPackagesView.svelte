@@ -41,7 +41,7 @@
 			entityType={EntityType.McpServerPackage}
 			entitySelector={mcpServerPackageSelector}
 			href={
-				'registryServerName' in mcpServerPackageSelector ?
+				mcpServerPackageSelector.registryServerName !== undefined ?
 					resolve(
 						'/mcp/package/registry/[registryServerName=stringSegment]',
 						{
@@ -49,7 +49,7 @@
 						}
 					)
 				:
-					'repositoryUrl' in mcpServerPackageSelector ?
+					mcpServerPackageSelector.repositoryUrl !== undefined ?
 						resolve(
 							'/mcp/package/repository/[repositoryUrl=absoluteUrl]',
 							{

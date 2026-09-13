@@ -38,12 +38,12 @@
 	href={
 		href === undefined ?
 			(
-				'hash' in selection.entitySelector ?
+				selection.entitySelector.hash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/hash/tezos/[hash=stringSegment]',
 						{
 							network: (
-								'caip2' in selection.entitySelector.$network.$network ?
+								selection.entitySelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
 								:
 									selection.entitySelector.$network.$network.slug
@@ -52,12 +52,12 @@
 						}
 					)
 				:
-					'level' in selection.entitySelector ?
+					selection.entitySelector.level !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/level/[level=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in selection.entitySelector.$network.$network ?
+									selection.entitySelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
 									:
 										selection.entitySelector.$network.$network.slug

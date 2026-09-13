@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(aptos)/table-item/[tableHandle=stringSegment]/[keyHash=stringSegment]',
 					{
 						network: (
-							'caip2' in aptosTableItemSelector.$network.$network ?
+							aptosTableItemSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(aptosTableItemSelector.$network.$network.caip2)
 							:
 								aptosTableItemSelector.$network.$network.slug

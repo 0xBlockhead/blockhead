@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/regulated-profile/(regulatedAssetProfile)/issuer/[issuerKey=stringSegment]',
 					{
 						network: (
-							'caip2' in trustedIssuerSelector.$profile.$assetInstance.$network ?
+							trustedIssuerSelector.$profile.$assetInstance.$network.caip2 !== undefined ?
 								caip2StringFromValue(trustedIssuerSelector.$profile.$assetInstance.$network.caip2)
 							:
 								trustedIssuerSelector.$profile.$assetInstance.$network.slug

@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/namespace/[namespaceId=stringSegment]',
 					{
 						network: (
-							'caip2' in celestiaNamespaceSelector.$network.$network ?
+							celestiaNamespaceSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(celestiaNamespaceSelector.$network.$network.caip2)
 							:
 								celestiaNamespaceSelector.$network.$network.slug

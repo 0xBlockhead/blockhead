@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
 					{
 						network: (
-							'caip2' in networkSelector ?
+							networkSelector.caip2 !== undefined ?
 								caip2StringFromValue(networkSelector.caip2)
 							:
 								networkSelector.slug

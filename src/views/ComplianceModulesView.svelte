@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/regulated-profile/(regulatedAssetProfile)/compliance-module/[moduleKey=stringSegment]',
 					{
 						network: (
-							'caip2' in complianceModuleSelector.$profile.$assetInstance.$network ?
+							complianceModuleSelector.$profile.$assetInstance.$network.caip2 !== undefined ?
 								caip2StringFromValue(complianceModuleSelector.$profile.$assetInstance.$network.caip2)
 							:
 								complianceModuleSelector.$profile.$assetInstance.$network.slug

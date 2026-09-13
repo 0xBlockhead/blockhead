@@ -41,7 +41,7 @@
 	href={
 		href === undefined ?
 			(
-				'registryServerName' in selection.entitySelector ?
+				selection.entitySelector.registryServerName !== undefined ?
 					resolve(
 						'/mcp/package/registry/[registryServerName=stringSegment]',
 						{
@@ -49,7 +49,7 @@
 						}
 					)
 				:
-					'repositoryUrl' in selection.entitySelector ?
+					selection.entitySelector.repositoryUrl !== undefined ?
 						resolve(
 							'/mcp/package/repository/[repositoryUrl=absoluteUrl]',
 							{

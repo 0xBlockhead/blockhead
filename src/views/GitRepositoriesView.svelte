@@ -43,7 +43,7 @@
 			entityType={EntityType.GitRepository}
 			entitySelector={gitRepositorySelector}
 			href={
-				'repositoryId' in gitRepositorySelector ?
+				gitRepositorySelector.repositoryId !== undefined ?
 					resolve(
 						'/git/repository/id/[repositoryId=stringSegment]',
 						{
@@ -51,7 +51,7 @@
 						}
 					)
 				:
-					'canonicalRemoteUrl' in gitRepositorySelector ?
+					gitRepositorySelector.canonicalRemoteUrl !== undefined ?
 						resolve(
 							'/git/repository/remote/[canonicalRemoteUrl=absoluteUrl]',
 							{

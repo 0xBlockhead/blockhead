@@ -42,7 +42,7 @@
 			entityType={EntityType.AcpAgentProgram}
 			entitySelector={acpAgentProgramSelector}
 			href={
-				'registryAgentId' in acpAgentProgramSelector ?
+				acpAgentProgramSelector.registryAgentId !== undefined ?
 					resolve(
 						'/(agents)/agents/acp/program/registry/[registryAgentId=stringSegment]',
 						{
@@ -50,7 +50,7 @@
 						}
 					)
 				:
-					'packageName' in acpAgentProgramSelector ?
+					acpAgentProgramSelector.packageName !== undefined ?
 						resolve(
 							'/(agents)/agents/acp/program/package/[packageName=stringSegment]',
 							{
@@ -58,7 +58,7 @@
 							}
 						)
 					:
-						'repositoryUrl' in acpAgentProgramSelector ?
+						acpAgentProgramSelector.repositoryUrl !== undefined ?
 							resolve(
 								'/(agents)/agents/acp/program/repository/[repositoryUrl=absoluteUrl]',
 								{

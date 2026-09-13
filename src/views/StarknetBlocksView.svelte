@@ -42,12 +42,12 @@
 			entityType={EntityType.StarknetBlock}
 			entitySelector={starknetBlockSelector}
 			href={
-				'blockHash' in starknetBlockSelector ?
+				starknetBlockSelector.blockHash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/hash/starknet/[blockHash=stringSegment]',
 						{
 							network: (
-								'caip2' in starknetBlockSelector.$network.$network ?
+								starknetBlockSelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(starknetBlockSelector.$network.$network.caip2)
 								:
 									starknetBlockSelector.$network.$network.slug
@@ -56,12 +56,12 @@
 						}
 					)
 				:
-					'blockNumber' in starknetBlockSelector ?
+					starknetBlockSelector.blockNumber !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/number/[blockNumber=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in starknetBlockSelector.$network.$network ?
+									starknetBlockSelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(starknetBlockSelector.$network.$network.caip2)
 									:
 										starknetBlockSelector.$network.$network.slug

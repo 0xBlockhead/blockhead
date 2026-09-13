@@ -42,7 +42,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/application/[applicationId=nonNegativeBigInt]/(algorandApplication)/box/[boxName=zeroExHex]/(algorandBox)/observation/[round=nonNegativeBigInt]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in box.$application.$network.$network ?
+						box.$application.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(box.$application.$network.$network.caip2)
 						:
 							box.$application.$network.$network.slug

@@ -44,13 +44,13 @@
 			entityType={EntityType.HederaAllowance}
 			entitySelector={hederaAllowanceSelector}
 			href={
-				'tokenId' in hederaAllowanceSelector
-				&& 'serialNumber' in hederaAllowanceSelector ?
+				hederaAllowanceSelector.tokenId !== undefined
+				&& hederaAllowanceSelector.serialNumber !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/allowance/nft/[tokenId=stringSegment]/[serialNumber=nonNegativeBigInt]/spender/[spenderAccountId=stringSegment]/[allowanceKind=stringSegment]',
 						{
 							network: (
-								'caip2' in owner.$network ?
+								owner.$network.caip2 !== undefined ?
 									caip2StringFromValue(owner.$network.caip2)
 								:
 									owner.$network.slug
@@ -63,12 +63,12 @@
 						}
 					)
 				:
-					'tokenId' in hederaAllowanceSelector ?
+					hederaAllowanceSelector.tokenId !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/allowance/token/[tokenId=stringSegment]/spender/[spenderAccountId=stringSegment]/[allowanceKind=stringSegment]',
 							{
 								network: (
-									'caip2' in owner.$network ?
+									owner.$network.caip2 !== undefined ?
 										caip2StringFromValue(owner.$network.caip2)
 									:
 										owner.$network.slug
@@ -84,7 +84,7 @@
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/allowance/spender/[spenderAccountId=stringSegment]/[allowanceKind=stringSegment]',
 							{
 								network: (
-									'caip2' in owner.$network ?
+									owner.$network.caip2 !== undefined ?
 										caip2StringFromValue(owner.$network.caip2)
 									:
 										owner.$network.slug

@@ -60,7 +60,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(polkadot)/referendum/[referendumId=stringSegment]/(polkadotReferendum)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in referendum.$network ?
+						referendum.$network.caip2 !== undefined ?
 							caip2StringFromValue(referendum.$network.caip2)
 						:
 							referendum.$network.slug

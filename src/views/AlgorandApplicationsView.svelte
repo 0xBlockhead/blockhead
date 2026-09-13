@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/application/[applicationId=nonNegativeBigInt]',
 					{
 						network: (
-							'caip2' in algorandApplicationSelector.$network.$network ?
+							algorandApplicationSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(algorandApplicationSelector.$network.$network.caip2)
 							:
 								algorandApplicationSelector.$network.$network.slug

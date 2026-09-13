@@ -67,9 +67,9 @@
 	href={
 		href === undefined ?
 			(
-				'providerArtifactId' in selection.entitySelector
-				&& '$provider' in selection.entitySelector
-				&& 'providerId' in selection.entitySelector.$provider ?
+				selection.entitySelector.providerArtifactId !== undefined
+				&& selection.entitySelector.$provider !== undefined
+				&& selection.entitySelector.$provider.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/artifact/[providerArtifactId=stringSegment]',
 						{
@@ -78,8 +78,8 @@
 						}
 					)
 				:
-					'digestAlgorithm' in selection.entitySelector
-					&& 'digest' in selection.entitySelector ?
+					selection.entitySelector.digestAlgorithm !== undefined
+					&& selection.entitySelector.digest !== undefined ?
 						resolve(
 							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]',
 							{
@@ -88,7 +88,7 @@
 							}
 						)
 					:
-						'ociDigest' in selection.entitySelector ?
+						selection.entitySelector.ociDigest !== undefined ?
 							resolve(
 								'/(ai)/ai/artifact/oci/[ociDigest=stringSegment]',
 								{
@@ -96,7 +96,7 @@
 								}
 							)
 						:
-							'ipfsCid' in selection.entitySelector ?
+							selection.entitySelector.ipfsCid !== undefined ?
 								resolve(
 									'/(ai)/ai/artifact/ipfs/[ipfsCid=stringSegment]',
 									{
@@ -104,7 +104,7 @@
 									}
 								)
 							:
-								'arweaveId' in selection.entitySelector ?
+								selection.entitySelector.arweaveId !== undefined ?
 									resolve(
 										'/(ai)/ai/artifact/arweave/[arweaveId=stringSegment]',
 										{
@@ -112,7 +112,7 @@
 										}
 									)
 								:
-									'gitObject' in selection.entitySelector ?
+									selection.entitySelector.gitObject !== undefined ?
 										resolve(
 											'/(ai)/ai/artifact/git/[gitObject=stringSegment]',
 											{

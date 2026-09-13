@@ -42,12 +42,12 @@
 			entityType={EntityType.BnbBeaconBlock}
 			entitySelector={bnbBeaconBlockSelector}
 			href={
-				'hash' in bnbBeaconBlockSelector ?
+				bnbBeaconBlockSelector.hash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/block/hash/[hash=stringSegment]',
 						{
 							network: (
-								'caip2' in bnbBeaconBlockSelector.$network.$network ?
+								bnbBeaconBlockSelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(bnbBeaconBlockSelector.$network.$network.caip2)
 								:
 									bnbBeaconBlockSelector.$network.$network.slug
@@ -56,12 +56,12 @@
 						}
 					)
 				:
-					'height' in bnbBeaconBlockSelector ?
+					bnbBeaconBlockSelector.height !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/block/height/[height=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in bnbBeaconBlockSelector.$network.$network ?
+									bnbBeaconBlockSelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(bnbBeaconBlockSelector.$network.$network.caip2)
 									:
 										bnbBeaconBlockSelector.$network.$network.slug

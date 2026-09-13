@@ -49,7 +49,7 @@
 			entityType={EntityType.AiModel}
 			entitySelector={aiModelSelector}
 			href={
-				'providerId' in aiModelSelector.$provider ?
+				aiModelSelector.$provider.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/model/[providerModelId=stringSegment]',
 						{

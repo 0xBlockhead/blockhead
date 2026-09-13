@@ -42,12 +42,12 @@
 			entityType={EntityType.CelestiaBlock}
 			entitySelector={celestiaBlockSelector}
 			href={
-				'height' in celestiaBlockSelector ?
+				celestiaBlockSelector.height !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/block-height/[height=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in celestiaBlockSelector.$network.$network ?
+								celestiaBlockSelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(celestiaBlockSelector.$network.$network.caip2)
 								:
 									celestiaBlockSelector.$network.$network.slug
@@ -56,12 +56,12 @@
 						}
 					)
 				:
-					'hash' in celestiaBlockSelector ?
+					celestiaBlockSelector.hash !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/celestia/block-hash/[hash=stringSegment]',
 							{
 								network: (
-									'caip2' in celestiaBlockSelector.$network.$network ?
+									celestiaBlockSelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(celestiaBlockSelector.$network.$network.caip2)
 									:
 										celestiaBlockSelector.$network.$network.slug

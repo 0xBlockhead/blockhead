@@ -46,13 +46,13 @@
 	href={
 		href === undefined ?
 			(
-				'outIndex' in selection.entitySelector
-				&& '$sourceTransaction' in selection.entitySelector ?
+				selection.entitySelector.outIndex !== undefined
+				&& sourceTransaction !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/transaction/[lt=nonNegativeBigInt]/(tonTransaction)/message/[outIndex=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in sourceTransaction.$account.$network ?
+								sourceTransaction.$account.$network.caip2 !== undefined ?
 									caip2StringFromValue(sourceTransaction.$account.$network.caip2)
 								:
 									sourceTransaction.$account.$network.slug
@@ -63,13 +63,13 @@
 						}
 					)
 				:
-					'messageHash' in selection.entitySelector
-					&& '$network' in selection.entitySelector ?
+					selection.entitySelector.messageHash !== undefined
+					&& network !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/message/ton/[messageHash=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

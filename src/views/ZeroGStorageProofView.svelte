@@ -59,7 +59,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/storage-node/[nodeId=evmAddress]/(zeroGStorageNode)/proof/[proofId=stringSegment]',
 				{
 					network: (
-						'caip2' in storageNode.$network ?
+						storageNode.$network.caip2 !== undefined ?
 							caip2StringFromValue(storageNode.$network.caip2)
 						:
 							storageNode.$network.slug

@@ -41,7 +41,7 @@
 			entityType={EntityType.A2aPushNotificationConfig}
 			entitySelector={a2aPushNotificationConfigSelector}
 			href={
-				'taskId' in a2aPushNotificationConfigSelector.$task ?
+				a2aPushNotificationConfigSelector.$task.taskId !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/push-notification/[configId=stringSegment]',
 						{

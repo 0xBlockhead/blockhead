@@ -55,9 +55,9 @@
 	href={
 		href === undefined ?
 			(
-				'$artifact' in selection.entitySelector
-				&& 'digestAlgorithm' in artifact
-				&& 'digest' in artifact ?
+				artifact !== undefined
+				&& artifact.digestAlgorithm !== undefined
+				&& artifact.digest !== undefined ?
 					resolve(
 						'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/dataset',
 						{
@@ -66,9 +66,9 @@
 						}
 					)
 				:
-					'source' in selection.entitySelector
-					&& 'datasetName' in selection.entitySelector
-					&& 'datasetDigest' in selection.entitySelector ?
+					selection.entitySelector.source !== undefined
+					&& selection.entitySelector.datasetName !== undefined
+					&& selection.entitySelector.datasetDigest !== undefined ?
 						resolve(
 							'/(ai)/ai/dataset/source/[source=stringSegment]/[datasetName=stringSegment]/[datasetDigest=stringSegment]',
 							{
@@ -78,8 +78,8 @@
 							}
 						)
 					:
-						'huggingFaceDatasetId' in selection.entitySelector
-						&& 'revision' in selection.entitySelector ?
+						selection.entitySelector.huggingFaceDatasetId !== undefined
+						&& selection.entitySelector.revision !== undefined ?
 							resolve(
 								'/(ai)/ai/dataset/huggingface/[huggingFaceDatasetId=stringSegment]/[revision=stringSegment]',
 								{
@@ -88,7 +88,7 @@
 								}
 							)
 						:
-							'datasetUri' in selection.entitySelector ?
+							selection.entitySelector.datasetUri !== undefined ?
 								resolve(
 									'/(ai)/ai/dataset/uri/[datasetUri=absoluteUrl]',
 									{

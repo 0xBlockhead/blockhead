@@ -51,7 +51,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-mint/[mintAddress=stringSegment]/(solanaTokenMint)/observations/[slot=nonNegativeBigInt]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in mint.$network ?
+						mint.$network.caip2 !== undefined ?
 							caip2StringFromValue(mint.$network.caip2)
 						:
 							mint.$network.slug

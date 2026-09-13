@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/asset/[assetId=nonNegativeBigInt]',
 					{
 						network: (
-							'caip2' in algorandAssetSelector.$network.$network ?
+							algorandAssetSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(algorandAssetSelector.$network.$network.caip2)
 							:
 								algorandAssetSelector.$network.$network.slug

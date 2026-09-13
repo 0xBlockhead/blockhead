@@ -54,7 +54,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/cardano/[address=stringSegment]/(cardanoAddress)/observation/cardano-block/[blockSlot=nonNegativeBigInt]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in address.$network ?
+						address.$network.caip2 !== undefined ?
 							caip2StringFromValue(address.$network.caip2)
 						:
 							address.$network.slug

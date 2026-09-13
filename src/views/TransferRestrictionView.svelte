@@ -45,7 +45,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/restriction/[restrictionKey=stringSegment]/[restrictionSource=stringSegment]',
 				{
 					network: (
-						'caip2' in assetInstance.$network ?
+						assetInstance.$network.caip2 !== undefined ?
 							caip2StringFromValue(assetInstance.$network.caip2)
 						:
 							assetInstance.$network.slug

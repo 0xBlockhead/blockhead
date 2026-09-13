@@ -42,7 +42,7 @@
 			entityType={EntityType.LensAccountManager}
 			entitySelector={lensAccountManagerSelector}
 			href={
-				'address' in lensAccountManagerSelector.$account ?
+				lensAccountManagerSelector.$account.address !== undefined ?
 					resolve(
 						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/manager/[manager=evmAddress]',
 						{

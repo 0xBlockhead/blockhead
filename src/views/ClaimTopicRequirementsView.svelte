@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/regulated-profile/(regulatedAssetProfile)/claim-topic/[topicKey=stringSegment]',
 					{
 						network: (
-							'caip2' in claimTopicRequirementSelector.$profile.$assetInstance.$network ?
+							claimTopicRequirementSelector.$profile.$assetInstance.$network.caip2 !== undefined ?
 								caip2StringFromValue(claimTopicRequirementSelector.$profile.$assetInstance.$network.caip2)
 							:
 								claimTopicRequirementSelector.$profile.$assetInstance.$network.slug

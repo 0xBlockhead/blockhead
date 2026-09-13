@@ -34,12 +34,12 @@
 			entityType={EntityType.HederaContractAction}
 			entitySelector={hederaContractActionSelector}
 			href={
-				'consensusTimestamp' in hederaContractActionSelector.$result.$transaction ?
+				hederaContractActionSelector.$result.$transaction.consensusTimestamp !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/consensus/[consensusTimestamp=stringSegment]/(hederaTransaction)/contract-result/(hederaContractResult)/action/[callDepth=nonNegativeInteger]/[callIndex=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in hederaContractActionSelector.$result.$transaction.$network ?
+								hederaContractActionSelector.$result.$transaction.$network.caip2 !== undefined ?
 									caip2StringFromValue(hederaContractActionSelector.$result.$transaction.$network.caip2)
 								:
 									hederaContractActionSelector.$result.$transaction.$network.slug

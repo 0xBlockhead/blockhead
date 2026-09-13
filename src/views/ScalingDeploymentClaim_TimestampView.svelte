@@ -58,7 +58,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/scaling/[claimSource=stringSegment]/[sourceProjectId=stringSegment]/(scalingDeploymentClaim)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in claim.$network ?
+						claim.$network.caip2 !== undefined ?
 							caip2StringFromValue(claim.$network.caip2)
 						:
 							claim.$network.slug

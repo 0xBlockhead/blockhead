@@ -35,13 +35,13 @@
 			entityType={EntityType.HederaContractLog}
 			entitySelector={hederaContractLogSelector}
 			href={
-				'$result' in hederaContractLogSelector
-				&& 'consensusTimestamp' in hederaContractLogSelector.$result.$transaction ?
+				hederaContractLogSelector.$result !== undefined
+				&& hederaContractLogSelector.$result.$transaction.consensusTimestamp !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/consensus/[consensusTimestamp=stringSegment]/(hederaTransaction)/contract-result/(hederaContractResult)/log/[logIndex=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in hederaContractLogSelector.$result.$transaction.$network ?
+								hederaContractLogSelector.$result.$transaction.$network.caip2 !== undefined ?
 									caip2StringFromValue(hederaContractLogSelector.$result.$transaction.$network.caip2)
 								:
 									hederaContractLogSelector.$result.$transaction.$network.slug
@@ -51,13 +51,13 @@
 						}
 					)
 				:
-					'consensusTimestamp' in hederaContractLogSelector
-					&& '$contract' in hederaContractLogSelector ?
+					hederaContractLogSelector.consensusTimestamp !== undefined
+					&& contract !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/consensus-log/[consensusTimestamp=stringSegment]/[logIndex=nonNegativeInteger]',
 							{
 								network: (
-									'caip2' in contract.$network ?
+									contract.$network.caip2 !== undefined ?
 										caip2StringFromValue(contract.$network.caip2)
 									:
 										contract.$network.slug

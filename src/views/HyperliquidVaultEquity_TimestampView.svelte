@@ -43,7 +43,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/vault/[vaultAddress=evmAddress]/(hyperliquidVault)/equity/account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in vault.$network ?
+						vault.$network.caip2 !== undefined ?
 							caip2StringFromValue(vault.$network.caip2)
 						:
 							vault.$network.slug

@@ -41,7 +41,7 @@
 			entityType={EntityType.GitRefUpdate}
 			entitySelector={gitRefUpdateSelector}
 			href={
-				'repositoryId' in gitRefUpdateSelector.$repository ?
+				gitRefUpdateSelector.$repository.repositoryId !== undefined ?
 					resolve(
 						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/ref-update/[refName=stringSegment]/[oldObjectId=zeroExHex]/[newObjectId=zeroExHex]',
 						{

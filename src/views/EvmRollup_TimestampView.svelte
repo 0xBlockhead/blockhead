@@ -51,7 +51,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/rollup/[projectId=stringSegment]/(evmRollup)/timestamp/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in rollup.$network ?
+						rollup.$network.caip2 !== undefined ?
 							caip2StringFromValue(rollup.$network.caip2)
 						:
 							rollup.$network.slug

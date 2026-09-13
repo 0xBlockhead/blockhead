@@ -35,12 +35,12 @@
 			entityType={EntityType.HyperliquidOrder_Timestamp}
 			entitySelector={hyperliquidOrderTimestampSelector}
 			href={
-				'cloid' in order ?
+				order.cloid !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/order/client/[cloid=stringSegment]/(hyperliquidOrder)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{
 							network: (
-								'caip2' in order.$account.$network ?
+								order.$account.$network.caip2 !== undefined ?
 									caip2StringFromValue(order.$account.$network.caip2)
 								:
 									order.$account.$network.slug

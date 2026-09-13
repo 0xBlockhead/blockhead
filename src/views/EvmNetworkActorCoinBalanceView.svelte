@@ -59,8 +59,8 @@
 	href={
 		href === undefined ?
 			(
-				'$contract' in selection.entitySelector
-				&& 'caip2' in contract.$network ?
+				contract !== undefined
+				&& contract.$network.caip2 !== undefined ?
 					resolve(
 						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]',
 						{
@@ -70,8 +70,8 @@
 						}
 					)
 				:
-					'$network' in selection.entitySelector
-					&& 'caip2' in selection.entitySelector.$network ?
+					selection.entitySelector.$network !== undefined
+					&& selection.entitySelector.$network.caip2 !== undefined ?
 						resolve(
 							'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/native',
 							{

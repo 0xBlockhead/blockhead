@@ -51,7 +51,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ibc-channels/[portId=stringSegment]/[channelId=stringSegment]/(ibcChannel)/packet/[sequence=nonNegativeBigInt]/[direction=stringSegment]',
 				{
 					network: (
-						'caip2' in channel.$network ?
+						channel.$network.caip2 !== undefined ?
 							caip2StringFromValue(channel.$network.caip2)
 						:
 							channel.$network.slug

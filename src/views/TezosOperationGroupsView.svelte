@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/operation-group/[operationHash=stringSegment]',
 					{
 						network: (
-							'caip2' in tezosOperationGroupSelector.$network.$network ?
+							tezosOperationGroupSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(tezosOperationGroupSelector.$network.$network.caip2)
 							:
 								tezosOperationGroupSelector.$network.$network.slug

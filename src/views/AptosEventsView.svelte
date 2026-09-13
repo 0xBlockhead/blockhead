@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/transaction/[transactionVersion=nonNegativeBigInt]/event/[eventIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in aptosEventSelector.$network.$network ?
+							aptosEventSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(aptosEventSelector.$network.$network.caip2)
 							:
 								aptosEventSelector.$network.$network.slug

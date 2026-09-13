@@ -42,7 +42,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/stellar/[accountId=stringSegment]/(stellarAccount)/asset/[assetKey=stringSegment]/(stellarTrustline)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in trustline.$account.$network.$network ?
+						trustline.$account.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(trustline.$account.$network.$network.caip2)
 						:
 							trustline.$account.$network.$network.slug

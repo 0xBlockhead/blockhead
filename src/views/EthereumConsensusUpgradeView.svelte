@@ -55,12 +55,12 @@
 	href={
 		href === undefined ?
 			(
-				'slug' in selection.entitySelector ?
+				selection.entitySelector.slug !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/consensus/[upgradeSlug=stringSegment]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -69,12 +69,12 @@
 						}
 					)
 				:
-					'upgradeId' in selection.entitySelector ?
+					selection.entitySelector.upgradeId !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ethereum/consensus-upgrade/[upgradeId=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

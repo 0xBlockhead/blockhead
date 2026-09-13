@@ -45,7 +45,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in starknetContractSelector.$network.$network ?
+							starknetContractSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(starknetContractSelector.$network.$network.caip2)
 							:
 								starknetContractSelector.$network.$network.slug

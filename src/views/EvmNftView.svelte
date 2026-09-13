@@ -62,9 +62,9 @@
 	href={
 		href === undefined ?
 			(
-				'format' in selection.entitySelector
+				selection.entitySelector.format !== undefined
 				&& selection.entitySelector.format === 'Eip8004Registration'
-				&& 'caip2' in contract.$network ?
+				&& contract.$network.caip2 !== undefined ?
 					resolve(
 						'/~/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId=stringSegment]',
 						{

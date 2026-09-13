@@ -58,12 +58,12 @@
 	href={
 		href === undefined ?
 			(
-				'pubkey' in selection.entitySelector ?
+				selection.entitySelector.pubkey !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/pubkey/[validatorPubkey=stringSegment]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -72,12 +72,12 @@
 						}
 					)
 				:
-					'indexInNetwork' in selection.entitySelector ?
+					selection.entitySelector.indexInNetwork !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

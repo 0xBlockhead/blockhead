@@ -65,7 +65,7 @@
 	href={
 		href === undefined ?
 			(
-				'$conversation' in turn ?
+				turn.$conversation !== undefined ?
 					resolve(
 						'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]/(blockheadAgentConversationTurn)/provider-call/[indexInTurn=nonNegativeInteger]',
 						{

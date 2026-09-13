@@ -45,10 +45,10 @@
 			entityType={EntityType.McpServerPackageVersion}
 			entitySelector={mcpServerPackageVersionSelector}
 			href={
-				'$artifact' in mcpServerPackageVersionSelector
-				&& 'providerArtifactId' in artifact
-				&& '$provider' in artifact
-				&& 'providerId' in artifact.$provider ?
+				artifact !== undefined
+				&& artifact.providerArtifactId !== undefined
+				&& artifact.$provider !== undefined
+				&& artifact.$provider.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/artifact/[providerArtifactId=stringSegment]/(aiArtifact)/mcp-package-version',
 						{
@@ -57,9 +57,9 @@
 						}
 					)
 				:
-					'version' in mcpServerPackageVersionSelector
-					&& '$package' in mcpServerPackageVersionSelector
-					&& 'registryServerName' in mcpServerPackageVersionSelector.$package ?
+					mcpServerPackageVersionSelector.version !== undefined
+					&& mcpServerPackageVersionSelector.$package !== undefined
+					&& mcpServerPackageVersionSelector.$package.registryServerName !== undefined ?
 						resolve(
 							'/mcp/package/registry/[registryServerName=stringSegment]/(mcpServerPackage)/version/[version=stringSegment]',
 							{

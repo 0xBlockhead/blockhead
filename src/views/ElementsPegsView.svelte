@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(elements)/elements/peg/[pegTransactionId=stringSegment]/[direction=stringSegment]',
 					{
 						network: (
-							'caip2' in elementsPegSelector.$network.$network ?
+							elementsPegSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(elementsPegSelector.$network.$network.caip2)
 							:
 								elementsPegSelector.$network.$network.slug

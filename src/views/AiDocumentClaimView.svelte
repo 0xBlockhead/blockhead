@@ -53,7 +53,7 @@
 	href={
 		href === undefined ?
 			(
-				'documentUrl' in selection.entitySelector.$document ?
+				selection.entitySelector.$document.documentUrl !== undefined ?
 					resolve(
 						'/(ai)/ai/document/url/[documentUrl=absoluteUrl]/(aiDocument)/claim/[extractorId=stringSegment]/[claimPath=stringSegment]',
 						{

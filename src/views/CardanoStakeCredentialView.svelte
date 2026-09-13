@@ -44,7 +44,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-credential/[credential=stringSegment]',
 				{
 					network: (
-						'caip2' in network ?
+						network.caip2 !== undefined ?
 							caip2StringFromValue(network.caip2)
 						:
 							network.slug

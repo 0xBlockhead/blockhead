@@ -46,13 +46,13 @@
 	href={
 		href === undefined ?
 			(
-				'itemIndex' in selection.entitySelector
-				&& '$collection' in selection.entitySelector ?
+				selection.entitySelector.itemIndex !== undefined
+				&& collection !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-collection/[collectionAddress=stringSegment]/(tonNftCollection)/item/[itemIndex=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in collection.$network ?
+								collection.$network.caip2 !== undefined ?
 									caip2StringFromValue(collection.$network.caip2)
 								:
 									collection.$network.slug
@@ -62,13 +62,13 @@
 						}
 					)
 				:
-					'itemAddress' in selection.entitySelector
-					&& '$network' in selection.entitySelector ?
+					selection.entitySelector.itemAddress !== undefined
+					&& network !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-item/[itemAddress=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

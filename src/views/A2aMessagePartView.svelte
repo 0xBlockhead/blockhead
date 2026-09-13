@@ -54,8 +54,8 @@
 	href={
 		href === undefined ?
 			(
-				'$artifact' in selection.entitySelector
-				&& 'taskId' in artifact.$task ?
+				artifact !== undefined
+				&& artifact.$task.taskId !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/artifact/[artifactId=stringSegment]/(a2aArtifact)/part/[partIndex=nonNegativeInteger]',
 						{
@@ -65,8 +65,8 @@
 						}
 					)
 				:
-					'$message' in selection.entitySelector
-					&& 'taskId' in message.$task ?
+					message !== undefined
+					&& message.$task.taskId !== undefined ?
 						resolve(
 							'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/message/[messageId=stringSegment]/(a2aMessage)/part/[partIndex=nonNegativeInteger]',
 							{

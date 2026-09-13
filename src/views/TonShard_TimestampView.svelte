@@ -45,7 +45,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/workchain/[workchain=nonNegativeInteger]/(tonWorkchain)/shard/[shardPrefix=stringSegment]/[seqno=nonNegativeBigInt]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in workchain.$network ?
+						workchain.$network.caip2 !== undefined ?
 							caip2StringFromValue(workchain.$network.caip2)
 						:
 							workchain.$network.slug

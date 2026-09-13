@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]/(selection)/epoch/[epochId=stringSegment]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in validator.$network ?
+							validator.$network.caip2 !== undefined ?
 								caip2StringFromValue(validator.$network.caip2)
 							:
 								validator.$network.slug

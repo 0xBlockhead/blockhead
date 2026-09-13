@@ -53,12 +53,12 @@
 	href={
 		href === undefined ?
 			(
-				'hash' in selection.entitySelector ?
+				selection.entitySelector.hash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/[hash=stringSegment]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -72,7 +72,7 @@
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug

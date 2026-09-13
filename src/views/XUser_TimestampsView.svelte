@@ -41,7 +41,7 @@
 			entityType={EntityType.XUser_Timestamp}
 			entitySelector={xUserTimestampSelector}
 			href={
-				'id' in xUserTimestampSelector.$user ?
+				xUserTimestampSelector.$user.id !== undefined ?
 					resolve(
 						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]/(xUser)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{

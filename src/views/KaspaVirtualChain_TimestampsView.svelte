@@ -40,7 +40,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/virtual-chain/[startHash=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in kaspaVirtualChainTimestampSelector.$network.$network ?
+							kaspaVirtualChainTimestampSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(kaspaVirtualChainTimestampSelector.$network.$network.caip2)
 							:
 								kaspaVirtualChainTimestampSelector.$network.$network.slug

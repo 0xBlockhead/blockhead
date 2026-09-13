@@ -50,7 +50,7 @@
 	href={
 		href === undefined ?
 			(
-				'repositoryId' in selection.entitySelector.$repository ?
+				selection.entitySelector.$repository.repositoryId !== undefined ?
 					resolve(
 						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/ref-update/[refName=stringSegment]/[oldObjectId=zeroExHex]/[newObjectId=zeroExHex]',
 						{

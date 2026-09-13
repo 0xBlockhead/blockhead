@@ -37,12 +37,12 @@
 >
 	{#snippet Item({ item: evmCoinInstance })}
 		{@const evmCoinInstanceSelector = evmCoinInstance[EntityMetaKey.Selector]}
-		{@const evmCoinInstanceHref = 'caip2' in evmCoinInstanceSelector.$network
+		{@const evmCoinInstanceHref = evmCoinInstanceSelector.$network.caip2 !== undefined
 			&& (
 				evmCoinInstanceSelector.type === 'NativeCurrency'
 				|| (
 					evmCoinInstanceSelector.type === 'Erc20Token'
-					&& '$contract' in evmCoinInstanceSelector
+					&& evmCoinInstanceSelector.$contract !== undefined
 				)
 			) ?
 				resolve(

@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/round/[round=nonNegativeBigInt]',
 					{
 						network: (
-							'caip2' in algorandRoundSelector.$network.$network ?
+							algorandRoundSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(algorandRoundSelector.$network.$network.caip2)
 							:
 								algorandRoundSelector.$network.$network.slug

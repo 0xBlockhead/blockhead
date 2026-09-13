@@ -45,12 +45,12 @@
 			entityType={EntityType.CosmosBlock}
 			entitySelector={cosmosBlockSelector}
 			href={
-				'hash' in cosmosBlockSelector ?
+				cosmosBlockSelector.hash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/hash/[blockHash=zeroExHexOrStringSegmentOrUtxoTxId]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -59,12 +59,12 @@
 						}
 					)
 				:
-					'height' in cosmosBlockSelector ?
+					cosmosBlockSelector.height !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

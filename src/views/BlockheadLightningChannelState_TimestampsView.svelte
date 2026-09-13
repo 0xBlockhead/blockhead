@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state/(blockheadLightningNodeState)/channel/[channelId=stringSegment]/(blockheadLightningChannelState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in channelState.$localNodeState.$network.$network ?
+							channelState.$localNodeState.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(channelState.$localNodeState.$network.$network.caip2)
 							:
 								channelState.$localNodeState.$network.$network.slug

@@ -48,7 +48,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/move/module/[address=stringSegment]/[moduleName=stringSegment]/(moveModule)/struct/[structName=stringSegment]',
 					{
 						network: (
-							'caip2' in module.$network ?
+							module.$network.caip2 !== undefined ?
 								caip2StringFromValue(module.$network.caip2)
 							:
 								module.$network.slug

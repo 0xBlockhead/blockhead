@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/transaction-group/[group=zeroExHex]',
 					{
 						network: (
-							'caip2' in algorandTransactionGroupSelector.$network.$network ?
+							algorandTransactionGroupSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(algorandTransactionGroupSelector.$network.$network.caip2)
 							:
 								algorandTransactionGroupSelector.$network.$network.slug

@@ -44,8 +44,8 @@
 			entityType={EntityType.FarcasterCastEmbed}
 			entitySelector={farcasterCastEmbedSelector}
 			href={
-				'fid' in cast
-				&& 'hash' in cast ?
+				cast.fid !== undefined
+				&& cast.hash !== undefined ?
 					resolve(
 						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]/(farcasterCast)/embed/[indexInCast=nonNegativeInteger]',
 						{

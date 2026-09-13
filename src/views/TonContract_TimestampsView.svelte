@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/contract/(tonContract)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in tonContractTimestampSelector.$contract.$account.$network ?
+							tonContractTimestampSelector.$contract.$account.$network.caip2 !== undefined ?
 								caip2StringFromValue(tonContractTimestampSelector.$contract.$account.$network.caip2)
 							:
 								tonContractTimestampSelector.$contract.$account.$network.slug

@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/contract/(tonContract)/method/[methodName=stringSegment]/(tonContractGetMethod)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in method.$contract.$account.$network ?
+							method.$contract.$account.$network.caip2 !== undefined ?
 								caip2StringFromValue(method.$contract.$account.$network.caip2)
 							:
 								method.$contract.$account.$network.slug

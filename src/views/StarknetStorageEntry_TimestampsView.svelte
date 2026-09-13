@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/storage/[storageKey=stringSegment]/(starknetStorageEntry)/block/[blockNumber=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in entry.$contract.$network.$network ?
+							entry.$contract.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(entry.$contract.$network.$network.caip2)
 							:
 								entry.$contract.$network.$network.slug

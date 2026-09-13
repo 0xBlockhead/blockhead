@@ -45,7 +45,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/effect/stellar/[effectId=stringSegment]',
 					{
 						network: (
-							'caip2' in stellarEffectSelector.$network.$network ?
+							stellarEffectSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(stellarEffectSelector.$network.$network.caip2)
 							:
 								stellarEffectSelector.$network.$network.slug

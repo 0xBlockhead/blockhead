@@ -44,7 +44,7 @@
 			entityType={EntityType.LensAccount}
 			entitySelector={lensAccountSelector}
 			href={
-				'address' in lensAccountSelector ?
+				lensAccountSelector.address !== undefined ?
 					resolve(
 						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]',
 						{
@@ -52,7 +52,7 @@
 						}
 					)
 				:
-					'localName' in lensAccountSelector ?
+					lensAccountSelector.localName !== undefined ?
 						resolve(
 							'/lens/account/name/[localName=stringSegment]',
 							{
@@ -60,7 +60,7 @@
 							}
 						)
 					:
-						'legacyProfileId' in lensAccountSelector ?
+						lensAccountSelector.legacyProfileId !== undefined ?
 							resolve(
 								'/lens/account/legacy/[legacyProfileId=stringSegment]',
 								{

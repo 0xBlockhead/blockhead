@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/soroban/contract/[contractId=stringSegment]',
 					{
 						network: (
-							'caip2' in sorobanContractSelector.$network.$network ?
+							sorobanContractSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(sorobanContractSelector.$network.$network.caip2)
 							:
 								sorobanContractSelector.$network.$network.slug

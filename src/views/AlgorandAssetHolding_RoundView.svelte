@@ -40,12 +40,12 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in asset.$network.$network ?
+				asset.$network.$network.caip2 !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/account/[address=stringSegment]/(algorandAccount)/asset/[assetNetwork=networkCaip2]/[assetId=nonNegativeBigInt]/round/[round=nonNegativeBigInt]/[source=stringSegment]',
 						{
 							network: (
-								'caip2' in account.$network.$network ?
+								account.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(account.$network.$network.caip2)
 								:
 									account.$network.$network.slug

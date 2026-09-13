@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/soroban/wasm/[wasmHash=stringSegment]/(sorobanWasm)/ledger/[ledgerSequence=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in wasm.$network.$network ?
+							wasm.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(wasm.$network.$network.caip2)
 							:
 								wasm.$network.$network.slug

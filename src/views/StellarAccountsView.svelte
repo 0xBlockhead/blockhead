@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/stellar/[accountId=stringSegment]',
 					{
 						network: (
-							'caip2' in stellarAccountSelector.$network.$network ?
+							stellarAccountSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(stellarAccountSelector.$network.$network.caip2)
 							:
 								stellarAccountSelector.$network.$network.slug

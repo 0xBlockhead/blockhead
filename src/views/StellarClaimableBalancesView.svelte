@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/claimable-balance/[claimableBalanceId=stringSegment]',
 					{
 						network: (
-							'caip2' in stellarClaimableBalanceSelector.$network.$network ?
+							stellarClaimableBalanceSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(stellarClaimableBalanceSelector.$network.$network.caip2)
 							:
 								stellarClaimableBalanceSelector.$network.$network.slug

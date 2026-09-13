@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token/[tokenId=stringSegment]/(selection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in token.$network ?
+							token.$network.caip2 !== undefined ?
 								caip2StringFromValue(token.$network.caip2)
 							:
 								token.$network.slug

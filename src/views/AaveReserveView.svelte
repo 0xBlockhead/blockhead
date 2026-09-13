@@ -61,7 +61,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/aave-market/[poolAddress=evmAddress]/(aaveMarket)/reserve/[underlyingTokenAddress=evmAddress]',
 				{
 					network: (
-						'caip2' in market.$network ?
+						market.$network.caip2 !== undefined ?
 							caip2StringFromValue(market.$network.caip2)
 						:
 							market.$network.slug

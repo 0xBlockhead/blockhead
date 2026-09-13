@@ -49,7 +49,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/~/quilibrium/connection/[connectionId=stringSegment]/account-state/[accountAddress=stringSegment]',
 					{
 						network: (
-							'caip2' in network ?
+							network.caip2 !== undefined ?
 								caip2StringFromValue(network.caip2)
 							:
 								network.slug

@@ -59,15 +59,15 @@
 	href={
 		href === undefined ?
 			(
-				'source' in selection.entitySelector
-				&& 'slashId' in selection.entitySelector
-				&& '$avs' in selection.entitySelector
-				&& '$operator' in selection.entitySelector ?
+				selection.entitySelector.source !== undefined
+				&& selection.entitySelector.slashId !== undefined
+				&& selection.entitySelector.$avs !== undefined
+				&& operator !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/operator/[operatorAddress=evmAddress]/(eigenLayerOperator)/avs/[avsAddress=evmAddress]/slashing/[source=stringSegment]/[slashId=stringSegment]',
 						{
 							network: (
-								'caip2' in operator.$network ?
+								operator.$network.caip2 !== undefined ?
 									caip2StringFromValue(operator.$network.caip2)
 								:
 									operator.$network.slug

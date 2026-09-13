@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]/(icpCanister)/ledger/(icpLedgerCanister)/account/[owner=stringSegment]/[subaccount=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in icpLedgerAccountTimestampSelector.$ledger.$canister.$network.$network ?
+							icpLedgerAccountTimestampSelector.$ledger.$canister.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(icpLedgerAccountTimestampSelector.$ledger.$canister.$network.$network.caip2)
 							:
 								icpLedgerAccountTimestampSelector.$ledger.$canister.$network.$network.slug

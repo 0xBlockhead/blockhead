@@ -48,7 +48,7 @@
 	href={
 		href === undefined ?
 			(
-				'canonicalRemoteUrl' in selection.entitySelector.$repository ?
+				selection.entitySelector.$repository.canonicalRemoteUrl !== undefined ?
 					resolve(
 						'/git/repository/remote/[canonicalRemoteUrl=absoluteUrl]/(gitRepository)/commit/[commitObjectId=zeroExHex]/path/[path=stringSegment]',
 						{

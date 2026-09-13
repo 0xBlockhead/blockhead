@@ -35,12 +35,12 @@
 			entityType={EntityType.XrplLedger}
 			entitySelector={xrplLedgerSelector}
 			href={
-				'ledgerHash' in xrplLedgerSelector ?
+				xrplLedgerSelector.ledgerHash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/hash/[ledgerHash=stringSegment]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -49,12 +49,12 @@
 						}
 					)
 				:
-					'ledgerIndex' in xrplLedgerSelector ?
+					xrplLedgerSelector.ledgerIndex !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ledger/xrpl/[ledgerIndex=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

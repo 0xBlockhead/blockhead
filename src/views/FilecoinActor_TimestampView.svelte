@@ -63,7 +63,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/actor/[address=stringSegment]/(filecoinActor)/observations/[height=nonNegativeBigInt]/[tipsetKey=stringSegment]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in actor.$network ?
+						actor.$network.caip2 !== undefined ?
 							caip2StringFromValue(actor.$network.caip2)
 						:
 							actor.$network.slug

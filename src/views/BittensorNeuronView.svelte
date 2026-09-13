@@ -43,7 +43,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/subnet/[netuid=nonNegativeInteger]/(bittensorSubnet)/neuron/[uid=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in subnet.$network ?
+						subnet.$network.caip2 !== undefined ?
 							caip2StringFromValue(subnet.$network.caip2)
 						:
 							subnet.$network.slug

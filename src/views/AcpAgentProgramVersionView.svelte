@@ -58,9 +58,9 @@
 	href={
 		href === undefined ?
 			(
-				'version' in selection.entitySelector
-				&& '$program' in selection.entitySelector
-				&& 'registryAgentId' in selection.entitySelector.$program ?
+				selection.entitySelector.version !== undefined
+				&& selection.entitySelector.$program !== undefined
+				&& selection.entitySelector.$program.registryAgentId !== undefined ?
 					resolve(
 						'/(agents)/agents/acp/program/registry/[registryAgentId=stringSegment]/(acpAgentProgram)/version/[version=stringSegment]',
 						{
@@ -69,9 +69,9 @@
 						}
 					)
 				:
-					'$artifact' in selection.entitySelector
-					&& 'digestAlgorithm' in artifact
-					&& 'digest' in artifact ?
+					artifact !== undefined
+					&& artifact.digestAlgorithm !== undefined
+					&& artifact.digest !== undefined ?
 						resolve(
 							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/acp-program-version',
 							{

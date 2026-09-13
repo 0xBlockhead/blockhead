@@ -43,7 +43,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/object/[objectId=stringSegment]/(suiObject)/dynamic-field/[fieldNameHash=stringSegment]/[childObjectId=stringSegment]',
 				{
 					network: (
-						'caip2' in parentObject.$network.$network ?
+						parentObject.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(parentObject.$network.$network.caip2)
 						:
 							parentObject.$network.$network.slug

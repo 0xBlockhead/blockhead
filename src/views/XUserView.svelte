@@ -63,7 +63,7 @@
 	href={
 		href === undefined ?
 			(
-				'id' in selection.entitySelector ?
+				selection.entitySelector.id !== undefined ?
 					resolve(
 						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
 						{
@@ -71,7 +71,7 @@
 						}
 					)
 				:
-					'username' in selection.entitySelector ?
+					selection.entitySelector.username !== undefined ?
 						resolve(
 							'/x/user/@[username=stringSegment]',
 							{

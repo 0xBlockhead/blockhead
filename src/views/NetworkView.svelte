@@ -496,7 +496,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]',
 				{
 					network: (
-						'caip2' in selection.entitySelector ?
+						selection.entitySelector.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.caip2)
 						:
 							selection.entitySelector.slug

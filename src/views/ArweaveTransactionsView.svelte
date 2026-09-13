@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
 					{
 						network: (
-							'caip2' in arweaveTransactionSelector.$network.$network ?
+							arweaveTransactionSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(arweaveTransactionSelector.$network.$network.caip2)
 							:
 								arweaveTransactionSelector.$network.$network.slug

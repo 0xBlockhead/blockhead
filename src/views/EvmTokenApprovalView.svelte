@@ -62,7 +62,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/log/[indexInTransaction=nonNegativeInteger]/(evmLog)/token-approval',
 				{
 					network: (
-						'caip2' in log.$transaction.$network ?
+						log.$transaction.$network.caip2 !== undefined ?
 							caip2StringFromValue(log.$transaction.$network.caip2)
 						:
 							log.$transaction.$network.slug

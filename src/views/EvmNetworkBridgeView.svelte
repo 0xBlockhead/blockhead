@@ -46,12 +46,12 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in selection.entitySelector.$toNetwork ?
+				selection.entitySelector.$toNetwork.caip2 !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/bridges/[toCaip2=networkCaip2]/[url=absoluteUrl]',
 						{
 							network: (
-								'caip2' in fromNetwork ?
+								fromNetwork.caip2 !== undefined ?
 									caip2StringFromValue(fromNetwork.caip2)
 								:
 									fromNetwork.slug

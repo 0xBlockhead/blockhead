@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/transaction/[txHash=stringSegment]',
 					{
 						network: (
-							'caip2' in bnbBeaconTransactionSelector.$network.$network ?
+							bnbBeaconTransactionSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(bnbBeaconTransactionSelector.$network.$network.caip2)
 							:
 								bnbBeaconTransactionSelector.$network.$network.slug

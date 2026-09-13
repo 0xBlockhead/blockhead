@@ -45,7 +45,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/offer/[offerId=stringSegment]',
 					{
 						network: (
-							'caip2' in stellarOfferSelector.$network.$network ?
+							stellarOfferSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(stellarOfferSelector.$network.$network.caip2)
 							:
 								stellarOfferSelector.$network.$network.slug

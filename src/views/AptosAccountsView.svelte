@@ -45,7 +45,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 					{
 						network: (
-							'caip2' in aptosAccountSelector.$network.$network ?
+							aptosAccountSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(aptosAccountSelector.$network.$network.caip2)
 							:
 								aptosAccountSelector.$network.$network.slug

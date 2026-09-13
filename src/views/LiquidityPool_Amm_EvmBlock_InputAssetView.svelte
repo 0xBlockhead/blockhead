@@ -49,7 +49,7 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in observation.$pool.$network ?
+				observation.$pool.$network.caip2 !== undefined ?
 					resolve(
 						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/amm-observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]/(liquidityPoolAmmEvmBlock)/input-asset/[ordinal=nonNegativeInteger]',
 						{

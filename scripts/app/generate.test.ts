@@ -33,6 +33,10 @@ import {
 	type _SourceSelection,
 	rawSnippetReference,
 } from './model.ts'
+import ActivityPubActorSchema from '../../src/schema/ActivityPubActor.ts'
+import type { EntitySelector } from '../../src/schema/$schema.ts'
+
+type ActivityPubActorSelector = EntitySelector<readonly [typeof ActivityPubActorSchema], EntityType.ActivityPubActor>
 
 const parseTestTypeScript = (source: string) => ({
 	sourceFile: ts.createSourceFile('generated.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS),
@@ -5272,6 +5276,79 @@ test('derives EVM account list hrefs from the canonical account route', () => {
 	assert.doesNotMatch(renderGeneratedFile(evmAccountsView), /\/xmtp\/account/)
 })
 
+test('entity href selector guards reject fields whose values are undefined', () => {
+	const actorView = baselineCompiledApp.generatedFiles.find((generatedFile) => (
+		generatedFile.path === 'src/views/ActivityPubActorView.svelte'
+	))
+	assert.ok(actorView)
+	const source = renderGeneratedFile(actorView)
+	const hrefStart = source.indexOf('\thref={\n', source.indexOf('<EntityView'))
+	const hrefEnd = source.indexOf('\n\t{layout}', hrefStart)
+	assert.notEqual(hrefStart, -1)
+	assert.notEqual(hrefEnd, -1)
+	const expression = source.slice(hrefStart + '\thref={'.length, hrefEnd)
+	const javascript = ts.transpileModule(`const generatedHref = (${expression});`, {
+		compilerOptions: {
+			module: ts.ModuleKind.ESNext,
+			target: ts.ScriptTarget.ESNext,
+		},
+	}).outputText
+	const legacyExpression = expression
+		.replaceAll('selection.entitySelector.instanceOrigin !== undefined', "'instanceOrigin' in selection.entitySelector")
+		.replaceAll('selection.entitySelector.localAccountId !== undefined', "'localAccountId' in selection.entitySelector")
+		.replaceAll('selection.entitySelector.acct !== undefined', "'acct' in selection.entitySelector")
+		.replaceAll('selection.entitySelector.activityStreamsUri !== undefined', "'activityStreamsUri' in selection.entitySelector")
+	const legacyJavascript = ts.transpileModule(`const generatedHref = (${legacyExpression});`, {
+		compilerOptions: {
+			module: ts.ModuleKind.ESNext,
+			target: ts.ScriptTarget.ESNext,
+		},
+	}).outputText
+	const evaluateGeneratedHref = (
+		generatedJavascript: string,
+		entitySelector: ActivityPubActorSelector
+	) => (
+		Function('selection', 'resolve', 'href', `${generatedJavascript}\nreturn generatedHref`)(
+			{ entitySelector },
+			(route: string, params: Record<string, string | undefined>) => ({ route, params }),
+			undefined
+		)
+	)
+	const acctSelector: ActivityPubActorSelector = {
+		instanceOrigin: 'https://mastodon.example',
+		acct: 'alice@mastodon.example',
+		localAccountId: undefined,
+		activityStreamsUri: undefined,
+	}
+	assert.deepEqual(evaluateGeneratedHref(javascript, acctSelector), {
+		route: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/@[acct=stringSegment]',
+		params: {
+			instanceOrigin: 'https%3A%2F%2Fmastodon.example',
+			acct: 'alice@mastodon.example',
+		},
+	})
+	assert.deepEqual(evaluateGeneratedHref(legacyJavascript, acctSelector), {
+		route: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
+		params: {
+			instanceOrigin: 'https%3A%2F%2Fmastodon.example',
+			localAccountId: undefined,
+		},
+	})
+	const localAccountSelector: ActivityPubActorSelector = {
+		instanceOrigin: 'https://mastodon.example',
+		localAccountId: 'actor-17',
+		activityStreamsUri: undefined,
+		acct: undefined,
+	}
+	assert.deepEqual(evaluateGeneratedHref(javascript, localAccountSelector), {
+		route: '/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
+		params: {
+			instanceOrigin: 'https%3A%2F%2Fmastodon.example',
+			localAccountId: 'actor-17',
+		},
+	})
+})
+
 test('keeps ActivityPub relation list hrefs scoped to their owning entity', () => {
 	const activityPubActorView = baselineCompiledApp.generatedFiles.find((generatedFile) => (
 		generatedFile.path === 'src/views/ActivityPubActorView.svelte'
@@ -5286,13 +5363,13 @@ test('keeps ActivityPub relation list hrefs scoped to their owning entity', () =
 	const activityPubNoteSource = renderGeneratedFile(activityPubNoteView)
 	assert.match(
 		activityPubActorSource,
-		/'instanceOrigin' in selection\.entitySelector\s*&& 'localAccountId' in selection\.entitySelector \?\s*resolve\([\s\S]*?'\/\(social\)\/\(activitypub\)\/activitypub\/\(globalActivityPubNetwork\)\/actor\/\[instanceOrigin=absoluteUrl\]\/\[localAccountId=stringSegment\]\/\(activityPubActor\)\/notes',[\s\S]*?instanceOrigin: encodeURIComponent\(selection\.entitySelector\.instanceOrigin\),[\s\S]*?localAccountId: selection\.entitySelector\.localAccountId,[\s\S]*?\)\s*:\s*undefined/
+		/selection\.entitySelector\.instanceOrigin !== undefined\s*&& selection\.entitySelector\.localAccountId !== undefined \?\s*resolve\([\s\S]*?'\/\(social\)\/\(activitypub\)\/activitypub\/\(globalActivityPubNetwork\)\/actor\/\[instanceOrigin=absoluteUrl\]\/\[localAccountId=stringSegment\]\/\(activityPubActor\)\/notes',[\s\S]*?instanceOrigin: encodeURIComponent\(selection\.entitySelector\.instanceOrigin\),[\s\S]*?localAccountId: selection\.entitySelector\.localAccountId,[\s\S]*?\)\s*:\s*undefined/
 	)
 	assert.doesNotMatch(activityPubActorSource, /href=\{resolve\('\/activitypub\/notes'\)\}/)
 	assert.doesNotMatch(activityPubActorSource, /resolve\(\s*`/)
 	assert.match(
 		activityPubNoteSource,
-		/'instanceOrigin' in selection\.entitySelector\s*&& 'localStatusId' in selection\.entitySelector \?\s*resolve\([\s\S]*?'\/\(social\)\/\(activitypub\)\/activitypub\/\(globalActivityPubNetwork\)\/note\/\[instanceOrigin=absoluteUrl\]\/\[localStatusId=stringSegment\]\/\(activityPubNote\)\/thread',[\s\S]*?instanceOrigin: encodeURIComponent\(selection\.entitySelector\.instanceOrigin\),[\s\S]*?localStatusId: selection\.entitySelector\.localStatusId,[\s\S]*?\)\s*:\s*undefined/
+		/selection\.entitySelector\.instanceOrigin !== undefined\s*&& selection\.entitySelector\.localStatusId !== undefined \?\s*resolve\([\s\S]*?'\/\(social\)\/\(activitypub\)\/activitypub\/\(globalActivityPubNetwork\)\/note\/\[instanceOrigin=absoluteUrl\]\/\[localStatusId=stringSegment\]\/\(activityPubNote\)\/thread',[\s\S]*?instanceOrigin: encodeURIComponent\(selection\.entitySelector\.instanceOrigin\),[\s\S]*?localStatusId: selection\.entitySelector\.localStatusId,[\s\S]*?\)\s*:\s*undefined/
 	)
 	assert.doesNotMatch(activityPubNoteSource, /href=\{resolve\('\/activitypub\/notes'\)\}/)
 	assert.doesNotMatch(activityPubNoteSource, /resolve\(\s*`/)

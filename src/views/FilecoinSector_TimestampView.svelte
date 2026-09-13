@@ -59,7 +59,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/miner/[minerAddress=stringSegment]/(filecoinMiner)/sector/[sectorNumber=nonNegativeBigInt]/(filecoinSector)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in sector.$miner.$network ?
+						sector.$miner.$network.caip2 !== undefined ?
 							caip2StringFromValue(sector.$miner.$network.caip2)
 						:
 							sector.$miner.$network.slug

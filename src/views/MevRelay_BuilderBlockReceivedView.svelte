@@ -54,7 +54,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mev/relay/[host=stringSegment]/(mevRelay)/received-bid/[slot=nonNegativeInteger]/[blockHash=zeroExHex]/[builderPubkey=stringSegment]/[receivedAtMs=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in relay.$network ?
+						relay.$network.caip2 !== undefined ?
 							caip2StringFromValue(relay.$network.caip2)
 						:
 							relay.$network.slug

@@ -35,13 +35,13 @@
 			entityType={EntityType.TonTrace_Timestamp}
 			entitySelector={tonTraceTimestampSelector}
 			href={
-				'traceId' in trace
-				&& '$network' in trace ?
+				trace.traceId !== undefined
+				&& trace.$network !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trace/[traceId=stringSegment]/[traceSource=stringSegment]/(tonTrace)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{
 							network: (
-								'caip2' in trace.$network ?
+								trace.$network.caip2 !== undefined ?
 									caip2StringFromValue(trace.$network.caip2)
 								:
 									trace.$network.slug

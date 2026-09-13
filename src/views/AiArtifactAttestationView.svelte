@@ -54,10 +54,10 @@
 	href={
 		href === undefined ?
 			(
-				'signatureHashAlgorithm' in selection.entitySelector
-				&& 'signatureHash' in selection.entitySelector
-				&& 'digestAlgorithm' in artifact
-				&& 'digest' in artifact ?
+				selection.entitySelector.signatureHashAlgorithm !== undefined
+				&& selection.entitySelector.signatureHash !== undefined
+				&& artifact.digestAlgorithm !== undefined
+				&& artifact.digest !== undefined ?
 					resolve(
 						'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/attestation/[attestationKind=stringSegment]/signature/[signatureHashAlgorithm=stringSegment]/[signatureHash=stringSegment]',
 						{
@@ -69,9 +69,9 @@
 						}
 					)
 				:
-					'logEntryId' in selection.entitySelector
-					&& 'digestAlgorithm' in artifact
-					&& 'digest' in artifact ?
+					selection.entitySelector.logEntryId !== undefined
+					&& artifact.digestAlgorithm !== undefined
+					&& artifact.digest !== undefined ?
 						resolve(
 							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/attestation/[attestationKind=stringSegment]/log/[logEntryId=stringSegment]',
 							{

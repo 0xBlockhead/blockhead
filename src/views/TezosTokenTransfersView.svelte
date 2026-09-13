@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/token-transfer/[transferId=stringSegment]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in tezosTokenTransferSelector.$network.$network ?
+							tezosTokenTransferSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(tezosTokenTransferSelector.$network.$network.caip2)
 							:
 								tezosTokenTransferSelector.$network.$network.slug

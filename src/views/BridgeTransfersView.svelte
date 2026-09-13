@@ -43,14 +43,14 @@
 			entityType={EntityType.BridgeTransfer}
 			entitySelector={bridgeTransferSelector}
 			href={
-				'source' in bridgeTransferSelector
-				&& 'logIndex' in bridgeTransferSelector
-				&& '$sourceTx' in bridgeTransferSelector ?
+				bridgeTransferSelector.source !== undefined
+				&& bridgeTransferSelector.logIndex !== undefined
+				&& sourceTx !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/bridge-transfer/[source=stringSegment]/[logIndex=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in sourceTx.$network ?
+								sourceTx.$network.caip2 !== undefined ?
 									caip2StringFromValue(sourceTx.$network.caip2)
 								:
 									sourceTx.$network.slug
@@ -61,8 +61,8 @@
 						}
 					)
 				:
-					'originChainId' in bridgeTransferSelector
-					&& 'depositId' in bridgeTransferSelector ?
+					bridgeTransferSelector.originChainId !== undefined
+					&& bridgeTransferSelector.depositId !== undefined ?
 						resolve(
 							'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]',
 							{
@@ -71,8 +71,8 @@
 							}
 						)
 					:
-						'source' in bridgeTransferSelector
-						&& 'transferId' in bridgeTransferSelector ?
+						bridgeTransferSelector.source !== undefined
+						&& bridgeTransferSelector.transferId !== undefined ?
 							resolve(
 								'/~/bridge/transfer/[source=stringSegment]/[transferId=stringSegment]',
 								{

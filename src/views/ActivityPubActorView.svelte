@@ -64,8 +64,8 @@
 	href={
 		href === undefined ?
 			(
-				'instanceOrigin' in selection.entitySelector
-				&& 'localAccountId' in selection.entitySelector ?
+				selection.entitySelector.instanceOrigin !== undefined
+				&& selection.entitySelector.localAccountId !== undefined ?
 					resolve(
 						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]',
 						{
@@ -74,8 +74,8 @@
 						}
 					)
 				:
-					'instanceOrigin' in selection.entitySelector
-					&& 'acct' in selection.entitySelector ?
+					selection.entitySelector.instanceOrigin !== undefined
+					&& selection.entitySelector.acct !== undefined ?
 						resolve(
 							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/@[acct=stringSegment]',
 							{
@@ -84,7 +84,7 @@
 							}
 						)
 					:
-						'activityStreamsUri' in selection.entitySelector ?
+						selection.entitySelector.activityStreamsUri !== undefined ?
 							resolve(
 								'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[activityStreamsUri=stringSegment]',
 								{
@@ -253,8 +253,8 @@
 						countResource={notesResource.count}
 						title='Notes'
 						href={
-							'instanceOrigin' in selection.entitySelector
-							&& 'localAccountId' in selection.entitySelector ?
+							selection.entitySelector.instanceOrigin !== undefined
+							&& selection.entitySelector.localAccountId !== undefined ?
 								resolve(
 									'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/actor/[instanceOrigin=absoluteUrl]/[localAccountId=stringSegment]/(activityPubActor)/notes',
 									{

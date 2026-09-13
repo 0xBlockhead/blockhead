@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/script/[scriptHash=stringSegment]',
 					{
 						network: (
-							'caip2' in tezosMichelsonScriptSelector.$network.$network ?
+							tezosMichelsonScriptSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(tezosMichelsonScriptSelector.$network.$network.caip2)
 							:
 								tezosMichelsonScriptSelector.$network.$network.slug

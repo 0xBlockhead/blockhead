@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/topic/[topicId=stringSegment]/(hederaTopic)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in topic.$network ?
+							topic.$network.caip2 !== undefined ?
 								caip2StringFromValue(topic.$network.caip2)
 							:
 								topic.$network.slug

@@ -49,7 +49,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/channels/[channelId=stringSegment]/(lightningChannel)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]/(lightningChannelTimestamp)/routing-policy/[publicKey=stringSegment]',
 					{
 						network: (
-							'caip2' in channelTimestamp.$channel.$network ?
+							channelTimestamp.$channel.$network.caip2 !== undefined ?
 								caip2StringFromValue(channelTimestamp.$channel.$network.caip2)
 							:
 								channelTimestamp.$channel.$network.slug

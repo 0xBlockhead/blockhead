@@ -42,7 +42,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/offer/[offerId=stringSegment]/(stellarOffer)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in offer.$network.$network ?
+						offer.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(offer.$network.$network.caip2)
 						:
 							offer.$network.$network.slug

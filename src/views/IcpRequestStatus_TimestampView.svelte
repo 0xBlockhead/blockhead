@@ -45,7 +45,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/request/[requestId=stringSegment]/(icpRequestStatus)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in requestStatus.$network.$network ?
+						requestStatus.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(requestStatus.$network.$network.caip2)
 						:
 							requestStatus.$network.$network.slug

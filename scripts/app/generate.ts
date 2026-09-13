@@ -11845,7 +11845,11 @@ const entityPathConditions = (
 				entity.selectors.every((selector) => selector.fields.includes(fieldName)) ?
 					undefined
 				:
-					`${emitTypeScript(fieldName)} in ${pathExpression}`
+					`${fieldExpressionWithOverrides(
+						fieldsExpression,
+						fieldPath.slice(0, index + 1).join('.'),
+						fieldExpressionByName
+					)} !== undefined`
 			)
 		: field.cardinality === EntityFieldCardinality.ZeroOrOne ?
 			`${pathExpression} != null`

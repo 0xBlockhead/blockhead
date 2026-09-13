@@ -55,7 +55,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/oracle/feed/[address=evmAddress]/(oracleFeed)/round/[roundId=nonNegativeBigInt]',
 				{
 					network: (
-						'caip2' in oracleFeed.$network ?
+						oracleFeed.$network.caip2 !== undefined ?
 							caip2StringFromValue(oracleFeed.$network.caip2)
 						:
 							oracleFeed.$network.slug

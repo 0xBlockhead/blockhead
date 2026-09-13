@@ -65,14 +65,14 @@
 	href={
 		href === undefined ?
 			(
-				'fee' in selection.entitySelector
-				&& '$token1' in selection.entitySelector
-				&& '$token0' in selection.entitySelector ?
+				selection.entitySelector.fee !== undefined
+				&& selection.entitySelector.$token1 !== undefined
+				&& token0 !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/uniswap-v3/pool/[token1Address=evmAddress]/[fee=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in token0.$network ?
+								token0.$network.caip2 !== undefined ?
 									caip2StringFromValue(token0.$network.caip2)
 								:
 									token0.$network.slug
@@ -83,9 +83,9 @@
 						}
 					)
 				:
-					'poolAddress' in selection.entitySelector
-					&& '$network' in selection.entitySelector
-					&& 'caip2' in selection.entitySelector.$network ?
+					selection.entitySelector.poolAddress !== undefined
+					&& selection.entitySelector.$network !== undefined
+					&& selection.entitySelector.$network.caip2 !== undefined ?
 						resolve(
 							'/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]',
 							{

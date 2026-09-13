@@ -58,7 +58,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/euler/vault/[vaultAddress=evmAddress]/(eulerEvkVault)/position/[accountAddress=evmAddress]',
 				{
 					network: (
-						'caip2' in vault.$network ?
+						vault.$network.caip2 !== undefined ?
 							caip2StringFromValue(vault.$network.caip2)
 						:
 							vault.$network.slug

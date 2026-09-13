@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/operation-group/[operationHash=stringSegment]/(tezosOperationGroup)/operation/[contentIndex=nonNegativeInteger]/(tezosOperation)/big-map/[bigMapId=nonNegativeBigInt]/[keyHash=stringSegment]',
 					{
 						network: (
-							'caip2' in operation.$operationGroup.$network.$network ?
+							operation.$operationGroup.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(operation.$operationGroup.$network.$network.caip2)
 							:
 								operation.$operationGroup.$network.$network.slug

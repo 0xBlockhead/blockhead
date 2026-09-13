@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/key-image/[inputIndex=nonNegativeInteger]/[keyImage=stringSegment]',
 					{
 						network: (
-							'caip2' in transaction.$network ?
+							transaction.$network.caip2 !== undefined ?
 								caip2StringFromValue(transaction.$network.caip2)
 							:
 								transaction.$network.slug

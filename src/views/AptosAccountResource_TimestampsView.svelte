@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/resource/[resourceType=stringSegment]/(aptosAccountResource)/observation/[ledgerVersion=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in resource.$account.$network.$network ?
+							resource.$account.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(resource.$account.$network.$network.caip2)
 							:
 								resource.$account.$network.$network.slug

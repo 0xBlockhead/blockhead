@@ -54,7 +54,7 @@
 	href={
 		href === undefined ?
 			(
-				'$conversation' in selection.entitySelector ?
+				selection.entitySelector.$conversation !== undefined ?
 					resolve(
 						'/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]/(xmtpConversation)/message/[messageId=stringSegment]',
 						{

@@ -46,7 +46,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/node/[nodeId=nonNegativeInteger]/(hederaNode)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in node.$network ?
+						node.$network.caip2 !== undefined ?
 							caip2StringFromValue(node.$network.caip2)
 						:
 							node.$network.slug

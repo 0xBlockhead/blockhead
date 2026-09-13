@@ -41,7 +41,7 @@
 			entityType={EntityType.A2aMessage}
 			entitySelector={a2aMessageSelector}
 			href={
-				'taskId' in a2aMessageSelector.$task ?
+				a2aMessageSelector.$task.taskId !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/message/[messageId=stringSegment]',
 						{

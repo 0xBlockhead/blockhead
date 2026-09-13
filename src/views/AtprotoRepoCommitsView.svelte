@@ -44,7 +44,7 @@
 			entityType={EntityType.AtprotoRepoCommit}
 			entitySelector={atprotoRepoCommitSelector}
 			href={
-				'rev' in atprotoRepoCommitSelector ?
+				atprotoRepoCommitSelector.rev !== undefined ?
 					resolve(
 						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/repo/[repoDid=stringSegment]/commit/rev/[rev=stringSegment]/[source=stringSegment]',
 						{
@@ -54,7 +54,7 @@
 						}
 					)
 				:
-					'commitCid' in atprotoRepoCommitSelector ?
+					atprotoRepoCommitSelector.commitCid !== undefined ?
 						resolve(
 							'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/repo/[repoDid=stringSegment]/commit/cid/[commitCid=stringSegment]/[source=stringSegment]',
 							{

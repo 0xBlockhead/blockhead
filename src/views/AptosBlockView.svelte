@@ -49,12 +49,12 @@
 	href={
 		href === undefined ?
 			(
-				'height' in selection.entitySelector ?
+				selection.entitySelector.height !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/height/[height=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in selection.entitySelector.$network.$network ?
+								selection.entitySelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
 								:
 									selection.entitySelector.$network.$network.slug
@@ -63,12 +63,12 @@
 						}
 					)
 				:
-					'version' in selection.entitySelector ?
+					selection.entitySelector.version !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/version/[version=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in selection.entitySelector.$network.$network ?
+									selection.entitySelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
 									:
 										selection.entitySelector.$network.$network.slug

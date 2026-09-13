@@ -56,7 +56,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/avs/[avsAddress=evmAddress]/(eigenLayerAvs)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in avs.$network ?
+						avs.$network.caip2 !== undefined ?
 							caip2StringFromValue(avs.$network.caip2)
 						:
 							avs.$network.slug

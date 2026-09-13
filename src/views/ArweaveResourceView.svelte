@@ -52,7 +52,7 @@
 	href={
 		href === undefined ?
 			(
-				'contentPath' in selection.entitySelector ?
+				selection.entitySelector.contentPath !== undefined ?
 					resolve(
 						'/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/path/[...contentPath=stringSegment]',
 						{

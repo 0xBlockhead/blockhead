@@ -42,8 +42,8 @@
 	href={
 		href === undefined ?
 			(
-				'namespace' in selection.entitySelector
-				&& 'localName' in selection.entitySelector ?
+				selection.entitySelector.namespace !== undefined
+				&& selection.entitySelector.localName !== undefined ?
 					resolve(
 						'/lens/username/[namespace=evmAddress]/[localName=stringSegment]',
 						{
@@ -52,7 +52,7 @@
 						}
 					)
 				:
-					'id' in selection.entitySelector ?
+					selection.entitySelector.id !== undefined ?
 						resolve(
 							'/lens/username/id/[id=stringSegment]',
 							{

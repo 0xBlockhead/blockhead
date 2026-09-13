@@ -48,7 +48,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/balancer-pool/[poolId=stringSegment]/(balancerPool)/token/[index=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in pool.$network ?
+							pool.$network.caip2 !== undefined ?
 								caip2StringFromValue(pool.$network.caip2)
 							:
 								pool.$network.slug

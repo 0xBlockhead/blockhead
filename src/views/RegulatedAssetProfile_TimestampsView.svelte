@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/regulated-profile/(regulatedAssetProfile)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in regulatedAssetProfileTimestampSelector.$profile.$assetInstance.$network ?
+							regulatedAssetProfileTimestampSelector.$profile.$assetInstance.$network.caip2 !== undefined ?
 								caip2StringFromValue(regulatedAssetProfileTimestampSelector.$profile.$assetInstance.$network.caip2)
 							:
 								regulatedAssetProfileTimestampSelector.$profile.$assetInstance.$network.slug

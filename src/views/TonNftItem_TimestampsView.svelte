@@ -35,13 +35,13 @@
 			entityType={EntityType.TonNftItem_Timestamp}
 			entitySelector={tonNftItemTimestampSelector}
 			href={
-				'itemAddress' in item
-				&& '$network' in item ?
+				item.itemAddress !== undefined
+				&& item.$network !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-item/[itemAddress=stringSegment]/(tonNftItem)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{
 							network: (
-								'caip2' in item.$network ?
+								item.$network.caip2 !== undefined ?
 									caip2StringFromValue(item.$network.caip2)
 								:
 									item.$network.slug

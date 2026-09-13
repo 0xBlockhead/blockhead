@@ -40,7 +40,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/request/[requestId=stringSegment]',
 					{
 						network: (
-							'caip2' in icpRequestStatusSelector.$network.$network ?
+							icpRequestStatusSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(icpRequestStatusSelector.$network.$network.caip2)
 							:
 								icpRequestStatusSelector.$network.$network.slug

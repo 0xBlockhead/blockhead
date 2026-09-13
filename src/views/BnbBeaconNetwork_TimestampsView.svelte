@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in bnbBeaconNetworkTimestampSelector.$network.$network ?
+							bnbBeaconNetworkTimestampSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(bnbBeaconNetworkTimestampSelector.$network.$network.caip2)
 							:
 								bnbBeaconNetworkTimestampSelector.$network.$network.slug

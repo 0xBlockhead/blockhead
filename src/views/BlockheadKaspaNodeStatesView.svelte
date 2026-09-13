@@ -48,7 +48,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/kaspa/connection/[connectionId=stringSegment]/node-state',
 					{
 						network: (
-							'caip2' in blockheadKaspaNodeStateSelector.$network.$network ?
+							blockheadKaspaNodeStateSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(blockheadKaspaNodeStateSelector.$network.$network.caip2)
 							:
 								blockheadKaspaNodeStateSelector.$network.$network.slug

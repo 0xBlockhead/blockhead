@@ -43,15 +43,15 @@
 			entityType={EntityType.EigenLayerSlashingEvent}
 			entitySelector={eigenLayerSlashingEventSelector}
 			href={
-				'source' in eigenLayerSlashingEventSelector
-				&& 'slashId' in eigenLayerSlashingEventSelector
-				&& '$avs' in eigenLayerSlashingEventSelector
-				&& '$operator' in eigenLayerSlashingEventSelector ?
+				eigenLayerSlashingEventSelector.source !== undefined
+				&& eigenLayerSlashingEventSelector.slashId !== undefined
+				&& eigenLayerSlashingEventSelector.$avs !== undefined
+				&& operator !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/eigenlayer/(eigenLayerProtocol)/operator/[operatorAddress=evmAddress]/(eigenLayerOperator)/avs/[avsAddress=evmAddress]/slashing/[source=stringSegment]/[slashId=stringSegment]',
 						{
 							network: (
-								'caip2' in operator.$network ?
+								operator.$network.caip2 !== undefined ?
 									caip2StringFromValue(operator.$network.caip2)
 								:
 									operator.$network.slug

@@ -40,7 +40,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[address=stringSegment]',
 					{
 						network: (
-							'caip2' in kaspaAddressSelector.$network.$network ?
+							kaspaAddressSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(kaspaAddressSelector.$network.$network.caip2)
 							:
 								kaspaAddressSelector.$network.$network.slug

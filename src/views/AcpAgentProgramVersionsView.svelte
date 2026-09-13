@@ -43,9 +43,9 @@
 			entityType={EntityType.AcpAgentProgramVersion}
 			entitySelector={acpAgentProgramVersionSelector}
 			href={
-				'version' in acpAgentProgramVersionSelector
-				&& '$program' in acpAgentProgramVersionSelector
-				&& 'registryAgentId' in acpAgentProgramVersionSelector.$program ?
+				acpAgentProgramVersionSelector.version !== undefined
+				&& acpAgentProgramVersionSelector.$program !== undefined
+				&& acpAgentProgramVersionSelector.$program.registryAgentId !== undefined ?
 					resolve(
 						'/(agents)/agents/acp/program/registry/[registryAgentId=stringSegment]/(acpAgentProgram)/version/[version=stringSegment]',
 						{
@@ -54,9 +54,9 @@
 						}
 					)
 				:
-					'$artifact' in acpAgentProgramVersionSelector
-					&& 'digestAlgorithm' in artifact
-					&& 'digest' in artifact ?
+					artifact !== undefined
+					&& artifact.digestAlgorithm !== undefined
+					&& artifact.digest !== undefined ?
 						resolve(
 							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/acp-program-version',
 							{

@@ -46,7 +46,7 @@
 	href={
 		href === undefined ?
 			(
-				'repositoryId' in ref.$repository ?
+				ref.$repository.repositoryId !== undefined ?
 					resolve(
 						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/ref/[refName=stringSegment]/(gitRef)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{

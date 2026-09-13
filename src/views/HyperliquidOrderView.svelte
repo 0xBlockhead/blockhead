@@ -38,12 +38,12 @@
 	href={
 		href === undefined ?
 			(
-				'cloid' in selection.entitySelector ?
+				selection.entitySelector.cloid !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/order/client/[cloid=stringSegment]',
 						{
 							network: (
-								'caip2' in account.$network ?
+								account.$network.caip2 !== undefined ?
 									caip2StringFromValue(account.$network.caip2)
 								:
 									account.$network.slug
@@ -53,12 +53,12 @@
 						}
 					)
 				:
-					'oid' in selection.entitySelector ?
+					selection.entitySelector.oid !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/order/id/[oid=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in account.$network ?
+									account.$network.caip2 !== undefined ?
 										caip2StringFromValue(account.$network.caip2)
 									:
 										account.$network.slug

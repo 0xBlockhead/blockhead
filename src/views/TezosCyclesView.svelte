@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/cycle/[cycle=nonNegativeBigInt]',
 					{
 						network: (
-							'caip2' in tezosCycleSelector.$network.$network ?
+							tezosCycleSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(tezosCycleSelector.$network.$network.caip2)
 							:
 								tezosCycleSelector.$network.$network.slug

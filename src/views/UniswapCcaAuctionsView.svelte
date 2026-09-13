@@ -41,7 +41,7 @@
 			entityType={EntityType.UniswapCcaAuction}
 			entitySelector={uniswapCcaAuctionSelector}
 			href={
-				'caip2' in uniswapCcaAuctionSelector.$network ?
+				uniswapCcaAuctionSelector.$network.caip2 !== undefined ?
 					resolve(
 						'/(assets)/uniswap-cca/auction/[chainId=eip155ChainId]/[auctionAddress=evmAddress]',
 						{

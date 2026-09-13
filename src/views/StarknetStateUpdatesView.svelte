@@ -52,7 +52,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(starknet)/state-update/[blockHash=stringSegment]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in starknetStateUpdateSelector.$network.$network ?
+							starknetStateUpdateSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(starknetStateUpdateSelector.$network.$network.caip2)
 							:
 								starknetStateUpdateSelector.$network.$network.slug

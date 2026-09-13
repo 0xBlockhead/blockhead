@@ -42,13 +42,13 @@
 	href={
 		href === undefined ?
 			(
-				'$result' in selection.entitySelector
-				&& 'consensusTimestamp' in selection.entitySelector.$result.$transaction ?
+				selection.entitySelector.$result !== undefined
+				&& selection.entitySelector.$result.$transaction.consensusTimestamp !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/consensus/[consensusTimestamp=stringSegment]/(hederaTransaction)/contract-result/(hederaContractResult)/log/[logIndex=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in selection.entitySelector.$result.$transaction.$network ?
+								selection.entitySelector.$result.$transaction.$network.caip2 !== undefined ?
 									caip2StringFromValue(selection.entitySelector.$result.$transaction.$network.caip2)
 								:
 									selection.entitySelector.$result.$transaction.$network.slug
@@ -58,13 +58,13 @@
 						}
 					)
 				:
-					'consensusTimestamp' in selection.entitySelector
-					&& '$contract' in selection.entitySelector ?
+					selection.entitySelector.consensusTimestamp !== undefined
+					&& contract !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/consensus-log/[consensusTimestamp=stringSegment]/[logIndex=nonNegativeInteger]',
 							{
 								network: (
-									'caip2' in contract.$network ?
+									contract.$network.caip2 !== undefined ?
 										caip2StringFromValue(contract.$network.caip2)
 									:
 										contract.$network.slug

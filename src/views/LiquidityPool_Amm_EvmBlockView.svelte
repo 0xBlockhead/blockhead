@@ -62,7 +62,7 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in pool.$network ?
+				pool.$network.caip2 !== undefined ?
 					resolve(
 						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/amm-observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]',
 						{

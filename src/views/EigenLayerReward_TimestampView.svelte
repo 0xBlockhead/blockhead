@@ -62,7 +62,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/eigenlayer/reward/[rewardContextKey=stringSegment]/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in earner.$network ?
+						earner.$network.caip2 !== undefined ?
 							caip2StringFromValue(earner.$network.caip2)
 						:
 							earner.$network.slug

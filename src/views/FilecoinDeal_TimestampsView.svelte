@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/deal/[dealId=nonNegativeBigInt]/(filecoinDeal)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in deal.$network ?
+							deal.$network.caip2 !== undefined ?
 								caip2StringFromValue(deal.$network.caip2)
 							:
 								deal.$network.slug

@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/native-asset/[policyId=stringSegment]/[assetName=stringSegment]/(cardanoNativeAsset)/observations/[slot=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in asset.$network ?
+							asset.$network.caip2 !== undefined ?
 								caip2StringFromValue(asset.$network.caip2)
 							:
 								asset.$network.slug

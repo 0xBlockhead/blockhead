@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/governance/proposal/[proposalTxHash=stringSegment]/[proposalIndex=nonNegativeInteger]/(cardanoGovernanceProposal)/vote/[voterKind=stringSegment]/[voterCredential=stringSegment]/[voteTxHash=stringSegment]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in proposal.$network ?
+							proposal.$network.caip2 !== undefined ?
 								caip2StringFromValue(proposal.$network.caip2)
 							:
 								proposal.$network.slug

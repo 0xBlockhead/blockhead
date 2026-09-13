@@ -50,7 +50,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/address/[address=stringSegment]/(utxoAddress)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in address.$network ?
+						address.$network.caip2 !== undefined ?
 							caip2StringFromValue(address.$network.caip2)
 						:
 							address.$network.slug

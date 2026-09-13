@@ -49,7 +49,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/storage/[keyBase64=stringSegment]/block/[blockHeight=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in contract.$network ?
+							contract.$network.caip2 !== undefined ?
 								caip2StringFromValue(contract.$network.caip2)
 							:
 								contract.$network.slug

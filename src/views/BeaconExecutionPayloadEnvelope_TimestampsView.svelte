@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope/(beaconExecutionPayloadEnvelope)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in beaconExecutionPayloadEnvelopeTimestampSelector.$envelope.$beaconBlock.$network ?
+							beaconExecutionPayloadEnvelopeTimestampSelector.$envelope.$beaconBlock.$network.caip2 !== undefined ?
 								caip2StringFromValue(beaconExecutionPayloadEnvelopeTimestampSelector.$envelope.$beaconBlock.$network.caip2)
 							:
 								beaconExecutionPayloadEnvelopeTimestampSelector.$envelope.$beaconBlock.$network.slug

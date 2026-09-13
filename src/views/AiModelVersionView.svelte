@@ -64,9 +64,9 @@
 	href={
 		href === undefined ?
 			(
-				'versionId' in selection.entitySelector
-				&& '$model' in selection.entitySelector
-				&& 'providerId' in model.$provider ?
+				selection.entitySelector.versionId !== undefined
+				&& model !== undefined
+				&& model.$provider.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/model/[providerModelId=stringSegment]/(aiModel)/version/[versionId=stringSegment]',
 						{
@@ -76,9 +76,9 @@
 						}
 					)
 				:
-					'$artifact' in selection.entitySelector
-					&& 'digestAlgorithm' in artifact
-					&& 'digest' in artifact ?
+					artifact !== undefined
+					&& artifact.digestAlgorithm !== undefined
+					&& artifact.digest !== undefined ?
 						resolve(
 							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/model-version',
 							{
@@ -87,8 +87,8 @@
 							}
 						)
 					:
-						'huggingFaceRepo' in selection.entitySelector
-						&& 'revision' in selection.entitySelector ?
+						selection.entitySelector.huggingFaceRepo !== undefined
+						&& selection.entitySelector.revision !== undefined ?
 							resolve(
 								'/(ai)/ai/model-version/huggingface/[huggingFaceRepo=stringSegment]/[revision=stringSegment]',
 								{

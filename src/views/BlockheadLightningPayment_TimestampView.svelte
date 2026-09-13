@@ -45,7 +45,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/payments/[paymentHash=stringSegment]/(blockheadLightningPayment)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in payment.$network ?
+						payment.$network.caip2 !== undefined ?
 							caip2StringFromValue(payment.$network.caip2)
 						:
 							payment.$network.slug

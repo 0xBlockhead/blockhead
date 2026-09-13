@@ -65,8 +65,8 @@
 	href={
 		href === undefined ?
 			(
-				'fid' in selection.entitySelector
-				&& 'hash' in selection.entitySelector ?
+				selection.entitySelector.fid !== undefined
+				&& selection.entitySelector.hash !== undefined ?
 					resolve(
 						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
 						{
@@ -75,8 +75,8 @@
 						}
 					)
 				:
-					'username' in selection.entitySelector
-					&& 'hashPrefix' in selection.entitySelector ?
+					selection.entitySelector.username !== undefined
+					&& selection.entitySelector.hashPrefix !== undefined ?
 						resolve(
 							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/c/[fname=stringSegment]/[hash=zeroExHex]',
 							{
@@ -85,7 +85,7 @@
 							}
 						)
 					:
-						'hash' in selection.entitySelector ?
+						selection.entitySelector.hash !== undefined ?
 							resolve(
 								'/farcaster/cast/[hash=zeroExHex]',
 								{
@@ -93,7 +93,7 @@
 								}
 							)
 						:
-							'clientUrl' in selection.entitySelector ?
+							selection.entitySelector.clientUrl !== undefined ?
 								resolve(
 									'/farcaster/cast/client/[clientUrl=stringSegment]',
 									{

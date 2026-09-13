@@ -45,7 +45,7 @@
 	href={
 		href === undefined ?
 			(
-				'address' in selection.entitySelector.$account ?
+				selection.entitySelector.$account.address !== undefined ?
 					resolve(
 						'/(social)/(lens)/lens/(lensNetwork)/account/[address=evmAddress]/(lensAccount)/manager/[manager=evmAddress]',
 						{

@@ -45,9 +45,9 @@
 			entityType={EntityType.AiModelVersion}
 			entitySelector={aiModelVersionSelector}
 			href={
-				'versionId' in aiModelVersionSelector
-				&& '$model' in aiModelVersionSelector
-				&& 'providerId' in model.$provider ?
+				aiModelVersionSelector.versionId !== undefined
+				&& model !== undefined
+				&& model.$provider.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/model/[providerModelId=stringSegment]/(aiModel)/version/[versionId=stringSegment]',
 						{
@@ -57,9 +57,9 @@
 						}
 					)
 				:
-					'$artifact' in aiModelVersionSelector
-					&& 'digestAlgorithm' in artifact
-					&& 'digest' in artifact ?
+					artifact !== undefined
+					&& artifact.digestAlgorithm !== undefined
+					&& artifact.digest !== undefined ?
 						resolve(
 							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/model-version',
 							{
@@ -68,8 +68,8 @@
 							}
 						)
 					:
-						'huggingFaceRepo' in aiModelVersionSelector
-						&& 'revision' in aiModelVersionSelector ?
+						aiModelVersionSelector.huggingFaceRepo !== undefined
+						&& aiModelVersionSelector.revision !== undefined ?
 							resolve(
 								'/(ai)/ai/model-version/huggingface/[huggingFaceRepo=stringSegment]/[revision=stringSegment]',
 								{

@@ -44,9 +44,9 @@
 			entityType={EntityType.BridgeTransfer_Timestamp}
 			entitySelector={bridgeTransferTimestampSelector}
 			href={
-				'eventKind' in bridgeTransferTimestampSelector
-				&& 'source' in transfer
-				&& 'transferId' in transfer ?
+				bridgeTransferTimestampSelector.eventKind !== undefined
+				&& transfer.source !== undefined
+				&& transfer.transferId !== undefined ?
 					resolve(
 						'/~/bridge/transfer/[source=stringSegment]/[transferId=stringSegment]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[observationSource=stringSegment]/[eventKind=bridgeTransferEventKind]',
 						{
@@ -58,8 +58,8 @@
 						}
 					)
 				:
-					'originChainId' in transfer
-					&& 'depositId' in transfer ?
+					transfer.originChainId !== undefined
+					&& transfer.depositId !== undefined ?
 						resolve(
 							'/~/bridge/transfer/across/[originChainId=nonNegativeInteger]/[depositId=nonNegativeInteger]/(bridgeTransfer)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 							{

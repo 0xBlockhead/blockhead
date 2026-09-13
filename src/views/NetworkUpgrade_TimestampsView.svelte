@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/upgrade/id/[upgradeId=stringSegment]/(networkUpgrade)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in upgrade.$network ?
+							upgrade.$network.caip2 !== undefined ?
 								caip2StringFromValue(upgrade.$network.caip2)
 							:
 								upgrade.$network.slug

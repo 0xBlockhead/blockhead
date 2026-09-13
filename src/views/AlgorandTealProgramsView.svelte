@@ -48,7 +48,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/teal-program/[programHash=zeroExHex]',
 					{
 						network: (
-							'caip2' in algorandTealProgramSelector.$network.$network ?
+							algorandTealProgramSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(algorandTealProgramSelector.$network.$network.caip2)
 							:
 								algorandTealProgramSelector.$network.$network.slug

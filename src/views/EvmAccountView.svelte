@@ -55,7 +55,7 @@
 	href={
 		href === undefined ?
 			(
-				'interopAddress' in selection.entitySelector ?
+				selection.entitySelector.interopAddress !== undefined ?
 					resolve(
 						'/evm/account/[address=evmAddress]/interop/[interopAddress=stringSegment]',
 						{

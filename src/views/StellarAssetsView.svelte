@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/asset/[assetKey=stringSegment]',
 					{
 						network: (
-							'caip2' in stellarAssetSelector.$network.$network ?
+							stellarAssetSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(stellarAssetSelector.$network.$network.caip2)
 							:
 								stellarAssetSelector.$network.$network.slug

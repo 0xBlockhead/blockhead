@@ -45,9 +45,9 @@
 			entityType={EntityType.AiDataset}
 			entitySelector={aiDatasetSelector}
 			href={
-				'$artifact' in aiDatasetSelector
-				&& 'digestAlgorithm' in artifact
-				&& 'digest' in artifact ?
+				artifact !== undefined
+				&& artifact.digestAlgorithm !== undefined
+				&& artifact.digest !== undefined ?
 					resolve(
 						'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/dataset',
 						{
@@ -56,9 +56,9 @@
 						}
 					)
 				:
-					'source' in aiDatasetSelector
-					&& 'datasetName' in aiDatasetSelector
-					&& 'datasetDigest' in aiDatasetSelector ?
+					aiDatasetSelector.source !== undefined
+					&& aiDatasetSelector.datasetName !== undefined
+					&& aiDatasetSelector.datasetDigest !== undefined ?
 						resolve(
 							'/(ai)/ai/dataset/source/[source=stringSegment]/[datasetName=stringSegment]/[datasetDigest=stringSegment]',
 							{
@@ -68,8 +68,8 @@
 							}
 						)
 					:
-						'huggingFaceDatasetId' in aiDatasetSelector
-						&& 'revision' in aiDatasetSelector ?
+						aiDatasetSelector.huggingFaceDatasetId !== undefined
+						&& aiDatasetSelector.revision !== undefined ?
 							resolve(
 								'/(ai)/ai/dataset/huggingface/[huggingFaceDatasetId=stringSegment]/[revision=stringSegment]',
 								{
@@ -78,7 +78,7 @@
 								}
 							)
 						:
-							'datasetUri' in aiDatasetSelector ?
+							aiDatasetSelector.datasetUri !== undefined ?
 								resolve(
 									'/(ai)/ai/dataset/uri/[datasetUri=absoluteUrl]',
 									{

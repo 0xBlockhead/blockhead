@@ -43,7 +43,7 @@
 			entityType={EntityType.XUser}
 			entitySelector={xUserSelector}
 			href={
-				'id' in xUserSelector ?
+				xUserSelector.id !== undefined ?
 					resolve(
 						'/(social)/(x)/x/(xNetwork)/user/[userId=stringSegment]',
 						{
@@ -51,7 +51,7 @@
 						}
 					)
 				:
-					'username' in xUserSelector ?
+					xUserSelector.username !== undefined ?
 						resolve(
 							'/x/user/@[username=stringSegment]',
 							{

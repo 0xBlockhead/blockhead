@@ -56,7 +56,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/verification',
 				{
 					network: (
-						'caip2' in contract.$network ?
+						contract.$network.caip2 !== undefined ?
 							caip2StringFromValue(contract.$network.caip2)
 						:
 							contract.$network.slug

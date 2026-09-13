@@ -49,7 +49,7 @@
 			entityType={EntityType.A2aArtifact}
 			entitySelector={a2aArtifactSelector}
 			href={
-				'taskId' in a2aArtifactSelector.$task ?
+				a2aArtifactSelector.$task.taskId !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/artifact/[artifactId=stringSegment]',
 						{

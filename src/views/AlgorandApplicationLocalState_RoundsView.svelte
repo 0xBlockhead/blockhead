@@ -36,12 +36,12 @@
 			entityType={EntityType.AlgorandApplicationLocalState_Round}
 			entitySelector={algorandApplicationLocalStateRoundSelector}
 			href={
-				'caip2' in application.$network.$network ?
+				application.$network.$network.caip2 !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/account/[address=stringSegment]/(algorandAccount)/application/[applicationNetwork=networkCaip2]/[applicationId=nonNegativeBigInt]/round/[round=nonNegativeBigInt]/[source=stringSegment]',
 						{
 							network: (
-								'caip2' in account.$network.$network ?
+								account.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(account.$network.$network.caip2)
 								:
 									account.$network.$network.slug

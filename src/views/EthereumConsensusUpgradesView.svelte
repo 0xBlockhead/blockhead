@@ -42,12 +42,12 @@
 			entityType={EntityType.EthereumConsensusUpgrade}
 			entitySelector={ethereumConsensusUpgradeSelector}
 			href={
-				'slug' in ethereumConsensusUpgradeSelector ?
+				ethereumConsensusUpgradeSelector.slug !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/consensus/[upgradeSlug=stringSegment]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -56,12 +56,12 @@
 						}
 					)
 				:
-					'upgradeId' in ethereumConsensusUpgradeSelector ?
+					ethereumConsensusUpgradeSelector.upgradeId !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ethereum/consensus-upgrade/[upgradeId=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(avail)/submission/[source=stringSegment]/[submissionKey=stringSegment]',
 					{
 						network: (
-							'caip2' in availDataSubmissionSelector.$network.$network ?
+							availDataSubmissionSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(availDataSubmissionSelector.$network.$network.caip2)
 							:
 								availDataSubmissionSelector.$network.$network.slug

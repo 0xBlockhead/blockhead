@@ -37,12 +37,12 @@
 	href={
 		href === undefined ?
 			(
-				'consensusTimestamp' in selection.entitySelector.$result.$transaction ?
+				selection.entitySelector.$result.$transaction.consensusTimestamp !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/consensus/[consensusTimestamp=stringSegment]/(hederaTransaction)/contract-result/(hederaContractResult)/action/[callDepth=nonNegativeInteger]/[callIndex=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in selection.entitySelector.$result.$transaction.$network ?
+								selection.entitySelector.$result.$transaction.$network.caip2 !== undefined ?
 									caip2StringFromValue(selection.entitySelector.$result.$transaction.$network.caip2)
 								:
 									selection.entitySelector.$result.$transaction.$network.slug

@@ -45,7 +45,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/jetton/[masterAddress=stringSegment]/(tonJetton)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in jetton.$network ?
+						jetton.$network.caip2 !== undefined ?
 							caip2StringFromValue(jetton.$network.caip2)
 						:
 							jetton.$network.slug

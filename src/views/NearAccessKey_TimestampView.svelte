@@ -58,7 +58,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/access-key/[publicKey=stringSegment]/(nearAccessKey)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in accessKey.$account.$network ?
+						accessKey.$account.$network.caip2 !== undefined ?
 							caip2StringFromValue(accessKey.$account.$network.caip2)
 						:
 							accessKey.$account.$network.slug

@@ -42,8 +42,8 @@
 			entityType={EntityType.EvmNetworkActorCoinBalance}
 			entitySelector={evmNetworkActorCoinBalanceSelector}
 			href={
-				'$contract' in evmNetworkActorCoinBalanceSelector
-				&& 'caip2' in contract.$network ?
+				contract !== undefined
+				&& contract.$network.caip2 !== undefined ?
 					resolve(
 						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]',
 						{
@@ -53,8 +53,8 @@
 						}
 					)
 				:
-					'$network' in evmNetworkActorCoinBalanceSelector
-					&& 'caip2' in evmNetworkActorCoinBalanceSelector.$network ?
+					evmNetworkActorCoinBalanceSelector.$network !== undefined
+					&& evmNetworkActorCoinBalanceSelector.$network.caip2 !== undefined ?
 						resolve(
 							'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/native',
 							{

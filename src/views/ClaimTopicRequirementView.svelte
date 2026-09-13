@@ -39,7 +39,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/asset/[kind=stringSegment]/[assetKey=stringSegment]/(assetInstance)/regulated-profile/(regulatedAssetProfile)/claim-topic/[topicKey=stringSegment]',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$profile.$assetInstance.$network ?
+						selection.entitySelector.$profile.$assetInstance.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$profile.$assetInstance.$network.caip2)
 						:
 							selection.entitySelector.$profile.$assetInstance.$network.slug

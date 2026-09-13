@@ -44,8 +44,8 @@
 			entityType={EntityType.ActivityPubNote}
 			entitySelector={activityPubNoteSelector}
 			href={
-				'instanceOrigin' in activityPubNoteSelector
-				&& 'localStatusId' in activityPubNoteSelector ?
+				activityPubNoteSelector.instanceOrigin !== undefined
+				&& activityPubNoteSelector.localStatusId !== undefined ?
 					resolve(
 						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
 						{
@@ -54,7 +54,7 @@
 						}
 					)
 				:
-					'activityStreamsUri' in activityPubNoteSelector ?
+					activityPubNoteSelector.activityStreamsUri !== undefined ?
 						resolve(
 							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[activityStreamsUri=stringSegment]',
 							{

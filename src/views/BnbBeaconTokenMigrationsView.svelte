@@ -43,12 +43,12 @@
 			entityType={EntityType.BnbBeaconTokenMigration}
 			entitySelector={bnbBeaconTokenMigrationSelector}
 			href={
-				'slug' in bnbBeaconTokenMigrationSelector.$targetNetwork ?
+				bnbBeaconTokenMigrationSelector.$targetNetwork.slug !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]/(bnbBeaconToken)/migration/[targetNetwork=networkSlug]/[targetAddress=stringSegment]',
 						{
 							network: (
-								'caip2' in token.$network.$network ?
+								token.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(token.$network.$network.caip2)
 								:
 									token.$network.$network.slug

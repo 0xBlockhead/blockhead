@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/coin-type/[coinType=stringSegment]',
 					{
 						network: (
-							'caip2' in suiCoinTypeSelector.$network.$network ?
+							suiCoinTypeSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(suiCoinTypeSelector.$network.$network.caip2)
 							:
 								suiCoinTypeSelector.$network.$network.slug

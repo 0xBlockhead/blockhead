@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(elements)/elements/asset/[assetId=stringSegment]',
 					{
 						network: (
-							'caip2' in elementsAssetSelector.$network.$network ?
+							elementsAssetSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(elementsAssetSelector.$network.$network.caip2)
 							:
 								elementsAssetSelector.$network.$network.slug

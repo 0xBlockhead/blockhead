@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in algorandNetworkTimestampSelector.$network.$network ?
+							algorandNetworkTimestampSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(algorandNetworkTimestampSelector.$network.$network.caip2)
 							:
 								algorandNetworkTimestampSelector.$network.$network.slug

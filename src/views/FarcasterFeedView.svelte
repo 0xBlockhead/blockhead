@@ -50,7 +50,7 @@
 		href === undefined ?
 			(
 				selection.entitySelector.variant === 'byUser'
-				&& 'fid' in selection.entitySelector ?
+				&& selection.entitySelector.fid !== undefined ?
 					resolve(
 						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
 						{
@@ -59,7 +59,7 @@
 					)
 				:
 					selection.entitySelector.variant === 'byChannel'
-					&& 'channelId' in selection.entitySelector ?
+					&& selection.entitySelector.channelId !== undefined ?
 						resolve(
 							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
 							{
@@ -68,7 +68,7 @@
 						)
 					:
 						selection.entitySelector.variant === 'following'
-						&& 'viewerFid' in selection.entitySelector ?
+						&& selection.entitySelector.viewerFid !== undefined ?
 							resolve(
 								'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
 								{
@@ -182,7 +182,7 @@
 						title='Entries'
 						href={
 							selection.entitySelector.variant === 'byUser'
-							&& 'fid' in selection.entitySelector ?
+							&& selection.entitySelector.fid !== undefined ?
 								resolve(
 									'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/user/[userId=farcasterFid]',
 									{
@@ -191,7 +191,7 @@
 								)
 							:
 								selection.entitySelector.variant === 'byChannel'
-								&& 'channelId' in selection.entitySelector ?
+								&& selection.entitySelector.channelId !== undefined ?
 									resolve(
 										'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/channel/[channelId=stringSegment]',
 										{
@@ -200,7 +200,7 @@
 									)
 								:
 									selection.entitySelector.variant === 'following'
-									&& 'viewerFid' in selection.entitySelector ?
+									&& selection.entitySelector.viewerFid !== undefined ?
 										resolve(
 											'/(social)/(farcaster)/farcaster/(farcasterNetwork)/feed/following/[userId=farcasterFid]',
 											{

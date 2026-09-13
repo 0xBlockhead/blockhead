@@ -34,12 +34,12 @@
 			entityType={EntityType.TezosBlock}
 			entitySelector={tezosBlockSelector}
 			href={
-				'hash' in tezosBlockSelector ?
+				tezosBlockSelector.hash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/hash/tezos/[hash=stringSegment]',
 						{
 							network: (
-								'caip2' in tezosBlockSelector.$network.$network ?
+								tezosBlockSelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(tezosBlockSelector.$network.$network.caip2)
 								:
 									tezosBlockSelector.$network.$network.slug
@@ -48,12 +48,12 @@
 						}
 					)
 				:
-					'level' in tezosBlockSelector ?
+					tezosBlockSelector.level !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/level/[level=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in tezosBlockSelector.$network.$network ?
+									tezosBlockSelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(tezosBlockSelector.$network.$network.caip2)
 									:
 										tezosBlockSelector.$network.$network.slug

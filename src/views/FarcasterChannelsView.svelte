@@ -41,7 +41,7 @@
 			entityType={EntityType.FarcasterChannel}
 			entitySelector={farcasterChannelSelector}
 			href={
-				'id' in farcasterChannelSelector ?
+				farcasterChannelSelector.id !== undefined ?
 					resolve(
 						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/channel/[channelId=stringSegment]',
 						{
@@ -49,7 +49,7 @@
 						}
 					)
 				:
-					'parentUrl' in farcasterChannelSelector ?
+					farcasterChannelSelector.parentUrl !== undefined ?
 						resolve(
 							'/farcaster/channel/parent/[parentUrl=stringSegment]',
 							{

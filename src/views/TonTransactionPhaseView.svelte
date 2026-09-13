@@ -43,7 +43,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/transaction/[lt=nonNegativeBigInt]/(tonTransaction)/phase/[phaseKind=stringSegment]',
 				{
 					network: (
-						'caip2' in transaction.$account.$network ?
+						transaction.$account.$network.caip2 !== undefined ?
 							caip2StringFromValue(transaction.$account.$network.caip2)
 						:
 							transaction.$account.$network.slug

@@ -48,7 +48,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/namespace/[namespaceId=stringSegment]/(celestiaNamespace)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in namespace.$network.$network ?
+							namespace.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(namespace.$network.$network.caip2)
 							:
 								namespace.$network.$network.slug

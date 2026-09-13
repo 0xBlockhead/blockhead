@@ -45,7 +45,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/baking-right/[cycle=nonNegativeBigInt]/[level=nonNegativeBigInt]/[rightKind=stringSegment]/[bakerAddress=stringSegment]/[rightSource=stringSegment]/(tezosBakingRight)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in right.$network.$network ?
+						right.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(right.$network.$network.caip2)
 						:
 							right.$network.$network.slug

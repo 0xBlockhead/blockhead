@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/[blockHash=stringSegment]',
 					{
 						network: (
-							'caip2' in kaspaBlockSelector.$network.$network ?
+							kaspaBlockSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(kaspaBlockSelector.$network.$network.caip2)
 							:
 								kaspaBlockSelector.$network.$network.slug

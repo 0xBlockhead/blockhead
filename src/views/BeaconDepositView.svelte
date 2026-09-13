@@ -56,7 +56,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/deposit/[indexInBlock=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in block.$network ?
+						block.$network.caip2 !== undefined ?
 							caip2StringFromValue(block.$network.caip2)
 						:
 							block.$network.slug

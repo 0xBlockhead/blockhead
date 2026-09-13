@@ -44,13 +44,13 @@
 			entityType={EntityType.HederaTransaction}
 			entitySelector={hederaTransactionSelector}
 			href={
-				'transactionId' in hederaTransactionSelector
-				&& 'nonce' in hederaTransactionSelector ?
+				hederaTransactionSelector.transactionId !== undefined
+				&& hederaTransactionSelector.nonce !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/nonce/[nonce=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -60,12 +60,12 @@
 						}
 					)
 				:
-					'consensusTimestamp' in hederaTransactionSelector ?
+					hederaTransactionSelector.consensusTimestamp !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/consensus/[consensusTimestamp=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

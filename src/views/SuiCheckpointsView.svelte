@@ -34,12 +34,12 @@
 			entityType={EntityType.SuiCheckpoint}
 			entitySelector={suiCheckpointSelector}
 			href={
-				'sequence' in suiCheckpointSelector ?
+				suiCheckpointSelector.sequence !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-checkpoint/[sequence=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in suiCheckpointSelector.$network.$network ?
+								suiCheckpointSelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(suiCheckpointSelector.$network.$network.caip2)
 								:
 									suiCheckpointSelector.$network.$network.slug
@@ -48,12 +48,12 @@
 						}
 					)
 				:
-					'digest' in suiCheckpointSelector ?
+					suiCheckpointSelector.digest !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-checkpoint-digest/[digest=stringSegment]',
 							{
 								network: (
-									'caip2' in suiCheckpointSelector.$network.$network ?
+									suiCheckpointSelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(suiCheckpointSelector.$network.$network.caip2)
 									:
 										suiCheckpointSelector.$network.$network.slug

@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/sui-tx/[digest=stringSegment]',
 					{
 						network: (
-							'caip2' in suiTransactionSelector.$network.$network ?
+							suiTransactionSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(suiTransactionSelector.$network.$network.caip2)
 							:
 								suiTransactionSelector.$network.$network.slug

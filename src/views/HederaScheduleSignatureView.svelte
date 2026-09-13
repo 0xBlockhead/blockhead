@@ -45,7 +45,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/schedule/[scheduleId=stringSegment]/(hederaSchedule)/signature/[publicKeyPrefix=stringSegment]',
 				{
 					network: (
-						'caip2' in schedule.$network ?
+						schedule.$network.caip2 !== undefined ?
 							caip2StringFromValue(schedule.$network.caip2)
 						:
 							schedule.$network.slug

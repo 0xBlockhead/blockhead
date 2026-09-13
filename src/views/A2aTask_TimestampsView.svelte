@@ -41,7 +41,7 @@
 			entityType={EntityType.A2aTask_Timestamp}
 			entitySelector={a2aTaskTimestampSelector}
 			href={
-				'taskId' in a2aTaskTimestampSelector.$task ?
+				a2aTaskTimestampSelector.$task.taskId !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{

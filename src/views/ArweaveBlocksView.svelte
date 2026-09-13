@@ -42,12 +42,12 @@
 			entityType={EntityType.ArweaveBlock}
 			entitySelector={arweaveBlockSelector}
 			href={
-				'indepHash' in arweaveBlockSelector ?
+				arweaveBlockSelector.indepHash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/hash/[blockHash=zeroExHexOrStringSegmentOrUtxoTxId]',
 						{
 							network: (
-								'caip2' in arweaveBlockSelector.$network.$network ?
+								arweaveBlockSelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(arweaveBlockSelector.$network.$network.caip2)
 								:
 									arweaveBlockSelector.$network.$network.slug
@@ -56,12 +56,12 @@
 						}
 					)
 				:
-					'height' in arweaveBlockSelector ?
+					arweaveBlockSelector.height !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in arweaveBlockSelector.$network.$network ?
+									arweaveBlockSelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(arweaveBlockSelector.$network.$network.caip2)
 									:
 										arweaveBlockSelector.$network.$network.slug

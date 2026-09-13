@@ -42,7 +42,7 @@
 			entityType={EntityType.XmtpMessage}
 			entitySelector={xmtpMessageSelector}
 			href={
-				'$conversation' in xmtpMessageSelector ?
+				xmtpMessageSelector.$conversation !== undefined ?
 					resolve(
 						'/(social)/(xmtp)/xmtp/(xmtpNetwork)/conversation/[conversationId=stringSegment]/(xmtpConversation)/message/[messageId=stringSegment]',
 						{

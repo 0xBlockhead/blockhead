@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/transaction/stellar/[hash=stringSegment]',
 					{
 						network: (
-							'caip2' in stellarTransactionSelector.$network.$network ?
+							stellarTransactionSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(stellarTransactionSelector.$network.$network.caip2)
 							:
 								stellarTransactionSelector.$network.$network.slug

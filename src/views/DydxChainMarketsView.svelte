@@ -48,7 +48,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(dydx)/market/[ticker=stringSegment]',
 					{
 						network: (
-							'caip2' in dydxChainMarketSelector.$network.$network ?
+							dydxChainMarketSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(dydxChainMarketSelector.$network.$network.caip2)
 							:
 								dydxChainMarketSelector.$network.$network.slug

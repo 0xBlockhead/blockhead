@@ -61,7 +61,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/curve-pool/[poolAddress=evmAddress]/(curvePool)/coin/[coinAddress=evmAddress]',
 				{
 					network: (
-						'caip2' in pool.$network ?
+						pool.$network.caip2 !== undefined ?
 							caip2StringFromValue(pool.$network.caip2)
 						:
 							pool.$network.slug

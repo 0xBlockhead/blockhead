@@ -48,7 +48,7 @@
 	href={
 		href === undefined ?
 			(
-				'registryAgentId' in selection.entitySelector ?
+				selection.entitySelector.registryAgentId !== undefined ?
 					resolve(
 						'/(agents)/agents/acp/program/registry/[registryAgentId=stringSegment]',
 						{
@@ -56,7 +56,7 @@
 						}
 					)
 				:
-					'packageName' in selection.entitySelector ?
+					selection.entitySelector.packageName !== undefined ?
 						resolve(
 							'/(agents)/agents/acp/program/package/[packageName=stringSegment]',
 							{
@@ -64,7 +64,7 @@
 							}
 						)
 					:
-						'repositoryUrl' in selection.entitySelector ?
+						selection.entitySelector.repositoryUrl !== undefined ?
 							resolve(
 								'/(agents)/agents/acp/program/repository/[repositoryUrl=absoluteUrl]',
 								{

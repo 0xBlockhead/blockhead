@@ -54,7 +54,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/compound-comet/[cometAddress=evmAddress]/(compoundComet)/position/[accountAddress=evmAddress]/(compoundPosition)/collateral/[symbol=stringSegment]',
 				{
 					network: (
-						'caip2' in position.$comet.$network ?
+						position.$comet.$network.caip2 !== undefined ?
 							caip2StringFromValue(position.$comet.$network.caip2)
 						:
 							position.$comet.$network.slug

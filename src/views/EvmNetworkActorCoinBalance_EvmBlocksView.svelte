@@ -45,9 +45,9 @@
 			entityType={EntityType.EvmNetworkActorCoinBalance_EvmBlock}
 			entitySelector={evmNetworkActorCoinBalanceEvmBlockSelector}
 			href={
-				'blockNumber' in evmNetworkActorCoinBalanceEvmBlockSelector.$block
-				&& '$network' in actorCoin
-				&& 'caip2' in actorCoin.$network ?
+				evmNetworkActorCoinBalanceEvmBlockSelector.$block.blockNumber !== undefined
+				&& actorCoin.$network !== undefined
+				&& actorCoin.$network.caip2 !== undefined ?
 					resolve(
 						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/native/(evmNetworkActorCoinBalance)/block/[blockNumber=nonNegativeBigInt]',
 						{

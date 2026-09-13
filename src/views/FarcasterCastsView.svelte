@@ -42,8 +42,8 @@
 			entityType={EntityType.FarcasterCast}
 			entitySelector={farcasterCastSelector}
 			href={
-				'fid' in farcasterCastSelector
-				&& 'hash' in farcasterCastSelector ?
+				farcasterCastSelector.fid !== undefined
+				&& farcasterCastSelector.hash !== undefined ?
 					resolve(
 						'/(social)/(farcaster)/farcaster/(farcasterNetwork)/cast/[fid=farcasterFid]/[hash=zeroExHex]',
 						{
@@ -52,8 +52,8 @@
 						}
 					)
 				:
-					'username' in farcasterCastSelector
-					&& 'hashPrefix' in farcasterCastSelector ?
+					farcasterCastSelector.username !== undefined
+					&& farcasterCastSelector.hashPrefix !== undefined ?
 						resolve(
 							'/(social)/(farcaster)/farcaster/(farcasterNetwork)/c/[fname=stringSegment]/[hash=zeroExHex]',
 							{
@@ -62,7 +62,7 @@
 							}
 						)
 					:
-						'hash' in farcasterCastSelector ?
+						farcasterCastSelector.hash !== undefined ?
 							resolve(
 								'/farcaster/cast/[hash=zeroExHex]',
 								{
@@ -70,7 +70,7 @@
 								}
 							)
 						:
-							'clientUrl' in farcasterCastSelector ?
+							farcasterCastSelector.clientUrl !== undefined ?
 								resolve(
 									'/farcaster/cast/client/[clientUrl=stringSegment]',
 									{

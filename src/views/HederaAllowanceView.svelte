@@ -51,13 +51,13 @@
 	href={
 		href === undefined ?
 			(
-				'tokenId' in selection.entitySelector
-				&& 'serialNumber' in selection.entitySelector ?
+				selection.entitySelector.tokenId !== undefined
+				&& selection.entitySelector.serialNumber !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/allowance/nft/[tokenId=stringSegment]/[serialNumber=nonNegativeBigInt]/spender/[spenderAccountId=stringSegment]/[allowanceKind=stringSegment]',
 						{
 							network: (
-								'caip2' in owner.$network ?
+								owner.$network.caip2 !== undefined ?
 									caip2StringFromValue(owner.$network.caip2)
 								:
 									owner.$network.slug
@@ -70,12 +70,12 @@
 						}
 					)
 				:
-					'tokenId' in selection.entitySelector ?
+					selection.entitySelector.tokenId !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/allowance/token/[tokenId=stringSegment]/spender/[spenderAccountId=stringSegment]/[allowanceKind=stringSegment]',
 							{
 								network: (
-									'caip2' in owner.$network ?
+									owner.$network.caip2 !== undefined ?
 										caip2StringFromValue(owner.$network.caip2)
 									:
 										owner.$network.slug
@@ -91,7 +91,7 @@
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/allowance/spender/[spenderAccountId=stringSegment]/[allowanceKind=stringSegment]',
 							{
 								network: (
-									'caip2' in owner.$network ?
+									owner.$network.caip2 !== undefined ?
 										caip2StringFromValue(owner.$network.caip2)
 									:
 										owner.$network.slug

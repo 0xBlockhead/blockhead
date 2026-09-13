@@ -41,14 +41,14 @@
 	href={
 		href === undefined ?
 			(
-				'workchain' in selection.entitySelector
-				&& 'shardPrefix' in selection.entitySelector
-				&& 'seqno' in selection.entitySelector ?
+				selection.entitySelector.workchain !== undefined
+				&& selection.entitySelector.shardPrefix !== undefined
+				&& selection.entitySelector.seqno !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/[workchain=integer]/[shardPrefix=stringSegment]/[seqno=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -59,13 +59,13 @@
 						}
 					)
 				:
-					'rootHash' in selection.entitySelector
-					&& 'fileHash' in selection.entitySelector ?
+					selection.entitySelector.rootHash !== undefined
+					&& selection.entitySelector.fileHash !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/hash/[rootHash=stringSegment]/[fileHash=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

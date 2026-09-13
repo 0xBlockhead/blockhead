@@ -43,7 +43,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$lightningNetwork.$network ?
+						selection.entitySelector.$lightningNetwork.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$lightningNetwork.$network.caip2)
 						:
 							selection.entitySelector.$lightningNetwork.$network.slug

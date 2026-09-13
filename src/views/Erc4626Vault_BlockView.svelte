@@ -50,7 +50,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/erc-4626/(erc4626Vault)/block/[blockNumber=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$vault.$contract.$network ?
+						selection.entitySelector.$vault.$contract.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$vault.$contract.$network.caip2)
 						:
 							selection.entitySelector.$vault.$contract.$network.slug

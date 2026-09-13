@@ -56,7 +56,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope',
 					{
 						network: (
-							'caip2' in beaconBlock.$network ?
+							beaconBlock.$network.caip2 !== undefined ?
 								caip2StringFromValue(beaconBlock.$network.caip2)
 							:
 								beaconBlock.$network.slug

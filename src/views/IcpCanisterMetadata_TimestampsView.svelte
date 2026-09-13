@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]/(icpCanister)/metadata/[metadataName=stringSegment]/(icpCanisterMetadata)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in metadata.$canister.$network.$network ?
+							metadata.$canister.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(metadata.$canister.$network.$network.caip2)
 							:
 								metadata.$canister.$network.$network.slug

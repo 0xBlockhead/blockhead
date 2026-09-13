@@ -59,12 +59,12 @@
 	href={
 		href === undefined ?
 			(
-				'version' in selection.entitySelector ?
+				selection.entitySelector.version !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/version/[version=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in selection.entitySelector.$network.$network ?
+								selection.entitySelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
 								:
 									selection.entitySelector.$network.$network.slug
@@ -73,12 +73,12 @@
 						}
 					)
 				:
-					'hash' in selection.entitySelector ?
+					selection.entitySelector.hash !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
 							{
 								network: (
-									'caip2' in selection.entitySelector.$network.$network ?
+									selection.entitySelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
 									:
 										selection.entitySelector.$network.$network.slug

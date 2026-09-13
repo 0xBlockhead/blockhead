@@ -60,7 +60,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/mweb/(litecoinMwebBlock)/transaction/[transactionIndex=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$mwebBlock.$block.$network ?
+						selection.entitySelector.$mwebBlock.$block.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$mwebBlock.$block.$network.caip2)
 						:
 							selection.entitySelector.$mwebBlock.$block.$network.slug

@@ -57,7 +57,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/morpho-vault/[vaultAddress=evmAddress]/(morphoVault)/position/[accountAddress=evmAddress]',
 				{
 					network: (
-						'caip2' in vault.$network ?
+						vault.$network.caip2 !== undefined ?
 							caip2StringFromValue(vault.$network.caip2)
 						:
 							vault.$network.slug

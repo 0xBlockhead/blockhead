@@ -42,10 +42,10 @@
 			entityType={EntityType.AiDocument}
 			entitySelector={aiDocumentSelector}
 			href={
-				'documentKind' in aiDocumentSelector
-				&& '$artifact' in aiDocumentSelector
-				&& 'digestAlgorithm' in artifact
-				&& 'digest' in artifact ?
+				aiDocumentSelector.documentKind !== undefined
+				&& artifact !== undefined
+				&& artifact.digestAlgorithm !== undefined
+				&& artifact.digest !== undefined ?
 					resolve(
 						'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/document/[documentKind=stringSegment]',
 						{
@@ -55,9 +55,9 @@
 						}
 					)
 				:
-					'documentKind' in aiDocumentSelector
-					&& 'contentHashAlgorithm' in aiDocumentSelector
-					&& 'contentHash' in aiDocumentSelector ?
+					aiDocumentSelector.documentKind !== undefined
+					&& aiDocumentSelector.contentHashAlgorithm !== undefined
+					&& aiDocumentSelector.contentHash !== undefined ?
 						resolve(
 							'/(ai)/ai/document/[documentKind=stringSegment]/hash/[contentHashAlgorithm=stringSegment]/[contentHash=zeroExHex]',
 							{
@@ -67,7 +67,7 @@
 							}
 						)
 					:
-						'documentUrl' in aiDocumentSelector ?
+						aiDocumentSelector.documentUrl !== undefined ?
 							resolve(
 								'/(ai)/ai/document/url/[documentUrl=absoluteUrl]',
 								{

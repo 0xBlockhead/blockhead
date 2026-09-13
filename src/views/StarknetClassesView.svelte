@@ -48,7 +48,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/class/[classHash=stringSegment]',
 					{
 						network: (
-							'caip2' in starknetClassSelector.$network.$network ?
+							starknetClassSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(starknetClassSelector.$network.$network.caip2)
 							:
 								starknetClassSelector.$network.$network.slug

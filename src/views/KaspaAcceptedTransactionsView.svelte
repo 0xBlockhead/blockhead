@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/[blockHash=stringSegment]/(kaspaBlock)/accepted-transaction/[transactionId=stringSegment]',
 					{
 						network: (
-							'caip2' in acceptingBlock.$network.$network ?
+							acceptingBlock.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(acceptingBlock.$network.$network.caip2)
 							:
 								acceptingBlock.$network.$network.slug

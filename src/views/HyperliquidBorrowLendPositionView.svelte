@@ -60,7 +60,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/borrow-lend/[tokenIndex=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in account.$network ?
+						account.$network.caip2 !== undefined ?
 							caip2StringFromValue(account.$network.caip2)
 						:
 							account.$network.slug

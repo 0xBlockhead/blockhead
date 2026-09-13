@@ -41,7 +41,7 @@
 			entityType={EntityType.AiDocumentClaim}
 			entitySelector={aiDocumentClaimSelector}
 			href={
-				'documentUrl' in aiDocumentClaimSelector.$document ?
+				aiDocumentClaimSelector.$document.documentUrl !== undefined ?
 					resolve(
 						'/(ai)/ai/document/url/[documentUrl=absoluteUrl]/(aiDocument)/claim/[extractorId=stringSegment]/[claimPath=stringSegment]',
 						{

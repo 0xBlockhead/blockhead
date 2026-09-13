@@ -50,7 +50,7 @@
 	href={
 		href === undefined ?
 			(
-				'did' in selection.entitySelector.$actor ?
+				selection.entitySelector.$actor.did !== undefined ?
 					resolve(
 						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{

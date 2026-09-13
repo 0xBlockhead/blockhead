@@ -43,8 +43,8 @@
 			entityType={EntityType.LensUsername}
 			entitySelector={lensUsernameSelector}
 			href={
-				'namespace' in lensUsernameSelector
-				&& 'localName' in lensUsernameSelector ?
+				lensUsernameSelector.namespace !== undefined
+				&& lensUsernameSelector.localName !== undefined ?
 					resolve(
 						'/lens/username/[namespace=evmAddress]/[localName=stringSegment]',
 						{
@@ -53,7 +53,7 @@
 						}
 					)
 				:
-					'id' in lensUsernameSelector ?
+					lensUsernameSelector.id !== undefined ?
 						resolve(
 							'/lens/username/id/[id=stringSegment]',
 							{

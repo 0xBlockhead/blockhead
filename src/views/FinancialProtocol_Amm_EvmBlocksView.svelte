@@ -48,7 +48,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/financial-protocol/[protocolKey=stringSegment]/(financialProtocol)/amm-observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]',
 					{
 						network: (
-							'caip2' in protocol.$network ?
+							protocol.$network.caip2 !== undefined ?
 								caip2StringFromValue(protocol.$network.caip2)
 							:
 								protocol.$network.slug

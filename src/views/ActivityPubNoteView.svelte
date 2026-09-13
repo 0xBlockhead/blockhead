@@ -80,8 +80,8 @@
 	href={
 		href === undefined ?
 			(
-				'instanceOrigin' in selection.entitySelector
-				&& 'localStatusId' in selection.entitySelector ?
+				selection.entitySelector.instanceOrigin !== undefined
+				&& selection.entitySelector.localStatusId !== undefined ?
 					resolve(
 						'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]',
 						{
@@ -90,7 +90,7 @@
 						}
 					)
 				:
-					'activityStreamsUri' in selection.entitySelector ?
+					selection.entitySelector.activityStreamsUri !== undefined ?
 						resolve(
 							'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[activityStreamsUri=stringSegment]',
 							{
@@ -389,8 +389,8 @@
 				<ActivityPubNotesView
 					selection={selection.$$thread}
 					href={
-						'instanceOrigin' in selection.entitySelector
-						&& 'localStatusId' in selection.entitySelector ?
+						selection.entitySelector.instanceOrigin !== undefined
+						&& selection.entitySelector.localStatusId !== undefined ?
 							resolve(
 								'/(social)/(activitypub)/activitypub/(globalActivityPubNetwork)/note/[instanceOrigin=absoluteUrl]/[localStatusId=stringSegment]/(activityPubNote)/thread',
 								{

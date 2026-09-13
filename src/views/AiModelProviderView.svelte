@@ -50,7 +50,7 @@
 	href={
 		href === undefined ?
 			(
-				'providerId' in selection.entitySelector ?
+				selection.entitySelector.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]',
 						{
@@ -58,7 +58,7 @@
 						}
 					)
 				:
-					'domain' in selection.entitySelector ?
+					selection.entitySelector.domain !== undefined ?
 						resolve(
 							'/(ai)/ai/provider/domain/[domain=stringSegment]',
 							{

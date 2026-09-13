@@ -51,12 +51,12 @@
 	href={
 		href === undefined ?
 			(
-				'height' in selection.entitySelector ?
+				selection.entitySelector.height !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/block-height/[height=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in selection.entitySelector.$network.$network ?
+								selection.entitySelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
 								:
 									selection.entitySelector.$network.$network.slug
@@ -65,12 +65,12 @@
 						}
 					)
 				:
-					'hash' in selection.entitySelector ?
+					selection.entitySelector.hash !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/celestia/block-hash/[hash=stringSegment]',
 							{
 								network: (
-									'caip2' in selection.entitySelector.$network.$network ?
+									selection.entitySelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
 									:
 										selection.entitySelector.$network.$network.slug

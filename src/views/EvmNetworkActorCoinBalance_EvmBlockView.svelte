@@ -53,9 +53,9 @@
 	href={
 		href === undefined ?
 			(
-				'blockNumber' in selection.entitySelector.$block
-				&& '$network' in actorCoin
-				&& 'caip2' in actorCoin.$network ?
+				selection.entitySelector.$block.blockNumber !== undefined
+				&& actorCoin.$network !== undefined
+				&& actorCoin.$network.caip2 !== undefined ?
 					resolve(
 						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/native/(evmNetworkActorCoinBalance)/block/[blockNumber=nonNegativeBigInt]',
 						{

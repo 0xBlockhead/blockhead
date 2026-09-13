@@ -44,7 +44,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/contract/[address=stringSegment]/(tronContract)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in contract.$network ?
+						contract.$network.caip2 !== undefined ?
 							caip2StringFromValue(contract.$network.caip2)
 						:
 							contract.$network.slug

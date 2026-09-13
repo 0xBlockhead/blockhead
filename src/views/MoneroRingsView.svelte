@@ -45,7 +45,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/key-image/[inputIndex=nonNegativeInteger]/[keyImage=stringSegment]/(moneroKeyImage)/ring',
 					{
 						network: (
-							'caip2' in keyImage.$transaction.$network ?
+							keyImage.$transaction.$network.caip2 !== undefined ?
 								caip2StringFromValue(keyImage.$transaction.$network.caip2)
 							:
 								keyImage.$transaction.$network.slug

@@ -46,7 +46,7 @@
 			entityType={EntityType.BlockheadAgentConversationTurn}
 			entitySelector={blockheadAgentConversationTurnSelector}
 			href={
-				'$conversation' in blockheadAgentConversationTurnSelector ?
+				blockheadAgentConversationTurnSelector.$conversation !== undefined ?
 					resolve(
 						'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]',
 						{

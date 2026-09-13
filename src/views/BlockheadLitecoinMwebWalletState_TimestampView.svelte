@@ -57,7 +57,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/~/litecoin-mweb/wallet/[walletId=stringSegment]/state/(blockheadLitecoinMwebWalletState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in walletState.$network ?
+						walletState.$network.caip2 !== undefined ?
 							caip2StringFromValue(walletState.$network.caip2)
 						:
 							walletState.$network.slug

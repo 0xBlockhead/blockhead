@@ -45,7 +45,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/nft-collection/[collectionAddress=stringSegment]/(tonNftCollection)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in collection.$network ?
+						collection.$network.caip2 !== undefined ?
 							caip2StringFromValue(collection.$network.caip2)
 						:
 							collection.$network.slug

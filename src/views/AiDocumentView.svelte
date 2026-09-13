@@ -61,10 +61,10 @@
 	href={
 		href === undefined ?
 			(
-				'documentKind' in selection.entitySelector
-				&& '$artifact' in selection.entitySelector
-				&& 'digestAlgorithm' in artifact
-				&& 'digest' in artifact ?
+				selection.entitySelector.documentKind !== undefined
+				&& artifact !== undefined
+				&& artifact.digestAlgorithm !== undefined
+				&& artifact.digest !== undefined ?
 					resolve(
 						'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/document/[documentKind=stringSegment]',
 						{
@@ -74,9 +74,9 @@
 						}
 					)
 				:
-					'documentKind' in selection.entitySelector
-					&& 'contentHashAlgorithm' in selection.entitySelector
-					&& 'contentHash' in selection.entitySelector ?
+					selection.entitySelector.documentKind !== undefined
+					&& selection.entitySelector.contentHashAlgorithm !== undefined
+					&& selection.entitySelector.contentHash !== undefined ?
 						resolve(
 							'/(ai)/ai/document/[documentKind=stringSegment]/hash/[contentHashAlgorithm=stringSegment]/[contentHash=zeroExHex]',
 							{
@@ -86,7 +86,7 @@
 							}
 						)
 					:
-						'documentUrl' in selection.entitySelector ?
+						selection.entitySelector.documentUrl !== undefined ?
 							resolve(
 								'/(ai)/ai/document/url/[documentUrl=absoluteUrl]',
 								{

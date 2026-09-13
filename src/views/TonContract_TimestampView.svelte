@@ -43,7 +43,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/contract/(tonContract)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$contract.$account.$network ?
+						selection.entitySelector.$contract.$account.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$contract.$account.$network.caip2)
 						:
 							selection.entitySelector.$contract.$account.$network.slug

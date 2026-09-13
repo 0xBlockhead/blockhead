@@ -42,7 +42,7 @@
 			entityType={EntityType.GitRemote}
 			entitySelector={gitRemoteSelector}
 			href={
-				'repositoryId' in gitRemoteSelector.$repository ?
+				gitRemoteSelector.$repository.repositoryId !== undefined ?
 					resolve(
 						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/remote/[remoteName=stringSegment]',
 						{

@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/token/[symbol=stringSegment]',
 					{
 						network: (
-							'caip2' in bnbBeaconTokenSelector.$network.$network ?
+							bnbBeaconTokenSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(bnbBeaconTokenSelector.$network.$network.caip2)
 							:
 								bnbBeaconTokenSelector.$network.$network.slug

@@ -39,7 +39,7 @@
 			entityType={EntityType.EvmAccount}
 			entitySelector={evmAccountSelector}
 			href={
-				'interopAddress' in evmAccountSelector ?
+				evmAccountSelector.interopAddress !== undefined ?
 					resolve(
 						'/evm/account/[address=evmAddress]/interop/[interopAddress=stringSegment]',
 						{

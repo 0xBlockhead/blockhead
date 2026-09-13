@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/contract/tezos/[address=stringSegment]/(tezosContract)/big-map/[bigMapId=nonNegativeBigInt]/(tezosBigMap)/key/[keyHash=stringSegment]/(tezosBigMapKey)/level/[level=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in bigMapKey.$bigMap.$contract.$network.$network ?
+							bigMapKey.$bigMap.$contract.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(bigMapKey.$bigMap.$contract.$network.$network.caip2)
 							:
 								bigMapKey.$bigMap.$contract.$network.$network.slug

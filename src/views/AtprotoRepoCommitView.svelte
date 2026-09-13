@@ -42,7 +42,7 @@
 	href={
 		href === undefined ?
 			(
-				'rev' in selection.entitySelector ?
+				selection.entitySelector.rev !== undefined ?
 					resolve(
 						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/repo/[repoDid=stringSegment]/commit/rev/[rev=stringSegment]/[source=stringSegment]',
 						{
@@ -52,7 +52,7 @@
 						}
 					)
 				:
-					'commitCid' in selection.entitySelector ?
+					selection.entitySelector.commitCid !== undefined ?
 						resolve(
 							'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/repo/[repoDid=stringSegment]/commit/cid/[commitCid=stringSegment]/[source=stringSegment]',
 							{

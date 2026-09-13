@@ -56,7 +56,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(blocks)/block/[blockNumber=nonNegativeBigInt]/(selection)/aux-pow/(dogecoinBlockAuxPow)/parent-block-header',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$auxPow.$block.$network ?
+						selection.entitySelector.$auxPow.$block.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$auxPow.$block.$network.caip2)
 						:
 							selection.entitySelector.$auxPow.$block.$network.slug

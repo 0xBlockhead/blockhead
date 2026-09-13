@@ -44,7 +44,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/trustline/[account=stringSegment]/[currency=stringSegment]/[issuer=stringSegment]/(xrplTrustline)/observations/[ledgerIndex=nonNegativeBigInt]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in trustline.$network ?
+						trustline.$network.caip2 !== undefined ?
 							caip2StringFromValue(trustline.$network.caip2)
 						:
 							trustline.$network.slug

@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/~/lightning/connection/[connectionId=stringSegment]/node-state',
 					{
 						network: (
-							'caip2' in blockheadLightningNodeStateSelector.$network.$network ?
+							blockheadLightningNodeStateSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(blockheadLightningNodeStateSelector.$network.$network.caip2)
 							:
 								blockheadLightningNodeStateSelector.$network.$network.slug

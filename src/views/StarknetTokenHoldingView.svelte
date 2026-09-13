@@ -44,7 +44,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/starknet-token/[tokenAddress=stringSegment]',
 				{
 					network: (
-						'caip2' in owner.$network.$network ?
+						owner.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(owner.$network.$network.caip2)
 						:
 							owner.$network.$network.slug

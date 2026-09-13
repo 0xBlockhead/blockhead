@@ -44,7 +44,7 @@
 			entityType={EntityType.BlockheadBridgeTransaction}
 			entitySelector={blockheadBridgeTransactionSelector}
 			href={
-				'caip2' in sourceTx.$network ?
+				sourceTx.$network.caip2 !== undefined ?
 					resolve(
 						'/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash=stringSegment]/[createdAt=nonNegativeInteger]',
 						{

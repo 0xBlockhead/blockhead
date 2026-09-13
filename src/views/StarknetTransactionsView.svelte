@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/transaction/starknet/[transactionHash=stringSegment]',
 					{
 						network: (
-							'caip2' in starknetTransactionSelector.$network.$network ?
+							starknetTransactionSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(starknetTransactionSelector.$network.$network.caip2)
 							:
 								starknetTransactionSelector.$network.$network.slug

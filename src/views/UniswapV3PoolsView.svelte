@@ -48,14 +48,14 @@
 			entityType={EntityType.UniswapV3Pool}
 			entitySelector={uniswapV3PoolSelector}
 			href={
-				'fee' in uniswapV3PoolSelector
-				&& '$token1' in uniswapV3PoolSelector
-				&& '$token0' in uniswapV3PoolSelector ?
+				uniswapV3PoolSelector.fee !== undefined
+				&& uniswapV3PoolSelector.$token1 !== undefined
+				&& token0 !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(contracts)/contract/[address=evmAddressOrStringSegment]/(selection)/uniswap-v3/pool/[token1Address=evmAddress]/[fee=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in token0.$network ?
+								token0.$network.caip2 !== undefined ?
 									caip2StringFromValue(token0.$network.caip2)
 								:
 									token0.$network.slug
@@ -66,9 +66,9 @@
 						}
 					)
 				:
-					'poolAddress' in uniswapV3PoolSelector
-					&& '$network' in uniswapV3PoolSelector
-					&& 'caip2' in uniswapV3PoolSelector.$network ?
+					uniswapV3PoolSelector.poolAddress !== undefined
+					&& uniswapV3PoolSelector.$network !== undefined
+					&& uniswapV3PoolSelector.$network.caip2 !== undefined ?
 						resolve(
 							'/(assets)/uniswap-v3/pool/[chainId=eip155ChainId]/[poolAddress=evmAddress]',
 							{

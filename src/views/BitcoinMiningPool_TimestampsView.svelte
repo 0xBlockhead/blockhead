@@ -51,7 +51,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/mining-pool/[slug=stringSegment]/(bitcoinMiningPool)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in pool.$network ?
+							pool.$network.caip2 !== undefined ?
 								caip2StringFromValue(pool.$network.caip2)
 							:
 								pool.$network.slug

@@ -61,7 +61,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope/(beaconExecutionPayloadEnvelope)/withdrawal-request/[indexInEnvelope=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in beaconExecutionWithdrawalRequestSelector.$envelope.$beaconBlock.$network ?
+							beaconExecutionWithdrawalRequestSelector.$envelope.$beaconBlock.$network.caip2 !== undefined ?
 								caip2StringFromValue(beaconExecutionWithdrawalRequestSelector.$envelope.$beaconBlock.$network.caip2)
 							:
 								beaconExecutionWithdrawalRequestSelector.$envelope.$beaconBlock.$network.slug

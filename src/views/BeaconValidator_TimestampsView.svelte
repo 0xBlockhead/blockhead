@@ -42,12 +42,12 @@
 			entityType={EntityType.BeaconValidator_Timestamp}
 			entitySelector={beaconValidatorTimestampSelector}
 			href={
-				'indexInNetwork' in validator ?
+				validator.indexInNetwork !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/validator/[validatorId=nonNegativeIntegerOrSolanaPubkeyOrStringSegment]/(selection)/observations/[slot=nonNegativeInteger]/[source=stringSegment]',
 						{
 							network: (
-								'caip2' in validator.$network ?
+								validator.$network.caip2 !== undefined ?
 									caip2StringFromValue(validator.$network.caip2)
 								:
 									validator.$network.slug

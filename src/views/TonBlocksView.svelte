@@ -35,14 +35,14 @@
 			entityType={EntityType.TonBlock}
 			entitySelector={tonBlockSelector}
 			href={
-				'workchain' in tonBlockSelector
-				&& 'shardPrefix' in tonBlockSelector
-				&& 'seqno' in tonBlockSelector ?
+				tonBlockSelector.workchain !== undefined
+				&& tonBlockSelector.shardPrefix !== undefined
+				&& tonBlockSelector.seqno !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/[workchain=integer]/[shardPrefix=stringSegment]/[seqno=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -53,13 +53,13 @@
 						}
 					)
 				:
-					'rootHash' in tonBlockSelector
-					&& 'fileHash' in tonBlockSelector ?
+					tonBlockSelector.rootHash !== undefined
+					&& tonBlockSelector.fileHash !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/block/hash/[rootHash=stringSegment]/[fileHash=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

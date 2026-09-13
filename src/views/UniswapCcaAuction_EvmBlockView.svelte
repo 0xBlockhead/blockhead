@@ -49,7 +49,7 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in auction.$network ?
+				auction.$network.caip2 !== undefined ?
 					resolve(
 						'/(assets)/uniswap-cca/auction/[chainId=eip155ChainId]/[auctionAddress=evmAddress]/(uniswapCcaAuction)/block/[blockNumber=nonNegativeBigInt]',
 						{

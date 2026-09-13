@@ -49,12 +49,12 @@
 			entityType={EntityType.NearAccount_Block}
 			entitySelector={nearAccountBlockSelector}
 			href={
-				'hash' in block ?
+				block.hash !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]/(selection)/block-state/[blockHeight=nonNegativeBigInt]/[blockHash=stringSegment]',
 						{
 							network: (
-								'caip2' in account.$network ?
+								account.$network.caip2 !== undefined ?
 									caip2StringFromValue(account.$network.caip2)
 								:
 									account.$network.slug

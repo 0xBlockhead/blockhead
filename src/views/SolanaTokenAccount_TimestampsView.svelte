@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/token-account/[tokenAccountPubkey=stringSegment]/(solanaTokenAccount)/observations/[slot=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in tokenAccount.$network ?
+							tokenAccount.$network.caip2 !== undefined ?
 								caip2StringFromValue(tokenAccount.$network.caip2)
 							:
 								tokenAccount.$network.slug

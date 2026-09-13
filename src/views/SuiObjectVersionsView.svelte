@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/object/[objectId=stringSegment]/(suiObject)/version/[version=nonNegativeBigInt]/[digest=stringSegment]',
 					{
 						network: (
-							'caip2' in suiObjectVersionSelector.$network.$network ?
+							suiObjectVersionSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(suiObjectVersionSelector.$network.$network.caip2)
 							:
 								suiObjectVersionSelector.$network.$network.slug

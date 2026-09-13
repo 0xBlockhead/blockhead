@@ -39,7 +39,7 @@
 	href={
 		href === undefined ?
 			(
-				'did' in selection.entitySelector ?
+				selection.entitySelector.did !== undefined ?
 					resolve(
 						'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]',
 						{
@@ -133,7 +133,7 @@
 						countResource={postsResource.count}
 						title='Posts'
 						href={
-							'did' in selection.entitySelector ?
+							selection.entitySelector.did !== undefined ?
 								resolve(
 									'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/posts',
 									{
@@ -189,7 +189,7 @@
 						countResource={timestampsResource.count}
 						title='Metric observations'
 						href={
-							'did' in selection.entitySelector ?
+							selection.entitySelector.did !== undefined ?
 								resolve(
 									'/(social)/(atproto)/atproto/(globalAtprotoNetwork)/actor/[did=stringSegment]/(atprotoActor)/observations',
 									{

@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/subnet/[subnetId=stringSegment]/(icpSubnet)/canister-range/[rangeStart=stringSegment]/[rangeEnd=stringSegment]/[registryVersion=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in subnet.$network.$network ?
+							subnet.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(subnet.$network.$network.caip2)
 							:
 								subnet.$network.$network.slug

@@ -47,7 +47,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/service-provider/[providerId=stringSegment]/(zeroGServiceProvider)/request/[requestId=stringSegment]/(zeroGServiceRequest)/trace/[traceId=stringSegment]',
 					{
 						network: (
-							'caip2' in serviceRequest.$serviceProvider.$network ?
+							serviceRequest.$serviceProvider.$network.caip2 !== undefined ?
 								caip2StringFromValue(serviceRequest.$serviceProvider.$network.caip2)
 							:
 								serviceRequest.$serviceProvider.$network.slug

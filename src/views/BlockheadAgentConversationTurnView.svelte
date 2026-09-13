@@ -58,7 +58,7 @@
 	href={
 		href === undefined ?
 			(
-				'$conversation' in selection.entitySelector ?
+				selection.entitySelector.$conversation !== undefined ?
 					resolve(
 						'/~/agents/conversation/[conversationId=stringSegment]/(blockheadAgentConversation)/turn/[turnId=stringSegment]',
 						{

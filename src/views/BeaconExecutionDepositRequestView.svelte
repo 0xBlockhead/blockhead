@@ -55,7 +55,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/execution-payload-envelope/(beaconExecutionPayloadEnvelope)/deposit-request/[requestIndex=nonNegativeBigInt]',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$envelope.$beaconBlock.$network ?
+						selection.entitySelector.$envelope.$beaconBlock.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$envelope.$beaconBlock.$network.caip2)
 						:
 							selection.entitySelector.$envelope.$beaconBlock.$network.slug

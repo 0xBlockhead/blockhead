@@ -54,10 +54,10 @@
 			entityType={EntityType.AiArtifactAttestation}
 			entitySelector={aiArtifactAttestationSelector}
 			href={
-				'signatureHashAlgorithm' in aiArtifactAttestationSelector
-				&& 'signatureHash' in aiArtifactAttestationSelector
-				&& 'digestAlgorithm' in artifact
-				&& 'digest' in artifact ?
+				aiArtifactAttestationSelector.signatureHashAlgorithm !== undefined
+				&& aiArtifactAttestationSelector.signatureHash !== undefined
+				&& artifact.digestAlgorithm !== undefined
+				&& artifact.digest !== undefined ?
 					resolve(
 						'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/attestation/[attestationKind=stringSegment]/signature/[signatureHashAlgorithm=stringSegment]/[signatureHash=stringSegment]',
 						{
@@ -69,9 +69,9 @@
 						}
 					)
 				:
-					'logEntryId' in aiArtifactAttestationSelector
-					&& 'digestAlgorithm' in artifact
-					&& 'digest' in artifact ?
+					aiArtifactAttestationSelector.logEntryId !== undefined
+					&& artifact.digestAlgorithm !== undefined
+					&& artifact.digest !== undefined ?
 						resolve(
 							'/(ai)/ai/artifact/digest/[digestAlgorithm=stringSegment]/[digest=zeroExHex]/(aiArtifact)/attestation/[attestationKind=stringSegment]/log/[logEntryId=stringSegment]',
 							{

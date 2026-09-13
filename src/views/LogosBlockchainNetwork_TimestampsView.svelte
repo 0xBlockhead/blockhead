@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in logosBlockchainNetworkTimestampSelector.$network.$network ?
+							logosBlockchainNetworkTimestampSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(logosBlockchainNetworkTimestampSelector.$network.$network.caip2)
 							:
 								logosBlockchainNetworkTimestampSelector.$network.$network.slug

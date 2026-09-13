@@ -41,7 +41,7 @@
 			entityType={EntityType.ArweaveResource}
 			entitySelector={arweaveResourceSelector}
 			href={
-				'contentPath' in arweaveResourceSelector ?
+				arweaveResourceSelector.contentPath !== undefined ?
 					resolve(
 						'/(arweave)/arweave/resource/[transactionId=stringSegment]/(arweaveResource)/path/[...contentPath=stringSegment]',
 						{

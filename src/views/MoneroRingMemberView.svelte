@@ -52,7 +52,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]/(selection)/key-image/[inputIndex=nonNegativeInteger]/[keyImage=stringSegment]/(moneroKeyImage)/ring/(moneroRing)/member/[memberIndex=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$ring.$keyImage.$transaction.$network ?
+						selection.entitySelector.$ring.$keyImage.$transaction.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$ring.$keyImage.$transaction.$network.caip2)
 						:
 							selection.entitySelector.$ring.$keyImage.$transaction.$network.slug

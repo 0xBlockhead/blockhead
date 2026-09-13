@@ -51,7 +51,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(accounts)/account/[accountId=stringSegmentOrPolkadotAccountIdOrEvmAddressOrSolanaPubkey]',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$network.$network ?
+						selection.entitySelector.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$network.$network.caip2)
 						:
 							selection.entitySelector.$network.$network.slug

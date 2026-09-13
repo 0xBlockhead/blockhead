@@ -41,7 +41,7 @@
 			entityType={EntityType.A2aTaskEvent}
 			entitySelector={a2aTaskEventSelector}
 			href={
-				'taskId' in a2aTaskEventSelector.$task ?
+				a2aTaskEventSelector.$task.taskId !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/event/[sequence=nonNegativeInteger]',
 						{

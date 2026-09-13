@@ -41,7 +41,7 @@
 			entityType={EntityType.GitTreePathResolution}
 			entitySelector={gitTreePathResolutionSelector}
 			href={
-				'canonicalRemoteUrl' in gitTreePathResolutionSelector.$repository ?
+				gitTreePathResolutionSelector.$repository.canonicalRemoteUrl !== undefined ?
 					resolve(
 						'/git/repository/remote/[canonicalRemoteUrl=absoluteUrl]/(gitRepository)/commit/[commitObjectId=zeroExHex]/path/[path=stringSegment]',
 						{

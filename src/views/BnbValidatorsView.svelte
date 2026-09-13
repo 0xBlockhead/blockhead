@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(bnb-beacon)/bnb-beacon/validator/[operatorAddress=stringSegment]',
 					{
 						network: (
-							'caip2' in bnbValidatorSelector.$network.$network ?
+							bnbValidatorSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(bnbValidatorSelector.$network.$network.caip2)
 							:
 								bnbValidatorSelector.$network.$network.slug

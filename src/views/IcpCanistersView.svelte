@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]',
 					{
 						network: (
-							'caip2' in icpCanisterSelector.$network.$network ?
+							icpCanisterSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(icpCanisterSelector.$network.$network.caip2)
 							:
 								icpCanisterSelector.$network.$network.slug

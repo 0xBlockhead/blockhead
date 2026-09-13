@@ -57,7 +57,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/beacon-block/[root=zeroExHex]/(beaconBlock)/data-column/[columnIndex=nonNegativeInteger]/(beaconDataColumn)/observation/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in dataColumn.$block.$network ?
+						dataColumn.$block.$network.caip2 !== undefined ?
 							caip2StringFromValue(dataColumn.$block.$network.caip2)
 						:
 							dataColumn.$block.$network.slug

@@ -49,13 +49,13 @@
 			entityType={EntityType.CelestiaBlobOccurrence}
 			entitySelector={celestiaBlobOccurrenceSelector}
 			href={
-				'$block' in celestiaBlobOccurrenceSelector
-				&& 'height' in block ?
+				block !== undefined
+				&& block.height !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/block-height/[height=nonNegativeBigInt]/(celestiaBlock)/occurrence/[index=nonNegativeInteger]',
 						{
 							network: (
-								'caip2' in block.$network.$network ?
+								block.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(block.$network.$network.caip2)
 								:
 									block.$network.$network.slug
@@ -65,13 +65,13 @@
 						}
 					)
 				:
-					'height' in celestiaBlobOccurrenceSelector
-					&& '$namespace' in celestiaBlobOccurrenceSelector ?
+					celestiaBlobOccurrenceSelector.height !== undefined
+					&& namespace !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(celestia)/namespace/[namespaceId=stringSegment]/(celestiaNamespace)/occurrence/[height=nonNegativeBigInt]/[index=nonNegativeInteger]',
 							{
 								network: (
-									'caip2' in namespace.$network.$network ?
+									namespace.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(namespace.$network.$network.caip2)
 									:
 										namespace.$network.$network.slug

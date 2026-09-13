@@ -56,7 +56,7 @@
 	href={
 		href === undefined ?
 			(
-				'providerId' in selection.entitySelector.$provider ?
+				selection.entitySelector.$provider.providerId !== undefined ?
 					resolve(
 						'/(ai)/ai/provider/id/[providerId=stringSegment]/(aiModelProvider)/operation/[operationId=stringSegment]',
 						{

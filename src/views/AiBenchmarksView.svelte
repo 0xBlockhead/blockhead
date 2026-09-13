@@ -43,8 +43,8 @@
 			entityType={EntityType.AiBenchmark}
 			entitySelector={aiBenchmarkSelector}
 			href={
-				'source' in aiBenchmarkSelector
-				&& 'sourceBenchmarkId' in aiBenchmarkSelector ?
+				aiBenchmarkSelector.source !== undefined
+				&& aiBenchmarkSelector.sourceBenchmarkId !== undefined ?
 					resolve(
 						'/(ai)/ai/benchmark/source/[source=stringSegment]/[sourceBenchmarkId=stringSegment]',
 						{
@@ -53,7 +53,7 @@
 						}
 					)
 				:
-					'benchmarkId' in aiBenchmarkSelector ?
+					aiBenchmarkSelector.benchmarkId !== undefined ?
 						resolve(
 							'/(ai)/ai/benchmark/id/[benchmarkId=stringSegment]',
 							{
@@ -61,7 +61,7 @@
 							}
 						)
 					:
-						'benchmarkUri' in aiBenchmarkSelector ?
+						aiBenchmarkSelector.benchmarkUri !== undefined ?
 							resolve(
 								'/(ai)/ai/benchmark/uri/[benchmarkUri=absoluteUrl]',
 								{

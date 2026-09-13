@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]/(icpCanister)/ledger/(icpLedgerCanister)/block/[blockIndex=nonNegativeBigInt]/(icpLedgerBlock)/transaction/[transactionIndex=nonNegativeInteger]',
 					{
 						network: (
-							'caip2' in block.$ledger.$canister.$network.$network ?
+							block.$ledger.$canister.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(block.$ledger.$canister.$network.$network.caip2)
 							:
 								block.$ledger.$canister.$network.$network.slug

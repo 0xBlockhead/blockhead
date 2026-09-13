@@ -48,7 +48,7 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in account.$network ?
+				account.$network.caip2 !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[accountAddress=stringSegment]/subaccount/[subaccountNumber=nonNegativeInteger]',
 						{

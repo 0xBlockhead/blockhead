@@ -43,12 +43,12 @@
 			entityType={EntityType.AvalanchePChainBlock}
 			entitySelector={avalanchePChainBlockSelector}
 			href={
-				'height' in avalanchePChainBlockSelector ?
+				avalanchePChainBlockSelector.height !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-block/[height=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -57,12 +57,12 @@
 						}
 					)
 				:
-					'blockId' in avalanchePChainBlockSelector ?
+					avalanchePChainBlockSelector.blockId !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/avalanche-block-id/[blockId=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

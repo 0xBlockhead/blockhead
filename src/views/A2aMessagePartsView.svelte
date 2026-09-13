@@ -43,8 +43,8 @@
 			entityType={EntityType.A2aMessagePart}
 			entitySelector={a2aMessagePartSelector}
 			href={
-				'$artifact' in a2aMessagePartSelector
-				&& 'taskId' in artifact.$task ?
+				artifact !== undefined
+				&& artifact.$task.taskId !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/artifact/[artifactId=stringSegment]/(a2aArtifact)/part/[partIndex=nonNegativeInteger]',
 						{
@@ -54,8 +54,8 @@
 						}
 					)
 				:
-					'$message' in a2aMessagePartSelector
-					&& 'taskId' in message.$task ?
+					message !== undefined
+					&& message.$task.taskId !== undefined ?
 						resolve(
 							'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/message/[messageId=stringSegment]/(a2aMessage)/part/[partIndex=nonNegativeInteger]',
 							{

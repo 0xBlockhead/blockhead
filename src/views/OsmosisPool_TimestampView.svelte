@@ -56,7 +56,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/osmosis-pool/[poolId=stringSegment]/(osmosisPool)/observations/[blockHeight=nonNegativeBigInt]/[baseAssetDenom=stringSegment]/[quoteAssetDenom=stringSegment]',
 				{
 					network: (
-						'caip2' in pool.$network ?
+						pool.$network.caip2 !== undefined ?
 							caip2StringFromValue(pool.$network.caip2)
 						:
 							pool.$network.slug

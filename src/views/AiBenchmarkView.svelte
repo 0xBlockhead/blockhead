@@ -53,8 +53,8 @@
 	href={
 		href === undefined ?
 			(
-				'source' in selection.entitySelector
-				&& 'sourceBenchmarkId' in selection.entitySelector ?
+				selection.entitySelector.source !== undefined
+				&& selection.entitySelector.sourceBenchmarkId !== undefined ?
 					resolve(
 						'/(ai)/ai/benchmark/source/[source=stringSegment]/[sourceBenchmarkId=stringSegment]',
 						{
@@ -63,7 +63,7 @@
 						}
 					)
 				:
-					'benchmarkId' in selection.entitySelector ?
+					selection.entitySelector.benchmarkId !== undefined ?
 						resolve(
 							'/(ai)/ai/benchmark/id/[benchmarkId=stringSegment]',
 							{
@@ -71,7 +71,7 @@
 							}
 						)
 					:
-						'benchmarkUri' in selection.entitySelector ?
+						selection.entitySelector.benchmarkUri !== undefined ?
 							resolve(
 								'/(ai)/ai/benchmark/uri/[benchmarkUri=absoluteUrl]',
 								{

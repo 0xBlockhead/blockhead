@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]/(icpCanister)/method/[methodName=stringSegment]/[methodKind=stringSegment]/(icpCanisterMethod)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in method.$canister.$network.$network ?
+							method.$canister.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(method.$canister.$network.$network.caip2)
 							:
 								method.$canister.$network.$network.slug

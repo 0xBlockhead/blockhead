@@ -48,7 +48,7 @@
 	href={
 		href === undefined ?
 			(
-				'taskId' in selection.entitySelector.$task ?
+				selection.entitySelector.$task.taskId !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/task/[taskId=stringSegment]/(a2aTask)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{

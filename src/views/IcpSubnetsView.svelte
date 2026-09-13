@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/subnet/[subnetId=stringSegment]',
 					{
 						network: (
-							'caip2' in icpSubnetSelector.$network.$network ?
+							icpSubnetSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(icpSubnetSelector.$network.$network.caip2)
 							:
 								icpSubnetSelector.$network.$network.slug

@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amendment/[amendmentId=stringSegment]/(xrplAmendment)/observations/[ledgerIndex=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in amendment.$network ?
+							amendment.$network.caip2 !== undefined ?
 								caip2StringFromValue(amendment.$network.caip2)
 							:
 								amendment.$network.slug

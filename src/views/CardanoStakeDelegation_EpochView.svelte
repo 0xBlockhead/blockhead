@@ -47,7 +47,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/stake-credential/[credential=stringSegment]/(cardanoStakeCredential)/delegation/[epoch=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in stakeCredential.$network ?
+						stakeCredential.$network.caip2 !== undefined ?
 							caip2StringFromValue(stakeCredential.$network.caip2)
 						:
 							stakeCredential.$network.slug

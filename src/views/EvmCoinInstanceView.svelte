@@ -48,12 +48,12 @@
 	href={
 		href === undefined ?
 			(
-				'caip2' in selection.entitySelector.$network
+				selection.entitySelector.$network.caip2 !== undefined
 				&& (
 					selection.entitySelector.type === 'NativeCurrency'
 					|| (
 						selection.entitySelector.type === 'Erc20Token'
-						&& '$contract' in selection.entitySelector
+						&& selection.entitySelector.$contract !== undefined
 					)
 				) ?
 					resolve(

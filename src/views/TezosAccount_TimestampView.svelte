@@ -42,7 +42,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/account/[address=stringSegment]/(selection)/level/[level=nonNegativeBigInt]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in account.$network.$network ?
+						account.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(account.$network.$network.caip2)
 						:
 							account.$network.$network.slug

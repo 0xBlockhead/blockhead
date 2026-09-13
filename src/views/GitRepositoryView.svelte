@@ -50,7 +50,7 @@
 	href={
 		href === undefined ?
 			(
-				'repositoryId' in selection.entitySelector ?
+				selection.entitySelector.repositoryId !== undefined ?
 					resolve(
 						'/git/repository/id/[repositoryId=stringSegment]',
 						{
@@ -58,7 +58,7 @@
 						}
 					)
 				:
-					'canonicalRemoteUrl' in selection.entitySelector ?
+					selection.entitySelector.canonicalRemoteUrl !== undefined ?
 						resolve(
 							'/git/repository/remote/[canonicalRemoteUrl=absoluteUrl]',
 							{

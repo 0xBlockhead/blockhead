@@ -42,12 +42,12 @@
 			entityType={EntityType.AvailBlock}
 			entitySelector={availBlockSelector}
 			href={
-				'blockNumber' in availBlockSelector ?
+				availBlockSelector.blockNumber !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(avail)/block-number/[blockNumber=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in availBlockSelector.$network.$network ?
+								availBlockSelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(availBlockSelector.$network.$network.caip2)
 								:
 									availBlockSelector.$network.$network.slug
@@ -56,12 +56,12 @@
 						}
 					)
 				:
-					'blockHash' in availBlockSelector ?
+					availBlockSelector.blockHash !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/(avail)/avail/block-hash/[blockHash=stringSegment]',
 							{
 								network: (
-									'caip2' in availBlockSelector.$network.$network ?
+									availBlockSelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(availBlockSelector.$network.$network.caip2)
 									:
 										availBlockSelector.$network.$network.slug

@@ -44,7 +44,7 @@
 			entityType={EntityType.EvmActorCoinAllowance_Block}
 			entitySelector={evmActorCoinAllowanceBlockSelector}
 			href={
-				'caip2' in allowance.$contract.$network ?
+				allowance.$contract.$network.caip2 !== undefined ?
 					resolve(
 						'/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]/(evmActorCoinAllowance)/block/[blockNumber=nonNegativeBigInt]/[source=stringSegment]',
 						{

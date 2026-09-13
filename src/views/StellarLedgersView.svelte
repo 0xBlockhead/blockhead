@@ -46,7 +46,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/ledger/stellar/[sequence=nonNegativeBigInt]',
 					{
 						network: (
-							'caip2' in stellarLedgerSelector.$network.$network ?
+							stellarLedgerSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(stellarLedgerSelector.$network.$network.caip2)
 							:
 								stellarLedgerSelector.$network.$network.slug

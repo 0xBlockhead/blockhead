@@ -44,7 +44,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/object/[objectId=stringSegment]/(suiObject)/dynamic-field/[fieldNameHash=stringSegment]/[childObjectId=stringSegment]/(suiDynamicFieldEdge)/checkpoint/[checkpointSequence=nonNegativeBigInt]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in edge.$parentObject.$network.$network ?
+						edge.$parentObject.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(edge.$parentObject.$network.$network.caip2)
 						:
 							edge.$parentObject.$network.$network.slug

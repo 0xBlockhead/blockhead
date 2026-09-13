@@ -49,7 +49,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/package/[originalPackageId=stringSegment]/(suiPackage)/upgrade/[upgradedPackageId=stringSegment]',
 				{
 					network: (
-						'caip2' in packageValue.$network.$network ?
+						packageValue.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(packageValue.$network.$network.caip2)
 						:
 							packageValue.$network.$network.slug

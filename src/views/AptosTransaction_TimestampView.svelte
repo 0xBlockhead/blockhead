@@ -50,12 +50,12 @@
 	href={
 		href === undefined ?
 			(
-				'version' in transaction ?
+				transaction.version !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/version/[version=nonNegativeBigInt]/(aptosTransaction)/observations/[ledgerVersion=nonNegativeBigInt]/[source=stringSegment]',
 						{
 							network: (
-								'caip2' in transaction.$network.$network ?
+								transaction.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(transaction.$network.$network.caip2)
 								:
 									transaction.$network.$network.slug

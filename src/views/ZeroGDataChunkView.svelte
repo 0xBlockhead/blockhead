@@ -41,7 +41,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/data-blob/[dataRoot=stringSegment]/(zeroGDataBlob)/chunk/[chunkIndex=nonNegativeInteger]',
 				{
 					network: (
-						'caip2' in dataBlob.$network ?
+						dataBlob.$network.caip2 !== undefined ?
 							caip2StringFromValue(dataBlob.$network.caip2)
 						:
 							dataBlob.$network.slug

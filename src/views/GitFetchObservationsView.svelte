@@ -42,7 +42,7 @@
 			entityType={EntityType.GitFetchObservation}
 			entitySelector={gitFetchObservationSelector}
 			href={
-				'repositoryId' in gitFetchObservationSelector.$repository ?
+				gitFetchObservationSelector.$repository.repositoryId !== undefined ?
 					resolve(
 						'/git/repository/id/[repositoryId=stringSegment]/(gitRepository)/remote/[remoteName=stringSegment]/(gitRemote)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{

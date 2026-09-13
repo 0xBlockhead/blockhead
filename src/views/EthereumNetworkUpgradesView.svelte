@@ -46,12 +46,12 @@
 			entityType={EntityType.EthereumNetworkUpgrade}
 			entitySelector={ethereumNetworkUpgradeSelector}
 			href={
-				'slug' in ethereumNetworkUpgradeSelector ?
+				ethereumNetworkUpgradeSelector.slug !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(upgrades)/upgrade/[upgradeSlug=stringSegment]',
 						{
 							network: (
-								'caip2' in network ?
+								network.caip2 !== undefined ?
 									caip2StringFromValue(network.caip2)
 								:
 									network.slug
@@ -60,12 +60,12 @@
 						}
 					)
 				:
-					'upgradeId' in ethereumNetworkUpgradeSelector ?
+					ethereumNetworkUpgradeSelector.upgradeId !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/ethereum/upgrade/[upgradeId=stringSegment]',
 							{
 								network: (
-									'caip2' in network ?
+									network.caip2 !== undefined ?
 										caip2StringFromValue(network.caip2)
 									:
 										network.slug

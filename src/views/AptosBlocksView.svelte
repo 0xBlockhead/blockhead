@@ -41,12 +41,12 @@
 			entityType={EntityType.AptosBlock}
 			entitySelector={aptosBlockSelector}
 			href={
-				'height' in aptosBlockSelector ?
+				aptosBlockSelector.height !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/height/[height=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in aptosBlockSelector.$network.$network ?
+								aptosBlockSelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(aptosBlockSelector.$network.$network.caip2)
 								:
 									aptosBlockSelector.$network.$network.slug
@@ -55,12 +55,12 @@
 						}
 					)
 				:
-					'version' in aptosBlockSelector ?
+					aptosBlockSelector.version !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/block/version/[version=nonNegativeBigInt]',
 							{
 								network: (
-									'caip2' in aptosBlockSelector.$network.$network ?
+									aptosBlockSelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(aptosBlockSelector.$network.$network.caip2)
 									:
 										aptosBlockSelector.$network.$network.slug

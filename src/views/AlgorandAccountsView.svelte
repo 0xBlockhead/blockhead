@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(algorand)/algorand/account/[address=stringSegment]',
 					{
 						network: (
-							'caip2' in algorandAccountSelector.$network.$network ?
+							algorandAccountSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(algorandAccountSelector.$network.$network.caip2)
 							:
 								algorandAccountSelector.$network.$network.slug

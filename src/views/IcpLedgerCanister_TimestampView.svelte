@@ -42,7 +42,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(protocol-networks)/canister/[canisterId=stringSegment]/(icpCanister)/ledger/(icpLedgerCanister)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 				{
 					network: (
-						'caip2' in selection.entitySelector.$ledger.$canister.$network.$network ?
+						selection.entitySelector.$ledger.$canister.$network.$network.caip2 !== undefined ?
 							caip2StringFromValue(selection.entitySelector.$ledger.$canister.$network.$network.caip2)
 						:
 							selection.entitySelector.$ledger.$canister.$network.$network.slug

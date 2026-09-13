@@ -39,7 +39,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/amm/[ammAccount=stringSegment]/(xrplAmm)/observations/[ledgerIndex=nonNegativeBigInt]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in amm.$network ?
+							amm.$network.caip2 !== undefined ?
 								caip2StringFromValue(amm.$network.caip2)
 							:
 								amm.$network.slug

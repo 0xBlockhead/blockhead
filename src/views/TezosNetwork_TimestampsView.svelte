@@ -38,7 +38,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in tezosNetworkTimestampSelector.$network.$network ?
+							tezosNetworkTimestampSelector.$network.$network.caip2 !== undefined ?
 								caip2StringFromValue(tezosNetworkTimestampSelector.$network.$network.caip2)
 							:
 								tezosNetworkTimestampSelector.$network.$network.slug

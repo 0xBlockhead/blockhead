@@ -49,7 +49,7 @@
 					'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/~/quilibrium/connection/[connectionId=stringSegment]/node-state/(blockheadQuilibriumNodeState)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 					{
 						network: (
-							'caip2' in nodeState.$network ?
+							nodeState.$network.caip2 !== undefined ?
 								caip2StringFromValue(nodeState.$network.caip2)
 							:
 								nodeState.$network.slug

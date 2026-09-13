@@ -63,7 +63,7 @@
 				'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/payments/[paymentHash=stringSegment]',
 				{
 					network: (
-						'caip2' in network ?
+						network.caip2 !== undefined ?
 							caip2StringFromValue(network.caip2)
 						:
 							network.slug

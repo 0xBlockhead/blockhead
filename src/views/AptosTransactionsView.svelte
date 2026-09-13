@@ -43,12 +43,12 @@
 			entityType={EntityType.AptosTransaction}
 			entitySelector={aptosTransactionSelector}
 			href={
-				'version' in aptosTransactionSelector ?
+				aptosTransactionSelector.version !== undefined ?
 					resolve(
 						'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/version/[version=nonNegativeBigInt]',
 						{
 							network: (
-								'caip2' in aptosTransactionSelector.$network.$network ?
+								aptosTransactionSelector.$network.$network.caip2 !== undefined ?
 									caip2StringFromValue(aptosTransactionSelector.$network.$network.caip2)
 								:
 									aptosTransactionSelector.$network.$network.slug
@@ -57,12 +57,12 @@
 						}
 					)
 				:
-					'hash' in aptosTransactionSelector ?
+					aptosTransactionSelector.hash !== undefined ?
 						resolve(
 							'/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/(transactions)/tx/[transactionId=evmTxHashOrSolanaSignatureOrUtxoTxIdOrStringSegment]',
 							{
 								network: (
-									'caip2' in aptosTransactionSelector.$network.$network ?
+									aptosTransactionSelector.$network.$network.caip2 !== undefined ?
 										caip2StringFromValue(aptosTransactionSelector.$network.$network.caip2)
 									:
 										aptosTransactionSelector.$network.$network.slug

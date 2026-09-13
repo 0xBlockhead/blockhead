@@ -43,8 +43,8 @@
 			entityType={EntityType.A2aTask}
 			entitySelector={a2aTaskSelector}
 			href={
-				'providerTaskId' in a2aTaskSelector
-				&& '$service' in a2aTaskSelector ?
+				a2aTaskSelector.providerTaskId !== undefined
+				&& service !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/card/[agentCardUrl=absoluteUrl]/(a2aAgentCard)/service/[protocolBinding=stringSegment]/[endpointUrl=absoluteUrl]/(a2aAgentService)/task/[providerTaskId=stringSegment]',
 						{
@@ -55,7 +55,7 @@
 						}
 					)
 				:
-					'taskId' in a2aTaskSelector ?
+					a2aTaskSelector.taskId !== undefined ?
 						resolve(
 							'/(agents)/agents/a2a/task/[taskId=stringSegment]',
 							{

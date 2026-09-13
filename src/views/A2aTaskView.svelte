@@ -65,8 +65,8 @@
 	href={
 		href === undefined ?
 			(
-				'providerTaskId' in selection.entitySelector
-				&& '$service' in selection.entitySelector ?
+				selection.entitySelector.providerTaskId !== undefined
+				&& service !== undefined ?
 					resolve(
 						'/(agents)/agents/a2a/card/[agentCardUrl=absoluteUrl]/(a2aAgentCard)/service/[protocolBinding=stringSegment]/[endpointUrl=absoluteUrl]/(a2aAgentService)/task/[providerTaskId=stringSegment]',
 						{
@@ -77,7 +77,7 @@
 						}
 					)
 				:
-					'taskId' in selection.entitySelector ?
+					selection.entitySelector.taskId !== undefined ?
 						resolve(
 							'/(agents)/agents/a2a/task/[taskId=stringSegment]',
 							{

@@ -45,8 +45,8 @@
 			entityType={EntityType.EvmNetworkActorCoinBalance_Timestamp}
 			entitySelector={evmNetworkActorCoinBalanceTimestampSelector}
 			href={
-				'$contract' in actorCoin
-				&& 'caip2' in actorCoin.$contract.$network ?
+				actorCoin.$contract !== undefined
+				&& actorCoin.$contract.$network.caip2 !== undefined ?
 					resolve(
 						'/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/(evmNetworkActorCoinBalance)/observations/[timestampMs=nonNegativeInteger]/[source=stringSegment]',
 						{

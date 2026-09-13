@@ -51,7 +51,7 @@
 			entityType={EntityType.LiquidityPool}
 			entitySelector={liquidityPoolSelector}
 			href={
-				'caip2' in liquidityPoolSelector.$network ?
+				liquidityPoolSelector.$network.caip2 !== undefined ?
 					resolve(
 						'/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]',
 						{
