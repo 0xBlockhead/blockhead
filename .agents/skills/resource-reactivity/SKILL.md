@@ -5,7 +5,7 @@ description: Change or diagnose SvelteKit-shaped resource reactivity and OPFS pe
 
 # Resource reactivity
 
-Read `src/collections/AGENTS.md` and SvelteKit's installed query implementation before editing:
+Read the affected subtree's instructions. When changing the resource state or promise contract, inspect SvelteKit's installed query implementation:
 
 ```text
 node_modules/@sveltejs/kit/src/runtime/client/remote-functions/query/instance.svelte.js
