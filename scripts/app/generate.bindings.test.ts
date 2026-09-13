@@ -515,6 +515,25 @@ test('emits one provider binding file for every canonical provider closure', () 
 	}
 })
 
+test('emits the canonical LND HTTP request allowlist into its provider binding', () => {
+	const lndSource = sourceBindingRows.find(({ source }) => source === Source.LightningLnd_Rest)
+	assert.ok(lndSource)
+	const { httpRequestAllowlist } = lndSource.binding
+	assert.ok(httpRequestAllowlist != null && httpRequestAllowlist.length > 0)
+
+	const file = baselineCompiledApp.generatedFiles.find(({ path }) => (
+		path === 'src/sources/LightningLnd/bindings.ts'
+	))
+	assert.ok(file)
+	const rendered = renderGeneratedFile(file)
+	assert.equal(
+		[...rendered.matchAll(/method: 'GET'/g)].length,
+		httpRequestAllowlist.length
+	)
+	for (const { pathTemplate } of httpRequestAllowlist)
+		assert.ok(rendered.includes(pathTemplate), `missing emitted LND path template: ${pathTemplate}`)
+})
+
 test('changes a generated provider binding when its canonical APP row changes', () => {
 	const baseline = baselineCompiledApp.generatedFiles.find(({ path }) => path === 'src/sources/Ipfs/bindings.ts')
 	assert.ok(baseline)

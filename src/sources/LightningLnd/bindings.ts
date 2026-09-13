@@ -47,6 +47,56 @@ export default indexSourceBindings([
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
+		httpRequestAllowlist: [
+			{
+				method: 'GET',
+				pathTemplate: '/v1/balance/blockchain',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/balance/channels',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/channels',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/getinfo',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/graph/edge/{channelId}',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/graph/info',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/graph/node/{publicKey}',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/invoice/{paymentHash}',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/invoices',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/payments',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/peers',
+			},
+			{
+				method: 'GET',
+				pathTemplate: '/v1/switch',
+			},
+		],
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{

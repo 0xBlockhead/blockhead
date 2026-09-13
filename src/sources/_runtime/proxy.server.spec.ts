@@ -5,10 +5,13 @@ import {
 	it,
 	vi,
 } from 'vitest'
+import { Source } from '$/sources/Source.ts'
+import lightningLndBindings from '$/sources/LightningLnd/bindings.ts'
 import type { SourceServerCredentialDefinition } from '$/sources/SourceBinding.ts'
 
 const {
 	privateEnv,
+	lndProxyBinding,
 	oauthCredentialDefinition,
 } = vi.hoisted(() => ({
 	privateEnv: {
@@ -17,6 +20,11 @@ const {
 		TEMPLATE_SECRET: 'template/secret',
 		OAUTH_CLIENT_ID: 'oauth-client',
 		OAUTH_CLIENT_SECRET: 'oauth-secret',
+		LND_MACAROON_HEX: 'lnd-secret',
+	},
+	lndProxyBinding: {
+		endpoints: [] as { endpointKind: string; locator: string }[],
+		httpRequestAllowlist: [] as { method: string; pathTemplate: string }[],
 	},
 	oauthCredentialDefinition: {
 		envKey: 'OAUTH_CLIENT_SECRET',
@@ -65,6 +73,10 @@ vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
 				},
 			},
 		}],
+		['lnd', {
+			envKey: 'LND_MACAROON_HEX',
+			injection: { header: { name: 'Grpc-Metadata-macaroon' } },
+		}],
 		['oauth', oauthCredentialDefinition],
 		['oauth-cache', oauthCredentialDefinition],
 		['oauth-concurrent', oauthCredentialDefinition],
@@ -77,6 +89,10 @@ vi.mock('$/sources/$sourceServerCredentials.server.ts', () => ({
 
 vi.mock('$/sources/index.server.ts', () => ({
 	httpProxyBindingByProxyId: new Map<string, {
+		httpRequestAllowlist?: {
+			method: string
+			pathTemplate: string
+		}[]
 		endpoints: {
 			endpointKind: string
 			locator: string
@@ -89,6 +105,7 @@ vi.mock('$/sources/index.server.ts', () => ({
 				locator: 'https://api.example.test/v1',
 			}],
 		}],
+		['lnd', lndProxyBinding],
 		['query', {
 			endpoints: [{
 				endpointKind: 'HttpUrl',
@@ -173,12 +190,20 @@ vi.mock('$/sources/index.server.ts', () => ({
 
 import { proxySourceHttpRequest } from '$/sources/_runtime/proxy.server.ts'
 
+const generatedLndBinding = lightningLndBindings[Source.LightningLnd_Rest]?.[0]
+if (generatedLndBinding?.httpRequestAllowlist == null)
+	throw new Error('Generated Lightning LND binding is missing its HTTP request allowlist')
+lndProxyBinding.endpoints = [...generatedLndBinding.endpoints]
+lndProxyBinding.httpRequestAllowlist = [...generatedLndBinding.httpRequestAllowlist]
+const lndHttpRequestAllowlist = generatedLndBinding.httpRequestAllowlist
+
 const proxyEvent = (
 	proxyId: string,
 	endpointIndex: number,
 	upstreamUrl: string,
 	upstream: Response = new Response('ok'),
-	headers?: HeadersInit
+	headers?: HeadersInit,
+	method = 'GET'
 ) => {
 	const url = new URL(
 		`http://localhost/api-proxy/${encodeURIComponent(proxyId)}/${endpointIndex}/${encodeURIComponent(upstreamUrl)}`
@@ -188,6 +213,7 @@ const proxyEvent = (
 			url,
 			request: new Request(url, {
 				headers,
+				method,
 			}),
 			fetch: vi.fn().mockResolvedValue(upstream),
 		},
@@ -198,7 +224,49 @@ describe('runtime secret proxy', () => {
 	beforeEach(() => {
 		privateEnv.OAUTH_CLIENT_ID = 'oauth-client'
 		privateEnv.OAUTH_CLIENT_SECRET = 'oauth-secret'
+		privateEnv.LND_MACAROON_HEX = 'lnd-secret'
 		vi.restoreAllMocks()
+	})
+
+	it.each(lndHttpRequestAllowlist)(
+		'allows LND $method $pathTemplate and preserves query parameters',
+		async ({ pathTemplate }) => {
+			const requestPath = pathTemplate
+				.replace('{channelId}', '123')
+				.replace('{publicKey}', '02abcdef')
+				.replace('{paymentHash}', 'payment-hash')
+			const upstreamUrl = `https://127.0.0.1:8080${requestPath}?include_pending=true`
+			const { event } = proxyEvent('lnd', 0, upstreamUrl)
+
+			await proxySourceHttpRequest(event)
+
+			expect(event.fetch).toHaveBeenCalledTimes(1)
+			expect(String(event.fetch.mock.calls[0]?.[0])).toBe(upstreamUrl)
+		}
+	)
+
+	it.each([
+		['undeclared GET', 'GET', '/v1/signmessage'],
+		['extra segment', 'GET', '/v1/getinfo/extra'],
+		['empty parameter', 'GET', '/v1/graph/node/'],
+		['encoded separator', 'GET', '/v1/graph/node/02ab%2Fcd'],
+		['double encoded separator', 'GET', '/v1/graph/node/02ab%252Fcd'],
+		['HEAD', 'HEAD', '/v1/getinfo'],
+		['POST', 'POST', '/v1/getinfo'],
+		['PUT', 'PUT', '/v1/getinfo'],
+		['PATCH', 'PATCH', '/v1/getinfo'],
+		['DELETE', 'DELETE', '/v1/getinfo'],
+	] as const)('rejects LND %s before credential or transport access', async (_label, method, pathname) => {
+		const { event } = proxyEvent('lnd', 0, `https://127.0.0.1:8080${pathname}`, undefined, undefined, method)
+		await expect(proxySourceHttpRequest(event)).rejects.toMatchObject({ status: 403 })
+		expect(event.fetch).not.toHaveBeenCalled()
+	})
+
+	it('rejects a denied LND mutation before checking a blank macaroon', async () => {
+		privateEnv.LND_MACAROON_HEX = ' '
+		const { event } = proxyEvent('lnd', 0, 'https://127.0.0.1:8080/v1/getinfo', undefined, undefined, 'POST')
+		await expect(proxySourceHttpRequest(event)).rejects.toMatchObject({ status: 403 })
+		expect(event.fetch).not.toHaveBeenCalled()
 	})
 
 	it('replaces spoofed protected headers and applies the configured prefix', async () => {

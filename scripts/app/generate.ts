@@ -7143,6 +7143,11 @@ export type SourceCredentialRequirement<
 	}
 ) : never
 
+export type SourceHttpRequestAllowlistEntry = {
+	method: string
+	pathTemplate: string
+}
+
 type SourceBindingCompatibilityRow<
 	_WireProtocol extends WireProtocol,
 	_ApiFamily extends ApiFamily,
@@ -7216,6 +7221,14 @@ ${sourceBindingDeliveryCompatibility.map((compatibility) => [
 	]),
 	...(compatibility.apiFamilies === true ? [] : [
 		`\t\tapiFamily: ${compatibility.apiFamilies.map((apiFamily) => enumAccess('ApiFamily', apiFamily)).join(' | ')}`,
+	]),
+	...(compatibility.deliveries.length === 1 && compatibility.deliveries[0] === 'HttpProxy' ? [
+		'\t\thttpRequestAllowlist?: readonly [',
+		'\t\t\tSourceHttpRequestAllowlistEntry,',
+		'\t\t\t...SourceHttpRequestAllowlistEntry[],',
+		'\t\t]',
+	] : [
+		'\t\thttpRequestAllowlist?: never',
 	]),
 	...(compatibility.endpointLayout === SourceBindingDeliveryEndpointLayout.Compatible ? [] :
 	compatibility.endpointLayout === SourceBindingDeliveryEndpointLayout.BrowserDirect ? [
@@ -7530,6 +7543,13 @@ const emitSourceBindingValue = (
 		['wireProtocol', enumAccess('WireProtocol', binding.wireProtocol)],
 		['apiFamily', enumAccess('ApiFamily', binding.apiFamily)],
 		['operationGroups', emitArray(binding.operationGroups.map((operationGroup) => enumAccess('SourceOperationGroup', operationGroup)))],
+		...(binding.httpRequestAllowlist == null ? [] : [[
+			'httpRequestAllowlist',
+			emitArray(binding.httpRequestAllowlist.map(({ method, pathTemplate }) => emitObject([
+				['method', emitTypeScript(method)],
+				['pathTemplate', emitTypeScript(pathTemplate)],
+			]))),
+		] as const]),
 		['delivery', enumAccess('SourceDelivery', binding.delivery)],
 		['credentials', emitArray(binding.credentials.map(emitCredential))],
 		...(binding.artifacts == null ? [] : [['artifacts', emitArray(binding.artifacts.map(emitArtifact))] as const]),

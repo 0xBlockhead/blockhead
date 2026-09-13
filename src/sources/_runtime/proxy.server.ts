@@ -31,6 +31,34 @@ const oauthAccessTokenPromiseByProxyId = new Map<string, Promise<{
 	expiresAtMs: number
 }>>()
 
+const pathnameMatchesTemplate = (pathname: string, pathTemplate: string) => {
+	const pathSegments = pathname.split('/')
+	const templateSegments = pathTemplate.split('/')
+	if (pathSegments.length !== templateSegments.length)
+		return false
+
+	return templateSegments.every((templateSegment, index) => {
+		const pathSegment = pathSegments[index]!
+		if (!templateSegment.startsWith('{'))
+			return pathSegment === templateSegment
+		if (pathSegment === '')
+			return false
+
+		try {
+			let decodedPathSegment = pathSegment
+			while (decodedPathSegment.includes('%')) {
+				const nextPathSegment = decodeURIComponent(decodedPathSegment)
+				if (nextPathSegment === decodedPathSegment)
+					break
+				decodedPathSegment = nextPathSegment
+			}
+			return !decodedPathSegment.includes('/')
+		} catch {
+			return false
+		}
+	})
+}
+
 const oauthAccessTokenFor = async ({
 	fetch,
 	proxyId,
@@ -134,11 +162,33 @@ export const proxySourceHttpRequest = async (
 	const binding = httpProxyBindingByProxyId.get(proxyId)
 	if (binding == null || !Number.isSafeInteger(endpointIndex))
 		throw error(403, 'Request Forbidden.')
-	const credential = sourceServerCredentialsById.get(proxyId)
 
 	const endpoint = binding.endpoints.at(endpointIndex)
 	if (endpoint == null)
 		throw error(403, 'Request Forbidden.')
+	let upstreamUrl: string
+	try {
+		upstreamUrl = decodeURIComponent(upstreamUrlSegment)
+	} catch {
+		throw error(403, 'Request Forbidden.')
+	}
+	if (binding.httpRequestAllowlist != null) {
+		if (!URL.canParse(upstreamUrl))
+			throw error(403, 'Request Forbidden.')
+
+		const url = new URL(upstreamUrl)
+		const locatorUrl = new URL(endpoint.locator)
+		const pathname = url.pathname
+		if (!binding.httpRequestAllowlist.some(({ method, pathTemplate }) => (
+			method === event.request.method
+			&& pathnameMatchesTemplate(pathname, pathTemplate)
+		)) || url.origin !== sourceEndpointOrigin(endpoint) || (
+			pathname !== locatorUrl.pathname
+			&& !pathname.startsWith(locatorUrl.pathname.endsWith('/') ? locatorUrl.pathname : `${locatorUrl.pathname}/`)
+		))
+			throw error(403, 'Request Forbidden.')
+	}
+	const credential = sourceServerCredentialsById.get(proxyId)
 
 	let credentialDefinition:
 		| {
@@ -186,7 +236,6 @@ export const proxySourceHttpRequest = async (
 		}
 	}
 
-	let upstreamUrl = decodeURIComponent(upstreamUrlSegment)
 	if (credentialDefinition?.definition.injection.endpointTemplate != null) {
 		const placeholder = `{${credentialDefinition.definition.injection.endpointTemplate.slot}}`
 		if (

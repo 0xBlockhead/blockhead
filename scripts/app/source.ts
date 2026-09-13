@@ -447,6 +447,11 @@ type _SourcePublicOrUserCredential = _SourceCredential<
 	| SourceCredentialScope.UserDelegated
 >
 
+type _SourceHttpRequestAllowlistEntry = {
+	method: string
+	pathTemplate: string
+}
+
 type _SourceBindingDeliveryCredentials<
 	_Layout extends SourceBindingDeliveryCredentialLayout,
 > = (
@@ -467,6 +472,10 @@ type _SourceBindingDelivery<
 	apiFamily: _SourceBindingDeliveryApiFamily<_Row>
 	endpoints: _SourceBindingDeliveryEndpoints<_Row['endpointLayout']>
 	credentials: _SourceBindingDeliveryCredentials<_Row['credentialLayout']>
+	httpRequestAllowlist?: _Row['deliveries'][number] extends SourceDelivery.HttpProxy ? readonly [
+		_SourceHttpRequestAllowlistEntry,
+		..._SourceHttpRequestAllowlistEntry[],
+	] : never
 } : never
 
 export type _SourceBinding = _SourceBindingBase & _SourceBindingCompatibility & _SourceBindingDelivery

@@ -270,6 +270,11 @@ export type SourceCredentialRequirement<
 	}
 ) : never
 
+export type SourceHttpRequestAllowlistEntry = {
+	method: string
+	pathTemplate: string
+}
+
 type SourceBindingCompatibilityRow<
 	_WireProtocol extends WireProtocol,
 	_ApiFamily extends ApiFamily,
@@ -482,6 +487,7 @@ type SourcePublicOrUserWithOptionalRuntimeSecret =
 type SourceBindingDelivery =
 	| {
 		delivery: SourceDelivery.BrowserDirect
+		httpRequestAllowlist?: never
 		endpoints: readonly (
 			| (SourceEndpoint<SourceEndpointKind.HttpUrl> & { corsEnabled: true })
 			| SourceEndpoint<SourceEndpointKind.BrowserWalletProvider | SourceEndpointKind.InProcess>
@@ -490,16 +496,22 @@ type SourceBindingDelivery =
 	}
 	| {
 		delivery: SourceDelivery.HttpProxy
+		httpRequestAllowlist?: readonly [
+			SourceHttpRequestAllowlistEntry,
+			...SourceHttpRequestAllowlistEntry[],
+		]
 		endpoints: readonly SourceEndpoint<SourceEndpointKind.HttpUrl>[]
 		credentials: SourcePublicOrUserWithOptionalRuntimeSecret
 	}
 	| {
 		delivery: SourceDelivery.LocalOnly | SourceDelivery.ServerOnly | SourceDelivery.Unsupported
+		httpRequestAllowlist?: never
 		credentials: readonly SourceCredentialRequirement[]
 	}
 	| {
 		delivery: SourceDelivery.RemoteLive
 		wireProtocol: Exclude<WireProtocol, WireProtocol.Grpc>
+		httpRequestAllowlist?: never
 		endpoints:
 			| readonly [
 				SourceEndpoint<SourceEndpointKind.WebSocketUrl>,
@@ -516,11 +528,13 @@ type SourceBindingDelivery =
 		delivery: SourceDelivery.RemoteLive
 		wireProtocol: WireProtocol.Grpc
 		apiFamily: ApiFamily.GrpcService
+		httpRequestAllowlist?: never
 		endpoints: readonly SourceEndpoint<SourceEndpointKind.HttpUrl>[]
 		credentials: SourcePublicOrUserWithOptionalRuntimeSecret
 	}
 	| {
 		delivery: SourceDelivery.RemoteQuery
+		httpRequestAllowlist?: never
 		credentials: readonly SourceCredentialRequirement[]
 	}
 
