@@ -52,7 +52,7 @@ export const blockscoutTransactionEnvelope = arktype({
 	hash: 'string',
 	nonce: 'number',
 	raw_input: 'string',
-	to: blockscoutAddressEnvelope,
+	to: blockscoutAddressEnvelope.or(arktype.null),
 	value: 'string',
 	'type?': 'number | null',
 	'status?': '"ok" | "error" | null',
@@ -206,7 +206,8 @@ export type BlockscoutBlockDetails = components['schemas']['BlockResponse'] & {
 	blob_gas_used?: string | null
 	excess_blob_gas?: string | null
 }
-export type BlockscoutTransaction = components['schemas']['TransactionResponse'] & {
+export type BlockscoutTransaction = Omit<components['schemas']['TransactionResponse'], 'to'> & {
+	to: components['schemas']['TransactionResponse']['to'] | null
 	max_fee_per_blob_gas?: string | null
 	blob_gas_used?: string | null
 	blob_versioned_hashes?: string[] | null

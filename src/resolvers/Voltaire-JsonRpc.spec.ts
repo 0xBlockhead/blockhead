@@ -15,6 +15,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { MediaTransport } from '$/schema/MediaTransport.ts'
 import { MediaType } from '$/schema/MediaType.ts'
 import { Source } from '$/sources/Source.ts'
+import type { RpcBlockWire } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
 
 const getTxpoolStatus = vi.hoisted(() => vi.fn())
 const getPeerCountObservation = vi.hoisted(() => vi.fn())
@@ -26,6 +27,8 @@ const getCall = vi.hoisted(() => vi.fn())
 const getBalance = vi.hoisted(() => vi.fn())
 const getBlockByNumber = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
+const getRecentBlockWires = vi.hoisted(() => vi.fn())
+const iterateBlockStreamEvents = vi.hoisted(() => vi.fn())
 const getStorageAt = vi.hoisted(() => vi.fn())
 const resolveEnsForward = vi.hoisted(() => vi.fn())
 const resolveEnsReverse = vi.hoisted(() => vi.fn())
@@ -42,6 +45,7 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				getBalance,
 				getBlockByNumber,
 				getBlockNumber,
+				getRecentBlockWires,
 				getStorageAt,
 				resolveEnsForward,
 				resolveEnsReverse,
@@ -65,10 +69,341 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				getTxpoolStatus,
 			}],
 		},
+		providerTransportsByChainId: {
+			1: [{
+				diagnosticLabel: 'test live execution endpoint',
+				getRecentBlockWires,
+				iterateBlockStreamEvents,
+			}],
+		},
 	},
 }))
 
 const { default: voltaireJsonRpc } = await import('$/resolvers/Voltaire-JsonRpc.ts')
+
+const evmNetworkSelector = {
+	caip2: {
+		namespace: 'eip155',
+		reference: '1',
+	},
+} as const
+
+const recentBlockWindow = (head: bigint, depth = 8): {
+	head: bigint
+	blockNumbers: bigint[]
+	wires: RpcBlockWire[]
+} => {
+	const blockNumbers = Array.from({ length: depth }, (_value, index) => head - BigInt(index))
+	return {
+		head,
+		blockNumbers,
+		wires: blockNumbers.map((blockNumber) => ({
+			number: `0x${blockNumber.toString(16)}`,
+			hash: `0x${blockNumber.toString(16).padStart(64, '0')}`,
+			parentHash: `0x${(blockNumber - 1n).toString(16).padStart(64, '0')}`,
+			timestamp: `0x${(1_800_000_000n + blockNumber).toString(16)}`,
+			miner: `0x${'1'.repeat(40)}`,
+			gasUsed: '0x1',
+			gasLimit: '0x2',
+			transactions: [`0x${(10_000n + blockNumber).toString(16).padStart(64, '0')}`],
+		})),
+	}
+}
+
+const bytes32 = (value: bigint) => {
+	const bytes = new Uint8Array(32)
+	let remainder = value
+	for (let index = bytes.length - 1; index >= 0; index -= 1) {
+		bytes[index] = Number(remainder & 255n)
+		remainder >>= 8n
+	}
+	return bytes
+}
+
+const streamBlock = (blockNumber: bigint) => ({
+	hash: bytes32(blockNumber),
+	header: {
+		number: blockNumber,
+		parentHash: bytes32(blockNumber - 1n),
+		timestamp: 1_800_000_000n + blockNumber,
+		gasUsed: 1n,
+		gasLimit: 2n,
+	},
+	body: {
+		transactions: [{
+			type: 0,
+			nonce: blockNumber,
+			gasPrice: 1n,
+			gasLimit: 21_000n,
+			to: null,
+			value: 0n,
+			data: new Uint8Array(),
+			v: 27n,
+			r: new Uint8Array(32),
+			s: new Uint8Array(32),
+		}],
+	},
+})
+
+const liveFields = () => {
+	const field = () => ({
+		replaceRows: vi.fn(),
+		invalidate: vi.fn(),
+		count: {
+			replaceRows: vi.fn(),
+			invalidate: vi.fn(),
+		},
+	})
+	return {
+		'$$timestamps': field(),
+		'$$blocks': field(),
+		'$$transactions': field(),
+		'$$contracts': field(),
+		'$$blobs': field(),
+		'$$gasFeeBlocks': field(),
+		'$$beaconEpochs': field(),
+		'$$beaconSlots': field(),
+		invalidate: vi.fn(async () => {}),
+	}
+}
+
+describe('Voltaire EVM network recent-window ownership', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('returns descending blocks and transactions from the same exact eight-block window', async () => {
+		const blocksResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& (!('resolveLive' in candidate) || candidate.resolveLive == null)
+			&& 'Caip2' in candidate.resolve
+			&& 'Evm' in candidate.projections
+			&& '$$blocks' in candidate.projections.Evm
+		))
+		const transactionsResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& (!('resolveLive' in candidate) || candidate.resolveLive == null)
+			&& 'Caip2' in candidate.resolve
+			&& 'Evm' in candidate.projections
+			&& '$$transactions' in candidate.projections.Evm
+		))
+		if (
+			blocksResolver == null
+			|| transactionsResolver == null
+			|| !('Caip2' in blocksResolver.resolve)
+			|| !('Caip2' in transactionsResolver.resolve)
+		)
+			throw new Error('Voltaire recent EVM network resolvers are not registered')
+
+		getRecentBlockWires.mockResolvedValue(recentBlockWindow(100n))
+		const blocks = await blocksResolver.resolve.Caip2.resolve(evmNetworkSelector, {
+			...createResolverContext(),
+			pagination: { limit: 8 },
+		})
+		const transactions = await transactionsResolver.resolve.Caip2.resolve(evmNetworkSelector, {
+			...createResolverContext(),
+			pagination: { limit: 16 },
+		})
+		if (!Array.isArray(blocks) || !Array.isArray(transactions))
+			throw new Error('Voltaire recent EVM resolvers did not return reference rows')
+
+		expect(blocks.map((block) => block[EntityMetaKey.Selector].blockNumber)).toEqual([
+			100n, 99n, 98n, 97n, 96n, 95n, 94n, 93n,
+		])
+		expect(transactions).toHaveLength(8)
+		expect(transactions.map((transaction) => (
+			transaction[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')][EntityMetaKey.Selector].blockNumber
+		))).toEqual([100n, 99n, 98n, 97n, 96n, 95n, 94n, 93n])
+		expect(getRecentBlockWires).toHaveBeenNthCalledWith(1, { recentBlockDepth: 8 })
+		expect(getRecentBlockWires).toHaveBeenNthCalledWith(2, { recentBlockDepth: 8 })
+	})
+
+	it('preserves a selector-only position when an RPC omits a requested block payload', async () => {
+		const blocksResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& (!('resolveLive' in candidate) || candidate.resolveLive == null)
+			&& 'Caip2' in candidate.resolve
+			&& 'Evm' in candidate.projections
+			&& '$$blocks' in candidate.projections.Evm
+		))
+		if (blocksResolver == null || !('Caip2' in blocksResolver.resolve))
+			throw new Error('Voltaire recent EVM block resolver is not registered')
+
+		const window = recentBlockWindow(100n)
+		getRecentBlockWires.mockResolvedValue({
+			...window,
+			wires: window.wires.map((wire, index) => index === 3 ? null : wire),
+		})
+		const blocks = await blocksResolver.resolve.Caip2.resolve(evmNetworkSelector, {
+			...createResolverContext(),
+			pagination: { limit: 8 },
+		})
+		if (!Array.isArray(blocks))
+			throw new Error('Voltaire recent EVM block resolver did not return reference rows')
+		expect(blocks).toHaveLength(8)
+		expect(blocks[3]?.[EntityMetaKey.Selector].blockNumber).toBe(97n)
+		expect(blocks[3]?.[EntityMetaKey.Fields]).toBeUndefined()
+	})
+
+	it('rejects loaded adjacent blocks whose hashes do not form one canonical chain', async () => {
+		const blocksResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& (!('resolveLive' in candidate) || candidate.resolveLive == null)
+			&& 'Caip2' in candidate.resolve
+			&& 'Evm' in candidate.projections
+			&& '$$blocks' in candidate.projections.Evm
+		))
+		if (blocksResolver == null || !('Caip2' in blocksResolver.resolve))
+			throw new Error('Voltaire recent EVM block resolver is not registered')
+
+		const window = recentBlockWindow(100n)
+		getRecentBlockWires.mockResolvedValue({
+			...window,
+			wires: window.wires.map((wire, index) => index === 0 ? {
+				...wire,
+				parentHash: `0x${'f'.repeat(64)}`,
+			} : wire),
+		})
+		await expect(blocksResolver.resolve.Caip2.resolve(evmNetworkSelector, {
+			...createResolverContext(),
+			pagination: { limit: 8 },
+		})).rejects.toThrow('are not canonically linked')
+	})
+
+	it('advances, reorgs, and republishes one coherent eight-block transaction window', async () => {
+		const liveResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'resolveLive' in candidate
+			&& candidate.resolveLive != null
+			&& 'blockStream' in candidate.resolveLive
+		))
+		if (
+			liveResolver == null
+			|| !('resolveLive' in liveResolver)
+			|| liveResolver.resolveLive == null
+			|| !('blockStream' in liveResolver.resolveLive)
+		)
+			throw new Error('Voltaire EVM block stream resolver is not registered')
+
+		getRecentBlockWires
+			.mockResolvedValueOnce(recentBlockWindow(100n))
+			.mockResolvedValueOnce(recentBlockWindow(99n))
+		iterateBlockStreamEvents.mockImplementation(async function* () {
+			yield { type: 'blocks', metadata: { chainHead: 101n }, blocks: [streamBlock(101n)] }
+			yield { type: 'blocks', metadata: { chainHead: 101n }, blocks: [streamBlock(101n)] }
+			yield {
+				type: 'reorg',
+				metadata: { chainHead: 99n },
+				removed: [],
+				added: [streamBlock(99n)],
+				commonAncestor: { number: 98n },
+			}
+			yield { type: 'blocks', metadata: { chainHead: 100n }, blocks: [streamBlock(100n)] }
+		})
+		const fields = liveFields()
+		const abortController = new AbortController()
+		const stop = liveResolver.resolveLive.blockStream.start({
+			fields,
+			parentEntitySelector: evmNetworkSelector,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: createResolverContext(),
+		})
+
+		await vi.waitFor(() => expect(fields.$$blocks.replaceRows).toHaveBeenCalledTimes(4))
+		expect(getRecentBlockWires).toHaveBeenCalledTimes(2)
+		expect(getRecentBlockWires).toHaveBeenCalledWith({ recentBlockDepth: 8 })
+		expect(fields.$$transactions.replaceRows).toHaveBeenCalledTimes(4)
+		expect(fields.invalidate).toHaveBeenCalledWith(expect.arrayContaining(['$$gasFeeBlocks']))
+		expect(fields.invalidate.mock.calls.every(([fieldNames]) => (
+			!fieldNames.includes('$$blocks') && !fieldNames.includes('$$transactions')
+		))).toBe(true)
+		const finalTransactions = fields.$$transactions.replaceRows.mock.calls.at(-1)?.[0]?.[0]?.value
+		if (!Array.isArray(finalTransactions))
+			throw new Error('Voltaire block stream did not publish transaction reference rows')
+		expect(finalTransactions.map((transaction) => (
+			transaction[EntityMetaKey.Fields][entityFieldAddressKey(EntityType.EvmTransaction, [], '$block')][EntityMetaKey.Selector].blockNumber
+		))).toEqual([100n, 99n, 98n, 97n, 96n, 95n, 94n, 93n])
+
+		abortController.abort()
+		stop()
+	})
+
+	it('retains the complete available window before block seven at genesis', async () => {
+		const liveResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'resolveLive' in candidate
+			&& candidate.resolveLive != null
+			&& 'blockStream' in candidate.resolveLive
+		))
+		if (
+			liveResolver == null
+			|| !('resolveLive' in liveResolver)
+			|| liveResolver.resolveLive == null
+			|| !('blockStream' in liveResolver.resolveLive)
+		)
+			throw new Error('Voltaire EVM block stream resolver is not registered')
+
+		getRecentBlockWires.mockResolvedValue(recentBlockWindow(0n, 1))
+		iterateBlockStreamEvents.mockImplementation(async function* () {
+			yield { type: 'blocks', metadata: { chainHead: 1n }, blocks: [streamBlock(1n)] }
+		})
+		const fields = liveFields()
+		const abortController = new AbortController()
+		const stop = liveResolver.resolveLive.blockStream.start({
+			fields,
+			parentEntitySelector: evmNetworkSelector,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: createResolverContext(),
+		})
+
+		await vi.waitFor(() => expect(fields.$$blocks.replaceRows).toHaveBeenCalledTimes(2))
+		const finalBlocks = fields.$$blocks.replaceRows.mock.calls.at(-1)?.[0]?.[0]?.value
+		if (!Array.isArray(finalBlocks))
+			throw new Error('Voltaire genesis stream did not publish block reference rows')
+		expect(finalBlocks.map((block) => block[EntityMetaKey.Selector].blockNumber)).toEqual([1n, 0n])
+
+		abortController.abort()
+		stop()
+	})
+
+	it('does not publish a window whose read settles after cancellation', async () => {
+		const liveResolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.Network
+			&& 'resolveLive' in candidate
+			&& candidate.resolveLive != null
+			&& 'blockStream' in candidate.resolveLive
+		))
+		if (
+			liveResolver == null
+			|| !('resolveLive' in liveResolver)
+			|| liveResolver.resolveLive == null
+			|| !('blockStream' in liveResolver.resolveLive)
+		)
+			throw new Error('Voltaire EVM block stream resolver is not registered')
+
+		let settle: ((value: ReturnType<typeof recentBlockWindow>) => void) | undefined
+		getRecentBlockWires.mockReturnValue(new Promise((resolve) => { settle = resolve }))
+		const fields = liveFields()
+		const abortController = new AbortController()
+		const stop = liveResolver.resolveLive.blockStream.start({
+			fields,
+			parentEntitySelector: evmNetworkSelector,
+			queryClient: {},
+			signal: abortController.signal,
+			trigger: createResolverContext(),
+		})
+		await vi.waitFor(() => expect(getRecentBlockWires).toHaveBeenCalledOnce())
+		abortController.abort()
+		stop()
+		settle?.(recentBlockWindow(100n))
+		await Promise.resolve()
+		await Promise.resolve()
+		expect(fields.$$blocks.replaceRows).not.toHaveBeenCalled()
+		expect(fields.$$transactions.replaceRows).not.toHaveBeenCalled()
+	})
+})
 
 describe('Voltaire native EVM identity applicability', () => {
 	beforeEach(() => {

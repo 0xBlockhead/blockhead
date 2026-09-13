@@ -573,7 +573,7 @@ const evmTransactionReferenceFromBlockscoutWire = (
 ) => {
 	const txHash = hexLowerOfByteSize(transaction.hash, 32)
 	const from = hexLowerOfByteSize(transaction.from.hash, 20)
-	const to = hexLowerOfByteSize(transaction.to.hash, 20)
+	const to = hexLowerOfByteSize(transaction.to?.hash ?? '', 20)
 	const envelopeType = evmTransactionEnvelopeTypeFromRpcTypeByte(
 		nonnegativeIntegerFromWire(transaction.type)
 	)
@@ -1853,7 +1853,7 @@ export default {
 						const containingBlockNumber = blockscoutQuantityToBigInt(transaction.block_number)
 						const txHash = hexLowerOfByteSize(transaction.hash, 32) ?? txHashSelector
 						const from = hexLowerOfByteSize(transaction.from.hash, 20)
-						const to = hexLowerOfByteSize(transaction.to.hash, 20)
+						const to = hexLowerOfByteSize(transaction.to?.hash ?? '', 20)
 						const envelopeType = evmTransactionEnvelopeTypeFromRpcTypeByte(
 							nonnegativeIntegerFromWire(transaction.type)
 						)

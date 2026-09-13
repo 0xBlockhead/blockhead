@@ -450,6 +450,27 @@ describe('Blockscout account-abstraction queries', () => {
 		])
 	})
 
+	it('accepts a null recipient for a contract-creation transaction page', async () => {
+		const contractCreation = {
+			...transaction,
+			to: null,
+			created_contract: {
+				hash: hex('4', 40),
+			},
+		}
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({
+			items: [contractCreation],
+		}))
+
+		await expect(getTransactions({
+			chainId: 1,
+			limit: 1,
+		})).resolves.toEqual({
+			items: [contractCreation],
+			nextPageParams: undefined,
+		})
+	})
+
 	it('preserves native next_page_params as history continuation coordinates', async () => {
 		const block = {
 			base_fee_per_gas: '1000000000',

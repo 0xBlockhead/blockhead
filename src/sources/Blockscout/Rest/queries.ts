@@ -627,7 +627,7 @@ export const getAddressTransactions = async ({
 	return blockscoutListPage(
 		wire.items.map((transaction) => {
 			const from = hexLowerOfByteSize(transaction.from.hash, 20) ?? ''
-			const to = hexLowerOfByteSize(transaction.to.hash, 20) ?? ''
+			const to = hexLowerOfByteSize(transaction.to?.hash ?? '', 20) ?? ''
 			if (from !== normalized && to !== normalized)
 				throw new Error('Blockscout_Rest: address transaction does not match the requested address')
 
