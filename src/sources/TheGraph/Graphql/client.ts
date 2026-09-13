@@ -18,15 +18,19 @@ export const queryTheGraph = async <
 	binding,
 	document,
 	variables,
+	signal,
 }: {
 	binding: SourceBinding
 	document: TadaDocumentNode<_Result, _Variables>
 	variables?: _Variables
+	signal?: AbortSignal
 }) => {
+	signal?.throwIfAborted()
 	const response = await sourceFetch(
 		binding,
 		firstHttpUrlForBinding(binding),
 		{
+			signal,
 			method: 'POST',
 			headers: {
 				Accept: 'application/json',
@@ -38,10 +42,12 @@ export const queryTheGraph = async <
 			}),
 		}
 	)
+	signal?.throwIfAborted()
 	if (!response.ok)
 		throw new Error(`The Graph query failed: ${response.status} ${response.statusText}`)
 
 	const payload = await response.json<GraphqlResponse<_Result>>()
+	signal?.throwIfAborted()
 	if (payload.errors?.length) {
 		throw new Error(
 			`The Graph query error: ${
