@@ -69,6 +69,7 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		projectAtprotoRepoCommitBlock.mockReturnValue({
 			rev: '3jzfcijpj2z2a',
 			dataCid: 'bafyreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe',
+			previousCommitCid: 'bafyreif2wtoftn7qwk46s2eckvxluc5iyglzjq6wgxwpa25rycmtn6tygq',
 			carByteLength: 3,
 		})
 	})
@@ -87,8 +88,12 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 			commitCid: 'bafyreigbtj4x7ip5legnfznufuopld32owlx3aujofcjblvhwdcxxwrtya',
 			relayHost: 'bsky.network',
 			dataCid: 'bafyreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe',
+			previousCommitCid: 'bafyreif2wtoftn7qwk46s2eckvxluc5iyglzjq6wgxwpa25rycmtn6tygq',
 			carByteLength: 3,
 		})
+		expect(repoCommitResolvers[0].projections.previousCommitCid(snapshot)).toBe(
+			'bafyreif2wtoftn7qwk46s2eckvxluc5iyglzjq6wgxwpa25rycmtn6tygq'
+		)
 		expect(snapshot).not.toHaveProperty('$$posts')
 		expect(snapshot).not.toHaveProperty('operationPaths')
 		expect(getLatestCommit).toHaveBeenCalledWith({
@@ -172,6 +177,7 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		projectAtprotoRepoCommitBlock.mockReturnValueOnce({
 			rev: '3historical',
 			dataCid: 'bafyreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe',
+			previousCommitCid: 'bafyreif2wtoftn7qwk46s2eckvxluc5iyglzjq6wgxwpa25rycmtn6tygq',
 			carByteLength: 3,
 		})
 		const snapshot = await resolveByCommitCid({
@@ -196,7 +202,11 @@ describe('AtprotoSync-Xrpc AtprotoRepoCommit latest-commit projection', () => {
 		expect(snapshot).toMatchObject({
 			repoDid: 'did:plc:ewvi7nxzyoun6zhxrhs64oiz',
 			dataCid: 'bafyreidqz2dr7cr5h62etpb4hlhgkr6o6aw7y5h74sgzcjjsu4sl7w7fxe',
+			previousCommitCid: 'bafyreif2wtoftn7qwk46s2eckvxluc5iyglzjq6wgxwpa25rycmtn6tygq',
 		})
+		expect(repoCommitResolvers[1].projections.previousCommitCid(snapshot)).toBe(
+			'bafyreif2wtoftn7qwk46s2eckvxluc5iyglzjq6wgxwpa25rycmtn6tygq'
+		)
 		expect(snapshot).not.toHaveProperty('$$posts')
 		expect(snapshot).not.toHaveProperty('operationPaths')
 	})

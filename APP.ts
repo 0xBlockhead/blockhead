@@ -9845,6 +9845,7 @@ export const schema = {
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"commitCid": { label: "Commit CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"previousRev": { label: "Previous rev", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+				"previousCommitCid": { label: "Previous commit CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"previousDataCid": { label: "Previous data CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"dataCid": { label: "Data CID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"sequence": { label: "Sequence", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -9873,7 +9874,7 @@ export const schema = {
 						content: {
 							dl: [
 								["repoDid", "rev", "source", { field: "commitCid", format: "truncated" }],
-								["previousRev", { field: "previousDataCid", format: "truncated" }, { field: "dataCid", format: "truncated" }],
+								["previousRev", { field: "previousCommitCid", format: "truncated" }, { field: "previousDataCid", format: "truncated" }, { field: "dataCid", format: "truncated" }],
 								["sequence", "pdsHost", "relayHost", { field: "time", format: "timestamp" }],
 								["tooBig", "rebase", "operationCount", "blobCount", "carByteLength"],
 								["operationPaths", "createdRecordCids", "updatedRecordCids", "deletedRecordPaths"],

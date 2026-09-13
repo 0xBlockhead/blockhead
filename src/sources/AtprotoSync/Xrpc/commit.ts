@@ -54,6 +54,7 @@ export type AtprotoRepoCommitProjection = {
 	source: Source.AtprotoSync_Xrpc
 	commitCid: string
 	previousRev?: string
+	previousCommitCid?: string
 	previousDataCid?: string
 	sequence: bigint
 	pdsHost?: string

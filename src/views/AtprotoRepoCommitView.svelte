@@ -159,6 +159,28 @@
 				resource={
 					selection({
 						fields: {
+							previousCommitCid: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const previousCommitCid = entity.previousCommitCid}
+					{#if previousCommitCid != null}
+						<div>
+							<dt>Previous commit CID</dt>
+							<dd>
+								<TruncatedValue value={previousCommitCid} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
 							previousDataCid: true,
 						},
 					})
