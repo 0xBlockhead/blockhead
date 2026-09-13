@@ -128,6 +128,7 @@ for (const [deployment, file] of cases) {
 	it(`${deployment}: unknown fork cannot become an observation link`, async () => {
 		const unknown = structuredClone(payload)
 		unknown.data._meta.block.hash = null
+		unknown.data.liquidityPools = []
 		reply(unknown)
 		const latest = await protocolResolver.resolve.NetworkProtocolKey.resolve($protocol, protocolContext)
 		expect(() => protocolResolver.projections.$$ammBlocks(latest)).toThrow(/immutable block hash/)
