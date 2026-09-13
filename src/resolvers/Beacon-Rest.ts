@@ -36,6 +36,8 @@ import type {
 	BeaconExecutionPayloadEnvelope,
 } from '$/sources/Beacon/Rest/types.ts'
 
+const beaconLiveHeadRetention = 16
+
 const beaconBlockTimestampWriter = defineObservationTimeWriter({
 	entityType: EntityType.BeaconBlock_Timestamp,
 	selectorName: 'BlockTimestampMsSource',
@@ -1860,7 +1862,6 @@ export default {
 						fields,
 						parentEntitySelector,
 						signal,
-						trigger,
 					}) => {
 						if (!('caip2' in parentEntitySelector))
 							return
@@ -1882,7 +1883,6 @@ export default {
 									getFinalityCheckpoints,
 									getHeader,
 								} = await import('$/sources/Beacon/Rest/queries.ts')
-								const limit = resolverContextRowLimit(trigger)
 								const [
 									headHeader,
 									checkpoints,
@@ -1906,7 +1906,7 @@ export default {
 									const recentSlots = beaconRecentSlotReferencesFromHead(
 										parentEntitySelector,
 										headSlot,
-										limit
+										beaconLiveHeadRetention
 									)
 									if (signal.aborted)
 										return
@@ -1929,7 +1929,7 @@ export default {
 										value: beaconRecentEpochReferences(
 											parentEntitySelector,
 											headEpoch,
-											limit
+											beaconLiveHeadRetention
 										),
 									}])
 									fields.$$beaconEpochs.count.replaceRows([{

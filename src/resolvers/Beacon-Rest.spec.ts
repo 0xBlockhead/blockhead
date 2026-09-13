@@ -2141,7 +2141,7 @@ describe('Beacon live consensus head', () => {
 		vi.useFakeTimers()
 	})
 
-	it('publishes native head slot, derived epoch, and retrieval-clock finality rows', async () => {
+	it('retains the full shared live window when the first consumer requests one row', async () => {
 		if (headSlotResolver.resolveLive?.beaconHead == null)
 			throw new Error('Beacon_Rest missing Network.Evm beaconHead resolveLive')
 
@@ -2190,7 +2190,10 @@ describe('Beacon live consensus head', () => {
 			parentEntitySelector: network,
 			queryClient: {},
 			signal: abortController.signal,
-			trigger: resolverContext,
+			trigger: {
+				...resolverContext,
+				pagination: { limit: 1 },
+			},
 		})
 		await vi.waitFor(() => {
 			expect(replaceSlots).toHaveBeenCalledOnce()
@@ -2204,7 +2207,7 @@ describe('Beacon live consensus head', () => {
 		if (slotRows == null || epochRows == null || finalityRow == null)
 			throw new Error('Beacon live head did not publish rows')
 
-		expect(slotRows).toHaveLength(2)
+		expect(slotRows).toHaveLength(16)
 		expect(slotRows[0]).toMatchObject({
 			[EntityMetaKey.Selector]: {
 				$network: network,
@@ -2232,6 +2235,12 @@ describe('Beacon live consensus head', () => {
 				[EntityMetaKey.Selector]: {
 					$network: network,
 					epoch: 1,
+				},
+			},
+			{
+				[EntityMetaKey.Selector]: {
+					$network: network,
+					epoch: 0,
 				},
 			},
 		])
