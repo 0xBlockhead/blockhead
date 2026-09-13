@@ -35,4 +35,8 @@ vite.config.ts.timestamp-*
 
 # Playwright
 test-results
-/.playwright-cli/page-*.yml
+/.playwright-cli/
+
+# Local native builds may embed developer paths and debug metadata.
+/research/runtime-evidence/svelte-native-candidates/nativescript/f1637dd89c/builds/app-debug.apk
+/research/runtime-evidence/svelte-native-candidates/symbiote/4675b9f090/builds/BlockheadNative.app.zip

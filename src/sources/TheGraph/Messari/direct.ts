@@ -1,7 +1,7 @@
 import { initGraphQLTada } from 'gql.tada'
 
 import type { introspection } from './graphql-env.d.ts'
-import { blockMetadataWire, graphInt, protocolFinancialsWire } from './types.ts'
+import { blockMetadataWire, graphInt, protocolFinancialsAtBlockWire, protocolFinancialsWire } from './types.ts'
 import type { MessariObservationSession } from './observation-session.ts'
 
 import { Source } from '$/sources/Source.ts'
@@ -185,7 +185,7 @@ const parseFinancials = (
 	input: unknown,
 	profile: typeof messariGraphqlProfiles[MessariGraphqlDeployment]
 ) => {
-	const data = protocolFinancialsWire.assert(input)
+	const data = protocolFinancialsAtBlockWire.assert(input)
 	if (data._meta.deployment !== profile.deployment)
 		throw new Error('Messari response deployment identity mismatch')
 	if (data._meta.hasIndexingErrors)
@@ -207,7 +207,6 @@ const parseFinancials = (
 		deployment: data._meta.deployment,
 		block: data._meta.block,
 		protocol,
-		liquidityPools: data.liquidityPools ?? [],
 	}
 }
 
@@ -238,7 +237,10 @@ export const getMessariAmmFinancialsLatest = async ({
 		document: latestDocument,
 		variables: { protocolId: profile.protocolId, first: limit, skip: offset },
 	})
-	const result = parseFinancials(data, profile)
+	const result = {
+		...parseFinancials(data, profile),
+		liquidityPools: protocolFinancialsWire.assert(data).liquidityPools,
+	}
 	observe?.(financialObservation(result))
 	return result
 }

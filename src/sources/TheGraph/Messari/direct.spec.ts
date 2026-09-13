@@ -58,7 +58,11 @@ const textResponseFromCapture = async (file: string) => {
 	const responseText = capture.response.result.content.find((block: { type: string }) => block.type === 'text')?.text
 	if (typeof responseText !== 'string')
 		throw new Error(`Missing captured GraphQL response text: ${file}`)
-	return JSON.parse(responseText)
+	const response = JSON.parse(responseText)
+	// Financial captures predate the latest query's pool selection; model an explicit empty page.
+	if (file.endsWith('.query.json'))
+		response.data.liquidityPools = []
+	return response
 }
 
 it('resolves both profiles to stable canonical binding objects without transport', () => {
@@ -228,6 +232,26 @@ for (const sample of cases) {
 		expectTypeOf(result.block.hash).toEqualTypeOf<`0x${string}`>()
 	})
 }
+
+it('rejects missing latest pool data while accepting an explicit empty page', async () => {
+	const envelope = await textResponseFromCapture(cases[0].query)
+	const request = {
+		binding: deploymentBinding(cases[0].deployment),
+		deployment: cases[0].deployment,
+	}
+	envelope.data.liquidityPools = []
+	setGraphResponse(envelope)
+	expect((await getMessariAmmFinancialsLatest(request)).liquidityPools).toEqual([])
+	delete envelope.data.liquidityPools
+	setGraphResponse(envelope)
+	await expect(getMessariAmmFinancialsLatest(request)).rejects.toThrow(/liquidityPools/)
+	setGraphResponse(envelope)
+	const exact = await getMessariAmmFinancialsAtBlockHash({
+		...request,
+		blockHash: envelope.data._meta.block.hash,
+	})
+	expect(exact.block.hash).toBe(envelope.data._meta.block.hash)
+})
 
 it('pages native protocol pool relationships in stable source order', async () => {
 	const envelope = await textResponseFromCapture(cases[0].query)

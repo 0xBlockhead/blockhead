@@ -16,7 +16,7 @@ This ledger records the maintained owner of every section from the former root i
 | Codex Goal lifecycle and cross-task recovery | Global `manage-codex-goal` and `supervise-orchestration` | `~/.codex/skills/manage-codex-goal/SKILL.md`; `~/.agents/skills/supervise-orchestration/SKILL.md` |
 | Cross-task context recall and exhaustive history recrawls | Root routing cue and global `recall-task-context` | `~/.agents/skills/recall-task-context/SKILL.md` |
 | Exhaustive jurisdiction inventory and current item status | Personal `status`; delivery and mutation remain with existing workflow owners | `~/.codex/skills/status/SKILL.md` |
-| Recent-use evidence for every skill creation or edit | Repository `instruction-maintenance`; the corresponding managed `skill-creator` correction is preserved as a patch because the host restores it | `instruction-maintenance/SKILL.md`; `/Users/sample/Developer/blockhead-2026-agent/skill-review-20260913/all-skills/REVIEW.md` |
+| Recent-use evidence for every skill creation or edit | Repository `instruction-maintenance`; the corresponding managed `skill-creator` correction is preserved as a patch because the host restores it | `instruction-maintenance/SKILL.md`; `~/Developer/blockhead-2026-agent/skill-review-20260913/all-skills/REVIEW.md` |
 | Testing | `tests/AGENTS.md`, `test-methodology`, `playwright-route-testing` | `playwright-route-testing/references/testing-reference.md` |
 | TypeScript | Root, `typescript-development`, lint | `typescript-development/references/expressions-and-types.md` |
 | Constants | `src/constants/AGENTS.md` | `src/constants/AGENTS.md` |
@@ -54,6 +54,6 @@ This ledger records the maintained owner of every section from the former root i
 
 ## Verification rule
 
-Failure-driven orchestration maintenance keeps scheduling/write acceptance in global orchestrate-tree, complete outcome claims in orchestrate-program, census validity in reconcile-git-worktrees, generation publication in source-provider-development, test execution evidence in test-methodology, and model/transport qualification in select-model-frontier and acpx-orchestration-policy. Dated incidents and successor decisions remain task artifacts. The September 8 three-pass review is at `/Users/sample/Developer/blockhead-2026-agent/20260908/skill-hardening/REVIEW.md`; it is evidence, not an additional startup instruction layer.
+Failure-driven orchestration maintenance keeps scheduling/write acceptance in global orchestrate-tree, complete outcome claims in orchestrate-program, census validity in reconcile-git-worktrees, generation publication in source-provider-development, test execution evidence in test-methodology, and model/transport qualification in select-model-frontier and acpx-orchestration-policy. Dated incidents and successor decisions remain task artifacts. The September 8 three-pass review is at `~/Developer/blockhead-2026-agent/20260908/skill-hardening/REVIEW.md`; it is evidence, not an additional startup instruction layer.
 
 When instructions move again, compare the changed contract and repository-specific terms against this ledger, confirm every skill links to its conditional references, and run the structural checks in [evaluation.md](evaluation.md). Historical migration headings are evidence, not prerequisites for maintaining a newly installed skill.

@@ -27,8 +27,10 @@ export const protocolFinancialsWire = type({
 		cumulativeTotalRevenueUSD: financialDecimal,
 		totalPoolCount: graphInt,
 	}).array(),
-	'liquidityPools?': type({ id: EvmAddress }).array(),
+	liquidityPools: type({ id: EvmAddress }).array(),
 })
+
+export const protocolFinancialsAtBlockWire = protocolFinancialsWire.omit('liquidityPools')
 
 export const blockMetadataWire = type({
 	_meta: {
