@@ -9568,6 +9568,10 @@ const renderSummaryItemMarkup = (
 			throw new Error(`${entity.entityType}.${fieldName} ${headingAfter ? 'HeadingAfter ' : 'summary '}EntityReference targets missing entity type ${item.targetEntityType}`)
 
 		const component = singularComponentName(targetEntity.entityType)
+		const itemSources = viewItemSourceSelection(entity, indexes, viewEntry)
+		const itemSelection = itemSources == null ? undefined : { sources: itemSources }
+		const itemQuery = renderQuery(itemSelection, [])
+		const itemQuerySuffix = itemQuery === '{}' ? '' : `, ${itemQuery}`
 		const targetEntityName = camel(targetEntity.entityType)
 		const targetEntityInitialName = `${targetEntityName}Initial`
 		const acceptsPrefetched = viewComponentAcceptsPrefetched(indexes, targetEntity.entityType, component)
@@ -9598,7 +9602,7 @@ const renderSummaryItemMarkup = (
 		]
 		if (item.selectorOwned)
 			return presented(componentLines(
-				`select(EntityType.${targetEntity.entityType}, ${fieldExpression('selection.entitySelector', fieldReference)})`,
+				`select(EntityType.${targetEntity.entityType}, ${fieldExpression('selection.entitySelector', fieldReference)}${itemQuerySuffix})`,
 				undefined,
 				level + (headingAfter ? 1 : 0)
 			), level)
@@ -9612,7 +9616,7 @@ const renderSummaryItemMarkup = (
 				renderSvelteConst(referenceLevel, targetEntityInitialName, `untrack(() => ${targetEntityName})`),
 			] : []),
 			...presented(componentLines(
-				`select(EntityType.${targetEntity.entityType}, ${targetEntitySelectorExpression})`,
+				`select(EntityType.${targetEntity.entityType}, ${targetEntitySelectorExpression}${itemQuerySuffix})`,
 				targetEntityExpression,
 				componentLevel
 			), referenceLevel),

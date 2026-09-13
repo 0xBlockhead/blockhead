@@ -29,8 +29,8 @@ test('Messari observation links delegate parameter encoding to SvelteKit resolve
 
 test('Messari observation block projections retain their source authority in nested rendering', () => {
 	for (const [path, expectedSourcePins] of [
-		[observationViews[0], 3],
-		[observationViews[2], 4],
+		[observationViews[0], 5],
+		[observationViews[2], 6],
 	] as const) {
 		const source = generated.get(path)
 		assert.ok(source, `Missing generated observation view ${path}`)

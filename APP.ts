@@ -33998,7 +33998,7 @@ export const schema = {
 				views: {
       singular: {
         query: { sources: [Source.TheGraph_Graphql] },
-        summary: { title: ["$block", "sourceRevision"], value: ["$protocol", "$block", "sourceRevision"] },
+        summary: { title: [{ field: "$block", selection: { sources: [Source.TheGraph_Graphql] } }, "sourceRevision"], value: ["$protocol", { field: "$block", selection: { sources: [Source.TheGraph_Graphql] } }, "sourceRevision"] },
         latest: [{ field: "$block", label: "Block", fields: ["blockNumber", "timestamp"], view: "EvmBlockView", query: { sources: [Source.TheGraph_Graphql] } }],
         content: { dl: [[
           "totalValueLockedUSD", "cumulativeVolumeUSD", "cumulativeSupplySideRevenueUSD",
@@ -43288,7 +43288,7 @@ export const schema = {
     views: {
       singular: {
         query: { sources: [Source.TheGraph_Graphql] },
-        summary: { title: ["$block", "sourceRevision"], value: ["$pool", "$block", "sourceRevision"] },
+        summary: { title: [{ field: "$block", selection: { sources: [Source.TheGraph_Graphql] } }, "sourceRevision"], value: ["$pool", { field: "$block", selection: { sources: [Source.TheGraph_Graphql] } }, "sourceRevision"] },
         latest: [{ field: "$block", label: "Block", fields: ["blockNumber", "timestamp"], view: "EvmBlockView", query: { sources: [Source.TheGraph_Graphql] } }],
         content: {
           dl: [[

@@ -84,7 +84,13 @@
 >
 	{#snippet Title()}
 		<EvmBlockView
-			selection={select(EntityType.EvmBlock, selection.entitySelector.$block)}
+			selection={
+				select(EntityType.EvmBlock, selection.entitySelector.$block, {
+					sources: [
+						Source.TheGraph_Graphql,
+					],
+				})
+			}
 			href={null}
 			layout={EntityLayout.Title}
 		/>
@@ -99,7 +105,13 @@
 		/>
 
 		<EvmBlockView
-			selection={select(EntityType.EvmBlock, selection.entitySelector.$block)}
+			selection={
+				select(EntityType.EvmBlock, selection.entitySelector.$block, {
+					sources: [
+						Source.TheGraph_Graphql,
+					],
+				})
+			}
 			href={null}
 			layout={EntityLayout.Value}
 		/>
