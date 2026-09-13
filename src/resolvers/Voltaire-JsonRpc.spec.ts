@@ -26,6 +26,7 @@ const debugTraceTransaction = vi.hoisted(() => vi.fn())
 const getCall = vi.hoisted(() => vi.fn())
 const getBalance = vi.hoisted(() => vi.fn())
 const getBlockByNumber = vi.hoisted(() => vi.fn())
+const getBlockByHash = vi.hoisted(() => vi.fn())
 const getBlockNumber = vi.hoisted(() => vi.fn())
 const getRecentBlockWires = vi.hoisted(() => vi.fn())
 const iterateBlockStreamEvents = vi.hoisted(() => vi.fn())
@@ -44,6 +45,7 @@ vi.mock('$/sources/Voltaire/JsonRpc/queries.ts', () => ({
 				getCall,
 				getBalance,
 				getBlockByNumber,
+				getBlockByHash,
 				getBlockNumber,
 				getRecentBlockWires,
 				getStorageAt,
@@ -421,6 +423,47 @@ describe('Voltaire native EVM identity applicability', () => {
 			$network: { caip2: { namespace: 'eip155', reference: '1' } },
 			blockNumber: 1n,
 		})).rejects.toThrow('block number does not match the requested selector')
+	})
+
+	it('projects the same timestamp-proven active upgrade for number and hash selectors', async () => {
+		const resolver = voltaireJsonRpc.resolvers.find((candidate) => (
+			candidate.entityType === EntityType.EvmBlock
+		))
+		if (resolver == null)
+			throw new Error('Voltaire EVM block resolver is not registered')
+
+		const blockNumber = 15_537_394n
+		const blockHash = `0x${'a'.repeat(64)}`
+		const wire = {
+			number: `0x${blockNumber.toString(16)}`,
+			hash: blockHash,
+			parentHash: `0x${'b'.repeat(64)}`,
+			timestamp: `0x${(1_663_224_162n).toString(16)}`,
+			miner: `0x${'1'.repeat(40)}`,
+			gasUsed: '0x0',
+			gasLimit: '0x1',
+			transactions: [],
+		}
+		getBlockByNumber.mockResolvedValue(wire)
+		getBlockByHash.mockResolvedValue(wire)
+		const network = { caip2: { namespace: 'eip155', reference: '1' } } as const
+
+		const byNumber = await resolver.resolve.EvmNetworkBlockNumber.resolve({
+			$network: network,
+			blockNumber,
+		})
+		const byHash = await resolver.resolve.EvmNetworkBlockHash.resolve({
+			$network: network,
+			hash: blockHash,
+		})
+		const expected = {
+			[EntityMetaKey.Selector]: {
+				$network: network,
+				upgradeId: 'Merge',
+			},
+		}
+		expect(byNumber.$activeNetworkUpgrade).toEqual(expected)
+		expect(byHash.$activeNetworkUpgrade).toEqual(expected)
 	})
 
 	it('rejects a transaction response whose hash differs from the requested selector', async () => {

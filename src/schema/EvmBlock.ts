@@ -4,6 +4,7 @@ import { entity } from '$/schema/$schema.ts'
 import { EntityFieldCardinality } from '$/schema/EntityFieldCardinality.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export default entity({
@@ -37,6 +38,13 @@ export default entity({
 	timestamp: {
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$activeNetworkUpgrade: {
+		entityType: EntityType.EthereumNetworkUpgrade,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+		defaultSources: [
+			Source.Voltaire_JsonRpc,
+		],
 	},
 	$miner: {
 		entityType: EntityType.EvmAccount,

@@ -6,6 +6,10 @@ import {
 import { ChainId } from '$/constants/ChainId.ts'
 import { networks } from '$/constants/Network.ts'
 import {
+	activeNetworkUpgradeAtEvmHead,
+	networkUpgradesByChainId,
+} from '$/constants/EthereumNetworkUpgrades.ts'
+import {
 	Abi,
 	decodeParameters,
 	encodeFunction,
@@ -1381,6 +1385,30 @@ const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 	}
 }
 
+const activeNetworkUpgradeReferenceForEvmBlock = ({
+	$network,
+	blockNumber,
+	timestamp,
+}: {
+	$network: NetworkId
+	blockNumber: bigint
+	timestamp: number | undefined
+}) => {
+	if (timestamp == null || !Number.isSafeInteger(timestamp) || timestamp < 0)
+		return undefined
+	const chainId = chainIdFromEvmNetworkId($network)
+	const upgrade = activeNetworkUpgradeAtEvmHead(
+		networkUpgradesByChainId[chainId] ?? [],
+		{ blockNumber, timestampMs: timestamp },
+	)
+	return upgrade == null ? undefined : {
+		[EntityMetaKey.Selector]: {
+			$network,
+			upgradeId: upgrade.upgradeId,
+		},
+	} satisfies Entity<typeof schema, EntityType.EthereumNetworkUpgrade>
+}
+
 export default {
 	source: Source.Voltaire_JsonRpc,
 	resolvers: [
@@ -1415,8 +1443,14 @@ export default {
 								:
 									undefined
 								const miner = hexLowerOfByteSize(voltaireBlockWire.miner, 20)
+								const activeNetworkUpgrade = activeNetworkUpgradeReferenceForEvmBlock({
+									$network,
+									blockNumber: block.blockNumber,
+									timestamp: block.timestamp,
+								})
 								return {
 									...block,
+									...(activeNetworkUpgrade != null && { $activeNetworkUpgrade: activeNetworkUpgrade }),
 									$$transactions: evmTransactionRefsForTxHashes(
 										chainId,
 										voltaireBlockWire.transactions
@@ -1474,12 +1508,18 @@ export default {
 								:
 									undefined
 								const miner = hexLowerOfByteSize(voltaireBlockWire.miner, 20)
+								const activeNetworkUpgrade = activeNetworkUpgradeReferenceForEvmBlock({
+									$network,
+									blockNumber: block.blockNumber,
+									timestamp: block.timestamp,
+								})
 								return {
 									...block,
 									[EntityMetaKey.Selector]: {
 										$network,
 										hash: block.hash,
-									},
+										},
+									...(activeNetworkUpgrade != null && { $activeNetworkUpgrade: activeNetworkUpgrade }),
 									$$transactions: evmTransactionRefsForTxHashes(
 										chainId,
 										voltaireBlockWire.transactions
@@ -1519,6 +1559,7 @@ export default {
 			blobGasUsed: (entity) => entity.blobGasUsed,
 			excessBlobGas: (entity) => entity.excessBlobGas,
 			transactionCount: (entity) => entity.transactionCount,
+			$activeNetworkUpgrade: (entity) => entity.$activeNetworkUpgrade,
 			$parent: (entity) => entity.$parent,
 			$miner: (entity) => entity.$miner,
 			$$transactions: (entity) => entity.$$transactions,
