@@ -15,6 +15,8 @@ This ledger records the maintained owner of every section from the former root i
 | Recursive workstream ownership, delegation/context selection, model budgets and closest-common-ancestor resource placement | Root routing cue, inherited assignment contract and global `orchestrate-tree`; conditional delegation reference owns lifecycle distinctions | `~/.agents/skills/orchestrate-tree/SKILL.md` |
 | Codex Goal lifecycle and cross-task recovery | Global `manage-codex-goal` and `supervise-orchestration` | `~/.codex/skills/manage-codex-goal/SKILL.md`; `~/.agents/skills/supervise-orchestration/SKILL.md` |
 | Cross-task context recall and exhaustive history recrawls | Root routing cue and global `recall-task-context` | `~/.agents/skills/recall-task-context/SKILL.md` |
+| Exhaustive jurisdiction inventory and current item status | Personal `status`; delivery and mutation remain with existing workflow owners | `~/.codex/skills/status/SKILL.md` |
+| Recent-use evidence for every skill creation or edit | Repository `instruction-maintenance`; the corresponding managed `skill-creator` correction is preserved as a patch because the host restores it | `instruction-maintenance/SKILL.md`; `/Users/sample/Developer/blockhead-2026-agent/skill-review-20260913/all-skills/REVIEW.md` |
 | Testing | `tests/AGENTS.md`, `test-methodology`, `playwright-route-testing` | `playwright-route-testing/references/testing-reference.md` |
 | TypeScript | Root, `typescript-development`, lint | `typescript-development/references/expressions-and-types.md` |
 | Constants | `src/constants/AGENTS.md` | `src/constants/AGENTS.md` |

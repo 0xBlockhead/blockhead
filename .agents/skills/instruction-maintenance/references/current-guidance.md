@@ -1,0 +1,11 @@
+# Authoring guidance checked September 13, 2026
+
+Use this reference when revising discovery, authoring methodology, or portability. Refresh upstream pages before asserting a later change or version; retrieval date alone does not establish when a standard changed.
+
+- [OpenAI: Rethinking skills and prompts for GPT-6 Astra, September 11](https://learn.chatgpt.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra): keep descriptions precise, disclose conditional detail progressively, reconsider rigid recipes and repeated testing, and define the actual completion boundary. Preserve constraints needed by other models sharing the repository; do not remove demonstrated safeguards solely because Astra is more capable.
+- [OpenAI: Build skills](https://learn.chatgpt.com/docs/build-skills): reusable workflow instructions and optional resources form a skill; packaging for distribution is a separate plugin concern.
+- [Agent Skills specification](https://agentskills.io/specification): portable frontmatter requires a matching name and nonempty description. Optional compatibility describes real environmental requirements. `allowed-tools` remains experimental and client-dependent; do not mistake it for enforced permissions. Vendor UI metadata belongs outside the portable contract.
+- [Agent Skills authoring](https://agentskills.io/skill-creation/best-practices): derive useful expertise from actual tasks, corrections, artifacts and execution traces. Retain context that changes decisions and iterate on successful and failed executions.
+- [Description evaluation](https://agentskills.io/skill-creation/optimizing-descriptions) and [output evaluation](https://agentskills.io/skill-creation/evaluating-skills): assess activation separately from task quality. Use realistic near-misses and held-out cases when optimizing repeatedly; observe actual skill loading and outputs. Example sample sizes and tooling are recommendations, not format requirements.
+
+The description guide recommends assertive activation cues, while OpenAI warns against overbroad triggers. Resolve this by making intended triggers explicit and testing adjacent requests; do not expand scope merely to increase activation. Keep model advice, portable requirements, and local preferences distinguishable.

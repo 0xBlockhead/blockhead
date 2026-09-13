@@ -9,7 +9,7 @@ Encode decisions the agent would otherwise get wrong, not domain knowledge it al
 
 ## Method
 
-1. Read [references/architecture.md](references/architecture.md) and [references/coverage.md](references/coverage.md). Inspect nearby instructions, skills, and the real tasks, corrections, failures, or artifacts that justify the change.
+1. Read [references/architecture.md](references/architecture.md) for placement or routing changes and [references/coverage.md](references/coverage.md) for existing ownership. For every skill creation or edit, scan relevant recent threads using the available history reader, inspect decisive corrections with surrounding execution and successful outcomes, and record source boundaries and access limits. Distinguish human requests from assignments and mirrored context. Reuse current evidence for a narrow edit; do not turn this into an exhaustive archive prerequisite. If no relevant history is accessible, proceed from the explicit requirement and disclose that evidence limit. Inspect nearby instructions and competing skills before drafting.
 2. Choose the narrowest reliable owner. Keep standing or path rules in `AGENTS.md`, mechanically enforceable rules in code or tests, and repeatable task procedure here. Do not create a skill if those owners suffice.
    Distinguish a missing decision from failure to follow an already explicit rule. For the latter, repair the execution, ownership, context-delivery or enforcement boundary and retain a causal evaluation case; repeated prose is not a fix. Verify who caused an interruption or missing input before assigning the failure to an executor.
 3. Write the description as a classifier: capability, concrete triggers, and only exclusions that prevent plausible false activation. Do not summarize the body.
@@ -18,6 +18,12 @@ Encode decisions the agent would otherwise get wrong, not domain knowledge it al
 6. Put inevitable gotchas in `SKILL.md`. Put conditional detail in a focused reference and link it directly at the decision point with the exact condition for reading it. Never add a second routing hop.
 7. Use a script when deterministic mechanics would otherwise be regenerated or explained repeatedly. State its contract and stopping condition; do not narrate its implementation.
 8. Give one default, then the condition that justifies an alternative. Match prescription to fragility; avoid option menus and generic positive guidance.
+
+For repeated-prompt reviews, group requests by the decision they need rather than matching words alone. Map each group to its current owner and disposition it as a missing workflow, a narrow correction, a discovery/enforcement failure, already covered, or task-specific. Preserve non-obvious successful methods as well as failures. Keep private transcripts and incident chronology in task artifacts; skill bodies retain only reusable decisions and boundaries.
+
+For catalog-wide work, pin the actual catalog and physical paths, then give every skill a reviewed disposition. Audit bundled and plugin skills without executing their operational workflows. Preserve exact preimages and recheck before edits where another task or the host may rewrite files. Record changes to managed copies as such and retain reviewable patches; do not claim durable installation from a successful write alone.
+
+For discovery, authoring-methodology, or portability changes, consult [references/current-guidance.md](references/current-guidance.md); refresh its upstream sources when current guidance is requested.
 
 ## Evaluation
 
