@@ -25,6 +25,7 @@ import {
 } from '$/typescript/JsonValue.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import { relayWebSocketUrl } from './relayWebSocketUrl.ts'
+import { openRelayReadSocket } from './live.ts'
 
 export type NostrRelayList = {
 	eventId: string
@@ -541,7 +542,7 @@ export const listRelayEvents = ({
 	filters,
 	signal,
 	timeoutMs = 10_000,
-	socketFactory = openRelaySocket,
+	socketFactory = openRelayReadSocket,
 }: {
 	binding: SourceBinding
 	filters: readonly NostrRelayFilter[]
@@ -765,24 +766,24 @@ export const openNostrRelaySubscription = ({
 	signal?: AbortSignal
 	onEvent: (event: NostrRelaySubscriptionEvent) => void
 	maxSeenEventIds?: number
-}) => openRelaySubscription({
-	binding: {
-		...nostrRelayReadBinding,
-		target: {
-			...nostrRelayReadBinding.target,
-			key: relayUrl,
-		},
-		endpoints: nostrRelayReadBinding.endpoints.map((endpoint) => ({
-			...endpoint,
-			locator: relayUrl,
-		})),
-	},
-	subscriptionId,
-	filters,
-	signal,
-	onEvent,
-	maxSeenEventIds,
-})
+}) => {
+	const normalizedRelayUrl = relayWebSocketUrl(relayUrl)
+	const binding = bindings[Source.NostrRelay_WebSocket].find((candidate) => (
+		candidate.operationGroups.includes(SourceOperationGroup.NostrRelayRead)
+		&& relayUrlForBinding(candidate) === normalizedRelayUrl
+	))
+	if (binding == null)
+		throw new Error(`Nostr relay has no enrolled RemoteLive read binding: ${normalizedRelayUrl}`)
+
+	return openRelaySubscription({
+		binding,
+		subscriptionId,
+		filters,
+		signal,
+		onEvent,
+		maxSeenEventIds,
+	})
+}
 
 export const openNostrRelaySubscriptionsForOperationGroup = ({
 	operationGroup,
@@ -827,7 +828,7 @@ export const openRelaySubscription = ({
 	filters,
 	signal,
 	onEvent,
-	socketFactory = openRelaySocket,
+	socketFactory = openRelayReadSocket,
 	initialReconnectDelayMs = 250,
 	maxReconnectDelayMs = 10_000,
 	maxSeenEventIds = 100_000,
