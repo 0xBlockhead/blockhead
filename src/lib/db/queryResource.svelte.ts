@@ -191,9 +191,12 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			value,
 		}
 
-		this.#pending?.resolve()
+		if (this.#pending)
+			this.#pending.resolve()
+		else
+			this.#promise = Promise.resolve()
+
 		this.#pending = undefined
-		this.#promise = Promise.resolve()
 	}
 
 	fail(
@@ -201,10 +204,14 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	) {
 		this.#error = error
 		this.#loading = false
-		this.#pending?.reject(error)
+		if (this.#pending)
+			this.#pending.reject(error)
+		else {
+			this.#promise = Promise.reject(error)
+			this.#promise.catch(() => {})
+		}
+
 		this.#pending = undefined
-		this.#promise = Promise.reject(error)
-		this.#promise.catch(() => {})
 	}
 
 	get [Symbol.toStringTag]() {

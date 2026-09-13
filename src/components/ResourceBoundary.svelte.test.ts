@@ -4,6 +4,73 @@ import { render } from 'vitest-browser-svelte'
 
 import { TanStackLiveQueryResource, type TanStackLiveQuerySnapshot } from '$/lib/db/queryResource.svelte.ts'
 import ResourceBoundaryFixture from '$/routes/test/resource-boundary/resource-boundary-fixture.svelte'
+import DelayedResourceBoundaryFixture from '$/routes/test/resource-boundary/resource-boundary-delayed-fixture.svelte'
+
+
+test('delayed boundary consumes an ordinary settled promise', async () => {
+	const resource = Object.assign(Promise.resolve('Native promise value'), {
+		current: 'Native promise value',
+		loading: false,
+		ready: true,
+		error: undefined,
+	})
+	const delivery = Promise.withResolvers<{ resource: typeof resource }>()
+	const view = await render(DelayedResourceBoundaryFixture, { delivery: delivery.promise })
+	try {
+		delivery.resolve({ resource })
+		await expect.element(page.getByText('Native promise value', { exact: true })).toBeInTheDocument()
+	} finally {
+		await view.unmount()
+	}
+})
+
+
+test('delayed boundary renders an initial source failure', async () => {
+	const failure = new Error('Delayed provider failure')
+	const resource = new TanStackLiveQueryResource<string>(() => {
+		throw failure
+	})
+	const delivery = Promise.withResolvers<{ resource: typeof resource }>()
+	const view = await render(DelayedResourceBoundaryFixture, { delivery: delivery.promise })
+	try {
+		delivery.resolve({ resource })
+		await expect.element(page.getByRole('alert', { name: failure.message })).toHaveTextContent('Failed to load')
+		expect(resource.error).toBe(failure)
+	} finally {
+		await view.unmount()
+		resource.destroy()
+	}
+})
+
+
+test.each([false, true])('delayed direct=%s consumer follows subsequent source notifications', async (direct) => {
+	let snapshot: TanStackLiveQuerySnapshot<string> = {
+		data: 'Initial delayed value',
+		isLoading: false,
+		isReady: true,
+		isError: false,
+		status: 'ready',
+	}
+	let publish = () => {}
+	const resource = new TanStackLiveQueryResource(() => snapshot, (update) => {
+		publish = update
+		return () => {}
+	})
+	const delivery = Promise.withResolvers<{ resource: typeof resource }>()
+	const view = await render(DelayedResourceBoundaryFixture, { delivery: delivery.promise, direct })
+	try {
+		delivery.resolve({ resource })
+		await expect.element(page.getByText('Initial delayed value', { exact: true })).toBeInTheDocument()
+		snapshot = { ...snapshot, data: 'Updated delayed value' }
+		queueMicrotask(publish)
+		await expect.poll(() => resource.current).toBe('Updated delayed value')
+		await expect.element(page.getByText('Updated delayed value', { exact: true })).toBeInTheDocument()
+		await expect.element(page.getByText('Initial delayed value', { exact: true })).not.toBeInTheDocument()
+	} finally {
+		await view.unmount()
+		resource.destroy()
+	}
+})
 
 
 test.each([false, true])('isolated direct=%s consumer follows notifications and preserves a cached resource across remount', async (direct) => {
