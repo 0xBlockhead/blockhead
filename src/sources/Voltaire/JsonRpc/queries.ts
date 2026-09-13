@@ -14,6 +14,7 @@ import {
 } from '$/sources/SourceBinding.ts'
 import bindings from '$/sources/Voltaire/bindings.ts'
 import { parseVoltaireCallTraceRpc } from '$/sources/Voltaire/JsonRpc/CallTrace.ts'
+import { blockStreamProvider } from '$/sources/Voltaire/JsonRpc/BlockStreamProvider.ts'
 import { ens } from '$/sources/Voltaire/JsonRpc/ens.ts'
 import { evmExecutionJsonRpc } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/queries.ts'
 import { narrowRpcLog } from '$/sources/_shared/interfaces/EvmExecutionJsonRpc/types.ts'
@@ -246,8 +247,7 @@ export const voltaireJsonRpcTransports = {
 
 const createLiveBlockStream = (provider: Provider) => (
 	import('@tevm/voltaire/block').then(({ BlockStream }) => (
-		// @ts-expect-error Provider is structurally compatible at runtime for JSON-RPC block streaming
-		BlockStream({ provider })
+		BlockStream({ provider: blockStreamProvider(provider) })
 	))
 )
 
