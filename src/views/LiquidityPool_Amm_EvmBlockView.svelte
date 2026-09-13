@@ -236,7 +236,12 @@
 	{/snippet}
 
 	{#snippet Details()}
-		{@const inputAssetsResource = selection.$$inputAssets}
+		{@const inputAssetsResource = selection
+			.$$inputAssets({
+				sources: [
+					Source.TheGraph_Graphql,
+				],
+			})}
 		<ResourceBoundary
 			resource={inputAssetsResource}
 		>

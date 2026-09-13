@@ -181,7 +181,38 @@ const assetResolver = defineResolver({
  weightPercent: result => result.pool.inputTokenWeights[result.ordinal],
 })
 
+const blockResolver = defineResolver({
+	entityType: EntityType.EvmBlock,
+	resolve: {
+		EvmNetworkBlockHash: {
+			appliesTo: [{
+				$network: { caip2: { namespace: 'eip155', reference: '42161' } },
+			}],
+			resolve: async ({ $network, hash }) => {
+				if ($network.caip2 == null)
+					throw new Error('TheGraph_Graphql: Messari block metadata requires a canonical CAIP-2 network')
+				const {
+					getMessariBlockDeployment,
+					getMessariEvmBlockAtHash,
+					getMessariGraphqlBinding,
+				} = await import('$/sources/TheGraph/Messari/direct.ts')
+				const deployment = getMessariBlockDeployment($network.caip2)
+				const block = await getMessariEvmBlockAtHash({
+					binding: getMessariGraphqlBinding(deployment),
+					deployment,
+					blockHash: hash,
+				})
+				return { ...block, hash: Hash32.assert(block.hash.toLowerCase()) }
+			},
+		},
+	},
+})({
+	blockNumber: block => BigInt(block.number),
+	hash: block => block.hash,
+	timestamp: block => block.timestamp * 1000,
+})
+
 export default {
 	source: Source.TheGraph_Graphql,
-	resolvers: [protocolResolver, observationResolver, poolResolver, poolObservationResolver, assetResolver] as const,
+	resolvers: [protocolResolver, observationResolver, poolResolver, poolObservationResolver, assetResolver, blockResolver] as const,
 } satisfies RegisteredSourceResolverModule

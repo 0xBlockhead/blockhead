@@ -1,7 +1,7 @@
 import { initGraphQLTada } from 'gql.tada'
 
 import type { introspection } from './graphql-env.d.ts'
-import { graphInt, protocolFinancialsWire } from './types.ts'
+import { blockMetadataWire, graphInt, protocolFinancialsWire } from './types.ts'
 import type { MessariObservationSession } from './observation-session.ts'
 
 import { Source } from '$/sources/Source.ts'
@@ -135,6 +135,28 @@ const exactDocument = graphql(`
 	}
 `)
 
+const exactBlockDocument = graphql(`
+	query MessariEvmBlockAtHash($block: Block_height!) {
+		_meta(block: $block) {
+			deployment
+			hasIndexingErrors
+			block { number hash timestamp }
+		}
+	}
+`)
+
+const blockDeploymentByNetwork = new Map<string, MessariGraphqlDeployment>([
+	['eip155:42161', 'uniswap-v3-arbitrum'],
+])
+
+/** One explicit indexed-chain authority per supported network; never an implicit endpoint fallback. */
+export const getMessariBlockDeployment = (caip2: { namespace: string; reference: string }) => {
+	const deployment = blockDeploymentByNetwork.get(`${caip2.namespace}:${caip2.reference}`)
+	if (deployment == null)
+		throw new Error('Messari block metadata does not support this network')
+	return deployment
+}
+
 const profileForBinding = (
 	binding: SourceBinding,
 	deployment: MessariGraphqlDeployment
@@ -252,6 +274,38 @@ export const getMessariAmmFinancialsAtBlockHash = async ({
 			hash,
 		},
 	}
+}
+
+export const getMessariEvmBlockAtHash = async ({
+	binding,
+	deployment,
+	blockHash,
+	signal,
+}: {
+	binding: SourceBinding
+	deployment: MessariGraphqlDeployment
+	blockHash: string
+	signal?: AbortSignal
+}) => {
+	if (!Hash32.allows(blockHash))
+		throw new Error('Messari exact block query requires a 32-byte block hash')
+	const profile = profileForBinding(binding, deployment)
+	const data = blockMetadataWire.assert(await queryTheGraph({
+		binding,
+		signal,
+		document: exactBlockDocument,
+		variables: { block: { hash: blockHash } },
+	}))
+	if (data._meta.deployment !== profile.deployment)
+		throw new Error('Messari block response deployment identity mismatch')
+	if (data._meta.hasIndexingErrors)
+		throw new Error('Messari block deployment reports indexing errors')
+	if (data._meta.block.hash == null
+		|| data._meta.block.hash.toLowerCase() !== blockHash.toLowerCase())
+		throw new Error('Messari exact block response hash mismatch or unavailable')
+	if (data._meta.block.timestamp == null)
+		throw new Error('Messari exact block response timestamp unavailable')
+	return { ...data._meta.block, hash: data._meta.block.hash, timestamp: data._meta.block.timestamp }
 }
 
 const financialObservation = (result: ReturnType<typeof parseFinancials>) => ({

@@ -29,6 +29,8 @@ const {
 	getMessariGraphqlBinding,
 	getMessariAmmFinancialsAtBlockHash,
 	getMessariAmmFinancialsLatest,
+	getMessariBlockDeployment,
+	getMessariEvmBlockAtHash,
 	messariGraphqlProfiles,
 } = await import('./direct.ts')
 
@@ -85,6 +87,42 @@ it('indexes native protocol/network applicability and preserves manifest versus 
 		{ protocolKey: 'uniswap-v3', caip2: { namespace: 'other', reference: '42161' } },
 	]) expect(() => getMessariAmmProfile(input)).toThrow(/does not support/)
 	expect(corsFetch).not.toHaveBeenCalled()
+})
+
+it('chooses one explicit block authority per supported network', () => {
+	expect(getMessariBlockDeployment({ namespace: 'eip155', reference: '42161' })).toBe('uniswap-v3-arbitrum')
+	for (const caip2 of [
+		{ namespace: 'eip155', reference: '1' },
+		{ namespace: 'other', reference: '42161' },
+	]) expect(() => getMessariBlockDeployment(caip2)).toThrow(/does not support/)
+})
+
+it('loads exact block metadata without querying a provider-shaped protocol entity', async () => {
+	const envelope = await textResponseFromCapture(cases[0].query)
+	const blockHash = envelope.data._meta.block.hash
+	setGraphResponse(envelope)
+	const result = await getMessariEvmBlockAtHash({
+		binding: getMessariGraphqlBinding('uniswap-v3-arbitrum'),
+		deployment: 'uniswap-v3-arbitrum',
+		blockHash,
+	})
+	expect(result).toEqual(envelope.data._meta.block)
+	const body = JSON.parse(corsFetch.mock.lastCall?.[1].init.body)
+	expect(body.variables).toEqual({ block: { hash: blockHash } })
+	expect(body.query).not.toContain('dexAmmProtocols')
+})
+
+it('rejects a partial exact block instead of claiming the accepted height/time view', async () => {
+	const envelope = await textResponseFromCapture(cases[0].query)
+	const blockHash = envelope.data._meta.block.hash
+	envelope.data._meta.block.timestamp = null
+	setGraphResponse(envelope)
+	await expect(getMessariEvmBlockAtHash({
+		binding: getMessariGraphqlBinding('uniswap-v3-arbitrum'),
+		deployment: 'uniswap-v3-arbitrum',
+		blockHash,
+	})).rejects.toThrow(/timestamp unavailable/)
+	expect(corsFetch).toHaveBeenCalledTimes(1)
 })
 
 const deploymentBinding = (deployment: typeof cases[number]['deployment']): SourceBinding => {

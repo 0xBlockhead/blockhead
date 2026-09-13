@@ -43298,7 +43298,7 @@ export const schema = {
             { field: "cumulativeProtocolSideRevenueUSD", label: "Cumulative protocol-side revenue (USD)" },
             { field: "cumulativeTotalRevenueUSD", label: "Cumulative total revenue (USD)" },
           ]],
-          lists: [{ field: "$$inputAssets", component: "LiquidityPool_Amm_EvmBlock_InputAssetsView" }],
+          lists: [{ field: "$$inputAssets", component: "LiquidityPool_Amm_EvmBlock_InputAssetsView", query: { sources: [Source.TheGraph_Graphql] } }],
         },
       },
       plural: { component: "LiquidityPool_Amm_EvmBlocksView" },

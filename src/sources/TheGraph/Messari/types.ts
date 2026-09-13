@@ -29,4 +29,16 @@ export const protocolFinancialsWire = type({
 	}).array(),
 })
 
+export const blockMetadataWire = type({
+	_meta: {
+		deployment: 'string',
+		hasIndexingErrors: 'boolean',
+		block: {
+			number: graphInt,
+			hash: Hash32.or('null'),
+			timestamp: graphInt.or('null'),
+		},
+	},
+})
+
 export type MessariGraphqlFinancialsWire = typeof protocolFinancialsWire.infer

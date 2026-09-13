@@ -8,12 +8,19 @@ vi.mock('$/lib/http.ts', async (original) => ({ ...await original(), corsFetch }
 const { default: module } = await import('$/resolvers/Messari-TheGraph.ts')
 const { messariGraphqlProfiles } = await import('$/sources/TheGraph/Messari/direct.ts')
 const [protocolResolver, observationResolver] = module.resolvers
+const blockResolver = module.resolvers[5]
 const cases = [
 	['uniswap-v3-arbitrum', 'live-uniswap-arbitrum-introspection.json.query.json'],
 	['sushiswap-v3-arbitrum', 'live-sushiswap-arbitrum-introspection.json.query.json'],
 ] as const
 
 beforeEach(() => vi.clearAllMocks())
+
+it('limits the Graph block producer to its explicit indexed network', () => {
+	expect(blockResolver.resolve.EvmNetworkBlockHash.appliesTo).toEqual([{
+		$network: { caip2: { namespace: 'eip155', reference: '42161' } },
+	}])
+})
 
 for (const [deployment, file] of cases) {
 	const capture = JSON.parse(await readFile(new URL(`../sources/TheGraph/Messari/fixtures/${file}`, import.meta.url), 'utf8'))
@@ -51,6 +58,30 @@ for (const [deployment, file] of cases) {
 		expect(body.query).toContain('_meta(block: $block)')
 	})
 
+	it(`${deployment}: nested native block selection resolves height and time from the exact Graph coordinate`, async () => {
+		const blockPayload = {
+			data: {
+				_meta: {
+					...payload.data._meta,
+					deployment: messariGraphqlProfiles['uniswap-v3-arbitrum'].deployment,
+					block: { ...payload.data._meta.block },
+				},
+			},
+		}
+		reply(blockPayload)
+		const result = await blockResolver.resolve.EvmNetworkBlockHash.resolve($block)
+		expect(blockResolver.projections.hash(result)).toBe($block.hash)
+		expect(blockResolver.projections.blockNumber(result)).toBe(BigInt(payload.data._meta.block.number))
+		expect(blockResolver.projections.timestamp(result)).toBe(payload.data._meta.block.timestamp * 1000)
+		const call = corsFetch.mock.lastCall
+		if (call == null)
+			throw new Error('Exact block resolution did not reach source delivery')
+		const body = JSON.parse(call[1].init.body)
+		expect(body.variables.block).toEqual({ hash: $block.hash })
+		expect(body.query).toContain('_meta(block: $block)')
+		expect(body.query).not.toContain('dexAmmProtocols')
+	})
+
 	it(`${deployment}: rejects non-exact selectors before transport`, async () => {
 		for (const invalid of [
 			{ ...selector, sourceRevision: 'thegraph:unavailable' },
@@ -63,6 +94,22 @@ for (const [deployment, file] of cases) {
 	it(`${deployment}: exact failure never retries latest`, async () => {
 		corsFetch.mockResolvedValue(new Response('unavailable', { status: 503 }))
 		await expect(observationResolver.resolve.ProtocolBlockRevision.resolve(selector)).rejects.toThrow(/503/)
+		expect(corsFetch).toHaveBeenCalledTimes(1)
+	})
+
+	it(`${deployment}: nested block hash mismatch fails instead of substituting latest`, async () => {
+		const mismatch = {
+			data: {
+				_meta: {
+					...payload.data._meta,
+					deployment: messariGraphqlProfiles['uniswap-v3-arbitrum'].deployment,
+					block: { ...payload.data._meta.block },
+				},
+			},
+		}
+		mismatch.data._meta.block.hash = '0x' + '00'.repeat(32)
+		reply(mismatch)
+		await expect(blockResolver.resolve.EvmNetworkBlockHash.resolve($block)).rejects.toThrow(/hash mismatch/)
 		expect(corsFetch).toHaveBeenCalledTimes(1)
 	})
 
