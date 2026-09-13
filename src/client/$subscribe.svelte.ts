@@ -931,10 +931,7 @@ export function subscribeEntityField<
 	let nestedResourceUpdate: (() => void) | undefined
 	const resource = registerClientResource(context, new TanStackLiveQueryResource(() => {
 		const rowsFailure = queries.rowsFailure()
-		const rowsFailed = (
-			rowsFailure !== undefined
-			&& queries.rows.data.length === 0
-		)
+		const rowsFailed = rowsFailure !== undefined
 		const requiredFieldResolvedEmpty = (
 			queries.localAuthorityResolvedEmpty()
 			&& !fieldCanCompleteEmpty(definition)
@@ -1233,21 +1230,24 @@ export const subscribeEntityFieldCount = <
 		filterKey: stringify({}),
 	})
 
-	return registerClientResource(context, new TanStackLiveQueryResource(() => asQuerySnapshot(
-		[{
+	return registerClientResource(context, new TanStackLiveQueryResource(() => {
+		const countsFailure = collectionLoadFailure(
+			context,
+			stringify([
+				'client.counts',
+				entityType,
+				facetPath,
+				fieldName,
+			]),
+			parentSelectorKey,
+			querySources
+		)
+		return asQuerySnapshot([{
 			...counts,
+			isError: countsFailure !== undefined,
+			error: countsFailure === undefined ? undefined : new Error(countsFailure.error),
 			isComplete: (
-				collectionLoadFailure(
-					context,
-					stringify([
-						'client.counts',
-						entityType,
-						facetPath,
-						fieldName,
-					]),
-					parentSelectorKey,
-					querySources
-				) !== undefined
+				countsFailure !== undefined
 				|| (
 					!countCollection.utils.isResolverSubsetLoading(
 						parentSelectorKey,
@@ -1269,7 +1269,8 @@ export const subscribeEntityFieldCount = <
 		countSourcePriority
 			.map((source) => counts.data.find((row) => row[EntityMetaKey.Source] === source))
 			.find((row) => row !== undefined)?.[EntityMetaKey.Value] ?? 0
-	), (update) => {
+		)
+	}, (update) => {
 		const unsubscribeLive = subscribeToLiveQueryCollections(
 			observedQueries,
 			update,
@@ -1576,10 +1577,7 @@ const subscribeEntitySelection = <
 
 	const resource = registerClientResource(context, new TanStackLiveQueryResource(() => {
 		const rowsFailure = entityRowsFailure()
-		const rowsFailed = (
-			rowsFailure !== undefined
-			&& entityRows.data.length === 0
-		)
+		const rowsFailed = rowsFailure !== undefined
 		const entityMissing = (
 			entityRows.data.length === 0
 			&& localEntityResolvedEmpty()
@@ -1772,10 +1770,7 @@ const subscribeEntitySelection = <
 					queries,
 				}) => {
 					const fieldRowsFailure = queries.rowsFailure()
-					const fieldRowsFailed = (
-						fieldRowsFailure !== undefined
-						&& queries.rows.data.length === 0
-					)
+					const fieldRowsFailed = fieldRowsFailure !== undefined
 					const requiredFieldResolvedEmpty = (
 						queries.localAuthorityResolvedEmpty()
 						&& !fieldCanCompleteEmpty(definition)
