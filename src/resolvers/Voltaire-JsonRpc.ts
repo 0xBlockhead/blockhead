@@ -13,7 +13,6 @@ import {
 import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { toBytes } from '@tevm/voltaire/Hex'
 import type { BlockStreamEvent, StreamBlock } from '@tevm/voltaire/block'
-import Transaction from '@tevm/voltaire/Transaction'
 import {
 	EvmInternalCallType,
 	EvmTokenStandard,
@@ -1065,7 +1064,7 @@ type EvmNetworkRecentBlock = ReturnType<typeof evmNetworkRecentBlocksFromBlockWi
 
 const evmNetworkRecentBlockFromStreamBlock = (
 	chainId: number,
-	block: StreamBlock<'transactions'>
+	block: StreamBlock<'header'>
 ): EvmNetworkRecentBlock => {
 	const blockHash = hexLowerOfByteSize(hexFromBytes(block.hash), 32)
 	const parentHash = hexLowerOfByteSize(hexFromBytes(block.header.parentHash), 32)
@@ -1093,9 +1092,8 @@ const evmNetworkRecentBlockFromStreamBlock = (
 			excessBlobGas: block.header.excessBlobGas,
 			transactionCount: block.body.transactions.length,
 		},
-		transactionHashes: block.body.transactions.map((transaction) => (
-			hexLowerOfByteSize(toHex(Transaction.hash_internal.call(transaction)), 32)
-		)).map((txHash, indexInBlock) => {
+		transactionHashes: block.body.transactions.map((transaction, indexInBlock) => {
+			const txHash = hexLowerOfByteSize(transaction, 32)
 			if (txHash == null)
 				throw new Error(`Voltaire_JsonRpc: stream block ${String(block.header.number)} has an invalid transaction at index ${String(indexInBlock)}`)
 			return txHash
@@ -1106,7 +1104,7 @@ const evmNetworkRecentBlockFromStreamBlock = (
 const evmNetworkRecentBlocksAfterStreamEvent = (
 	chainId: number,
 	previous: readonly EvmNetworkRecentBlock[],
-	event: BlockStreamEvent<'transactions'>,
+	event: BlockStreamEvent<'header'>,
 	depth = 8
 ) => {
 	const incoming = (
@@ -2942,7 +2940,7 @@ export default {
 									publishHead(currentHead)
 										initialized = true
 										for await (const event of jsonRpcTransport.iterateBlockStreamEvents({
-											include: 'transactions',
+											include: 'header',
 											signal,
 											fromBlock: currentHead,
 											maxQueuedBlocks: 16,

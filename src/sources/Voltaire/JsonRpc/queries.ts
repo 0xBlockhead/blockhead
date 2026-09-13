@@ -37,7 +37,7 @@ type VoltaireJsonRpcBinding = SourceBinding<Source.Voltaire_JsonRpc> & {
 }
 
 type BlockStreamOptions = {
-	include?: BlockInclude
+	include?: Extract<BlockInclude, 'header'>
 	signal?: AbortSignal
 	fromBlock?: bigint
 	maxQueuedBlocks?: number
@@ -261,7 +261,7 @@ const blockStreamEvents = async function* ({
 	retry,
 }: BlockStreamOptions & {
 	provider: Provider
-}): AsyncGenerator<BlockStreamEvent<BlockInclude>, void, void> {
+}): AsyncGenerator<BlockStreamEvent<'header'>, void, void> {
 	const stream = await createLiveBlockStream(provider)
 	for await (const event of stream.watch({
 		include,

@@ -130,18 +130,7 @@ const streamBlock = (blockNumber: bigint) => ({
 		gasLimit: 2n,
 	},
 	body: {
-		transactions: [{
-			type: 0,
-			nonce: blockNumber,
-			gasPrice: 1n,
-			gasLimit: 21_000n,
-			to: null,
-			value: 0n,
-			data: new Uint8Array(),
-			v: 27n,
-			r: new Uint8Array(32),
-			s: new Uint8Array(32),
-		}],
+		transactions: [`0x${(10_000n + blockNumber).toString(16).padStart(64, '0')}`],
 	},
 })
 

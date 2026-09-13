@@ -5,6 +5,9 @@ import { blockStreamProvider } from '$/sources/Voltaire/JsonRpc/BlockStreamProvi
 
 const hash = (byte: string) => `0x${byte.repeat(64)}`
 
+const ordinaryTransactionHash = hash('7')
+const depositTransactionHash = hash('8')
+
 const rpcBlock = (number: bigint, hashByte: string, parentHashByte: string) => ({
 	baseFeePerGas: '0x1',
 	difficulty: '0x0',
@@ -24,7 +27,7 @@ const rpcBlock = (number: bigint, hashByte: string, parentHashByte: string) => (
 	stateRoot: hash('5'),
 	timestamp: '0x65a8',
 	totalDifficulty: '0x0',
-	transactions: [],
+	transactions: [ordinaryTransactionHash, depositTransactionHash],
 	transactionsRoot: hash('6'),
 })
 
@@ -48,7 +51,7 @@ describe('Voltaire block-stream provider boundary', () => {
 			provider: blockStreamProvider({ request }),
 		}).watch({
 			fromBlock: 1n,
-			include: 'transactions',
+			include: 'header',
 			pollingInterval: 1,
 			signal: abortController.signal,
 		})
@@ -62,9 +65,16 @@ describe('Voltaire block-stream provider boundary', () => {
 		expect(advanced.value).toMatchObject({
 			type: 'blocks',
 			metadata: { chainHead: 2n },
-			blocks: [{ header: { number: 2n } }],
+			blocks: [{
+				header: { number: 2n },
+				body: { transactions: [ordinaryTransactionHash, depositTransactionHash] },
+			}],
 		})
 		abortController.abort()
+		expect(request).toHaveBeenCalledWith(expect.objectContaining({
+			method: 'eth_getBlockByNumber',
+			params: ['0x1', false],
+		}))
 	})
 
 	it('converts raw JSON-RPC blocks to the native shape used by the installed stream reconciler', async () => {
@@ -74,7 +84,7 @@ describe('Voltaire block-stream provider boundary', () => {
 		const provider = blockStreamProvider({ request })
 		const block = await provider.request({
 			method: 'eth_getBlockByNumber',
-			params: ['0x2', true],
+			params: ['0x2', false],
 		})
 
 		expect(block).toMatchObject({
@@ -82,7 +92,7 @@ describe('Voltaire block-stream provider boundary', () => {
 				number: 2n,
 				timestamp: 0x65a8n,
 			},
-			body: { transactions: [] },
+			body: { transactions: [ordinaryTransactionHash, depositTransactionHash] },
 		})
 		expect((block as { hash: Uint8Array }).hash).toEqual(
 			Uint8Array.from({ length: 32 }, () => 0xaa)
@@ -99,11 +109,11 @@ describe('Voltaire block-stream provider boundary', () => {
 
 		await expect(provider.request({
 			method: 'eth_getBlockByHash',
-			params: [hash('a'), true],
+			params: [hash('a'), false],
 		})).resolves.toBeNull()
 		await expect(provider.request({
 			method: 'eth_getBlockByHash',
-			params: [hash('a'), true],
+			params: [hash('a'), false],
 		})).rejects.toThrow('eth_getBlockByHash returned a malformed block')
 	})
 })
