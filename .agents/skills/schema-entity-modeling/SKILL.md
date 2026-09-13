@@ -9,12 +9,12 @@ Inspect the affected entity, resolver registrations, references, and views befor
 
 Model domain identity before provider payload shape:
 
-- An entity represents one stable subject.
+- An entity represents a domain subject with its own identity. Stable subjects, occurrences, revisions and observations can have different lifecycles; do not force all of them into a stable-object model.
 - A selector is a unique field set that addresses that subject.
 - Alternate interoperable identifiers are separate selectors when each uniquely addresses the same entity.
 - A `$$` field refers to another entity. Do not flatten the referenced entity's identity into unrelated scalar fields.
 - Cardinality describes valid domain values after resolution. It does not describe whether a provider implements the field.
-- Timestamp entities own observations that can change while the parent identity remains stable.
+- Observation entities own facts that can vary independently of the parent identity. Use the actual protocol coordinate, window and methodology needed for uniqueness; a timestamp alone is not always sufficient or available.
 - Lifecycle timestamps and values determined by the entity ID stay on the owning entity.
 
 Check every affected resolver for selector applicability, emitted fields, and timestamp coordinates. Check every affected view against the resulting cardinality instead of preserving optional branches that the schema no longer permits.
