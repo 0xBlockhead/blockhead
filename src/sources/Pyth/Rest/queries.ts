@@ -49,29 +49,13 @@ const assertPriceUpdateIdentities = (
 	}
 }
 
-const omitUndefinedJson = (
-	value: unknown
-): unknown => {
-	if (Array.isArray(value))
-		return value.map(omitUndefinedJson)
-	if (value != null && typeof value === 'object')
-		return Object.fromEntries(
-			Object.entries(value)
-				.map(([key, entry]) => [
-					key,
-					omitUndefinedJson(entry),
-				])
-		)
-	return value
-}
-
 const assertEnvelope = <_Value>(
 	label: string,
 	wire: { assert: (value: unknown) => _Value },
 	response: unknown
 ) => {
 	try {
-		return wire.assert(omitUndefinedJson(response))
+		return wire.assert(response)
 	} catch {
 		throw new Error(`Pyth_Rest: invalid ${label} response envelope`)
 	}

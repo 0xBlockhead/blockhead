@@ -2144,7 +2144,7 @@ Provider/source identity, target, endpoint reality, protocol, API family, operat
 | ["Polkadot_JsonRpc","Caip2Network","polkadot:91b171bb158e2d3848fa23a9f1c25182","BrowserDirect","SubstrateJsonRpc"] | HandwrittenTypes | src/sources/Polkadot/JsonRpc/types.ts | no |  |  |
 | ["Primal_Rest","Global","primal-api","HttpProxy","RestJson"] | HandwrittenTypes | src/sources/Primal/Rest/types.ts | no |  |  |
 | ["PythHermes_Rest","Global","pyth-hermes","HttpProxy","OpenApiHttp"] | GenerationManifest | src/sources/Pyth/OpenApi/schema-source.ts | no |  |  |
-| ["PythHermes_Rest","Global","pyth-hermes","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Pyth/OpenApi/openapi.json | yes | https://hermes.pyth.network/docs/openapi.json |  |
+| ["PythHermes_Rest","Global","pyth-hermes","HttpProxy","OpenApiHttp"] | OpenApiSpec | src/sources/Pyth/OpenApi/openapi.json | yes | https://pyth.dourolabs.app/docs/hermes/openapi.json |  |
 | ["PythHermes_Rest","Global","pyth-hermes","HttpProxy","OpenApiHttp"] | OpenApiTypes | src/sources/Pyth/OpenApi/openapi.d.ts | yes |  |  |
 | ["QuilibriumNode_Grpc","NetworkSlug","quilibrium","ServerOnly","GrpcService"] | HandwrittenTypes | src/sources/QuilibriumNode/Grpc/types.ts | no |  |  |
 | ["QuilibriumNodeRpc_Grpc","NetworkSlug","quilibrium","ServerOnly","GrpcService"] | HandwrittenTypes | src/sources/QuilibriumNodeRpc/Grpc/types.ts | no |  |  |

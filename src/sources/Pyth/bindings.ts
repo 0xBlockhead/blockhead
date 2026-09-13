@@ -108,7 +108,7 @@ export default indexSourceBindings([
 				kind: SourceArtifactKind.OpenApiSpec,
 				path: 'src/sources/Pyth/OpenApi/openapi.json',
 				generated: true,
-				officialUrl: 'https://hermes.pyth.network/docs/openapi.json',
+				officialUrl: 'https://pyth.dourolabs.app/docs/hermes/openapi.json',
 			},
 			{
 				kind: SourceArtifactKind.OpenApiTypes,
