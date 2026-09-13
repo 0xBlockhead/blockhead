@@ -220,7 +220,7 @@ export const waitForCaptureQuality = async (page: CaptureQualityPage, pathname: 
 }
 
 const git = async (productRoot: string, ...args: string[]) => (
-	(await execFileAsync('git', args, { cwd: productRoot })).stdout.trim()
+	(await execFileAsync('git', args, { cwd: productRoot, maxBuffer: 32 * 1024 * 1024 })).stdout.trim()
 )
 
 export const productDirtyPatchHash = async (productRoot: string) => {

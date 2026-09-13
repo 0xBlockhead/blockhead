@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import test from 'node:test'
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -28,6 +29,22 @@ test('settlement yields when a fixture wait resolves immediately', async () => {
 	}, { timeoutMs: 250, quietMs: 10 })
 	assert.equal(result.settled, true)
 	assert.ok(snapshots < 100)
+})
+
+test('dirty patch hashing accepts diffs larger than the child-process default buffer', async () => {
+	const productRoot = await mkdtemp(join(tmpdir(), 'controlled-retry-large-diff-'))
+	try {
+		execFileSync('git', ['init', '-q'], { cwd: productRoot })
+		execFileSync('git', ['config', 'user.email', 'test@example.invalid'], { cwd: productRoot })
+		execFileSync('git', ['config', 'user.name', 'Test'], { cwd: productRoot })
+		await writeFile(join(productRoot, 'large.txt'), 'base\n')
+		execFileSync('git', ['add', 'large.txt'], { cwd: productRoot })
+		execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-qm', 'fixture'], { cwd: productRoot })
+		await writeFile(join(productRoot, 'large.txt'), `${'x'.repeat(1_100_000)}\n`)
+		assert.match(await productDirtyPatchHash(productRoot) ?? '', /^[0-9a-f]{64}$/)
+	} finally {
+		await rm(productRoot, { recursive: true, force: true })
+	}
 })
 
 const cleanRuntimeDiagnostics = (): ControlledRetryRuntimeDiagnostics => ({
