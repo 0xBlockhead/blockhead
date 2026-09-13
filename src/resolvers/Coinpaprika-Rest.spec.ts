@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { CoinId } from '$/constants/Coin.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { seededCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
+import { marketSelectorFromCatalogCoinCurrencyMarket } from '$/resolvers/market.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { coinpaprikaCoins } from '$/sources/Coinpaprika/OpenApi/constants.ts'
 import { Source } from '$/sources/Source.ts'
@@ -55,14 +57,29 @@ describe('Coinpaprika global market prices resolver', () => {
 			{
 				id: 'eth-ethereum',
 				last_updated: '2026-08-04T09:00:00Z',
+				quotes: { USD: { price: 10 } },
 			},
 			{
 				id: 'btc-bitcoin',
 				last_updated: '2026-08-04T09:00:00Z',
+				quotes: { USD: { price: 100 } },
 			},
 			{
 				id: 'unknown-coin',
 				last_updated: '2026-08-04T09:00:00Z',
+			},
+			{
+				last_updated: '2026-08-04T09:00:00Z',
+				quotes: { USD: { price: 10 } },
+			},
+			{
+				id: 'eth-ethereum',
+				last_updated: '2026-08-04T09:00:00Z',
+			},
+			{
+				id: 'eth-ethereum',
+				last_updated: '2026-08-04T09:00:00Z',
+				quotes: { USD: { price: NaN } },
 			},
 		])
 
@@ -85,7 +102,47 @@ describe('Coinpaprika global market prices resolver', () => {
 		expect(resolver.projections.$$marketPrices.select(snapshot)).toEqual(snapshot.marketPrices)
 		expect(resolver.projections.$$marketPrices.resolveCount(snapshot)).toBe(2)
 		expect(snapshot.marketPrices[0]?.[EntityMetaKey.Selector].feedKey).toBe('eth-ethereum')
+		expect(snapshot.marketPrices[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'price')]: 1_000_000_000n,
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'transport')]: 'coinpaprika-usd-1e8',
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'providerAssetId')]: 'eth-ethereum',
+		})
 	})
+})
+
+it('retains each Coinpaprika quote value with the provider clock that produced it', async () => {
+	const resolver = coinpaprikaResolvers.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.MarketPrice
+		&& '$$quotes' in candidate.projections
+	))
+	if (resolver == null)
+		throw new Error('Coinpaprika quote resolver missing')
+	getTickerById.mockReset()
+	getTickerById
+		.mockResolvedValueOnce({ id: 'eth-ethereum', last_updated: '2026-08-04T09:00:00Z', quotes: { USD: { price: 10 } } })
+		.mockResolvedValueOnce({ id: 'eth-ethereum', last_updated: '2026-08-04T09:00:01Z', quotes: { USD: { price: 11 } } })
+	const selector = {
+		$market: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[CoinId.ETH]),
+	}
+	const first = await resolver.resolve.Market.resolve(selector, resolverContext)
+	const second = await resolver.resolve.Market.resolve(selector, resolverContext)
+	expect(first).toEqual([{
+		[EntityMetaKey.Selector]: { ...selector, timestampMs: Date.parse('2026-08-04T09:00:00Z'), feedKey: 'eth-ethereum' },
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'price')]: 1_000_000_000n,
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'transport')]: 'coinpaprika-usd-1e8',
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'providerAssetId')]: 'eth-ethereum',
+		},
+	}])
+	expect(second).toEqual([{
+		[EntityMetaKey.Selector]: { ...selector, timestampMs: Date.parse('2026-08-04T09:00:01Z'), feedKey: 'eth-ethereum' },
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'price')]: 1_100_000_000n,
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'transport')]: 'coinpaprika-usd-1e8',
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'providerAssetId')]: 'eth-ethereum',
+		},
+	}])
+	expect(getTickerById).toHaveBeenCalledTimes(2)
 })
 
 describe('Coinpaprika coin detail resolver', () => {

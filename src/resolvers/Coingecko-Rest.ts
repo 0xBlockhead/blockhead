@@ -65,6 +65,12 @@ const coingeckoSimplePriceSpot = (
 	}
 }
 
+const coingeckoSpotFields = (coingeckoId: string, usd: number) => ({
+	[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'price')]: BigInt(Math.round(usd * 1e8)),
+	[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'transport')]: 'coingecko-simple-price-usd-1e8',
+	[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'providerAssetId')]: coingeckoId,
+})
+
 const coingeckoSpotExchangeIdentifierByMarketVenueId = {
 	[MarketVenueId.Binance]: 'binance',
 	[MarketVenueId.Coinbase]: 'gdax',
@@ -781,6 +787,7 @@ export default {
 										timestampMs: spot.lastUpdatedAtSec * 1000,
 										feedKey: coingeckoId,
 									},
+									[EntityMetaKey.Fields]: coingeckoSpotFields(coingeckoId, spot.usd),
 								},
 							]
 						})
@@ -1111,6 +1118,7 @@ export default {
 									timestampMs: spot.lastUpdatedAtSec * 1000,
 									feedKey: coingeckoId,
 								},
+								[EntityMetaKey.Fields]: coingeckoSpotFields(coingeckoId, spot.usd),
 							},
 						]
 					},

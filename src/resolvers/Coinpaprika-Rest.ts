@@ -47,6 +47,12 @@ const coinpaprikaTickerTimestampMs = (ticker: CoinpaprikaTicker) => (
 		Date.parse(ticker.last_updated)
 )
 
+const coinpaprikaSpotFields = (coinpaprikaId: string, price: number) => ({
+	[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'price')]: BigInt(Math.round(price * 1e8)),
+	[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'transport')]: 'coinpaprika-usd-1e8',
+	[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'providerAssetId')]: coinpaprikaId,
+})
+
 const coinpaprikaTickerForRequestedId = (
 	ticker: CoinpaprikaTicker,
 	coinpaprikaId: string
@@ -537,12 +543,18 @@ export default {
 						const marketPrices = (await getTickers({
 							publicEnv: context.publicEnv,
 						})).flatMap((ticker) => {
+							if (ticker.id == null)
+								return []
+
 							const coinId = coinIdByWireId.get(ticker.id)
 							const updatedAtMs = coinpaprikaTickerTimestampMs(ticker)
+							const price = ticker.quotes?.USD.price
 							if (
 								coinId == null
 								|| !(coinId in coinById)
 								|| !Number.isFinite(updatedAtMs)
+								|| price == null
+								|| !Number.isFinite(price)
 							)
 								return []
 
@@ -552,6 +564,7 @@ export default {
 									timestampMs: updatedAtMs,
 									feedKey: ticker.id,
 								},
+								[EntityMetaKey.Fields]: coinpaprikaSpotFields(ticker.id, price),
 							}]
 						})
 						return {
@@ -688,7 +701,8 @@ export default {
 							coinpaprikaId
 						)
 						const updatedAtMs = coinpaprikaTickerTimestampMs(ticker)
-						if (!Number.isFinite(updatedAtMs))
+						const price = ticker.quotes?.USD.price
+						if (!Number.isFinite(updatedAtMs) || price == null || !Number.isFinite(price))
 							throw new Error('Coinpaprika_Rest: ticker invalid')
 						return [
 							{
@@ -697,6 +711,7 @@ export default {
 									timestampMs: updatedAtMs,
 									feedKey: coinpaprikaId,
 								},
+								[EntityMetaKey.Fields]: coinpaprikaSpotFields(coinpaprikaId, price),
 							},
 						]
 					},

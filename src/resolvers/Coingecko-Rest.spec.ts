@@ -13,9 +13,14 @@ import {
 } from '$/constants/Market.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { EntityMetaKey } from '$/schema/$schema.ts'
+import { seededCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
+import { marketSelectorFromCatalogCoinCurrencyMarket } from '$/resolvers/market.ts'
+import { EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
+import { schema, schemaMeta, entityDefinitionByType } from '$/schema/index.ts'
+import { entitySelectorKey } from '$/schema/$schema.ts'
+import { materializeResolverOutput, ResolverOutputMaterialization } from '$/collections/assertLoadedCollectionRows.ts'
 
 const getCoin = vi.hoisted(() => vi.fn())
 const getSimplePrice = vi.hoisted(() => vi.fn())
@@ -110,12 +115,68 @@ describe('CoinGecko global market prices resolver', () => {
 		expect(resolver.projections.$$marketPrices.select(snapshot)).toEqual(snapshot.marketPrices)
 		expect(resolver.projections.$$marketPrices.resolveCount(snapshot)).toBe(2)
 		expect(snapshot.marketPrices[0]?.[EntityMetaKey.Selector].feedKey).toBe(idByCoinId[CoinId.BTC])
+		expect(snapshot.marketPrices[0]?.[EntityMetaKey.Fields]).toEqual({
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'price')]: 10_000_000_000n,
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'transport')]: 'coingecko-simple-price-usd-1e8',
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'providerAssetId')]: 'bitcoin',
+		})
 		expect(getSimplePrice).toHaveBeenCalledWith(expect.objectContaining({
 			include_market_cap: true,
 			include_24hr_vol: true,
 			include_24hr_change: true,
 		}))
 	})
+})
+
+it('retains each CoinGecko quote value with the provider clock that produced it', async () => {
+	const resolver = coingecko.resolvers.find((candidate) => (
+		candidate.entityType === EntityType.MarketPrice
+		&& '$$quotes' in candidate.projections
+	))
+	if (resolver == null)
+		throw new Error('CoinGecko quote resolver missing')
+	getSimplePrice.mockReset()
+	getSimplePrice
+		.mockResolvedValueOnce({ ethereum: { usd: 10, last_updated_at: 1_700_000_000 } })
+		.mockResolvedValueOnce({ ethereum: { usd: 11, last_updated_at: 1_700_000_001 } })
+	const selector = {
+		$market: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[CoinId.ETH]),
+	}
+	const first = await resolver.resolve.Market.resolve(selector, resolverContext)
+	const second = await resolver.resolve.Market.resolve(selector, resolverContext)
+	expect(first).toEqual([{
+		[EntityMetaKey.Selector]: { ...selector, timestampMs: 1_700_000_000_000, feedKey: 'ethereum' },
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'price')]: 1_000_000_000n,
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'transport')]: 'coingecko-simple-price-usd-1e8',
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'providerAssetId')]: 'ethereum',
+		},
+	}])
+	expect(second).toEqual([{
+		[EntityMetaKey.Selector]: { ...selector, timestampMs: 1_700_000_001_000, feedKey: 'ethereum' },
+		[EntityMetaKey.Fields]: {
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'price')]: 1_100_000_000n,
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'transport')]: 'coingecko-simple-price-usd-1e8',
+			[entityFieldAddressKey(EntityType.Market_Timestamp, [], 'providerAssetId')]: 'ethereum',
+		},
+	}])
+	expect(getSimplePrice).toHaveBeenCalledTimes(2)
+	const definition = entityDefinitionByType[EntityType.MarketPrice]
+	const quotes = definition.fields.find((field) => field.name === '$$quotes')
+	if (quotes == null)
+		throw new Error('MarketPrice quote field missing')
+	const materialized = materializeResolverOutput({
+		kind: ResolverOutputMaterialization.Field,
+		schema,
+		schemaIndex: schemaMeta,
+		entityDefinition: definition,
+		parentSelector: selector,
+		parentSelectorKey: entitySelectorKey(schema, definition, selector),
+		source: Source.Coingecko_Rest,
+		fieldDefinition: quotes,
+		value: first,
+	})
+	expect(materialized[0]?.[EntityMetaKey.Value]).toMatchObject(first[0])
 })
 
 describe('CoinGecko derivative timestamp resolver', () => {
