@@ -22,7 +22,7 @@ const response = {
  pool:{id:$pool.id,name:null,symbol:'fixture',isSingleSided:false,createdTimestamp:'1',createdBlockNumber:'1',
  protocol:{id:profile.protocolId,network:profile.network,schemaVersion:profile.schemaVersion,subgraphVersion:profile.subgraphVersion,methodologyVersion:profile.methodologyVersion},
  inputTokens:[{id:`0x${'ef'.repeat(20)}` as const},{id:`0x${'cd'.repeat(20)}` as const}],inputTokenBalances:['90071992547409931234','0'],inputTokenBalancesUSD:['1.000000000000000001','0'],inputTokenWeights:['50.25','49.75'],
- totalValueLockedUSD:'1.000000000000000001',cumulativeVolumeUSD:'2',cumulativeSupplySideRevenueUSD:'3',cumulativeProtocolSideRevenueUSD:'4',cumulativeTotalRevenueUSD:'7'},
+ totalValueLockedUSD:'1.000000000000000001',totalLiquidityUSD:'2',activeLiquidityUSD:'1.5',uncollectedProtocolSideValuesUSD:['0.1','0.2'],uncollectedSupplySideValuesUSD:['0.3','0.4'],cumulativeVolumeUSD:'2',cumulativeSupplySideRevenueUSD:'3',cumulativeProtocolSideRevenueUSD:'4',cumulativeTotalRevenueUSD:'7',stakedOutputTokenAmount:null,rewardTokenEmissionsAmount:['10','20'],rewardTokenEmissionsUSD:['0.5','0.6'],cumulativeDepositCount:7,cumulativeWithdrawCount:8,cumulativeSwapCount:9,positionCount:10,openPositionCount:4,closedPositionCount:6,lastSnapshotDayID:20000,lastSnapshotHourID:480000,lastUpdateTimestamp:'1700000000',lastUpdateBlockNumber:'19000000'},
 }
 it('requires actual generated pool owners, materializes exact scalar and ordered child rows, and reloads each child exactly',async()=>{
  expect(EntityType.LiquidityPool_Amm_EvmBlock).toBe('LiquidityPool_Amm_EvmBlock')
@@ -31,6 +31,8 @@ it('requires actual generated pool owners, materializes exact scalar and ordered
  getPool.mockResolvedValue(response)
  const result = await observation.resolve.PoolBlockRevision.resolve(exact)
  expect(observation.projections.totalValueLockedUSD(result)).toBe('1.000000000000000001')
+ expect(observation.projections.totalLiquidityUSD(result)).toBe('2')
+ expect(observation.projections.rewardTokenEmissionsAmount(result)).toEqual([10n,20n])
  const refs = observation.projections.$$inputAssets(result)
  const definition = entityDefinitionByType[EntityType.LiquidityPool_Amm_EvmBlock]
  const fieldDefinition = definition.fields.find(f=>f.name==='$$inputAssets')!

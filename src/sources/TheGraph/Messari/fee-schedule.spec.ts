@@ -28,7 +28,8 @@ const payload = (deployment: keyof typeof messariGraphqlProfiles, id: string, fe
 			protocol: { id: profile.protocolId, network: profile.network, schemaVersion: profile.schemaVersion, subgraphVersion: profile.subgraphVersion, methodologyVersion: profile.methodologyVersion },
 			inputTokens: [{ id: `0x${'cd'.repeat(20)}` }], inputTokenBalances: ['1'], inputTokenBalancesUSD: ['1'], inputTokenWeights: ['100'],
 			fees,
-			totalValueLockedUSD: '1', cumulativeVolumeUSD: '2', cumulativeSupplySideRevenueUSD: '3', cumulativeProtocolSideRevenueUSD: '4', cumulativeTotalRevenueUSD: '7',
+			totalValueLockedUSD: '1', totalLiquidityUSD: '2', activeLiquidityUSD: '1.5', uncollectedProtocolSideValuesUSD: ['0.1'], uncollectedSupplySideValuesUSD: ['0.2'], cumulativeVolumeUSD: '2', cumulativeSupplySideRevenueUSD: '3', cumulativeProtocolSideRevenueUSD: '4', cumulativeTotalRevenueUSD: '7',
+			stakedOutputTokenAmount: null, rewardTokenEmissionsAmount: null, rewardTokenEmissionsUSD: null, cumulativeDepositCount: 0, cumulativeWithdrawCount: 0, cumulativeSwapCount: 0, positionCount: 0, openPositionCount: 0, closedPositionCount: 0, lastSnapshotDayID: 0, lastSnapshotHourID: 0, lastUpdateTimestamp: '0', lastUpdateBlockNumber: '0',
 		},
 	}
 }

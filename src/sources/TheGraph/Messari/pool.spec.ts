@@ -23,7 +23,7 @@ const fixture = (which: 'uniswap' | 'sushiswap') => {
  return { _meta: data._meta, liquidityPool: {
   id, name: null, symbol: 'fixture', isSingleSided: false, createdTimestamp: '1', createdBlockNumber: '1', protocol: data.dexAmmProtocols[0],
   inputTokens: [{id:tokenB},{id:tokenA}], inputTokenBalances: ['900719925474099312345','0'], inputTokenBalancesUSD: ['1.000000000000000001','0'], inputTokenWeights: ['50.25','49.75'],
-  fees: [], totalValueLockedUSD: '1.000000000000000001', cumulativeVolumeUSD: '9.123456789123456789', cumulativeSupplySideRevenueUSD:'1', cumulativeProtocolSideRevenueUSD:'2', cumulativeTotalRevenueUSD:'3',
+  fees: [], totalValueLockedUSD: '1.000000000000000001', totalLiquidityUSD: '2.000000000000000002', activeLiquidityUSD: '1.500000000000000001', uncollectedProtocolSideValuesUSD: ['0.1', '0.2'], uncollectedSupplySideValuesUSD: ['0.3', '0.4'], cumulativeVolumeUSD: '9.123456789123456789', cumulativeSupplySideRevenueUSD:'1', cumulativeProtocolSideRevenueUSD:'2', cumulativeTotalRevenueUSD:'3', stakedOutputTokenAmount: null, rewardTokenEmissionsAmount: ['10', '20'], rewardTokenEmissionsUSD: ['0.5', '0.6'], cumulativeDepositCount: 7, cumulativeWithdrawCount: 8, cumulativeSwapCount: 9, positionCount: 10, openPositionCount: 4, closedPositionCount: 6, lastSnapshotDayID: 20000, lastSnapshotHourID: 480000, lastUpdateTimestamp: '1700000000', lastUpdateBlockNumber: '19000000',
  } }
 }
 it('indexes exact upstream deployment authority without inferring unsupported networks or aliasing revisions', () => {

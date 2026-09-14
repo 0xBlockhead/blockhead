@@ -29,6 +29,22 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	totalLiquidityUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	activeLiquidityUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	uncollectedProtocolSideValuesUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.Many,
+	},
+	uncollectedSupplySideValuesUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.Many,
+	},
 	cumulativeVolumeUSD: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
@@ -43,6 +59,58 @@ export default entity({
 	},
 	cumulativeTotalRevenueUSD: {
 		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	stakedOutputTokenAmount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	rewardTokenEmissionsAmount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.Many,
+	},
+	rewardTokenEmissionsUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.Many,
+	},
+	cumulativeDepositCount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	cumulativeWithdrawCount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	cumulativeSwapCount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	positionCount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	openPositionCount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	closedPositionCount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	lastSnapshotDayID: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	lastSnapshotHourID: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	lastUpdateTimestamp: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	lastUpdateBlockNumber: {
+		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	$$inputAssets: {

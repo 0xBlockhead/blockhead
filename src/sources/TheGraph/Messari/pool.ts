@@ -29,8 +29,14 @@ export const poolDocument = graphql(`
    inputTokens(first: 1000) { id }
    fees(first: 1000) { id feePercentage feeType }
    inputTokenBalances inputTokenBalancesUSD inputTokenWeights
-   totalValueLockedUSD cumulativeVolumeUSD cumulativeSupplySideRevenueUSD
+   totalValueLockedUSD totalLiquidityUSD activeLiquidityUSD
+   uncollectedProtocolSideValuesUSD uncollectedSupplySideValuesUSD
+   cumulativeVolumeUSD cumulativeSupplySideRevenueUSD
    cumulativeProtocolSideRevenueUSD cumulativeTotalRevenueUSD
+   stakedOutputTokenAmount rewardTokenEmissionsAmount rewardTokenEmissionsUSD
+   cumulativeDepositCount cumulativeWithdrawCount cumulativeSwapCount
+   positionCount openPositionCount closedPositionCount
+   lastSnapshotDayID lastSnapshotHourID lastUpdateTimestamp lastUpdateBlockNumber
   }
  }
 `)
@@ -45,7 +51,13 @@ export const poolWire = type({
   createdTimestamp: uint, createdBlockNumber: uint, protocol: protocolWire,
   inputTokens: type({ id: EvmAddress }).array(), inputTokenBalances: uint.array(), inputTokenBalancesUSD: decimal.array(), inputTokenWeights: decimal.array(),
   fees: messariLiquidityPoolFee.array(),
-  totalValueLockedUSD: decimal, cumulativeVolumeUSD: decimal, cumulativeSupplySideRevenueUSD: decimal, cumulativeProtocolSideRevenueUSD: decimal, cumulativeTotalRevenueUSD: decimal,
+  totalValueLockedUSD: decimal, totalLiquidityUSD: decimal, activeLiquidityUSD: decimal,
+  uncollectedProtocolSideValuesUSD: decimal.array(), uncollectedSupplySideValuesUSD: decimal.array(),
+  cumulativeVolumeUSD: decimal, cumulativeSupplySideRevenueUSD: decimal, cumulativeProtocolSideRevenueUSD: decimal, cumulativeTotalRevenueUSD: decimal,
+  stakedOutputTokenAmount: uint.or('null'), rewardTokenEmissionsAmount: uint.array().or('null'), rewardTokenEmissionsUSD: decimal.array().or('null'),
+  cumulativeDepositCount: 'number.integer >= 0', cumulativeWithdrawCount: 'number.integer >= 0', cumulativeSwapCount: 'number.integer >= 0',
+  positionCount: 'number.integer >= 0', openPositionCount: 'number.integer >= 0', closedPositionCount: 'number.integer >= 0',
+  lastSnapshotDayID: 'number.integer >= 0', lastSnapshotHourID: 'number.integer >= 0', lastUpdateTimestamp: uint, lastUpdateBlockNumber: uint,
  }).or('null'),
 })
 
@@ -59,7 +71,7 @@ export function parsePool(input: unknown, deployment: MessariGraphqlDeployment, 
  const hash = data._meta.block.hash
  if (exactHash && (hash == null || hash.toLowerCase() !== exactHash.toLowerCase())) throw new Error('Pool exact block hash unavailable/mismatch')
  if (hash != null) Hash32.assert(hash)
- if (data._meta.block.timestamp != null && (!Number.isSafeInteger(data._meta.block.timestamp) || !Number.isSafeInteger(data._meta.block.timestamp * 1000))) throw new Error('Pool upstream clock cannot be represented exactly')
+  if (data._meta.block.timestamp != null && (!Number.isSafeInteger(data._meta.block.timestamp) || !Number.isSafeInteger(data._meta.block.timestamp * 1000))) throw new Error('Pool upstream clock cannot be represented exactly')
  const pool = data.liquidityPool
  if (pool != null) {
   if (pool.id !== id) throw new Error('Pool identity mismatch')
@@ -68,6 +80,7 @@ export function parsePool(input: unknown, deployment: MessariGraphqlDeployment, 
   const size = pool.inputTokens.length
   // A full 1000-row nested page could be truncated. Do not claim complete composition.
   if (size >= 1000 || size !== pool.inputTokenBalances.length || size !== pool.inputTokenBalancesUSD.length || size !== pool.inputTokenWeights.length) throw new Error('Pool composition incomplete or unaligned')
+  if (pool.uncollectedProtocolSideValuesUSD.length !== size || pool.uncollectedSupplySideValuesUSD.length !== size) throw new Error('Pool uncollected values incomplete or unaligned')
   if (BigInt(pool.createdBlockNumber) > BigInt(data._meta.block.number)) throw new Error('Pool creation block after observation')
   if (data._meta.block.timestamp != null && BigInt(pool.createdTimestamp) > BigInt(data._meta.block.timestamp)) throw new Error('Pool creation time after observation')
   const seenFeeTypes = new Set<string>()

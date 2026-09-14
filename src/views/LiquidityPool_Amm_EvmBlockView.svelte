@@ -170,6 +170,70 @@
 			</div>
 
 			<div>
+				<dt>Total liquidity (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									totalLiquidityUSD: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.totalLiquidityUSD}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Active liquidity (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									activeLiquidityUSD: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.activeLiquidityUSD}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Uncollected protocol-side values (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={viewSelection.uncollectedProtocolSideValuesUSD}
+					>
+						{#snippet children(uncollectedProtocolSideValuesUSD)}
+							{uncollectedProtocolSideValuesUSD.values.join(', ')}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Uncollected supply-side values (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={viewSelection.uncollectedSupplySideValuesUSD}
+					>
+						{#snippet children(uncollectedSupplySideValuesUSD)}
+							{uncollectedSupplySideValuesUSD.values.join(', ')}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Cumulative volume (USD)</dt>
 				<dd>
 					<ResourceBoundary
@@ -240,6 +304,244 @@
 					>
 						{#snippet children(entity)}
 							{entity.cumulativeTotalRevenueUSD}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							stakedOutputTokenAmount: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const stakedOutputTokenAmount = entity.stakedOutputTokenAmount}
+					{#if stakedOutputTokenAmount != null}
+						<div>
+							<dt>Staked output-token amount</dt>
+							<dd>
+								{stakedOutputTokenAmount}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<div>
+				<dt>Reward-token emissions</dt>
+				<dd>
+					<ResourceBoundary
+						resource={viewSelection.rewardTokenEmissionsAmount}
+					>
+						{#snippet children(rewardTokenEmissionsAmount)}
+							{rewardTokenEmissionsAmount.values.join(', ')}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Reward-token emissions (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={viewSelection.rewardTokenEmissionsUSD}
+					>
+						{#snippet children(rewardTokenEmissionsUSD)}
+							{rewardTokenEmissionsUSD.values.join(', ')}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Cumulative deposits</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									cumulativeDepositCount: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.cumulativeDepositCount}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Cumulative withdrawals</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									cumulativeWithdrawCount: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.cumulativeWithdrawCount}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Cumulative swaps</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									cumulativeSwapCount: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.cumulativeSwapCount}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Positions</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									positionCount: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.positionCount}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Open positions</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									openPositionCount: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.openPositionCount}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Closed positions</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									closedPositionCount: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.closedPositionCount}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Last snapshot day</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									lastSnapshotDayID: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.lastSnapshotDayID}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Last snapshot hour</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									lastSnapshotHourID: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.lastSnapshotHourID}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Last update timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									lastUpdateTimestamp: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.lastUpdateTimestamp}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Last update block</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									lastUpdateBlockNumber: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.lastUpdateBlockNumber}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
