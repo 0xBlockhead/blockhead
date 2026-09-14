@@ -17,6 +17,12 @@ const fixtures = [
 	JSON.parse(capturedResponse('live-uniswap-arbitrum-introspection.json.query.json')),
 	JSON.parse(capturedResponse('live-sushiswap-arbitrum-introspection.json.query.json')),
 ]
+for (const fixture of fixtures) {
+	for (const protocol of fixture.data.dexAmmProtocols ?? []) {
+		protocol.protocolControlledValueUSD ??= null
+		protocol.cumulativeUniqueUsers ??= 0
+	}
+}
 
 export const messariGraphFixtureResponse = (request: GraphRequest) => {
 	if (!request.query?.includes('MessariAmmFinancialsAtBlockHash')
