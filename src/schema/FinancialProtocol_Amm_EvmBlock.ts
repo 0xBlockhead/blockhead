@@ -49,6 +49,22 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	totalLiquidityUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	activeLiquidityUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	uncollectedProtocolSideValueUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	uncollectedSupplySideValueUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
 	protocolControlledValueUSD: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -69,11 +85,39 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	cumulativeUniqueLPs: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	cumulativeUniqueTraders: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
 	totalPoolCount: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},
 	cumulativeUniqueUsers: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	openPositionCount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	cumulativePositionCount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	lastSnapshotDayID: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	lastUpdateTimestamp: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	lastUpdateBlockNumber: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},

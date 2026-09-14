@@ -106,10 +106,14 @@ const latestDocument = graphql(`
 			orderDirection: asc
 		) {
 			id name network schemaVersion subgraphVersion methodologyVersion
-			totalValueLockedUSD cumulativeVolumeUSD
+			totalValueLockedUSD totalLiquidityUSD activeLiquidityUSD
+			uncollectedProtocolSideValueUSD uncollectedSupplySideValueUSD
+			cumulativeVolumeUSD
 			protocolControlledValueUSD cumulativeUniqueUsers
 			cumulativeSupplySideRevenueUSD cumulativeProtocolSideRevenueUSD
-			cumulativeTotalRevenueUSD totalPoolCount
+			cumulativeTotalRevenueUSD cumulativeUniqueLPs cumulativeUniqueTraders
+			totalPoolCount openPositionCount cumulativePositionCount
+			lastSnapshotDayID lastUpdateTimestamp lastUpdateBlockNumber
 		}
 		liquidityPools(
 			where: { protocol_: { id: $protocolId } }
@@ -136,10 +140,14 @@ const exactDocument = graphql(`
 			block: $block
 		) {
 			id name network schemaVersion subgraphVersion methodologyVersion
-			totalValueLockedUSD cumulativeVolumeUSD
+			totalValueLockedUSD totalLiquidityUSD activeLiquidityUSD
+			uncollectedProtocolSideValueUSD uncollectedSupplySideValueUSD
+			cumulativeVolumeUSD
 			protocolControlledValueUSD cumulativeUniqueUsers
 			cumulativeSupplySideRevenueUSD cumulativeProtocolSideRevenueUSD
-			cumulativeTotalRevenueUSD totalPoolCount
+			cumulativeTotalRevenueUSD cumulativeUniqueLPs cumulativeUniqueTraders
+			totalPoolCount openPositionCount cumulativePositionCount
+			lastSnapshotDayID lastUpdateTimestamp lastUpdateBlockNumber
 		}
 	}
 `)

@@ -4,6 +4,7 @@ import { NonNegativeDecimalString } from '$/schema/NonNegativeDecimalString.ts'
 
 const financialDecimal = type('string').matching(/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/)
 export const graphInt = type('number.integer >= 0').and(type('number.integer <= 2147483647'))
+export const graphBigInt = type('string').matching(/^\d+$/)
 export const graphBytesId = type('string').matching(/^0x(?:[0-9a-f]{2})+$/)
 export const messariLiquidityPoolFeeType = type.enumerated(
 	'FIXED_TRADING_FEE', 'TIERED_TRADING_FEE', 'DYNAMIC_TRADING_FEE',
@@ -35,13 +36,24 @@ export const protocolFinancialsWire = type({
 		subgraphVersion: 'string',
 		methodologyVersion: 'string',
 		totalValueLockedUSD: financialDecimal,
+		totalLiquidityUSD: financialDecimal,
+		activeLiquidityUSD: financialDecimal,
+		uncollectedProtocolSideValueUSD: financialDecimal,
+		uncollectedSupplySideValueUSD: financialDecimal,
 		protocolControlledValueUSD: financialDecimal.or('null'),
 		cumulativeVolumeUSD: financialDecimal,
 		cumulativeSupplySideRevenueUSD: financialDecimal,
 		cumulativeProtocolSideRevenueUSD: financialDecimal,
 		cumulativeTotalRevenueUSD: financialDecimal,
+		cumulativeUniqueLPs: graphInt,
+		cumulativeUniqueTraders: graphInt,
 		totalPoolCount: graphInt,
 		cumulativeUniqueUsers: graphInt,
+		openPositionCount: graphInt,
+		cumulativePositionCount: graphInt,
+		lastSnapshotDayID: graphInt,
+		lastUpdateTimestamp: graphBigInt,
+		lastUpdateBlockNumber: graphBigInt,
 	}).array(),
 	liquidityPools: type({ id: EvmAddress }).array(),
 })

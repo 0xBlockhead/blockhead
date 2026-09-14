@@ -31,8 +31,19 @@ for (const [deployment, file] of cases) {
 	const capture = JSON.parse(await readFile(new URL(`../sources/TheGraph/Messari/fixtures/${file}`, import.meta.url), 'utf8'))
 	const payload = JSON.parse(capture.response.result.content.find((item: { type: string; text: string }) => item.type === 'text').text)
 	for (const protocol of payload.data.dexAmmProtocols ?? []) {
+		protocol.totalLiquidityUSD ??= '2500000.00'
+		protocol.activeLiquidityUSD ??= '1800000.00'
+		protocol.uncollectedProtocolSideValueUSD ??= '12.50'
+		protocol.uncollectedSupplySideValueUSD ??= '25.00'
 		protocol.protocolControlledValueUSD ??= null
+		protocol.cumulativeUniqueLPs ??= 11
+		protocol.cumulativeUniqueTraders ??= 22
 		protocol.cumulativeUniqueUsers ??= 0
+		protocol.openPositionCount ??= 3
+		protocol.cumulativePositionCount ??= 5
+		protocol.lastSnapshotDayID ??= 20000
+		protocol.lastUpdateTimestamp ??= '1700000000'
+		protocol.lastUpdateBlockNumber ??= '19000000'
 	}
 	const profile = messariGraphqlProfiles[deployment]
 	const $network = { caip2: profile.caip2 }
@@ -60,7 +71,11 @@ for (const [deployment, file] of cases) {
 		const projections = observationResolver.projections
 		for (const field of ['totalValueLockedUSD', 'cumulativeVolumeUSD', 'cumulativeSupplySideRevenueUSD', 'cumulativeProtocolSideRevenueUSD', 'cumulativeTotalRevenueUSD'] as const)
 			expect(projections[field](result)).toBe(payload.data.dexAmmProtocols[0][field])
+		for (const field of ['totalLiquidityUSD', 'activeLiquidityUSD', 'uncollectedProtocolSideValueUSD', 'uncollectedSupplySideValueUSD'] as const)
+			expect(projections[field](result)).toBe(payload.data.dexAmmProtocols[0][field])
 		expect(projections.protocolControlledValueUSD(result)).toBe(payload.data.dexAmmProtocols[0].protocolControlledValueUSD ?? undefined)
+		for (const field of ['cumulativeUniqueLPs', 'cumulativeUniqueTraders', 'openPositionCount', 'cumulativePositionCount', 'lastSnapshotDayID', 'lastUpdateTimestamp', 'lastUpdateBlockNumber'] as const)
+			expect(projections[field](result)).toBe(BigInt(payload.data.dexAmmProtocols[0][field]))
 		expect(projections.totalPoolCount(result)).toBe(BigInt(payload.data.dexAmmProtocols[0].totalPoolCount))
 		expect(projections.cumulativeUniqueUsers(result)).toBe(BigInt(payload.data.dexAmmProtocols[0].cumulativeUniqueUsers))
 		expect(projections.expectedManifestSchemaVersion(result)).toBe(profile.expectedManifestSchemaVersion)

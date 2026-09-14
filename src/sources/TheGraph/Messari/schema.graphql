@@ -132,6 +132,18 @@ type DexAmmProtocol implements Protocol {
   """ Current TVL (Total Value Locked) of the entire protocol """
   totalValueLockedUSD: BigDecimal!
 
+  """ Total liquidity of the protocol """
+  totalLiquidityUSD: BigDecimal!
+
+  """ Active liquidity of the protocol """
+  activeLiquidityUSD: BigDecimal!
+
+  """ Uncollected protocol-side value """
+  uncollectedProtocolSideValueUSD: BigDecimal!
+
+  """ Uncollected supply-side value """
+  uncollectedSupplySideValueUSD: BigDecimal!
+
   """ Current protocol-controlled value """
   protocolControlledValueUSD: BigDecimal
 
@@ -150,11 +162,32 @@ type DexAmmProtocol implements Protocol {
   """
   cumulativeTotalRevenueUSD: BigDecimal!
 
+  """ Number of cumulative unique liquidity providers """
+  cumulativeUniqueLPs: Int!
+
+  """ Number of cumulative unique traders """
+  cumulativeUniqueTraders: Int!
+
   """ Number of cumulative unique users """
   cumulativeUniqueUsers: Int!
 
   """ Total number of pools """
   totalPoolCount: Int!
+
+  """ Number of open positions """
+  openPositionCount: Int!
+
+  """ Number of cumulative positions """
+  cumulativePositionCount: Int!
+
+  """ Last daily snapshot identifier """
+  lastSnapshotDayID: Int!
+
+  """ Timestamp of the last update """
+  lastUpdateTimestamp: BigInt!
+
+  """ Block number of the last update """
+  lastUpdateBlockNumber: BigInt!
 }
 
 interface Protocol {
@@ -205,6 +238,7 @@ interface Protocol {
 }
 
 scalar BigDecimal
+scalar BigInt
 
 enum Network {
   ARBITRUM_ONE

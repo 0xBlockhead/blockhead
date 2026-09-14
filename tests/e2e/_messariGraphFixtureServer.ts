@@ -19,8 +19,19 @@ const fixtures = [
 ]
 for (const fixture of fixtures) {
 	for (const protocol of fixture.data.dexAmmProtocols ?? []) {
+		protocol.totalLiquidityUSD ??= '2500000.00'
+		protocol.activeLiquidityUSD ??= '1800000.00'
+		protocol.uncollectedProtocolSideValueUSD ??= '12.50'
+		protocol.uncollectedSupplySideValueUSD ??= '25.00'
 		protocol.protocolControlledValueUSD ??= null
+		protocol.cumulativeUniqueLPs ??= 11
+		protocol.cumulativeUniqueTraders ??= 22
 		protocol.cumulativeUniqueUsers ??= 0
+		protocol.openPositionCount ??= 3
+		protocol.cumulativePositionCount ??= 5
+		protocol.lastSnapshotDayID ??= 20000
+		protocol.lastUpdateTimestamp ??= '1700000000'
+		protocol.lastUpdateBlockNumber ??= '19000000'
 	}
 }
 

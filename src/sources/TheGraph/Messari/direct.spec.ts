@@ -60,8 +60,19 @@ const textResponseFromCapture = async (file: string) => {
 		throw new Error(`Missing captured GraphQL response text: ${file}`)
 	const response = JSON.parse(responseText)
 	for (const protocol of response.data.dexAmmProtocols ?? []) {
+		protocol.totalLiquidityUSD ??= '2500000.00'
+		protocol.activeLiquidityUSD ??= '1800000.00'
+		protocol.uncollectedProtocolSideValueUSD ??= '12.50'
+		protocol.uncollectedSupplySideValueUSD ??= '25.00'
 		protocol.protocolControlledValueUSD ??= null
+		protocol.cumulativeUniqueLPs ??= 11
+		protocol.cumulativeUniqueTraders ??= 22
 		protocol.cumulativeUniqueUsers ??= 0
+		protocol.openPositionCount ??= 3
+		protocol.cumulativePositionCount ??= 5
+		protocol.lastSnapshotDayID ??= 20000
+		protocol.lastUpdateTimestamp ??= '1700000000'
+		protocol.lastUpdateBlockNumber ??= '19000000'
 	}
 	// Financial captures predate the latest query's pool selection; model an explicit empty page.
 	if (file.endsWith('.query.json'))
@@ -293,6 +304,7 @@ it.each([
 	['indexing errors', null, /indexing errors/],
 	['schema capability mismatch', null, /capability\/version identity mismatch/],
 	['malformed decimal', null, /totalValueLockedUSD/],
+	['malformed Graph BigInt', null, /lastUpdateTimestamp/],
 	['missing protocol row', null, /expected one pinned protocol row, received 0/],
 ])('rejects %s from direct source response', async (label, override, error) => {
 	const envelope = await textResponseFromCapture(cases[0].query)
@@ -300,6 +312,7 @@ it.each([
 	if (label === 'indexing errors') envelope.data._meta.hasIndexingErrors = true
 	if (label === 'schema capability mismatch') envelope.data.dexAmmProtocols[0].schemaVersion = '9.9.9'
 	if (label === 'malformed decimal') envelope.data.dexAmmProtocols[0].totalValueLockedUSD = 1
+	if (label === 'malformed Graph BigInt') envelope.data.dexAmmProtocols[0].lastUpdateTimestamp = '-1'
 	if (label === 'missing protocol row') envelope.data.dexAmmProtocols = []
 	setGraphResponse(override ?? envelope)
 	await expect(getMessariAmmFinancialsLatest({

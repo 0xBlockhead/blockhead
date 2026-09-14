@@ -4,7 +4,7 @@ export const schemaSource = {
 	checkedInSchema: {
 		file: './schema.graphql',
 		format: 'sdl',
-		sha256: 'd303d648e23f36f6056ea312bde57b0920d3ec44b59023f4dcaf8fd79c548796',
+		sha256: '474594498535143728b484b3b2d01a49df66401f45df85adda2c765fef1fcb1b',
 	},
 	schemaName: 'MessariAmm',
 	schemaFile: './schema.graphql',

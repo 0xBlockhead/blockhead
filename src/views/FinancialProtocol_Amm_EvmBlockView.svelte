@@ -170,6 +170,82 @@
 			</div>
 
 			<div>
+				<dt>Total liquidity (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									totalLiquidityUSD: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.totalLiquidityUSD}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Active liquidity (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									activeLiquidityUSD: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.activeLiquidityUSD}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Uncollected protocol-side value (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									uncollectedProtocolSideValueUSD: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.uncollectedProtocolSideValueUSD}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Uncollected supply-side value (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									uncollectedSupplySideValueUSD: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.uncollectedSupplySideValueUSD}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Cumulative volume (USD)</dt>
 				<dd>
 					<ResourceBoundary
@@ -187,6 +263,28 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							protocolControlledValueUSD: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const protocolControlledValueUSD = entity.protocolControlledValueUSD}
+					{#if protocolControlledValueUSD != null}
+						<div>
+							<dt>Protocol-controlled value (USD)</dt>
+							<dd>
+								{protocolControlledValueUSD}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<div>
 				<dt>Cumulative supply-side revenue (USD)</dt>
@@ -246,6 +344,44 @@
 			</div>
 
 			<div>
+				<dt>Cumulative unique liquidity providers</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									cumulativeUniqueLPs: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.cumulativeUniqueLPs}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Cumulative unique traders</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									cumulativeUniqueTraders: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.cumulativeUniqueTraders}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Pool count</dt>
 				<dd>
 					<ResourceBoundary
@@ -283,27 +419,100 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					viewSelection({
-						fields: {
-							protocolControlledValueUSD: true,
-						},
-					})
-				}
-			>
-				{#snippet children(entity)}
-					{@const protocolControlledValueUSD = entity.protocolControlledValueUSD}
-					{#if protocolControlledValueUSD != null}
-						<div>
-							<dt>Protocol-controlled value (USD)</dt>
-							<dd>
-								{protocolControlledValueUSD}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<div>
+				<dt>Open positions</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									openPositionCount: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.openPositionCount}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Cumulative positions</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									cumulativePositionCount: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.cumulativePositionCount}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Last snapshot day</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									lastSnapshotDayID: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.lastSnapshotDayID}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Last update timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									lastUpdateTimestamp: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.lastUpdateTimestamp}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Last update block</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									lastUpdateBlockNumber: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.lastUpdateBlockNumber}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<div>
 				<dt>Source protocol identifier</dt>
