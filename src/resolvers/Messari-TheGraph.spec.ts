@@ -8,7 +8,7 @@ vi.mock('$/lib/http.ts', async (original) => ({ ...await original(), corsFetch }
 const { default: module } = await import('$/resolvers/Messari-TheGraph.ts')
 const { messariGraphqlProfiles } = await import('$/sources/TheGraph/Messari/direct.ts')
 const [protocolResolver, observationResolver] = module.resolvers
-const blockResolver = module.resolvers[5]
+const blockResolver = module.resolvers.find((resolver) => resolver.entityType === EntityType.EvmBlock)
 const protocolContext = {
 	pagination: { limit: 10, offset: 0 },
 } as Parameters<typeof protocolResolver.resolve.NetworkProtocolKey.resolve>[1]
