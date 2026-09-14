@@ -129,7 +129,69 @@ const poolResolver = defineResolver({
    const hash = Hash32.assert(result.block.hash.toLowerCase())
    return [{ [EntityMetaKey.Selector]: { $pool: result.$pool, $block: { $network: result.$pool.$network, hash }, sourceRevision: result.sourceRevision } }]
   },
+  $$feeSchedules: result => result.pool!.fees.map(fee => ({
+   [EntityMetaKey.Selector]: { $pool: result.$pool, feeType: fee.feeType },
+  })),
  })
+
+const feePercentage = (fee: { feeType: string; feePercentage: string | null }) => (
+ fee.feeType.startsWith('DYNAMIC_') || fee.feeType === 'TIERED_TRADING_FEE' ? undefined : fee.feePercentage
+)
+
+const feeScheduleResolver = defineResolver({
+ entityType: EntityType.LiquidityPoolFeeSchedule,
+ resolve: { PoolFeeType: { resolve: async ({ $pool, feeType }) => {
+  const caip2 = $pool.$network.caip2
+  if (caip2 == null) throw new Error('Pool fee capability requires CAIP-2 network')
+  const { getPool, poolDeploymentsByNetwork } = await import('$/sources/TheGraph/Messari/pool.ts')
+  const candidates = poolDeploymentsByNetwork.get(`${caip2.namespace}:${caip2.reference}`) ?? []
+  const results = await Promise.all(candidates.map(deployment => getPool({ deployment, id: $pool.id })))
+  const found = results.filter(result => result.pool != null)
+  if (found.length !== 1) throw new Error(`Pool fee profile unavailable or ambiguous: ${found.length}`)
+  const fee = found[0].pool!.fees.find(candidate => candidate.feeType === feeType)
+  if (fee == null) throw new Error('Pool fee type unavailable')
+  return { ...found[0], $pool, fee }
+ } } },
+})({
+ $pool: result => ({ [EntityMetaKey.Selector]: result.$pool }),
+ feeType: result => result.fee.feeType,
+ feePercentage: result => feePercentage(result.fee),
+ $$observations: result => {
+  if (result.block.hash == null) throw new Error('Pool fee immutable observation unavailable: null block hash')
+  return [{ [EntityMetaKey.Selector]: {
+   $feeSchedule: { $pool: result.$pool, feeType: result.fee.feeType },
+   $block: { $network: result.$pool.$network, hash: Hash32.assert(result.block.hash.toLowerCase()) },
+   sourceRevision: result.sourceRevision,
+  } }]
+ },
+})
+
+const feeObservationResolver = defineResolver({
+ entityType: EntityType.LiquidityPoolFeeSchedule_EvmBlock,
+ resolve: { ScheduleBlockRevision: { resolve: async ({ $feeSchedule, $block, sourceRevision }) => {
+  const poolCaip2 = $feeSchedule.$pool.$network.caip2
+  const blockCaip2 = $block.$network.caip2
+  if (poolCaip2 == null || blockCaip2 == null || !('hash' in $block)) throw new Error('Pool fee exact reload requires network and block hash')
+  if (poolCaip2.namespace !== blockCaip2.namespace || poolCaip2.reference !== blockCaip2.reference) throw new Error('Pool fee/block network conflict')
+  const hash = Hash32.assert($block.hash)
+  const { getPool, poolDeploymentByRevision } = await import('$/sources/TheGraph/Messari/pool.ts')
+  const deployment = poolDeploymentByRevision.get(`${poolCaip2.namespace}:${poolCaip2.reference}/${sourceRevision}`)
+  if (deployment == null) throw new Error('Pool fee source revision unavailable')
+  const result = await getPool({ deployment, id: $feeSchedule.$pool.id, blockHash: hash })
+  if (result.pool == null) throw new Error('Pool unavailable at exact fee coordinate')
+  const fee = result.pool.fees.find(candidate => candidate.feeType === $feeSchedule.feeType)
+  if (fee == null) throw new Error('Pool fee unavailable at exact coordinate')
+  return { ...result, fee, selector: { $feeSchedule, $block: { $network: $block.$network, hash }, sourceRevision } }
+ } } },
+})({
+ $feeSchedule: result => ({ [EntityMetaKey.Selector]: result.selector.$feeSchedule }),
+ $block: result => ({ [EntityMetaKey.Selector]: result.selector.$block, [EntityMetaKey.Fields]: {
+  [entityFieldAddressKey(EntityType.EvmBlock, [], 'blockNumber')]: BigInt(result.block.number),
+  ...(result.block.timestamp == null ? {} : { [entityFieldAddressKey(EntityType.EvmBlock, [], 'timestamp')]: result.block.timestamp * 1000 }),
+ } }),
+ sourceRevision: result => result.selector.sourceRevision,
+ feePercentage: result => feePercentage(result.fee),
+})
 const poolObservationResolver = defineResolver({
   entityType: EntityType.LiquidityPool_Amm_EvmBlock,
   resolve: { PoolBlockRevision: { resolve: async ({ $pool, $block, sourceRevision }) => {
@@ -223,5 +285,5 @@ const blockResolver = defineResolver({
 
 export default {
 	source: Source.TheGraph_Graphql,
-	resolvers: [protocolResolver, observationResolver, poolResolver, poolObservationResolver, assetResolver, blockResolver] as const,
+	resolvers: [protocolResolver, observationResolver, poolResolver, poolObservationResolver, assetResolver, feeScheduleResolver, feeObservationResolver, blockResolver] as const,
 } satisfies RegisteredSourceResolverModule

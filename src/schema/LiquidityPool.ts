@@ -29,6 +29,13 @@ export default entity({
 		entityType: EntityType.LiquidityPool_Amm_EvmBlock,
 		cardinality: EntityFieldCardinality.Many,
 	},
+	$$feeSchedules: {
+		entityType: EntityType.LiquidityPoolFeeSchedule,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.TheGraph_Graphql,
+		],
+	},
 	name: {
 		primitiveType: type("string | null"),
 		cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -725,6 +725,8 @@ export enum EntityType {
 	LiquidityPool_Amm_EvmBlock_InputAsset = 'LiquidityPool_Amm_EvmBlock_InputAsset',
 	LiquidityPool_Block = 'LiquidityPool_Block',
 	LiquidityPool_Timestamp = 'LiquidityPool_Timestamp',
+	LiquidityPoolFeeSchedule = 'LiquidityPoolFeeSchedule',
+	LiquidityPoolFeeSchedule_EvmBlock = 'LiquidityPoolFeeSchedule_EvmBlock',
 	LitecoinMwebBlock = 'LitecoinMwebBlock',
 	LitecoinMwebOutput = 'LitecoinMwebOutput',
 	LitecoinMwebPegIn = 'LitecoinMwebPegIn',

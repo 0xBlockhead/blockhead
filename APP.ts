@@ -1426,6 +1426,8 @@ export enum EntityType {
 	LiquidityPool_Amm_EvmBlock_InputAsset = "LiquidityPool_Amm_EvmBlock_InputAsset",
 	LiquidityPool_Block = "LiquidityPool_Block",
 	LiquidityPool_Timestamp = "LiquidityPool_Timestamp",
+	LiquidityPoolFeeSchedule = "LiquidityPoolFeeSchedule",
+	LiquidityPoolFeeSchedule_EvmBlock = "LiquidityPoolFeeSchedule_EvmBlock",
 	LitecoinMwebBlock = "LitecoinMwebBlock",
 	LitecoinMwebOutput = "LitecoinMwebOutput",
 	LitecoinMwebPegIn = "LitecoinMwebPegIn",
@@ -2299,6 +2301,13 @@ export const schema = {
 					matcher: "iso4217",
 				},
 				type: { primitive: "string" },
+			},
+			{
+				id: "LiquidityPoolFeeType",
+				routeParam: {
+					matcher: "stringSegment",
+				},
+				type: { raw: "type.enumerated('FIXED_TRADING_FEE', 'TIERED_TRADING_FEE', 'DYNAMIC_TRADING_FEE', 'FIXED_LP_FEE', 'DYNAMIC_LP_FEE', 'FIXED_PROTOCOL_FEE', 'DYNAMIC_PROTOCOL_FEE', 'FIXED_STAKE_FEE', 'DYNAMIC_STAKE_FEE', 'DEPOSIT_FEE', 'WITHDRAWAL_FEE', 'DYNAMIC_TAKER_FEE', 'DYNAMIC_TAKER_DELAYED_FEE', 'DYNAMIC_TAKER_DELAYED_OFFCHAIN_FEE', 'DYNAMIC_MAKER_FEE', 'DYNAMIC_MAKER_DELAYED_FEE', 'DYNAMIC_MAKER_DELAYED_OFFCHAIN_FEE')" },
 			},
 			{
 				id: "MarketAssetKind",
@@ -43172,6 +43181,7 @@ export const schema = {
 				"id": { label: "ID", description: "The identifier assigned by the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"$financialProtocol": { type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.FinancialProtocol },
 				"$$ammObservations": { type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LiquidityPool_Amm_EvmBlock },
+				"$$feeSchedules": { label: "Fee schedules", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LiquidityPoolFeeSchedule, defaultSources: [Source.TheGraph_Graphql] },
 				"name": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, primitiveType: { raw: 'type("string | null")' } },
 				"symbol": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, primitiveType: { raw: 'type("string | null")' } },
 				"isSingleSided": { type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
@@ -43258,6 +43268,7 @@ export const schema = {
 								className: "network-view-collapsible-observations",
 								sections: [
 									{ id: "liquidity-pool-timestamps", field: "$$timestamps", List: "LiquidityPool_TimestampsView", label: "Observations", emptyText: "No liquidity pool observations yet." },
+									{ id: "liquidity-pool-fee-schedules", field: "$$feeSchedules", List: "LiquidityPoolFeeSchedulesView", label: "Fee schedules", emptyText: "No fee schedules." },
 								],
 							},
 						],
@@ -43275,7 +43286,6 @@ export const schema = {
 					},
 				},
 			}),
-
 
 			entity({
 				entityType: EntityType.LiquidityPool_Amm_EvmBlock,
@@ -43513,6 +43523,48 @@ export const schema = {
 					},
 					plural: { component: "LiquidityPool_TimestampsView",
 					},
+				},
+			}),
+
+			entity({
+				entityType: EntityType.LiquidityPoolFeeSchedule,
+				labels: { singular: "liquidity pool fee schedule", plural: "liquidity pool fee schedules" },
+				description: "A fee schedule entry for one liquidity pool and one standardized Messari fee type.",
+			})({
+				"$pool": { label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LiquidityPool },
+				"feeType": { label: "Fee type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "LiquidityPoolFeeType" },
+				"feePercentage": { label: "Fee percentage points", description: "The exact upstream percentage-point value when applicable; zero sentinel values are omitted for tiered and dynamic modes.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+				"$$observations": { label: "Block observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LiquidityPoolFeeSchedule_EvmBlock, defaultSources: [Source.TheGraph_Graphql] },
+			})({
+				selectors: { "PoolFeeType": ["$pool", "feeType"] },
+				views: {
+					singular: {
+						query: { sources: [Source.TheGraph_Graphql] },
+						summary: { title: ["feeType"], value: ["feePercentage"], HeadingAfter: ["$pool"] },
+						content: { dl: [["$pool", "feeType", "feePercentage"]], lists: [{ field: "$$observations", component: "LiquidityPoolFeeSchedule_EvmBlocksView", query: { sources: [Source.TheGraph_Graphql] } }] },
+					},
+					plural: { component: "LiquidityPoolFeeSchedulesView" },
+				},
+			}),
+
+			entity({
+				entityType: EntityType.LiquidityPoolFeeSchedule_EvmBlock,
+				labels: { singular: "liquidity pool fee schedule block observation", plural: "liquidity pool fee schedule block observations" },
+				description: "A fee schedule observation at an immutable EVM block and source interpretation revision.",
+			})({
+				"$feeSchedule": { label: "Fee schedule", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LiquidityPoolFeeSchedule },
+				"$block": { label: "Block", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmBlock },
+				"sourceRevision": { label: "Source revision", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"feePercentage": { label: "Fee percentage points", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "NonNegativeDecimalString" },
+			})({
+				selectors: { "ScheduleBlockRevision": ["$feeSchedule", "$block", "sourceRevision"] },
+				views: {
+					singular: {
+						query: { sources: [Source.TheGraph_Graphql] },
+						summary: { title: ["$block"], value: ["feePercentage"], HeadingAfter: ["$feeSchedule", "sourceRevision"] },
+						content: { dl: [["$feeSchedule", "$block", "sourceRevision", "feePercentage"]] },
+					},
+					plural: { component: "LiquidityPoolFeeSchedule_EvmBlocksView" },
 				},
 			}),
 
@@ -89950,6 +90002,45 @@ export const routes = defineRoutes(schema)({
               } },
             },
           } },
+
+										"fee-schedule": { children: {
+											"[feeType]": {
+												params: { feeType: ["LiquidityPoolFeeType"] },
+												selectors: { [EntityType.LiquidityPoolFeeSchedule]: { PoolFeeType: {
+													derivations: { feeType: { kind: "param", name: "feeType" } },
+													page: {},
+												} } },
+												children: { "observation": { children: {
+													"[blockSelector]": {
+														params: { blockSelector: ["string"] },
+														children: { "[sourceRevision]": {
+															params: { sourceRevision: ["string"] },
+															selectors: { [EntityType.LiquidityPoolFeeSchedule_EvmBlock]: { ScheduleBlockRevision: {
+																derivations: {
+																	$feeSchedule: { kind: "selector", entity: EntityType.LiquidityPoolFeeSchedule, selector: "PoolFeeType", params: [
+																		{ field: "$pool", value: { kind: "selector", entity: EntityType.LiquidityPool, selector: "EvmNetworkId", params: [
+																			{ field: "$network", value: { kind: "selector", entity: EntityType.Network, selector: "Caip2", params: [{ field: "caip2", value: { kind: "object", fields: [
+																				{ name: "namespace", value: { kind: "literal", value: "eip155" } },
+																				{ name: "reference", value: { kind: "param", name: "chainId" } },
+																			] } }] } },
+																			{ field: "id", param: "poolId" },
+																		] } },
+																		{ field: "feeType", param: "feeType" },
+																	] },
+																				$block: { kind: "call", from: "devalue", name: "parse", args: [{ kind: "param", name: "blockSelector" }] },
+																				sourceRevision: { kind: "param", name: "sourceRevision" },
+																			},
+																		href: { params: {
+																			blockSelector: { kind: "call", from: "devalue", name: "stringify", args: [{ kind: "field", name: "$block" }] },
+																			sourceRevision: { kind: "field", name: "sourceRevision" },
+																		} },
+																			page: {},
+															} } },
+														} },
+													} },
+															} },
+														},
+												} },
 
 										"observations": {
 											children: {

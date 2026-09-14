@@ -37,6 +37,7 @@
 	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import LiquidityPool_TimestampsView from '$/views/LiquidityPool_TimestampsView.svelte'
+	import LiquidityPoolFeeSchedulesView from '$/views/LiquidityPoolFeeSchedulesView.svelte'
 </script>
 
 
@@ -176,6 +177,10 @@
 						id: 'liquidity-pool-timestamps',
 						label: 'Observations',
 					},
+					{
+						id: 'liquidity-pool-fee-schedules',
+						label: 'Fee schedules',
+					},
 				]
 			}
 			data-card
@@ -193,6 +198,16 @@
 					collapsible={false}
 					title={label}
 					emptyText='No liquidity pool observations yet.'
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionLiquidityPoolFeeSchedules({ id, label })}
+				<LiquidityPoolFeeSchedulesView
+					selection={selection.$$feeSchedules}
+					collapsible={false}
+					title={label}
+					emptyText='No fee schedules.'
 					id={`${id}-list`}
 				/>
 			{/snippet}

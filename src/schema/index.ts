@@ -725,6 +725,8 @@ import LiquidityPool_Amm_EvmBlockSchema from '$/schema/LiquidityPool_Amm_EvmBloc
 import LiquidityPool_BlockSchema from '$/schema/LiquidityPool_Block.ts'
 import LiquidityPool_TimestampSchema from '$/schema/LiquidityPool_Timestamp.ts'
 import LiquidityPoolSchema from '$/schema/LiquidityPool.ts'
+import LiquidityPoolFeeSchedule_EvmBlockSchema from '$/schema/LiquidityPoolFeeSchedule_EvmBlock.ts'
+import LiquidityPoolFeeScheduleSchema from '$/schema/LiquidityPoolFeeSchedule.ts'
 import LitecoinMwebBlockSchema from '$/schema/LitecoinMwebBlock.ts'
 import LitecoinMwebOutputSchema from '$/schema/LitecoinMwebOutput.ts'
 import LitecoinMwebPegInSchema from '$/schema/LitecoinMwebPegIn.ts'
@@ -1867,6 +1869,8 @@ const schemaChunk14 = [
 	LiquidityPool_Amm_EvmBlock_InputAssetSchema,
 	LiquidityPool_BlockSchema,
 	LiquidityPool_TimestampSchema,
+	LiquidityPoolFeeScheduleSchema,
+	LiquidityPoolFeeSchedule_EvmBlockSchema,
 	LitecoinMwebBlockSchema,
 	LitecoinMwebOutputSchema,
 	LitecoinMwebPegInSchema,
@@ -1891,11 +1895,11 @@ const schemaChunk14 = [
 	McpServerSchema,
 	McpServer_TimestampSchema,
 	McpServerPackageSchema,
-	McpServerPackageVersionSchema,
-	McpToolSchema,
 ] as const
 
 const schemaChunk15 = [
+	McpServerPackageVersionSchema,
+	McpToolSchema,
 	McpToolCallSchema,
 	McpToolCall_TimestampSchema,
 	MediaSchema,
@@ -1944,11 +1948,11 @@ const schemaChunk15 = [
 	NetworkEndpointObservation_TimestampSchema,
 	NetworkStackSchema,
 	NetworkUpgradeSchema,
-	NetworkUpgrade_TimestampSchema,
-	NftCollectionSchema,
 ] as const
 
 const schemaChunk16 = [
+	NetworkUpgrade_TimestampSchema,
+	NftCollectionSchema,
 	NftTokenSchema,
 	NostrArticleSchema,
 	NostrArticleEventSchema,
@@ -1997,11 +2001,11 @@ const schemaChunk16 = [
 	QuilibriumProverSchema,
 	QuilibriumShardSchema,
 	RadicleCollaborationEventSchema,
-	RadicleDelegateSchema,
-	RadicleIdentityDocumentSchema,
 ] as const
 
 const schemaChunk17 = [
+	RadicleDelegateSchema,
+	RadicleIdentityDocumentSchema,
 	RadicleIdentityRevisionSchema,
 	RadicleIssueSchema,
 	RadiclePatchSchema,
@@ -2050,11 +2054,11 @@ const schemaChunk17 = [
 	SorobanWasm_TimestampSchema,
 	SpecificationProposalSchema,
 	SpecificationProposalKindSchema,
-	SpecificationRealmSchema,
-	StarknetAccount_TimestampSchema,
 ] as const
 
 const schemaChunk18 = [
+	SpecificationRealmSchema,
+	StarknetAccount_TimestampSchema,
 	StarknetBlockSchema,
 	StarknetClassSchema,
 	StarknetContractSchema,
@@ -2103,11 +2107,11 @@ const schemaChunk18 = [
 	SuiObjectChangeSchema,
 	SuiObjectVersionSchema,
 	SuiPackageSchema,
-	SuiPackageUpgradeSchema,
-	SuiPackageVersionSchema,
 ] as const
 
 const schemaChunk19 = [
+	SuiPackageUpgradeSchema,
+	SuiPackageVersionSchema,
 	SuiProgrammableTransactionCommandSchema,
 	SuiRegulatedCoinState_TimestampSchema,
 	SuiTransactionSchema,
@@ -2156,11 +2160,11 @@ const schemaChunk19 = [
 	TonContractGetMethodSchema,
 	TonContractGetMethod_TimestampSchema,
 	TonJettonSchema,
-	TonJetton_TimestampSchema,
-	TonJettonBalance_TimestampSchema,
 ] as const
 
 const schemaChunk20 = [
+	TonJetton_TimestampSchema,
+	TonJettonBalance_TimestampSchema,
 	TonJettonTransferSchema,
 	TonMessageSchema,
 	TonNetwork_TimestampSchema,
@@ -2209,11 +2213,11 @@ const schemaChunk20 = [
 	UtxoTransactionSchema,
 	UtxoTransaction_Mempool_TimestampSchema,
 	WalletConnectionMethodSchema,
-	WormholeVaaSchema,
-	XmtpConversationSchema,
 ] as const
 
 const schemaChunk21 = [
+	WormholeVaaSchema,
+	XmtpConversationSchema,
 	XmtpMessageSchema,
 	XmtpNetworkSchema,
 	XmtpParticipantSchema,

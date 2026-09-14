@@ -993,6 +993,26 @@ export const e2eRouteFixtureMetadataByNodeId = {
 			},
 		],
 	},
+	'/(assets)/pool/[chainId]/[poolId]/fee-schedule/[feeType]': {
+		routeId: '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/fee-schedule/[feeType=stringSegment]',
+		mappings: [
+			{
+				id: 'LiquidityPoolFeeSchedule.PoolFeeType',
+				probeAtomPrefixes: ['/pool/[chainId]/[poolId]/fee-schedule/[feeType]:LiquidityPoolFeeSchedule.PoolFeeType'],
+				probeCases: [[[0, '1', ['feeType', 'poolId', 'chainId']]]],
+			},
+		],
+	},
+	'/(assets)/pool/[chainId]/[poolId]/fee-schedule/[feeType]/observation/[blockSelector]/[sourceRevision]': {
+		routeId: '/(assets)/pool/[chainId=eip155ChainId]/[poolId=stringSegment]/(liquidityPool)/fee-schedule/[feeType=stringSegment]/(liquidityPoolFeeSchedule)/observation/[blockSelector=stringSegment]/[sourceRevision=stringSegment]',
+		mappings: [
+			{
+				id: 'LiquidityPoolFeeSchedule_EvmBlock.ScheduleBlockRevision',
+				probeAtomPrefixes: ['/pool/[chainId]/[poolId]/fee-schedule/[feeType]/observation/[blockSelector]/[sourceRevision]:LiquidityPoolFeeSchedule_EvmBlock.ScheduleBlockRevision'],
+				probeCases: [[[0, '1', ['chainId', 'poolId', 'feeType', 'blockSelector', 'sourceRevision']]]],
+			},
+		],
+	},
 	'/(assets)/uniswap-cca/auction/[chainId]/[auctionAddress]': {
 		routeId: '/(assets)/uniswap-cca/auction/[chainId=eip155ChainId]/[auctionAddress=evmAddress]',
 		mappings: [

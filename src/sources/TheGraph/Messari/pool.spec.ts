@@ -23,7 +23,7 @@ const fixture = (which: 'uniswap' | 'sushiswap') => {
  return { _meta: data._meta, liquidityPool: {
   id, name: null, symbol: 'fixture', isSingleSided: false, createdTimestamp: '1', createdBlockNumber: '1', protocol: data.dexAmmProtocols[0],
   inputTokens: [{id:tokenB},{id:tokenA}], inputTokenBalances: ['900719925474099312345','0'], inputTokenBalancesUSD: ['1.000000000000000001','0'], inputTokenWeights: ['50.25','49.75'],
-  totalValueLockedUSD: '1.000000000000000001', cumulativeVolumeUSD: '9.123456789123456789', cumulativeSupplySideRevenueUSD:'1', cumulativeProtocolSideRevenueUSD:'2', cumulativeTotalRevenueUSD:'3',
+  fees: [], totalValueLockedUSD: '1.000000000000000001', cumulativeVolumeUSD: '9.123456789123456789', cumulativeSupplySideRevenueUSD:'1', cumulativeProtocolSideRevenueUSD:'2', cumulativeTotalRevenueUSD:'3',
  } }
 }
 it('indexes exact upstream deployment authority without inferring unsupported networks or aliasing revisions', () => {
