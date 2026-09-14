@@ -265,6 +265,47 @@
 			</div>
 
 			<div>
+				<dt>Cumulative unique users</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							viewSelection({
+								fields: {
+									cumulativeUniqueUsers: true,
+								},
+							})
+						}
+					>
+						{#snippet children(entity)}
+							{entity.cumulativeUniqueUsers}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					viewSelection({
+						fields: {
+							protocolControlledValueUSD: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const protocolControlledValueUSD = entity.protocolControlledValueUSD}
+					{#if protocolControlledValueUSD != null}
+						<div>
+							<dt>Protocol-controlled value (USD)</dt>
+							<dd>
+								{protocolControlledValueUSD}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<div>
 				<dt>Source protocol identifier</dt>
 				<dd>
 					<ResourceBoundary

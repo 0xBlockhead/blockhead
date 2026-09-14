@@ -49,6 +49,10 @@ export default entity({
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
 	},
+	protocolControlledValueUSD: {
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
 	cumulativeVolumeUSD: {
 		primitiveType: type('string'),
 		cardinality: EntityFieldCardinality.One,
@@ -66,6 +70,10 @@ export default entity({
 		cardinality: EntityFieldCardinality.One,
 	},
 	totalPoolCount: {
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	cumulativeUniqueUsers: {
 		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.One,
 	},

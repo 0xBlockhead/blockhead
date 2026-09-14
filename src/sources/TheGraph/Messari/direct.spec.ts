@@ -59,6 +59,10 @@ const textResponseFromCapture = async (file: string) => {
 	if (typeof responseText !== 'string')
 		throw new Error(`Missing captured GraphQL response text: ${file}`)
 	const response = JSON.parse(responseText)
+	for (const protocol of response.data.dexAmmProtocols ?? []) {
+		protocol.protocolControlledValueUSD ??= null
+		protocol.cumulativeUniqueUsers ??= 0
+	}
 	// Financial captures predate the latest query's pool selection; model an explicit empty page.
 	if (file.endsWith('.query.json'))
 		response.data.liquidityPools = []

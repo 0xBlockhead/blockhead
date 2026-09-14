@@ -35,11 +35,13 @@ export const protocolFinancialsWire = type({
 		subgraphVersion: 'string',
 		methodologyVersion: 'string',
 		totalValueLockedUSD: financialDecimal,
+		protocolControlledValueUSD: financialDecimal.or('null'),
 		cumulativeVolumeUSD: financialDecimal,
 		cumulativeSupplySideRevenueUSD: financialDecimal,
 		cumulativeProtocolSideRevenueUSD: financialDecimal,
 		cumulativeTotalRevenueUSD: financialDecimal,
 		totalPoolCount: graphInt,
+		cumulativeUniqueUsers: graphInt,
 	}).array(),
 	liquidityPools: type({ id: EvmAddress }).array(),
 })

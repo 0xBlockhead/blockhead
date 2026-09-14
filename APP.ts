@@ -34005,11 +34005,13 @@ export const schema = {
 				"implementationVersion": { label: "Implementation version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"methodologyVersion": { label: "Methodology version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"totalValueLockedUSD": { label: "Total value locked (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+				"protocolControlledValueUSD": { label: "Protocol-controlled value (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				"cumulativeVolumeUSD": { label: "Cumulative volume (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"cumulativeSupplySideRevenueUSD": { label: "Cumulative supply-side revenue (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"cumulativeProtocolSideRevenueUSD": { label: "Cumulative protocol-side revenue (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"cumulativeTotalRevenueUSD": { label: "Cumulative total revenue (USD)", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"totalPoolCount": { label: "Pool count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
+				"cumulativeUniqueUsers": { label: "Cumulative unique users", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 			})({
 				selectors: { "ProtocolBlockRevision": ["$protocol", "$block", "sourceRevision"] },
 				views: {
@@ -34019,7 +34021,7 @@ export const schema = {
         latest: [{ field: "$block", label: "Block", fields: ["blockNumber", "timestamp"], view: "EvmBlockView", query: { sources: [Source.TheGraph_Graphql] } }],
         content: { dl: [[
           "totalValueLockedUSD", "cumulativeVolumeUSD", "cumulativeSupplySideRevenueUSD",
-          "cumulativeProtocolSideRevenueUSD", "cumulativeTotalRevenueUSD", "totalPoolCount",
+          "cumulativeProtocolSideRevenueUSD", "cumulativeTotalRevenueUSD", "totalPoolCount", "cumulativeUniqueUsers", "protocolControlledValueUSD",
           "sourceEntityId", "expectedManifestSchemaVersion", "reportedSchemaVersion", "implementationVersion", "methodologyVersion",
         ]] },
       },

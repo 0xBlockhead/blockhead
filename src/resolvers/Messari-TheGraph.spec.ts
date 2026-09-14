@@ -9,6 +9,8 @@ const { default: module } = await import('$/resolvers/Messari-TheGraph.ts')
 const { messariGraphqlProfiles } = await import('$/sources/TheGraph/Messari/direct.ts')
 const [protocolResolver, observationResolver] = module.resolvers
 const blockResolver = module.resolvers.find((resolver) => resolver.entityType === EntityType.EvmBlock)
+if (blockResolver == null || !('EvmNetworkBlockHash' in blockResolver.resolve))
+	throw new Error('Messari Graph block resolver is missing')
 const protocolContext = {
 	pagination: { limit: 10, offset: 0 },
 } as Parameters<typeof protocolResolver.resolve.NetworkProtocolKey.resolve>[1]
@@ -28,6 +30,10 @@ it('limits the Graph block producer to its explicit indexed network', () => {
 for (const [deployment, file] of cases) {
 	const capture = JSON.parse(await readFile(new URL(`../sources/TheGraph/Messari/fixtures/${file}`, import.meta.url), 'utf8'))
 	const payload = JSON.parse(capture.response.result.content.find((item: { type: string; text: string }) => item.type === 'text').text)
+	for (const protocol of payload.data.dexAmmProtocols ?? []) {
+		protocol.protocolControlledValueUSD ??= null
+		protocol.cumulativeUniqueUsers ??= 0
+	}
 	const profile = messariGraphqlProfiles[deployment]
 	const $network = { caip2: profile.caip2 }
 	const $protocol = { $network, protocolKey: profile.protocolKey }
@@ -54,7 +60,9 @@ for (const [deployment, file] of cases) {
 		const projections = observationResolver.projections
 		for (const field of ['totalValueLockedUSD', 'cumulativeVolumeUSD', 'cumulativeSupplySideRevenueUSD', 'cumulativeProtocolSideRevenueUSD', 'cumulativeTotalRevenueUSD'] as const)
 			expect(projections[field](result)).toBe(payload.data.dexAmmProtocols[0][field])
+		expect(projections.protocolControlledValueUSD(result)).toBe(payload.data.dexAmmProtocols[0].protocolControlledValueUSD ?? undefined)
 		expect(projections.totalPoolCount(result)).toBe(BigInt(payload.data.dexAmmProtocols[0].totalPoolCount))
+		expect(projections.cumulativeUniqueUsers(result)).toBe(BigInt(payload.data.dexAmmProtocols[0].cumulativeUniqueUsers))
 		expect(projections.expectedManifestSchemaVersion(result)).toBe(profile.expectedManifestSchemaVersion)
 		expect(projections.reportedSchemaVersion(result)).toBe(profile.schemaVersion)
 		if (deployment === 'sushiswap-v3-arbitrum')

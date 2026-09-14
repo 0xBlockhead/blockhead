@@ -107,6 +107,7 @@ const latestDocument = graphql(`
 		) {
 			id name network schemaVersion subgraphVersion methodologyVersion
 			totalValueLockedUSD cumulativeVolumeUSD
+			protocolControlledValueUSD cumulativeUniqueUsers
 			cumulativeSupplySideRevenueUSD cumulativeProtocolSideRevenueUSD
 			cumulativeTotalRevenueUSD totalPoolCount
 		}
@@ -136,6 +137,7 @@ const exactDocument = graphql(`
 		) {
 			id name network schemaVersion subgraphVersion methodologyVersion
 			totalValueLockedUSD cumulativeVolumeUSD
+			protocolControlledValueUSD cumulativeUniqueUsers
 			cumulativeSupplySideRevenueUSD cumulativeProtocolSideRevenueUSD
 			cumulativeTotalRevenueUSD totalPoolCount
 		}

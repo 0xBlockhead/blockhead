@@ -89,11 +89,13 @@ const observationResolver = defineResolver({
 			implementationVersion: (snapshot) => snapshot.subgraphVersion,
 			methodologyVersion: (snapshot) => snapshot.methodologyVersion,
 			totalValueLockedUSD: (snapshot) => snapshot.totalValueLockedUSD,
+			protocolControlledValueUSD: (snapshot) => snapshot.protocolControlledValueUSD,
 			cumulativeVolumeUSD: (snapshot) => snapshot.cumulativeVolumeUSD,
 			cumulativeSupplySideRevenueUSD: (snapshot) => snapshot.cumulativeSupplySideRevenueUSD,
 			cumulativeProtocolSideRevenueUSD: (snapshot) => snapshot.cumulativeProtocolSideRevenueUSD,
 			cumulativeTotalRevenueUSD: (snapshot) => snapshot.cumulativeTotalRevenueUSD,
 			totalPoolCount: (snapshot) => BigInt(snapshot.totalPoolCount),
+			cumulativeUniqueUsers: (snapshot) => BigInt(snapshot.cumulativeUniqueUsers),
 		})
 
 const milliseconds = (seconds: string) => {

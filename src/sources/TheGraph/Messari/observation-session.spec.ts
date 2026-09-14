@@ -78,6 +78,11 @@ it('bounds invalid capacities and accepts equivalent object-key ordering', () =>
 const setup = async () => {
 	const capture = JSON.parse(await readFile(new URL('./fixtures/live-sushiswap-arbitrum-introspection.json.query.json', import.meta.url), 'utf8'))
 	const payload = JSON.parse(capture.response.result.content.find((x: { type: string }) => x.type === 'text').text)
+	for (const protocol of payload.data.dexAmmProtocols ?? []) {
+		protocol.protocolControlledValueUSD ??= null
+		protocol.cumulativeUniqueUsers ??= 0
+	}
+	payload.data.liquidityPools = []
 	const observationSession = createMessariObservationSession()
 	const input = { deployment: 'sushiswap-v3-arbitrum' as const, binding: getMessariGraphqlBinding('sushiswap-v3-arbitrum'), blockHash: payload.data._meta.block.hash, observationSession }
 	const reply = (body = payload) => corsFetch.mockImplementation(async () => new Response(JSON.stringify(body)))
