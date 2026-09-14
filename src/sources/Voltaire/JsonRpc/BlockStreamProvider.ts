@@ -1,7 +1,7 @@
 import {
 	BlockHash,
 	BlockHeader,
-	type RpcBlockHeader,
+	Uint,
 } from '@tevm/voltaire'
 import type {
 	BlockStreamConstructorOptions,
@@ -28,6 +28,27 @@ const blockMethods = new Set([
 	'eth_getBlockByNumber',
 ])
 
+const isJsonValueUnknown = (value: unknown): value is JsonValue => {
+	if (value == null || ['boolean', 'bigint', 'number', 'string'].includes(typeof value))
+		return true
+	if (Array.isArray(value))
+		return value.every(isJsonValueUnknown)
+	if (typeof value === 'object')
+		return Object.values(value).every(isJsonValueUnknown)
+	return false
+}
+
+const isJsonArrayUnknown = (value: unknown): value is JsonValue[] => (
+	Array.isArray(value) && value.every(isJsonValueUnknown)
+)
+
+const isJsonObjectUnknown = (value: unknown): value is JsonObject => (
+	typeof value === 'object'
+	&& value !== null
+	&& !Array.isArray(value)
+	&& Object.values(value).every(isJsonValueUnknown)
+)
+
 const requiredString = (object: JsonObject, field: string) => {
 	const value = object[field]
 	if (typeof value !== 'string')
@@ -43,7 +64,7 @@ const optionalString = (object: JsonObject, field: string) => {
 	return value
 }
 
-const rpcHeaderFromJson = (block: JsonObject): RpcBlockHeader => ({
+const rpcHeaderFromJson = (block: JsonObject): Parameters<typeof BlockHeader.fromRpc>[0] => ({
 	parentHash: requiredString(block, 'parentHash'),
 	sha3Uncles: requiredString(block, 'sha3Uncles'),
 	miner: requiredString(block, 'miner'),
@@ -105,9 +126,9 @@ const blockStreamBlockFromJson = (block: JsonObject): StreamBlock<'header'> => {
 			ommers: [],
 		},
 		hash: BlockHash.fromHex(blockHash),
-		size: quantity(block, 'size'),
+		size: Uint.fromBigInt(quantity(block, 'size')),
 		...(totalDifficulty == null ? {} : {
-			totalDifficulty: quantity(block, 'totalDifficulty'),
+			totalDifficulty: Uint.fromBigInt(quantity(block, 'totalDifficulty')),
 		}),
 	}
 }
@@ -117,12 +138,15 @@ export const blockStreamProvider = (
 ): BlockStreamConstructorOptions['provider'] => {
 	const adapted: BlockStreamConstructorOptions['provider'] = {
 		request: async ({ method, params }) => {
-			const result = await provider.request({ method, params })
+			const jsonParams = params == null ? undefined : isJsonArrayUnknown(params) ? params : (() => {
+				throw new Error('Voltaire_JsonRpc: provider parameters must be a JSON array')
+			})()
+			const result = await provider.request({ method, params: jsonParams })
 			if (!blockMethods.has(method) || result == null)
 				return result
-			if (params?.[1] !== false)
+			if (!isJsonArrayUnknown(params) || params[1] !== false)
 				throw new Error('Voltaire_JsonRpc: block stream must request transaction hashes')
-			if (!isJsonObject(result))
+			if (!isJsonObjectUnknown(result))
 				throw new Error(`Voltaire_JsonRpc: ${method} returned a malformed block`)
 			return blockStreamBlockFromJson(result)
 		},
